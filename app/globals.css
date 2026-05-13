@@ -7,13 +7,13 @@ html {
 body {
   padding: 0;
   margin: 0;
-  font-family: 'BeVietnamPro', sans-serif;
+  font-family: 'PatrickHand', sans-serif;
   background-color: black;
   color: white;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'NotoSans', sans-serif;
+  font-family: 'PatrickHandSC', sans-serif;
 }
 
 
@@ -62,5 +62,21 @@ h1, h2, h3, h4, h5, h6 {
   src: url('/fonts/NotoSans-Italic.ttf') format('truetype');
   font-weight: 400;
   font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PatrickHand';
+  src: url('/fonts/PatrickHand-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PatrickHandSC';
+  src: url('/fonts/PatrickHandSC-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
   font-display: swap;
 }
