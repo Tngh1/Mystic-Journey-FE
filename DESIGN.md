@@ -299,3 +299,4 @@ cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed
 - Design should feel immersive and game-like
 - Green accent color represents nature/growth/magic theme
 - Dark background creates contrast and mystery
+wwwwwwwwwwww
