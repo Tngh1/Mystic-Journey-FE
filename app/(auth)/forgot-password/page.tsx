@@ -39,7 +39,7 @@ export default function ForgotPasswordPage() {
       <div className="flex justify-center mb-8">
         <Link href="/" className="relative w-32 h-20">
           <Image
-            src="/images/logo.png"
+            src="/images/logo/logo.png"
             alt="Mystic Journey Logo"
             fill
             className="object-contain"

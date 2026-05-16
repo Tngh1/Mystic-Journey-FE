@@ -22,7 +22,7 @@ export default function Header() {
         {/* Logo */}
         <Link href="/" className="relative w-24 h-12 md:w-32 md:h-16">
           <Image
-            src="/images/logo.png"
+            src="/images/logo/logo.png"
             alt="Mystic Journey Logo"
             fill
             className="object-contain"

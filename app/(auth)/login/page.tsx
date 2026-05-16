@@ -51,7 +51,7 @@ export default function LoginPage() {
       <div className="flex justify-center mb-8">
         <Link href="/" className="relative w-32 h-20">
           <Image
-            src="/images/logo.png"
+            src="/images/logo/logo.png"
             alt="Mystic Journey Logo"
             fill
             className="object-contain"
@@ -71,14 +71,14 @@ export default function LoginPage() {
           {/* Email */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-2">
-              Email Address
+              Email or Username
             </label>
             <input
               id="email"
-              type="email"
+              type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
+              placeholder="Enter your email or username"
               required
               className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#5d9e6e] focus:bg-white/10 transition-all duration-200"
             />

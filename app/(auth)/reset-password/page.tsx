@@ -139,7 +139,7 @@ function ResetPasswordForm() {
       <div className="w-full">
         <div className="flex justify-center mb-8">
           <Link href="/" className="relative w-32 h-20">
-            <Image src="/images/logo.png" alt="Mystic Journey Logo" fill className="object-contain" priority />
+            <Image src="/images/logo/logo.png" alt="Mystic Journey Logo" fill className="object-contain" priority />
           </Link>
         </div>
 
@@ -161,7 +161,7 @@ function ResetPasswordForm() {
       {/* Logo */}
       <div className="flex justify-center mb-8">
         <Link href="/" className="relative w-32 h-20">
-          <Image src="/images/logo.png" alt="Mystic Journey Logo" fill className="object-contain" priority />
+          <Image src="/images/logo/logo.png" alt="Mystic Journey Logo" fill className="object-contain" priority />
         </Link>
       </div>
 

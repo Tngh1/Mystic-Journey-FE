@@ -15,7 +15,9 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [gender, setGender] = useState("Male");
+  const [gender, setGender] = useState("Other");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [birthday, setBirthday] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -47,6 +49,8 @@ export default function RegisterPage() {
         password: password,
         confirmPassword: confirmPassword,
         gender: gender,
+        phoneNumber: phoneNumber || undefined,
+        birthday: birthday || undefined,
       });
 
       if (result.success) {
@@ -68,7 +72,7 @@ export default function RegisterPage() {
       <div className="flex justify-center mb-8">
         <Link href="/" className="relative w-32 h-20">
           <Image
-            src="/images/logo.png"
+            src="/images/logo/logo.png"
             alt="Mystic Journey Logo"
             fill
             className="object-contain"
@@ -142,13 +146,42 @@ export default function RegisterPage() {
               id="gender"
               value={gender}
               onChange={(e) => setGender(e.target.value)}
-              required
               className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:border-[#5d9e6e] focus:bg-white/10 transition-all duration-200"
             >
               <option value="Male" className="text-black">Male</option>
               <option value="Female" className="text-black">Female</option>
               <option value="Other" className="text-black">Other</option>
             </select>
+          </div>
+
+          {/* Phone Number */}
+          <div>
+            <label htmlFor="phoneNumber" className="block text-sm font-medium text-white/80 mb-2">
+              Phone Number <span className="text-white/40">(Optional)</span>
+            </label>
+            <input
+              id="phoneNumber"
+              type="tel"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              placeholder="Enter your phone number"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#5d9e6e] focus:bg-white/10 transition-all duration-200"
+            />
+          </div>
+
+          {/* Birthday */}
+          <div>
+            <label htmlFor="birthday" className="block text-sm font-medium text-white/80 mb-2">
+              Birthday <span className="text-white/40">(Optional, must be 13+)</span>
+            </label>
+            <input
+              id="birthday"
+              type="date"
+              value={birthday}
+              onChange={(e) => setBirthday(e.target.value)}
+              max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:border-[#5d9e6e] focus:bg-white/10 transition-all duration-200"
+            />
           </div>
 
           {/* Password */}
@@ -164,7 +197,7 @@ export default function RegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Create a password"
                 required
-                minLength={8}
+                minLength={6}
                 className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#5d9e6e] focus:bg-white/10 transition-all duration-200"
               />
               <button
@@ -184,7 +217,7 @@ export default function RegisterPage() {
                 )}
               </button>
             </div>
-            <p className="text-xs text-white/40 mt-1">Must be at least 8 characters</p>
+            <p className="text-xs text-white/40 mt-1">Must be 6-100 characters with at least 1 letter and 1 number</p>
           </div>
 
           {/* Confirm Password */}

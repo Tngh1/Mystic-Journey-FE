@@ -59,7 +59,7 @@ export const forgotPassword = async (email: string): Promise<ApiResponse> => {
   const response = await fetch(`${API_BASE_URL}/accounts/forgot-password`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: email }),
+    body: JSON.stringify({ Email: email }),
   });
   return response.json();
 };
