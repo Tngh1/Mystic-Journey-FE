@@ -51,7 +51,7 @@ export default function Footer() {
             {/* Logo */}
             <div className="mb-8">
               <Link href="/" className="inline-block">
-                <span className="font-black text-2xl tracking-widest text-[#5d9e6e] uppercase">
+                <span className="font-black text-2xl tracking-widest text-[#ffc032] uppercase">
                   chumbi
                 </span>
                 <span className="font-black text-2xl tracking-widest text-white uppercase">
@@ -69,8 +69,8 @@ export default function Footer() {
                   href={item.href}
                   className={`text-sm tracking-wide transition-colors duration-200 ${
                     item.highlight
-                      ? "text-[#7dbe8e] hover:text-white"
-                      : "text-white/40 hover:text-[#7dbe8e]"
+                      ? "text-[#ffc032] hover:text-white"
+                      : "text-white/40 hover:text-[#ffc032]"
                   }`}
                 >
                   {item.label}
@@ -86,7 +86,7 @@ export default function Footer() {
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="text-sm text-white/40 tracking-wide transition-colors duration-200 hover:text-[#7dbe8e]"
+                  className="text-sm text-white/40 tracking-wide transition-colors duration-200 hover:text-[#ffc032]"
                 >
                   {item.label}
                 </Link>
@@ -108,12 +108,12 @@ export default function Footer() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
-                  className="flex-1 rounded-full border border-white/20 bg-white/5 px-5 py-3 text-sm text-white placeholder-white/30 outline-none transition-all duration-200 focus:border-[#5d9e6e] focus:bg-white/10"
+                  className="flex-1 rounded-full border border-white/20 bg-white/5 px-5 py-3 text-sm text-white placeholder-white/30 outline-none transition-all duration-200 focus:border-[#ffc032] focus:bg-white/10"
                 />
                 <Button variant="outline" size="md">SUBSCRIBE</Button>
               </div>
               {subscribed && (
-                <p className="mt-3 text-xs text-[#5d9e6e]">
+                <p className="mt-3 text-xs text-[#ffc032]">
                   Thank you for subscribing!
                 </p>
               )}
@@ -126,7 +126,7 @@ export default function Footer() {
                     key={social.label}
                     href={social.href}
                     aria-label={social.label}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/40 transition-all duration-200 hover:border-[#5d9e6e] hover:bg-[#5d9e6e]/10 hover:text-[#7dbe8e]"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/40 transition-all duration-200 hover:border-[#ffc032] hover:bg-[#ffc032]/10 hover:text-[#ffc032]"
                   >
                     <SocialIcon name={social.label} />
                   </a>
@@ -137,9 +137,9 @@ export default function Footer() {
 
         {/* Divider */}
         <div className="mt-16 flex items-center gap-4">
-          <div className="h-px flex-1 bg-[#5d9e6e]/20" />
-          <div className="h-2 w-2 rounded-full bg-[#5d9e6e]" />
-          <div className="h-px flex-1 bg-[#5d9e6e]/20" />
+          <div className="h-px flex-1 bg-[#ffc032]/20" />
+          <div className="h-2 w-2 rounded-full bg-[#ffc032]" />
+          <div className="h-px flex-1 bg-[#ffc032]/20" />
         </div>
 
         {/* Bottom Bar */}
@@ -148,14 +148,14 @@ export default function Footer() {
           <div className="flex items-center justify-center gap-4 md:gap-6">
             <Link
               href="#"
-              className="transition-colors duration-200 hover:text-[#7dbe8e]"
+              className="transition-colors duration-200 hover:text-[#ffc032]"
             >
               Privacy Policy
             </Link>
             <span>|</span>
             <Link
               href="#"
-              className="transition-colors duration-200 hover:text-[#7dbe8e]"
+              className="transition-colors duration-200 hover:text-[#ffc032]"
             >
               Terms & Conditions
             </Link>

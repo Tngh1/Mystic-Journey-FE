@@ -5,13 +5,14 @@ export const showSuccessAlert = (title: string, message: string) => {
     title: title,
     text: message,
     icon: "success",
-    background: "#1a1a2e",
+    background: "#18181b",
     color: "#ffffff",
-    confirmButtonColor: "#5d9e6e",
+    confirmButtonColor: "#ffc032",
     confirmButtonText: "OK",
     customClass: {
       title: "swal-title",
       htmlContainer: "swal-text",
+      popup: "border border-white/10 rounded-2xl",
     },
   });
 };
@@ -21,13 +22,14 @@ export const showErrorAlert = (title: string, message: string) => {
     title: title,
     text: message,
     icon: "error",
-    background: "#1a1a2e",
+    background: "#18181b",
     color: "#ffffff",
-    confirmButtonColor: "#d33",
+    confirmButtonColor: "#ca831f",
     confirmButtonText: "Try Again",
     customClass: {
       title: "swal-title",
       htmlContainer: "swal-text",
+      popup: "border border-white/10 rounded-2xl",
     },
   });
 };
@@ -36,8 +38,11 @@ export const showLoadingAlert = (title: string = "Loading...") => {
   return Swal.fire({
     title: title,
     allowOutsideClick: false,
-    background: "#1a1a2e",
+    background: "#18181b",
     color: "#ffffff",
+    customClass: {
+      popup: "border border-white/10 rounded-2xl",
+    },
     didOpen: () => {
       Swal.showLoading();
     },

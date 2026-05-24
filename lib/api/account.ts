@@ -1,31 +1,36 @@
+import axios from "axios";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  validateStatus: (status) => status >= 200 && status < 500, // Prevent throwing on 400 errors so we can handle ApiResponse cleanly
+});
+
+export interface AccountInfo {
+  accountId: string;
+  fullName: string;
+  userName: string;
+  emailAddress: string;
+  gender: string;
+  phoneNumber?: string;
+  birthday?: string;
+  roleId: number;
+  accessToken?: string;
+  accessTokenExpiresAt?: string;
+  refreshToken?: string;
+  refreshTokenExpiresAt?: string;
+}
 
 export interface ApiResponse {
   success: boolean;
   message: string;
-  Account?: {
-    AccountId: string;
-    FullName: string;
-    UserName: string;
-    EmailAddress: string;
-    Gender: string;
-    PhoneNumber?: string;
-    Birthday?: string;
-    Role: string;
-    AccessToken?: string;
-    AccessTokenExpiresAt?: string;
-    RefreshToken?: string;
-    RefreshTokenExpiresAt?: string;
-  };
+  account?: AccountInfo;
 }
 
 export const login = async (emailOrUsername: string, password: string): Promise<ApiResponse> => {
-  const response = await fetch(`${API_BASE_URL}/accounts/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ EmailOrUsername: emailOrUsername, Password: password }),
-  });
-  return response.json();
+  const response = await apiClient.post("/accounts/login", { emailOrUsername, password });
+  return response.data;
 };
 
 export const register = async (data: {
@@ -38,30 +43,22 @@ export const register = async (data: {
   phoneNumber?: string;
   birthday?: string;
 }): Promise<ApiResponse> => {
-  const response = await fetch(`${API_BASE_URL}/accounts/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      FullName: data.fullName,
-      UserName: data.userName,
-      EmailAddress: data.emailAddress,
-      Password: data.password,
-      ConfirmPassword: data.confirmPassword,
-      Gender: data.gender,
-      PhoneNumber: data.phoneNumber,
-      Birthday: data.birthday,
-    }),
+  const response = await apiClient.post("/accounts/register", {
+    fullName: data.fullName,
+    userName: data.userName,
+    emailAddress: data.emailAddress,
+    password: data.password,
+    confirmPassword: data.confirmPassword,
+    gender: data.gender,
+    phoneNumber: data.phoneNumber,
+    birthday: data.birthday,
   });
-  return response.json();
+  return response.data;
 };
 
 export const forgotPassword = async (email: string): Promise<ApiResponse> => {
-  const response = await fetch(`${API_BASE_URL}/accounts/forgot-password`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ Email: email }),
-  });
-  return response.json();
+  const response = await apiClient.post("/accounts/forgot-password", { email });
+  return response.data;
 };
 
 export const resetPassword = async (data: {
@@ -70,35 +67,23 @@ export const resetPassword = async (data: {
   newPassword: string;
   confirmPassword: string;
 }): Promise<ApiResponse> => {
-  const response = await fetch(`${API_BASE_URL}/accounts/reset-password`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      Email: data.email,
-      VerificationCode: data.verificationCode,
-      NewPassword: data.newPassword,
-      ConfirmPassword: data.confirmPassword,
-    }),
+  const response = await apiClient.post("/accounts/reset-password", {
+    email: data.email,
+    verificationCode: data.verificationCode,
+    newPassword: data.newPassword,
+    confirmPassword: data.confirmPassword,
   });
-  return response.json();
+  return response.data;
 };
 
 export const sendVerificationCode = async (email: string): Promise<ApiResponse> => {
-  const response = await fetch(`${API_BASE_URL}/accounts/send-verification-code`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ Email: email }),
-  });
-  return response.json();
+  const response = await apiClient.post("/accounts/send-verification-code", { email });
+  return response.data;
 };
 
 export const verifyEmail = async (email: string, verificationCode: string): Promise<ApiResponse> => {
-  const response = await fetch(`${API_BASE_URL}/accounts/verify-email`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ Email: email, VerificationCode: verificationCode }),
-  });
-  return response.json();
+  const response = await apiClient.post("/accounts/verify-email", { email, verificationCode });
+  return response.data;
 };
 
 export const changePassword = async (
@@ -109,17 +94,35 @@ export const changePassword = async (
     confirmPassword: string;
   }
 ): Promise<ApiResponse> => {
-  const response = await fetch(`${API_BASE_URL}/accounts/change-password`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
+  const response = await apiClient.post(
+    "/accounts/change-password",
+    {
+      currentPassword: data.currentPassword,
+      newPassword: data.newPassword,
+      confirmPassword: data.confirmPassword,
     },
-    body: JSON.stringify({
-      CurrentPassword: data.currentPassword,
-      NewPassword: data.newPassword,
-      ConfirmPassword: data.confirmPassword,
-    }),
-  });
-  return response.json();
+    {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    }
+  );
+  return response.data;
+};
+
+export const updateProfile = async (
+  accessToken: string,
+  data: {
+    fullName: string;
+    gender: string;
+    phoneNumber?: string;
+    birthday?: string;
+  }
+): Promise<ApiResponse> => {
+  const response = await apiClient.put(
+    "/accounts/update-profile",
+    data,
+    {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    }
+  );
+  return response.data;
 };

@@ -69,7 +69,7 @@ function OTPInput({ value, onChange }: { value: string; onChange: (val: string) 
           onKeyDown={(e) => handleKeyDown(i, e)}
           onPaste={i === 0 ? handlePaste : undefined}
           aria-label={`Digit ${i + 1} of ${CODE_LENGTH}`}
-          className="w-12 h-14 bg-white/5 border border-white/10 rounded-xl text-white text-center text-2xl font-bold outline-none focus:border-[#5d9e6e] focus:bg-white/10 transition-all duration-200"
+          className="w-12 h-14 bg-white/5 border border-white/10 rounded-xl text-white text-center text-2xl font-bold outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
         />
       ))}
     </div>
@@ -170,7 +170,7 @@ function ResetPasswordForm() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Reset Password</h1>
           <p className="text-white/60 text-sm">
-            Enter the verification code sent to <span className="text-[#5d9e6e]">{email}</span>
+            Enter the verification code sent to <span className="text-[#ffc032]">{email}</span>
           </p>
         </div>
 
@@ -196,7 +196,7 @@ function ResetPasswordForm() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Enter new password"
                 required
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#5d9e6e] focus:bg-white/10 transition-all duration-200 pr-12"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200 pr-12"
               />
               <button
                 type="button"
@@ -230,7 +230,7 @@ function ResetPasswordForm() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm new password"
                 required
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#5d9e6e] focus:bg-white/10 transition-all duration-200 pr-12"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200 pr-12"
               />
               <button
                 type="button"
@@ -261,7 +261,7 @@ function ResetPasswordForm() {
       {/* Back to Login */}
       <p className="text-center text-white/60 mt-6">
         Remember your password?{" "}
-        <Link href="/login" className="text-[#5d9e6e] hover:text-[#7dbe8e] font-semibold transition-colors">
+        <Link href="/login" className="text-[#ffc032] hover:text-[#ffc032] font-semibold transition-colors">
           Login
         </Link>
       </p>
