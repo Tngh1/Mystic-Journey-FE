@@ -22,7 +22,7 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   outline:
     "border-2 border-white text-white hover:bg-white hover:text-black",
   solid: "bg-white text-black hover:bg-gray-200",
-  cta: "bg-[#5d9e6e] text-white hover:bg-[#4a8a5c]",
+  cta: "bg-[#ffc032] text-white hover:bg-[#ca831f]",
   custom: "",
   hero: "border-2 border-white text-white hover:bg-white hover:text-black hover:scale-105 hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]",
 };

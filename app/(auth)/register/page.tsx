@@ -23,9 +23,6 @@ export default function RegisterPage() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  if (isLoading) {
-    return null;
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,9 +50,25 @@ export default function RegisterPage() {
         birthday: birthday || undefined,
       });
 
-      if (result.success) {
-        await showSuccessAlert("Registration Successful!", "Please login to continue.");
-        router.push("/login");
+      if (result.success && result.account) {
+        if (result.account.accessToken) {
+          localStorage.setItem("accessToken", result.account.accessToken);
+        }
+        if (result.account.refreshToken) {
+          localStorage.setItem("refreshToken", result.account.refreshToken);
+        }
+        localStorage.setItem("user", JSON.stringify({
+          accountId: result.account.accountId,
+          fullName: result.account.fullName,
+          userName: result.account.userName,
+          emailAddress: result.account.emailAddress,
+          gender: result.account.gender,
+          phoneNumber: result.account.phoneNumber,
+          birthday: result.account.birthday,
+          roleId: result.account.roleId,
+        }));
+        await showSuccessAlert("Registration Successful!", "Welcome to Mystic Journey!");
+        router.push("/");
       } else {
         await showErrorAlert("Registration Failed", result.message || "Please try again.");
       }
@@ -101,7 +114,7 @@ export default function RegisterPage() {
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Enter your full name"
               required
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#5d9e6e] focus:bg-white/10 transition-all duration-200"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
             />
           </div>
 
@@ -117,7 +130,7 @@ export default function RegisterPage() {
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Choose a username"
               required
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#5d9e6e] focus:bg-white/10 transition-all duration-200"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
             />
           </div>
 
@@ -133,7 +146,7 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               required
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#5d9e6e] focus:bg-white/10 transition-all duration-200"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
             />
           </div>
 
@@ -146,7 +159,7 @@ export default function RegisterPage() {
               id="gender"
               value={gender}
               onChange={(e) => setGender(e.target.value)}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:border-[#5d9e6e] focus:bg-white/10 transition-all duration-200"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
             >
               <option value="Male" className="text-black">Male</option>
               <option value="Female" className="text-black">Female</option>
@@ -165,7 +178,7 @@ export default function RegisterPage() {
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
               placeholder="Enter your phone number"
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#5d9e6e] focus:bg-white/10 transition-all duration-200"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
             />
           </div>
 
@@ -180,7 +193,7 @@ export default function RegisterPage() {
               value={birthday}
               onChange={(e) => setBirthday(e.target.value)}
               max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:border-[#5d9e6e] focus:bg-white/10 transition-all duration-200"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
             />
           </div>
 
@@ -198,7 +211,7 @@ export default function RegisterPage() {
                 placeholder="Create a password"
                 required
                 minLength={6}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#5d9e6e] focus:bg-white/10 transition-all duration-200"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
               />
               <button
                 type="button"
@@ -234,7 +247,7 @@ export default function RegisterPage() {
                 placeholder="Confirm your password"
                 required
                 minLength={8}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#5d9e6e] focus:bg-white/10 transition-all duration-200"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
               />
               <button
                 type="button"
@@ -262,15 +275,15 @@ export default function RegisterPage() {
               type="checkbox"
               checked={agreedToTerms}
               onChange={(e) => setAgreedToTerms(e.target.checked)}
-              className="mt-1 w-4 h-4 rounded border-white/20 bg-white/5 text-[#5d9e6e] focus:ring-[#5d9e6e] focus:ring-offset-0 cursor-pointer"
+              className="mt-1 w-4 h-4 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
             />
             <label htmlFor="terms" className="text-sm text-white/60 cursor-pointer">
               I agree to the{" "}
-              <Link href="/terms" className="text-[#5d9e6e] hover:text-[#7dbe8e]">
+              <Link href="/terms" className="text-[#ffc032] hover:text-[#ffc032]">
                 Terms of Service
               </Link>{" "}
               and{" "}
-              <Link href="/privacy" className="text-[#5d9e6e] hover:text-[#7dbe8e]">
+              <Link href="/privacy" className="text-[#ffc032] hover:text-[#ffc032]">
                 Privacy Policy
               </Link>
             </label>
@@ -300,19 +313,13 @@ export default function RegisterPage() {
             </svg>
             Continue with Google
           </button>
-          <button className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white hover:bg-white/10 transition-all duration-200">
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-            </svg>
-            Continue with GitHub
-          </button>
         </div>
       </div>
 
       {/* Login Link */}
       <p className="text-center text-white/60 mt-6">
         Already have an account?{" "}
-        <Link href="/login" className="text-[#5d9e6e] hover:text-[#7dbe8e] font-semibold transition-colors">
+        <Link href="/login" className="text-[#ffc032] hover:text-[#ffc032] font-semibold transition-colors">
           Login
         </Link>
       </p>

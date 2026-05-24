@@ -78,7 +78,7 @@ export default function FeatureSection() {
             Features
           </h2>
 
-          <p className="max-w-4xl text-base leading-relaxed tracking-wide text-[#78b48e] md:text-lg">
+          <p className="max-w-4xl text-base leading-relaxed tracking-wide text-[#ffc032] md:text-lg">
             Discover all that Chumbi Valley has to offer with your Chumbi
             companions by your side.
           </p>
@@ -153,9 +153,9 @@ export default function FeatureSection() {
         {/* Bottom CTA */}
         <div className="mt-24 md:mt-28">
           <div className="mb-10 flex items-center gap-4">
-            <div className="h-px flex-1 bg-[#5d8f78]" />
-            <div className="h-2 w-2 rounded-full bg-[#3d8b67]" />
-            <div className="h-px flex-[2.4] bg-[#5d8f78]" />
+            <div className="h-px flex-1 bg-[#ca831f]" />
+            <div className="h-2 w-2 rounded-full bg-[#ca831f]" />
+            <div className="h-px flex-[2.4] bg-[#ca831f]" />
           </div>
 
           <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
@@ -167,9 +167,9 @@ export default function FeatureSection() {
           </div>
 
           <div className="mt-10 flex items-center gap-4">
-            <div className="h-px flex-[2.4] bg-[#5d8f78]" />
-            <div className="h-2 w-2 rounded-full bg-[#3d8b67]" />
-            <div className="h-px flex-1 bg-[#5d8f78]" />
+            <div className="h-px flex-[2.4] bg-[#ca831f]" />
+            <div className="h-2 w-2 rounded-full bg-[#ca831f]" />
+            <div className="h-px flex-1 bg-[#ca831f]" />
           </div>
         </div>
       </div>
