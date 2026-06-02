@@ -1,14 +1,31 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import React, { useState } from "react";
 import { ArrowLeft, Search, Download } from "lucide-react";
 
 export default function ManageTransactionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateRange, setDateRange] = useState({ from: "", to: "" });
 
-  const columns = [
+  type TransactionItem = {
+    id: string;
+    playerId: string;
+    playerName: string;
+    type: string;
+    amount: number;
+    currency: string;
+    createdAt: string;
+    status: string;
+  };
+
+  type ColumnKey = keyof TransactionItem;
+
+  const columns: Array<{
+    key: ColumnKey;
+    label: string;
+    render?: (val: TransactionItem[ColumnKey], item: TransactionItem) => React.ReactNode;
+  }> = [
     { key: "id", label: "Transaction ID" },
     { key: "playerId", label: "Player ID" },
     { key: "playerName", label: "Player Name" },
@@ -19,18 +36,18 @@ export default function ManageTransactionsPage() {
     { 
       key: "status", 
       label: "Status",
-      render: (val: string) => {
+      render: (val) => {
         const styles: Record<string, string> = {
           Completed: "bg-emerald-400/10 text-emerald-400",
           Pending: "bg-yellow-400/10 text-yellow-400",
           Failed: "bg-red-400/10 text-red-400",
         };
-        return <span className={`px-2 py-1 rounded text-xs font-medium ${styles[val]}`}>{val}</span>;
+        return <span className={`px-2 py-1 rounded text-xs font-medium ${styles[val as string]}`}>{val}</span>;
       }
     },
   ];
 
-  const mockData = [
+  const mockData: TransactionItem[] = [
     { id: "TXN-001", playerId: "P-001", playerName: "Hero123", type: "Purchase", amount: 4.99, currency: "USD", createdAt: "2024-03-01", status: "Completed" },
     { id: "TXN-002", playerId: "P-002", playerName: "MageKing", type: "Purchase", amount: 9.99, currency: "USD", createdAt: "2024-03-02", status: "Completed" },
     { id: "TXN-003", playerId: "P-003", playerName: "ShadowHunter", type: "Refund", amount: 4.99, currency: "USD", createdAt: "2024-03-03", status: "Pending" },

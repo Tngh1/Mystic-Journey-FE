@@ -9,7 +9,7 @@ interface FormField {
   type: "text" | "number" | "select" | "textarea" | "checkbox" | "date";
   placeholder?: string;
   required?: boolean;
-  options?: { value: string | number | boolean; label: string }[];
+  options?: { value: string | number; label: string }[];
 }
 
 interface FormModalProps {

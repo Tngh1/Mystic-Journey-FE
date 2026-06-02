@@ -1,14 +1,30 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import React, { useState } from "react";
 import { ArrowLeft, Search, Send } from "lucide-react";
 
 export default function ManageMailboxPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
 
-  const columns = [
+  type MailboxItem = {
+    id: number;
+    recipientId: string;
+    recipientName: string;
+    subject: string;
+    type: string;
+    createdAt: string;
+    isRead: boolean;
+  };
+
+  type ColumnKey = keyof MailboxItem;
+
+  const columns: Array<{
+    key: ColumnKey;
+    label: string;
+    render?: (val: MailboxItem[ColumnKey], item: MailboxItem) => React.ReactNode;
+  }> = [
     { key: "id", label: "ID" },
     { key: "recipientId", label: "Recipient ID" },
     { key: "recipientName", label: "Recipient Name" },
@@ -18,7 +34,7 @@ export default function ManageMailboxPage() {
     { 
       key: "isRead", 
       label: "Status",
-      render: (val: boolean) => (
+      render: (val) => (
         <span className={`px-2 py-1 rounded text-xs font-medium ${val ? 'bg-emerald-400/10 text-emerald-400' : 'bg-yellow-400/10 text-yellow-400'}`}>
           {val ? 'Read' : 'Unread'}
         </span>
@@ -26,7 +42,7 @@ export default function ManageMailboxPage() {
     },
   ];
 
-  const mockData = [
+  const mockData: MailboxItem[] = [
     { id: 1, recipientId: "P-001", recipientName: "Hero123", subject: "Welcome Gift!", type: "Gift", createdAt: "2024-03-01", isRead: true },
     { id: 2, recipientId: "P-002", recipientName: "MageKing", subject: "Event Announcement", type: "Event", createdAt: "2024-03-02", isRead: false },
     { id: 3, recipientId: "P-003", recipientName: "ShadowHunter", subject: "Account Inquiry Reply", type: "Support", createdAt: "2024-03-03", isRead: true },
