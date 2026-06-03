@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, Package, Ghost, Castle, Gem, Scroll, Trophy, ChevronRight, Sparkles, Swords, Shield, Star } from "lucide-react";
+import { BookOpen, Package, Ghost, Castle, Gem, Scroll, Trophy, ChevronRight, Sparkles, Swords, Shield, Star, Map } from "lucide-react";
 
 interface WikiCategory {
   id: string;
@@ -21,6 +21,7 @@ export default function WikiPage() {
 
   useEffect(() => {
     const wikiCategories: WikiCategory[] = [
+      { id: "maps", name: "Maps", description: "Explore regions, dungeons, and hidden locations across the world", icon: <Map className="w-10 h-10" />, href: "/wiki/maps", color: "text-teal-400", gradient: "from-teal-500/20 to-cyan-500/20", count: 6 },
       { id: "items", name: "Items", description: "Weapons, armor, accessories, and crafting materials", icon: <Package className="w-10 h-10" />, href: "/wiki/items", color: "text-blue-400", gradient: "from-blue-500/20 to-cyan-500/20", count: 156 },
       { id: "monsters", name: "Monsters", description: "Enemies, bosses, and creatures of Eldoria", icon: <Ghost className="w-10 h-10" />, href: "/wiki/monsters", color: "text-red-400", gradient: "from-red-500/20 to-orange-500/20", count: 89 },
       { id: "dungeons", name: "Dungeons", description: "Challenging dungeons and boss encounters", icon: <Castle className="w-10 h-10" />, href: "/wiki/dungeons", color: "text-purple-400", gradient: "from-purple-500/20 to-pink-500/20", count: 24 },
@@ -34,7 +35,7 @@ export default function WikiPage() {
   return (
     <div className="min-h-screen pt-20 pb-12">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-[#ffc032]/10 to-transparent py-20">
+      <div className="relative overflow-hidden py-20">
         <div className="absolute inset-0 bg-[url('/images/patterns/grid.svg')] opacity-5"></div>
         
         <div className="container mx-auto px-4 relative z-10">

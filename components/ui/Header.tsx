@@ -9,7 +9,7 @@ import Button from "./Button";
 const NAV_ITEMS = [
   { label: "Story", href: "/story" },
   { label: "Wiki", href: "/wiki" },
-  { label: "Announcement", href: "/announcement" },
+  { label: "Content", href: "/content" },
 ];
 
 interface UserInfo {

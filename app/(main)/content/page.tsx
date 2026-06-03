@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Calendar, User, Tag, ChevronRight, Bell, Star, Gift, Swords, TrendingUp } from "lucide-react";
+import Link from "next/link";
+import { Calendar, User, Tag, Bell, Star, Gift, Swords, TrendingUp } from "lucide-react";
 
-interface Announcement {
+interface Content {
   id: number;
   title: string;
   content: string;
@@ -16,20 +17,20 @@ interface Announcement {
   endDate?: string;
 }
 
-const announcementTypes = {
+const contentTypes = {
   event: { label: "Event", color: "bg-purple-500/20 text-purple-400 border-purple-500/30", icon: Star },
   update: { label: "Update", color: "bg-blue-500/20 text-blue-400 border-blue-500/30", icon: TrendingUp },
   maintenance: { label: "Maintenance", color: "bg-red-500/20 text-red-400 border-red-500/30", icon: Swords },
   promotion: { label: "Promotion", color: "bg-amber-500/20 text-amber-400 border-amber-500/30", icon: Gift },
 };
 
-export default function AnnouncementPage() {
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+export default function ContentPage() {
+  const [contents, setContents] = useState<Content[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState<string>("all");
 
   useEffect(() => {
-    const mockData: Announcement[] = [
+    const mockData: Content[] = [
       {
         id: 1,
         title: "🎉 Summer Festival Event 2024",
@@ -120,18 +121,18 @@ export default function AnnouncementPage() {
     ];
 
     setTimeout(() => {
-      setAnnouncements(mockData);
+      setContents(mockData);
       setLoading(false);
     }, 500);
   }, []);
 
-  const filteredAnnouncements = announcements.filter((ann) => {
+  const filteredContents = contents.filter((c) => {
     if (selectedType === "all") return true;
-    return ann.type === selectedType;
+    return c.type === selectedType;
   });
 
-  const pinnedAnnouncements = filteredAnnouncements.filter((a) => a.isPinned);
-  const regularAnnouncements = filteredAnnouncements.filter((a) => !a.isPinned);
+  const pinnedContents = filteredContents.filter((c) => c.isPinned);
+  const regularContents = filteredContents.filter((c) => !c.isPinned);
 
   if (loading) {
     return (
@@ -144,16 +145,16 @@ export default function AnnouncementPage() {
   return (
     <div className="min-h-screen pt-20 pb-12">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-[#ffc032]/10 to-transparent py-16">
+      <div className="relative overflow-hidden py-16">
         <div className="absolute inset-0 bg-[url('/images/patterns/grid.svg')] opacity-5"></div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#ffc032]/20 rounded-full mb-6">
               <Bell className="w-5 h-5 text-[#ffc032]" />
-              <span className="text-[#ffc032] font-medium">Latest News</span>
+              <span className="text-[#ffc032] font-medium">Latest Contents</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Announcements
+              Contents
             </h1>
             <p className="text-white/70 text-lg">
               Stay updated with the latest news, events, and updates from the Mystic Journey team
@@ -175,7 +176,7 @@ export default function AnnouncementPage() {
           >
             All
           </button>
-          {Object.entries(announcementTypes).map(([key, { label }]) => (
+          {Object.entries(contentTypes).map(([key, { label }]) => (
             <button
               key={key}
               onClick={() => setSelectedType(key)}
@@ -190,38 +191,38 @@ export default function AnnouncementPage() {
           ))}
         </div>
 
-        {/* Pinned Announcements */}
-        {pinnedAnnouncements.length > 0 && (
+        {/* Pinned Contents */}
+        {pinnedContents.length > 0 && (
           <div className="mb-10">
             <h2 className="text-lg font-semibold text-white/80 mb-4 flex items-center gap-2">
               <Tag className="w-5 h-5 text-[#ffc032]" />
-              Pinned Announcements
+              Pinned Contents
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {pinnedAnnouncements.map((ann) => (
-                <AnnouncementCard key={ann.id} announcement={ann} isPinned />
+              {pinnedContents.map((item) => (
+                <ContentCard key={item.id} content={item} isPinned />
               ))}
             </div>
           </div>
         )}
 
-        {/* Regular Announcements */}
+        {/* Regular Contents */}
         <div>
-          {pinnedAnnouncements.length > 0 && (
+          {pinnedContents.length > 0 && (
             <h2 className="text-lg font-semibold text-white/80 mb-4">Recent Updates</h2>
           )}
           <div className="space-y-4">
-            {regularAnnouncements.map((ann) => (
-              <AnnouncementCard key={ann.id} announcement={ann} />
+            {regularContents.map((item) => (
+              <ContentCard key={item.id} content={item} />
             ))}
           </div>
         </div>
 
         {/* Empty State */}
-        {filteredAnnouncements.length === 0 && (
+        {filteredContents.length === 0 && (
           <div className="text-center py-20">
             <Bell className="w-20 h-20 text-white/20 mx-auto mb-4" />
-            <p className="text-white/50 text-lg">No announcements found</p>
+            <p className="text-white/50 text-lg">No contents found</p>
           </div>
         )}
       </div>
@@ -229,13 +230,14 @@ export default function AnnouncementPage() {
   );
 }
 
-function AnnouncementCard({ announcement, isPinned = false }: { announcement: Announcement; isPinned?: boolean }) {
-  const typeConfig = announcementTypes[announcement.type];
+function ContentCard({ content, isPinned = false }: { content: Content; isPinned?: boolean }) {
+  const typeConfig = contentTypes[content.type];
   const TypeIcon = typeConfig.icon;
 
   return (
-    <div
-      className={`group relative bg-gradient-to-br from-white/5 to-white/10 border border-white/10 rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#ffc032]/30 hover:shadow-xl hover:shadow-[#ffc032]/5 ${
+    <Link
+      href={`/content/${content.id}`}
+      className={`group relative block bg-gradient-to-br from-white/5 to-white/10 border border-white/10 rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#ffc032]/30 hover:shadow-xl hover:shadow-[#ffc032]/5 ${
         isPinned ? "ring-2 ring-[#ffc032]/30" : ""
       }`}
     >
@@ -249,7 +251,7 @@ function AnnouncementCard({ announcement, isPinned = false }: { announcement: An
       )}
 
       {/* Image Section */}
-      <div className="relative h-40 bg-gradient-to-br from-[#ffc032]/20 to-[#ca831f]/20">
+      <div className="relative h-40">
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
             <TypeIcon className="w-8 h-8 text-[#ffc032]" />
@@ -267,42 +269,41 @@ function AnnouncementCard({ announcement, isPinned = false }: { announcement: An
       {/* Content */}
       <div className="p-6">
         <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[#ffc032] transition-colors">
-          {announcement.title}
+          {content.title}
         </h3>
         <p className="text-white/60 text-sm mb-4 line-clamp-3">
-          {announcement.content}
+          {content.content}
         </p>
 
         {/* Meta Info */}
         <div className="flex flex-wrap items-center gap-4 text-xs text-white/50 mb-4">
           <div className="flex items-center gap-1.5">
             <User className="w-4 h-4" />
-            <span>{announcement.author}</span>
+            <span>{content.author}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Calendar className="w-4 h-4" />
-            <span>{announcement.createdAt}</span>
+            <span>{content.createdAt}</span>
           </div>
-          {announcement.startDate && (
+          {content.startDate && (
             <div className="flex items-center gap-1.5">
               <span className="text-[#ffc032]">Start:</span>
-              <span>{announcement.startDate}</span>
+              <span>{content.startDate}</span>
             </div>
           )}
-          {announcement.endDate && (
+          {content.endDate && (
             <div className="flex items-center gap-1.5">
               <span className="text-red-400">End:</span>
-              <span>{announcement.endDate}</span>
+              <span>{content.endDate}</span>
             </div>
           )}
         </div>
 
         {/* Read More Button */}
-        <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-[#ffc032]/20 text-white/70 hover:text-[#ffc032] rounded-xl transition-all duration-300 font-medium cursor-pointer">
+        <div className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-[#ffc032]/20 text-white/70 hover:text-[#ffc032] rounded-xl transition-all duration-300 font-medium">
           Read More
-          <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-        </button>
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }
