@@ -41,6 +41,10 @@ export default function LoginPage() {
           birthday: result.account.birthday,
           roleId: result.account.roleId,
         }));
+
+        // Set auth cookie for middleware
+        document.cookie = `auth_token=${result.account.accessToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
+
         await showSuccessAlert("Welcome back!", "Login successful. Redirecting...");
         router.push("/");
       } else {

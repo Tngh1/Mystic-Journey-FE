@@ -7,11 +7,9 @@ import { useRouter } from "next/navigation";
 import Button from "./Button";
 
 const NAV_ITEMS = [
-  { label: "Game info", href: "#game-info" },
-  { label: "Tokens", href: "#tokens" },
-  { label: "Lore", href: "#lore" },
-  { label: "About", href: "#about" },
-  { label: "Marketplace", href: "#marketplace" },
+  { label: "Story", href: "/story" },
+  { label: "Wiki", href: "/wiki" },
+  { label: "Announcement", href: "/announcement" },
 ];
 
 interface UserInfo {
