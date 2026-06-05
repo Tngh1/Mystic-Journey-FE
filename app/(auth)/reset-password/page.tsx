@@ -114,21 +114,16 @@ function ResetPasswordForm() {
     setIsLoading(true);
 
     try {
-      const result = await resetPassword({
+      await resetPassword({
         email: email,
         verificationCode: verificationCode.trim(),
         newPassword: newPassword,
         confirmPassword: confirmPassword,
       });
-
-      if (result.success) {
-        await showSuccessAlert("Success!", "Your password has been reset. You can now login.");
-        router.push("/login");
-      } else {
-        await showErrorAlert("Error", result.message || "Failed to reset password. Please try again.");
-      }
-    } catch (err) {
-      await showErrorAlert("Error", "An unexpected error occurred. Please try again.");
+      await showSuccessAlert("Success!", "Your password has been reset. You can now login.");
+      router.push("/login");
+    } catch (err: unknown) {
+      await showErrorAlert("Error", err instanceof Error ? err.message : "Failed to reset password. Please try again.");
     } finally {
       setIsLoading(false);
     }

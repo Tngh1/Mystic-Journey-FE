@@ -42,18 +42,13 @@ export default function SecurityPage() {
 
     setIsSaving(true);
     try {
-      const res = await changePassword(accessToken, {
+      await changePassword(accessToken, {
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword,
         confirmPassword: formData.confirmPassword
       });
-
-      if (res.success) {
-        await showSuccessAlert("Success!", "Your password has been changed successfully.");
-        setFormData({ currentPassword: "", newPassword: "", confirmPassword: "" });
-      } else {
-        await showErrorAlert("Oops...", res.message || "Failed to change password.");
-      }
+      await showSuccessAlert("Success!", "Your password has been changed successfully.");
+      setFormData({ currentPassword: "", newPassword: "", confirmPassword: "" });
     } catch (error) {
       await showErrorAlert("Error", "An unexpected error occurred. Please try again later.");
     } finally {
