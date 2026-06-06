@@ -1,55 +1,82 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import { ArrowLeft, Save } from "lucide-react";
-
-const mockDungeon = {
-  id: 1,
-  name: "Goblin Cave",
-  description: "A dark cave filled with goblins.",
-  reqLevel: 5,
-  energyCost: 10,
-  maxPlayers: 4,
-  isActive: true,
-};
+import { useRouter, useSearchParams } from "next/navigation";
+import { getById, update, DungeonConfigResponse } from "@/lib/api/dungeon";
+import { ArrowLeft, Save, Loader2 } from "lucide-react";
 
 export default function EditDungeonPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dungeonId = searchParams.get("id");
-  
+
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    reqLevel: 1,
-    energyCost: 10,
-    maxPlayers: 4,
+    levelRequirement: 1,
+    maxMembers: 4,
+    difficulty: 1,
+    recommendedPower: 0,
     isActive: true,
   });
 
   useEffect(() => {
-    if (dungeonId) {
-      setFormData({
-        name: mockDungeon.name,
-        description: mockDungeon.description,
-        reqLevel: mockDungeon.reqLevel,
-        energyCost: mockDungeon.energyCost,
-        maxPlayers: mockDungeon.maxPlayers,
-        isActive: mockDungeon.isActive,
-      });
-    }
+    if (!dungeonId) return;
+    getById(Number(dungeonId))
+      .then((d: DungeonConfigResponse) => {
+        setFormData({
+          name: d.name,
+          description: d.description || "",
+          levelRequirement: d.levelRequirement,
+          maxMembers: d.maxMembers,
+          difficulty: d.difficulty,
+          recommendedPower: d.recommendedPower,
+          isActive: d.isActive,
+        });
+      })
+      .catch((err: unknown) => {
+        setError(err instanceof Error ? err.message : "Failed to load dungeon");
+      })
+      .finally(() => setFetching(false));
   }, [dungeonId]);
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Updating dungeon:", formData);
-    router.push("/manage-dungeons");
+    if (!dungeonId) return;
+    try {
+      setLoading(true);
+      setError(null);
+      await update(Number(dungeonId), {
+        name: formData.name,
+        description: formData.description || undefined,
+        levelRequirement: formData.levelRequirement,
+        maxMembers: formData.maxMembers,
+        difficulty: formData.difficulty,
+        recommendedPower: formData.recommendedPower,
+        isActive: formData.isActive,
+      });
+      router.push("/manage-dungeons");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to update dungeon");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (fetching) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-[#ffc032]" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -66,6 +93,12 @@ export default function EditDungeonPage() {
         </div>
       </div>
 
+      {error && (
+        <div className="bg-red-400/10 border border-red-400/20 rounded-lg p-4 text-red-400 text-sm">
+          {error}
+        </div>
+      )}
+
       <div className="bg-white/5 border border-white/10 rounded-xl p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -77,7 +110,6 @@ export default function EditDungeonPage() {
                 type="text"
                 value={formData.name}
                 onChange={(e) => handleChange("name", e.target.value)}
-                placeholder="Enter dungeon name"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
                 required
               />
@@ -85,48 +117,56 @@ export default function EditDungeonPage() {
 
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
-                Required Level <span className="text-red-400">*</span>
+                Required Level
               </label>
               <input
                 type="number"
-                value={formData.reqLevel}
-                onChange={(e) => handleChange("reqLevel", Number(e.target.value))}
-                placeholder="1"
+                value={formData.levelRequirement}
+                onChange={(e) => handleChange("levelRequirement", Number(e.target.value))}
                 min="1"
                 max="100"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
               />
             </div>
 
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
-                Energy Cost <span className="text-red-400">*</span>
+                Max Players
               </label>
               <input
                 type="number"
-                value={formData.energyCost}
-                onChange={(e) => handleChange("energyCost", Number(e.target.value))}
-                placeholder="10"
-                min="1"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Max Players <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="number"
-                value={formData.maxPlayers}
-                onChange={(e) => handleChange("maxPlayers", Number(e.target.value))}
-                placeholder="4"
+                value={formData.maxMembers}
+                onChange={(e) => handleChange("maxMembers", Number(e.target.value))}
                 min="1"
                 max="100"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">
+                Difficulty
+              </label>
+              <input
+                type="number"
+                value={formData.difficulty}
+                onChange={(e) => handleChange("difficulty", Number(e.target.value))}
+                min="1"
+                max="10"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">
+                Recommended Power
+              </label>
+              <input
+                type="number"
+                value={formData.recommendedPower}
+                onChange={(e) => handleChange("recommendedPower", Number(e.target.value))}
+                min="0"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
               />
             </div>
           </div>
@@ -136,7 +176,6 @@ export default function EditDungeonPage() {
             <textarea
               value={formData.description}
               onChange={(e) => handleChange("description", e.target.value)}
-              placeholder="Enter dungeon description (optional)"
               rows={3}
               className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors resize-none"
             />
@@ -148,9 +187,9 @@ export default function EditDungeonPage() {
               id="isActive"
               checked={formData.isActive}
               onChange={(e) => handleChange("isActive", e.target.checked)}
-              className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0"
+              className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
             />
-            <label htmlFor="isActive" className="text-sm text-white/70">
+            <label htmlFor="isActive" className="text-sm text-white/70 cursor-pointer">
               Dungeon is active and can be accessed
             </label>
           </div>
@@ -165,9 +204,11 @@ export default function EditDungeonPage() {
             </button>
             <button
               type="submit"
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer"
+              disabled={loading}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
             >
-              <Save className="w-4 h-4" /> Save Changes
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {loading ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>

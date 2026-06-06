@@ -1,8 +1,9 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import { ArrowLeft, Save } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { getById, update, MonsterResponse } from "@/lib/api/monster";
+import { ArrowLeft, Save, Loader2 } from "lucide-react";
 
 const MONSTER_TYPES = [
   { value: "Normal", label: "Normal" },
@@ -10,25 +11,14 @@ const MONSTER_TYPES = [
   { value: "Boss", label: "Boss" },
 ];
 
-// Mock data - in real app, fetch from API
-const mockMonster = {
-  id: 1,
-  name: "Slime",
-  type: "Normal",
-  level: 1,
-  maxHp: 50,
-  atk: 5,
-  def: 2,
-  expReward: 10,
-  goldReward: 5,
-  isActive: true,
-};
-
 export default function EditMonsterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const monsterId = searchParams.get("id");
-  
+
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     type: "Normal",
@@ -42,34 +32,66 @@ export default function EditMonsterPage() {
   });
 
   useEffect(() => {
-    if (monsterId) {
-      setFormData({
-        name: mockMonster.name,
-        type: mockMonster.type,
-        level: mockMonster.level,
-        maxHp: mockMonster.maxHp,
-        atk: mockMonster.atk,
-        def: mockMonster.def,
-        expReward: mockMonster.expReward,
-        goldReward: mockMonster.goldReward,
-        isActive: mockMonster.isActive,
-      });
-    }
+    if (!monsterId) return;
+    getById(Number(monsterId))
+      .then((m: MonsterResponse) => {
+        setFormData({
+          name: m.name,
+          type: m.type,
+          level: m.level,
+          maxHp: m.maxHp,
+          atk: m.atk,
+          def: m.def,
+          expReward: m.experienceReward,
+          goldReward: m.goldReward,
+          isActive: m.isActive,
+        });
+      })
+      .catch((err: unknown) => {
+        setError(err instanceof Error ? err.message : "Failed to load monster");
+      })
+      .finally(() => setFetching(false));
   }, [monsterId]);
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Updating monster:", formData);
-    router.push("/manage-monsters");
+    if (!monsterId) return;
+    try {
+      setLoading(true);
+      setError(null);
+      await update(Number(monsterId), {
+        name: formData.name,
+        type: formData.type,
+        level: formData.level,
+        maxHp: formData.maxHp,
+        atk: formData.atk,
+        def: formData.def,
+        experienceReward: formData.expReward,
+        goldReward: formData.goldReward,
+        isActive: formData.isActive,
+      });
+      router.push("/manage-monsters");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to update monster");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (fetching) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-[#ffc032]" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-4">
         <button
           onClick={() => router.push("/manage-monsters")}
@@ -83,11 +105,15 @@ export default function EditMonsterPage() {
         </div>
       </div>
 
-      {/* Form */}
+      {error && (
+        <div className="bg-red-400/10 border border-red-400/20 rounded-lg p-4 text-red-400 text-sm">
+          {error}
+        </div>
+      )}
+
       <div className="bg-white/5 border border-white/10 rounded-xl p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Name */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
                 Monster Name <span className="text-red-400">*</span>
@@ -96,143 +122,121 @@ export default function EditMonsterPage() {
                 type="text"
                 value={formData.name}
                 onChange={(e) => handleChange("name", e.target.value)}
-                placeholder="Enter monster name"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
                 required
               />
             </div>
 
-            {/* Type */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
-                Monster Type <span className="text-red-400">*</span>
+                Monster Type
               </label>
               <select
                 value={formData.type}
                 onChange={(e) => handleChange("type", e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
               >
-                {MONSTER_TYPES.map((type) => (
-                  <option key={type.value} value={type.value} className="bg-[#1a1a1a]">
-                    {type.label}
+                {MONSTER_TYPES.map((t) => (
+                  <option key={t.value} value={t.value} className="bg-[#1a1a1a]">
+                    {t.label}
                   </option>
                 ))}
               </select>
             </div>
 
-            {/* Level */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
-                Level <span className="text-red-400">*</span>
+                Level
               </label>
               <input
                 type="number"
                 value={formData.level}
                 onChange={(e) => handleChange("level", Number(e.target.value))}
-                placeholder="1"
                 min="1"
                 max="100"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
               />
             </div>
 
-            {/* Max HP */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
-                Max HP <span className="text-red-400">*</span>
+                Max HP
               </label>
               <input
                 type="number"
                 value={formData.maxHp}
                 onChange={(e) => handleChange("maxHp", Number(e.target.value))}
-                placeholder="100"
                 min="1"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
               />
             </div>
 
-            {/* ATK */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
-                Attack (ATK) <span className="text-red-400">*</span>
+                ATK
               </label>
               <input
                 type="number"
                 value={formData.atk}
                 onChange={(e) => handleChange("atk", Number(e.target.value))}
-                placeholder="10"
                 min="0"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
               />
             </div>
 
-            {/* DEF */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
-                Defense (DEF) <span className="text-red-400">*</span>
+                DEF
               </label>
               <input
                 type="number"
                 value={formData.def}
                 onChange={(e) => handleChange("def", Number(e.target.value))}
-                placeholder="5"
                 min="0"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
               />
             </div>
 
-            {/* EXP Reward */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
-                EXP Reward <span className="text-red-400">*</span>
+                EXP Reward
               </label>
               <input
                 type="number"
                 value={formData.expReward}
                 onChange={(e) => handleChange("expReward", Number(e.target.value))}
-                placeholder="10"
                 min="0"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
               />
             </div>
 
-            {/* Gold Reward */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
-                Gold Reward <span className="text-red-400">*</span>
+                Gold Reward
               </label>
               <input
                 type="number"
                 value={formData.goldReward}
                 onChange={(e) => handleChange("goldReward", Number(e.target.value))}
-                placeholder="5"
                 min="0"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
               />
             </div>
           </div>
 
-          {/* Active Status */}
           <div className="flex items-center gap-3">
             <input
               type="checkbox"
               id="isActive"
               checked={formData.isActive}
               onChange={(e) => handleChange("isActive", e.target.checked)}
-              className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0"
+              className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
             />
-            <label htmlFor="isActive" className="text-sm text-white/70">
+            <label htmlFor="isActive" className="text-sm text-white/70 cursor-pointer">
               Monster is active and can spawn in game
             </label>
           </div>
 
-          {/* Actions */}
           <div className="flex items-center justify-end gap-3 pt-6 border-t border-white/10">
             <button
               type="button"
@@ -243,9 +247,11 @@ export default function EditMonsterPage() {
             </button>
             <button
               type="submit"
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer"
+              disabled={loading}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
             >
-              <Save className="w-4 h-4" /> Save Changes
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {loading ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>

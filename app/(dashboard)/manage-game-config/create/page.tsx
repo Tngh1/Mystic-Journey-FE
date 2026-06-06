@@ -1,253 +1,208 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowLeft, Save, AlertTriangle } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { getAllSettings, createSetting, removeSetting } from "@/lib/api/game";
 
-const CONFIG_TYPES = [
-  { value: "number", label: "Number" },
-  { value: "string", label: "String" },
-  { value: "boolean", label: "Boolean" },
-  { value: "json", label: "JSON" },
-];
+const TYPES = ["string", "number", "boolean", "json"];
 
-const CONFIG_CATEGORIES = [
-  { value: "Player", label: "Player" },
-  { value: "Energy", label: "Energy" },
-  { value: "Shop", label: "Shop" },
-  { value: "System", label: "System" },
-  { value: "Events", label: "Events" },
-  { value: "Battle", label: "Battle" },
-  { value: "Gacha", label: "Gacha" },
-  { value: "Social", label: "Social" },
-];
+const CATEGORIES = ["Player", "Energy", "Shop", "System", "Events", "Battle", "Gacha", "Social"];
+
+interface FormData {
+  key: string;
+  value: string;
+  type: string;
+  category: string;
+  description: string;
+  isActive: boolean;
+}
 
 export default function CreateGameConfigPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState<FormData>({
     key: "",
     value: "",
     type: "string",
-    category: "Player",
+    category: "System",
     description: "",
     isActive: true,
   });
 
-  const handleChange = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+    }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Creating config:", formData);
-    router.push("/manage-game-config");
-  };
-
-  const getTypeColor = (type: string) => {
-    const colors: Record<string, string> = {
-      number: "text-blue-400 bg-blue-400/10",
-      string: "text-green-400 bg-green-400/10",
-      boolean: "text-purple-400 bg-purple-400/10",
-      json: "text-orange-400 bg-orange-400/10",
-    };
-    return colors[type] || "text-gray-400 bg-gray-400/10";
+    try {
+      setLoading(true);
+      setError(null);
+      await createSetting(formData);
+      router.push("/manage-game-config");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create game setting");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => router.push("/manage-game-config")}
-            className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-white">Add New Config</h1>
-            <p className="text-white/50 text-sm">Create a new game configuration</p>
+    <div className="min-h-screen bg-[#111] p-6">
+      <div className="max-w-2xl mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex items-center gap-4 mb-4">
+            <Link
+              href="/manage-game-config"
+              className="p-2 rounded-lg bg-[#1a1a1a] hover:bg-[#252525] transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-[#ffc032]" />
+            </Link>
+            <h1 className="text-2xl font-bold text-white">Add New Configuration</h1>
           </div>
         </div>
-      </div>
 
-      {/* Form */}
-      <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Warning Banner */}
-          <div className="flex items-start gap-3 p-4 bg-yellow-400/10 border border-yellow-400/20 rounded-lg">
-            <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="bg-[#1a1a1a] rounded-lg border border-[#333] p-6">
+          {/* Error Display */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-900/20 border border-red-700 rounded-lg text-red-400">
+              {error}
+            </div>
+          )}
+
+          {/* Key */}
+          <div className="mb-4">
+            <label htmlFor="key" className="block text-sm font-medium text-[#ffc032] mb-2">
+              Key <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              id="key"
+              name="key"
+              value={formData.key}
+              onChange={handleChange}
+              required
+              placeholder="e.g., MAX_PLAYER_LEVEL"
+              className="w-full px-4 py-2 bg-[#111] border border-[#333] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#ffc032]"
+            />
+          </div>
+
+          {/* Value */}
+          <div className="mb-4">
+            <label htmlFor="value" className="block text-sm font-medium text-[#ffc032] mb-2">
+              Value <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              id="value"
+              name="value"
+              value={formData.value}
+              onChange={handleChange}
+              required
+              placeholder="e.g., 100"
+              className="w-full px-4 py-2 bg-[#111] border border-[#333] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#ffc032]"
+            />
+          </div>
+
+          {/* Type and Category Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            {/* Type */}
             <div>
-              <p className="text-sm text-yellow-400 font-medium">Important Notice</p>
-              <p className="text-xs text-yellow-400/70 mt-1">
-                New configurations will be applied immediately after creation. Please ensure all values are correct.
-              </p>
+              <label htmlFor="type" className="block text-sm font-medium text-[#ffc032] mb-2">
+                Type
+              </label>
+              <select
+                id="type"
+                name="type"
+                value={formData.type}
+                onChange={handleChange}
+                className="w-full px-4 py-2 bg-[#111] border border-[#333] rounded-lg text-white focus:outline-none focus:border-[#ffc032]"
+              >
+                {TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Category */}
+            <div>
+              <label htmlFor="category" className="block text-sm font-medium text-[#ffc032] mb-2">
+                Category
+              </label>
+              <select
+                id="category"
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                className="w-full px-4 py-2 bg-[#111] border border-[#333] rounded-lg text-white focus:outline-none focus:border-[#ffc032]"
+              >
+                {CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Main Fields */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Config Key */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-white/80">
-                  Config Key <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.key}
-                  onChange={(e) => handleChange("key", e.target.value)}
-                  placeholder="e.g., MAX_LEVEL"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white font-mono placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                  required
-                />
-                <p className="text-xs text-white/50">Use uppercase with underscores (e.g., MAX_LEVEL)</p>
-              </div>
+          {/* Description */}
+          <div className="mb-4">
+            <label htmlFor="description" className="block text-sm font-medium text-[#ffc032] mb-2">
+              Description
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              rows={3}
+              placeholder="Describe what this configuration does..."
+              className="w-full px-4 py-2 bg-[#111] border border-[#333] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#ffc032] resize-none"
+            />
+          </div>
 
-              {/* Config Value */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-white/80">
-                  Value <span className="text-red-400">*</span>
-                </label>
-                {formData.type === "json" ? (
-                  <textarea
-                    value={formData.value}
-                    onChange={(e) => handleChange("value", e.target.value)}
-                    placeholder='{"key": "value"}'
-                    rows={5}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white font-mono placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors resize-none"
-                    required
-                  />
-                ) : formData.type === "boolean" ? (
-                  <div className="flex items-center gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="booleanValue"
-                        checked={formData.value === "true"}
-                        onChange={() => handleChange("value", "true")}
-                        className="w-4 h-4 text-[#ffc032] bg-white/5 border-white/20 focus:ring-[#ffc032]"
-                      />
-                      <span className="text-white">true</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="booleanValue"
-                        checked={formData.value === "false"}
-                        onChange={() => handleChange("value", "false")}
-                        className="w-4 h-4 text-[#ffc032] bg-white/5 border-white/20 focus:ring-[#ffc032]"
-                      />
-                      <span className="text-white">false</span>
-                    </label>
-                  </div>
-                ) : (
-                  <input
-                    type={formData.type === "number" ? "number" : "text"}
-                    value={formData.value}
-                    onChange={(e) => handleChange("value", e.target.value)}
-                    placeholder="Enter value"
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white font-mono placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                    required
-                  />
-                )}
-              </div>
-
-              {/* Description */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-white/80">
-                  Description <span className="text-red-400">*</span>
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => handleChange("description", e.target.value)}
-                  placeholder="Describe what this configuration does"
-                  rows={3}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors resize-none"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Right Column - Settings */}
-            <div className="space-y-6">
-              {/* Type */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-white/80">
-                  Type <span className="text-red-400">*</span>
-                </label>
-                <select
-                  value={formData.type}
-                  onChange={(e) => handleChange("type", e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                >
-                  {CONFIG_TYPES.map((type) => (
-                    <option key={type.value} value={type.value} className="bg-[#1a1a1a]">
-                      {type.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Category */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-white/80">
-                  Category <span className="text-red-400">*</span>
-                </label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => handleChange("category", e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                >
-                  {CONFIG_CATEGORIES.map((cat) => (
-                    <option key={cat.value} value={cat.value} className="bg-[#1a1a1a]">
-                      {cat.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Active Status */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-white/80">Status</label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    id="isActive"
-                    checked={formData.isActive}
-                    onChange={(e) => handleChange("isActive", e.target.checked)}
-                    className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
-                  />
-                  <label htmlFor="isActive" className="text-sm text-white/70 cursor-pointer">
-                    Enable this configuration
-                  </label>
-                </div>
-              </div>
-
-              {/* Value Type Preview */}
-              <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-                <p className="text-xs text-white/50 mb-2">Value Type</p>
-                <span className={`inline-block px-3 py-1 rounded text-sm font-medium ${getTypeColor(formData.type)}`}>
-                  {formData.type}
-                </span>
-              </div>
-            </div>
+          {/* Is Active */}
+          <div className="mb-6">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                name="isActive"
+                checked={formData.isActive}
+                onChange={handleChange}
+                className="w-5 h-5 rounded bg-[#111] border-[#333] text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0"
+              />
+              <span className="text-sm text-gray-300">Active</span>
+            </label>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-6 border-t border-white/10">
-            <button
-              type="button"
-              onClick={() => router.push("/manage-game-config")}
-              className="px-4 py-2 text-sm font-medium text-white/70 bg-white/5 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+          <div className="flex items-center gap-4">
+            <Link
+              href="/manage-game-config"
+              className="px-6 py-2 bg-[#333] text-white rounded-lg hover:bg-[#444] transition-colors"
             >
               Cancel
-            </button>
+            </Link>
             <button
               type="submit"
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer"
+              disabled={loading}
+              className="flex items-center gap-2 px-6 py-2 bg-[#ffc032] text-[#111] rounded-lg font-semibold hover:bg-[#e6a82a] transition-colors disabled:opacity-50"
             >
-              <Save className="w-4 h-4" /> Create Config
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              Create
             </button>
           </div>
         </form>

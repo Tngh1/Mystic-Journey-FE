@@ -1,134 +1,174 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import React, { useState } from "react";
-import { ArrowLeft, Search, Download } from "lucide-react";
+import { PurchaseHistoryResponse } from "@/lib/api/purchase";
+import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
+import { Loader2 } from "lucide-react";
 
 export default function ManageTransactionsPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [dateRange, setDateRange] = useState({ from: "", to: "" });
+  const {
+    data: transactions,
+    totalCount,
+    loading,
+    error,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
+    setParams,
+    refresh,
+  } = usePagedQuery<PurchaseHistoryResponse>({
+    endpoint: "/api/purchase-histories",
+    pageSize: 10,
+  });
 
-  type TransactionItem = {
-    id: string;
-    playerId: string;
-    playerName: string;
-    type: string;
-    amount: number;
-    currency: string;
-    createdAt: string;
-    status: string;
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
-  type ColumnKey = keyof TransactionItem;
+  const formatPrice = (price: number, currency: string) => {
+    if (currency === "USD") {
+      return `$${Number(price).toFixed(2)}`;
+    }
+    return `${Number(price).toLocaleString()} ${currency}`;
+  };
 
-  const columns: Array<{
-    key: ColumnKey;
-    label: string;
-    render?: (val: TransactionItem[ColumnKey], item: TransactionItem) => React.ReactNode;
-  }> = [
-    { key: "id", label: "Transaction ID" },
-    { key: "playerId", label: "Player ID" },
-    { key: "playerName", label: "Player Name" },
-    { key: "type", label: "Type" },
-    { key: "amount", label: "Amount" },
-    { key: "currency", label: "Currency" },
-    { key: "createdAt", label: "Date" },
-    { 
-      key: "status", 
-      label: "Status",
-      render: (val) => {
-        const styles: Record<string, string> = {
-          Completed: "bg-emerald-400/10 text-emerald-400",
-          Pending: "bg-yellow-400/10 text-yellow-400",
-          Failed: "bg-red-400/10 text-red-400",
-        };
-        return <span className={`px-2 py-1 rounded text-xs font-medium ${styles[val as string]}`}>{val}</span>;
-      }
-    },
-  ];
+  const getCurrencyBadge = (currency: string) => {
+    const styles: Record<string, string> = {
+      Gold: "bg-orange-400/10 text-orange-400",
+      Gems: "bg-blue-400/10 text-blue-400",
+      USD: "bg-green-400/10 text-green-400",
+    };
+    return (
+      <span className={`px-2 py-1 rounded text-xs font-medium ${styles[currency] || "bg-white/10 text-white/80"}`}>
+        {currency}
+      </span>
+    );
+  };
 
-  const mockData: TransactionItem[] = [
-    { id: "TXN-001", playerId: "P-001", playerName: "Hero123", type: "Purchase", amount: 4.99, currency: "USD", createdAt: "2024-03-01", status: "Completed" },
-    { id: "TXN-002", playerId: "P-002", playerName: "MageKing", type: "Purchase", amount: 9.99, currency: "USD", createdAt: "2024-03-02", status: "Completed" },
-    { id: "TXN-003", playerId: "P-003", playerName: "ShadowHunter", type: "Refund", amount: 4.99, currency: "USD", createdAt: "2024-03-03", status: "Pending" },
-  ];
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-white mb-2">Manage Transactions</h1>
-        <p className="text-white/50 text-sm">View and manage all payment transactions.</p>
+        <p className="text-white/50 text-sm">View and search all player purchase histories.</p>
       </div>
 
-      <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
-        <div className="p-6 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h2 className="text-xl font-bold text-white">Transaction History</h2>
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
-              <input 
-                type="text" 
-                placeholder="Search transactions..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors w-full sm:w-64"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <input 
-                type="date" 
-                value={dateRange.from}
-                onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
-                className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              />
-              <span className="text-white/40">-</span>
-              <input 
-                type="date" 
-                value={dateRange.to}
-                onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
-                className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              />
-            </div>
-            <button className="flex items-center gap-2 bg-white/5 border border-white/10 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-white/10 transition-colors cursor-pointer whitespace-nowrap">
-              <Download className="w-4 h-4" /> Export
-            </button>
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-white/5 border-b border-white/10">
-                {columns.map((col) => (
-                  <th key={col.key} className="p-4 text-xs font-semibold text-white/60 uppercase tracking-wider whitespace-nowrap">
-                    {col.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {mockData.map((item) => (
-                <tr key={item.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                  {columns.map((col) => (
-                    <td key={col.key} className="p-4 text-sm text-white/80 whitespace-nowrap">
-                      {col.render ? col.render(item[col.key], item) : item[col.key]}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        
-        <div className="p-4 border-t border-white/10 flex items-center justify-between text-sm text-white/50">
-          <div>Showing {mockData.length} results</div>
-          <div className="flex items-center gap-2">
-            <button className="px-3 py-1 border border-white/10 rounded hover:bg-white/5 hover:text-white transition-colors cursor-pointer disabled:opacity-50">Prev</button>
-            <button className="px-3 py-1 border border-white/10 rounded bg-[#ffc032]/10 text-[#ffc032] border-[#ffc032]/20 cursor-pointer">1</button>
-            <button className="px-3 py-1 border border-white/10 rounded hover:bg-white/5 hover:text-white transition-colors cursor-pointer">Next</button>
-          </div>
-        </div>
+      {/* Filters */}
+      <div className="flex gap-4">
+        <input
+          type="text"
+          placeholder="Filter by player name..."
+          onChange={(e) => setParams({ search: e.target.value || undefined })}
+          className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 w-64"
+        />
       </div>
+
+      {error ? (
+        <div className="bg-red-400/10 border border-red-400/20 rounded-xl p-4 text-red-400">
+          {error}
+          <button onClick={refresh} className="ml-4 underline cursor-pointer">
+            Retry
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+          <div className="p-6 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h2 className="text-xl font-bold text-white">
+              Purchase History
+              {loading && (
+                <span className="ml-3 inline-block w-4 h-4 border-2 border-[#ffc032] border-t-transparent rounded-full animate-spin" />
+              )}
+            </h2>
+          </div>
+
+          {loading && transactions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <Loader2 className="w-8 h-8 text-[#ffc032] animate-spin" />
+              <span className="text-white/40 text-sm mt-3">Loading...</span>
+            </div>
+          ) : transactions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-white/40">
+              <p className="text-lg font-medium">No transactions found</p>
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-white/5 border-b border-white/10">
+                      <th className="p-4 text-xs font-semibold text-white/60 uppercase tracking-wider whitespace-nowrap">ID</th>
+                      <th className="p-4 text-xs font-semibold text-white/60 uppercase tracking-wider whitespace-nowrap">Player Name</th>
+                      <th className="p-4 text-xs font-semibold text-white/60 uppercase tracking-wider whitespace-nowrap">Item Name</th>
+                      <th className="p-4 text-xs font-semibold text-white/60 uppercase tracking-wider whitespace-nowrap">Quantity</th>
+                      <th className="p-4 text-xs font-semibold text-white/60 uppercase tracking-wider whitespace-nowrap">Total Price</th>
+                      <th className="p-4 text-xs font-semibold text-white/60 uppercase tracking-wider whitespace-nowrap">Currency</th>
+                      <th className="p-4 text-xs font-semibold text-white/60 uppercase tracking-wider whitespace-nowrap">Purchased At</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transactions.map((tx) => (
+                      <tr key={tx.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                        <td className="p-4 text-sm text-white/80 whitespace-nowrap font-mono">#{tx.id}</td>
+                        <td className="p-4 text-sm text-white/80 whitespace-nowrap">{tx.playerName}</td>
+                        <td className="p-4 text-sm text-white/80 whitespace-nowrap">{tx.itemName}</td>
+                        <td className="p-4 text-sm text-white/80 whitespace-nowrap text-center">{tx.quantity}</td>
+                        <td className="p-4 text-sm text-white/80 whitespace-nowrap font-medium">{formatPrice(tx.totalPrice, tx.currency)}</td>
+                        <td className="p-4 text-sm whitespace-nowrap">{getCurrencyBadge(tx.currency)}</td>
+                        <td className="p-4 text-sm text-white/80 whitespace-nowrap">{formatDate(tx.purchasedAt)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-sm text-white/50">
+                  Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, totalCount)} of{' '}
+                  {totalCount.toLocaleString()} transactions
+                </div>
+                <div className="flex items-center gap-3">
+                  <select
+                    value={pageSize}
+                    onChange={(e) => setPageSize(Number(e.target.value))}
+                    className="bg-white/5 border border-white/10 rounded px-2 py-1 text-sm text-white focus:outline-none"
+                  >
+                    <option value={5}>5 / page</option>
+                    <option value={10}>10 / page</option>
+                    <option value={20}>20 / page</option>
+                    <option value={50}>50 / page</option>
+                  </select>
+                  <button
+                    onClick={() => setPage(page - 1)}
+                    disabled={page === 1}
+                    className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    ←
+                  </button>
+                  <span className="px-3 py-1 text-sm text-white">
+                    Page {page} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setPage(page + 1)}
+                    disabled={page >= totalPages}
+                    className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    →
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
