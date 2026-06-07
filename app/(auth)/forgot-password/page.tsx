@@ -18,16 +18,10 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
 
     try {
-      const result = await forgotPassword(email);
-
-      if (result.success) {
-        // Redirect to reset-password page with email as query param
-        router.push(`/reset-password?email=${encodeURIComponent(email)}`);
-      } else {
-        await showErrorAlert("Error", result.message || "Failed to send reset code. Please try again.");
-      }
-    } catch (err) {
-      await showErrorAlert("Error", "An unexpected error occurred. Please try again.");
+      await forgotPassword(email);
+      router.push(`/reset-password?email=${encodeURIComponent(email)}`);
+    } catch (err: unknown) {
+      await showErrorAlert("Error", err instanceof Error ? err.message : "Failed to send reset code. Please try again.");
     } finally {
       setIsLoading(false);
     }
