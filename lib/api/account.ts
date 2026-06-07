@@ -42,6 +42,18 @@ export interface AccountResponse {
   refreshTokenExpiresAt?: string;
 }
 
+export interface AccountAdminResponse {
+  accountId: number;
+  userName: string;
+  email: string;
+  roleName: string;
+  isActive: boolean;
+  createdAt: string;
+  lastLogin: string | null;
+  playerProfileId: number | null;
+  playerDisplayName: string | null;
+}
+
 export const login = async (emailOrUsername: string, password: string): Promise<AccountResponse> => {
   try {
     const response = await apiClient.post<AccountResponse>("/api/accounts/login", {
@@ -111,6 +123,24 @@ export const changePassword = async (accessToken: string, data: ChangePasswordRe
     const response = await apiClient.post<AccountResponse>("/api/accounts/change-password", data, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
+    return response.data;
+  } catch (err) {
+    handleApiError(err);
+  }
+};
+
+export const banPlayer = async (accountId: number): Promise<AccountAdminResponse> => {
+  try {
+    const response = await apiClient.post<AccountAdminResponse>(`/api/admin-accounts/${accountId}/ban`);
+    return response.data;
+  } catch (err) {
+    handleApiError(err);
+  }
+};
+
+export const unbanPlayer = async (accountId: number): Promise<AccountAdminResponse> => {
+  try {
+    const response = await apiClient.post<AccountAdminResponse>(`/api/admin-accounts/${accountId}/unban`);
     return response.data;
   } catch (err) {
     handleApiError(err);

@@ -2,9 +2,11 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Edit, Search, Loader2, Shield, User } from 'lucide-react';
+import { ArrowLeft, Edit, Search, Loader2, Shield, User, Ban, CheckCircle } from 'lucide-react';
 import { PlayerProfileResponse } from '@/lib/api/player-profile';
+import { banPlayer, unbanPlayer } from '@/lib/api/account';
 import { usePagedQuery } from '@/lib/hooks/usePagedQuery';
+import { showSuccessAlert, showErrorAlert } from '@/lib/utils/swal';
 
 const classColors: Record<string, string> = {
   Knight: 'bg-red-500/20 text-red-400 border-red-500/30',
@@ -61,6 +63,26 @@ export default function ManagePlayersPage() {
       month: 'short',
       day: 'numeric',
     });
+  };
+
+  const [banningId, setBanningId] = useState<number | null>(null);
+
+  const handleBan = async (player: PlayerProfileResponse) => {
+    try {
+      setBanningId(player.id);
+      if (player.isBanned) {
+        await unbanPlayer(player.accountId);
+        await showSuccessAlert('Unbanned!', `${player.displayName} has been unbanned.`);
+      } else {
+        await banPlayer(player.accountId);
+        await showSuccessAlert('Banned!', `${player.displayName} has been banned.`);
+      }
+      refresh();
+    } catch (err) {
+      await showErrorAlert('Error', err instanceof Error ? err.message : 'Action failed.');
+    } finally {
+      setBanningId(null);
+    }
   };
 
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
@@ -218,11 +240,29 @@ export default function ManagePlayersPage() {
                       <td className="px-6 py-4">
                         <Link
                           href={`/manage-players/edit?id=${player.id}`}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-[#ffc032] text-[#111] rounded-lg hover:bg-[#ffd04c] transition-colors text-sm font-medium"
+                          className="inline-flex items-center gap-2 px-3 py-2 bg-[#ffc032] text-[#111] rounded-lg hover:bg-[#ffd04c] transition-colors text-sm font-medium mb-1"
                         >
                           <Edit className="w-4 h-4" />
                           Edit
                         </Link>
+                        <button
+                          onClick={() => handleBan(player)}
+                          disabled={banningId === player.id}
+                          className={`inline-flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full ${
+                            player.isBanned
+                              ? 'bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30'
+                              : 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
+                          } disabled:opacity-50`}
+                        >
+                          {banningId === player.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : player.isBanned ? (
+                            <CheckCircle className="w-4 h-4" />
+                          ) : (
+                            <Ban className="w-4 h-4" />
+                          )}
+                          {player.isBanned ? 'Unban' : 'Ban'}
+                        </button>
                       </td>
                     </tr>
                   ))}

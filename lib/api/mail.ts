@@ -14,12 +14,14 @@ export interface MailResponse {
   attachedItemQuantity: number;
   isRead: boolean;
   isClaimed: boolean;
+  isDeleted: boolean;
+  deletedAt: string | null;
   sentAt: string;
   expiredAt: string | null;
 }
 
-export interface SendMailRequest {
-  playerProfileId: number;
+export interface SendMailByListIdRequest {
+  playerProfileIds: number[];
   title: string;
   content: string;
   type?: string;
@@ -30,8 +32,7 @@ export interface SendMailRequest {
   expiredAt?: string;
 }
 
-export interface SendBulkMailRequest {
-  playerProfileIds: number[];
+export interface SendMailToAllRequest {
   title: string;
   content: string;
   type?: string;
@@ -71,18 +72,17 @@ export const getAll = async (page = 1, pageSize = 10): Promise<{ totalCount: num
   }
 };
 
-export const send = async (data: SendMailRequest): Promise<MailResponse> => {
+export const sendByList = async (data: SendMailByListIdRequest): Promise<void> => {
   try {
-    const response = await apiClient.post<MailResponse>("/api/mails", data);
-    return response.data;
+    await apiClient.post("/api/mails/by-ids", data);
   } catch (err) {
     handleApiError(err);
   }
 };
 
-export const sendBulk = async (data: SendBulkMailRequest): Promise<void> => {
+export const sendBroadcast = async (data: SendMailToAllRequest): Promise<void> => {
   try {
-    await apiClient.post("/api/mails/bulk", data);
+    await apiClient.post("/api/mails/broadcast", data);
   } catch (err) {
     handleApiError(err);
   }

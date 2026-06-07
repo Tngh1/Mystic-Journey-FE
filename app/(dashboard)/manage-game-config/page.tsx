@@ -2,9 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Plus, Search, ArrowLeft, Loader2, Trash2, Eye, Edit } from 'lucide-react';
+import { Search, ArrowLeft, Loader2, Eye, Edit } from 'lucide-react';
 import { usePagedQuery } from '@/lib/hooks/usePagedQuery';
-import apiClient from '@/lib/api/client';
 import { GameSettingResponse } from '@/lib/api/game';
 
 const CATEGORIES = [
@@ -70,7 +69,6 @@ export default function ManageGameConfigPage() {
     setPage,
     setPageSize,
     setParams,
-    refresh,
   } = usePagedQuery<GameSettingResponse>({
     endpoint: '/api/game-settings',
     pageSize: 10,
@@ -78,7 +76,6 @@ export default function ManageGameConfigPage() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
@@ -87,21 +84,6 @@ export default function ManageGameConfigPage() {
 
   const handleCategoryChange = (cat: string) => {
     setSelectedCategory(cat);
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this configuration?")) {
-      return;
-    }
-    try {
-      setDeletingId(id);
-      await apiClient.delete(`/api/game-settings/${id}`);
-      refresh();
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to delete configuration");
-    } finally {
-      setDeletingId(null);
-    }
   };
 
   const filteredSettings = settings.filter((setting) => {
@@ -134,8 +116,8 @@ export default function ManageGameConfigPage() {
             <h1 className="text-2xl font-bold text-white">Game Configuration</h1>
           </div>
 
-          {/* Filters and Actions */}
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               {/* Search */}
               <div className="relative">
@@ -162,15 +144,6 @@ export default function ManageGameConfigPage() {
                 ))}
               </select>
             </div>
-
-            {/* Add Button */}
-            <Link
-              href="/manage-game-config/create"
-              className="flex items-center gap-2 px-4 py-2 bg-[#ffc032] text-[#111] rounded-lg font-semibold hover:bg-[#e6a82a] transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Add Config
-            </Link>
           </div>
         </div>
 
@@ -252,17 +225,6 @@ export default function ManageGameConfigPage() {
                           >
                             <Edit className="w-4 h-4 text-[#ffc032]" />
                           </Link>
-                          <button
-                            onClick={() => handleDelete(setting.id)}
-                            disabled={deletingId === setting.id}
-                            className="p-1.5 rounded hover:bg-[#333] transition-colors disabled:opacity-50"
-                            title="Delete"
-                          >
-                            <Trash2
-                              className={`w-4 h-4 ${deletingId === setting.id ? "text-gray-500" : "text-red-400"
-                                }`}
-                            />
-                          </button>
                         </div>
                       </td>
                     </tr>

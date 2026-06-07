@@ -11,14 +11,11 @@ export interface GameSettingResponse {
   updatedBy: string | null;
 }
 
-export interface CreateGameSettingRequest {
-  key: string;
+export type UpdateGameSettingRequest = {
   value?: string;
   description?: string;
   isActive?: boolean;
-}
-
-export type UpdateGameSettingRequest = Partial<CreateGameSettingRequest>;
+};
 
 export interface DailyLoginRewardResponse {
   id: number;
@@ -69,27 +66,10 @@ export const getAllSettings = async (page = 1, pageSize = 10): Promise<{ totalCo
   }
 };
 
-export const createSetting = async (data: CreateGameSettingRequest): Promise<GameSettingResponse> => {
-  try {
-    const response = await apiClient.post<GameSettingResponse>("/api/game-settings", data);
-    return response.data;
-  } catch (err) {
-    handleApiError(err);
-  }
-};
-
 export const updateSettingByKey = async (key: string, data: UpdateGameSettingRequest): Promise<GameSettingResponse> => {
   try {
     const response = await apiClient.put<GameSettingResponse>(`/api/game-settings/key/${key}`, data);
     return response.data;
-  } catch (err) {
-    handleApiError(err);
-  }
-};
-
-export const removeSetting = async (id: number): Promise<void> => {
-  try {
-    await apiClient.delete(`/api/game-settings/${id}`);
   } catch (err) {
     handleApiError(err);
   }
