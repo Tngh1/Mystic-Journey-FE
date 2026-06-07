@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Button from "./Button";
+import { useAuth } from "@/lib/contexts/AuthContext";
 
 const NAV_ITEMS = [
   { label: "Story", href: "/story" },
@@ -12,54 +13,31 @@ const NAV_ITEMS = [
   { label: "Content", href: "/content" },
 ];
 
-interface UserInfo {
-  accountId: string;
-  fullName: string;
-  userName: string;
-  roleId: number;
-}
-
-const ROLE_NAMES: Record<number, string> = {
-  1: "Player",
-  2: "Admin",
-  3: "SuperAdmin",
+const ROLE_NAMES: Record<string, string> = {
+  Player: "Player",
+  Admin: "Admin",
+  SuperAdmin: "SuperAdmin",
 };
 
 export default function Header() {
+  const { user, logout } = useAuth();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [user, setUser] = useState<UserInfo | null>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {
-        setUser(null);
-      }
-    }
-
     const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      setIsScrolled(window.scrollY > 20);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
-    setUser(null);
+  const handleLogout = async () => {
     setIsUserMenuOpen(false);
+    setIsMenuOpen(false);
+    await logout();
     router.push("/login");
   };
 
@@ -97,24 +75,21 @@ export default function Header() {
             <div className="relative">
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/10 rounded-xl text-white hover:bg-white/10 transition-all duration-200 cursor-pointer"
+                className="relative flex items-center justify-center w-10 h-10 bg-gradient-to-br from-[#ffc032] to-[#ca831f] rounded-full text-white shadow-lg hover:shadow-[#ffc032]/20 hover:scale-105 transition-all duration-200 cursor-pointer border-2 border-white/20 hover:border-white/50"
+                aria-label="User Menu"
               >
-                <div className="w-8 h-8 bg-gradient-to-br from-[#ffc032] to-[#ca831f] rounded-full flex items-center justify-center text-sm font-bold">
-                  {user.fullName?.charAt(0)?.toUpperCase() || "U"}
-                </div>
-                <span className="text-sm font-medium max-w-[120px] truncate">{user.fullName}</span>
-                <svg className={`w-4 h-4 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+                <span className="text-base font-bold">
+                  {user.userName?.charAt(0)?.toUpperCase() || "U"}
+                </span>
               </button>
 
               {isUserMenuOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl overflow-hidden">
                   <div className="px-4 py-3 border-b border-white/10">
-                    <p className="text-white font-semibold text-sm truncate">{user.fullName}</p>
+                    <p className="text-white font-semibold text-sm truncate">{user.userName}</p>
                     <p className="text-white/50 text-xs truncate">@{user.userName}</p>
                     <span className="inline-block mt-1 px-2 py-0.5 bg-[#ffc032]/20 text-[#ffc032] text-xs rounded-full font-medium">
-                      {ROLE_NAMES[user.roleId] || "Player"}
+                      {ROLE_NAMES[user.role] || user.role}
                     </span>
                   </div>
                   <div className="py-1">
@@ -198,10 +173,10 @@ export default function Header() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 px-2">
                     <div className="w-8 h-8 bg-gradient-to-br from-[#ffc032] to-[#ca831f] rounded-full flex items-center justify-center text-sm font-bold text-white">
-                      {user.fullName?.charAt(0)?.toUpperCase() || "U"}
+                      {user.userName?.charAt(0)?.toUpperCase() || "U"}
                     </div>
                     <div>
-                      <p className="text-white font-semibold text-sm">{user.fullName}</p>
+                      <p className="text-white font-semibold text-sm">{user.userName}</p>
                       <p className="text-white/50 text-xs">@{user.userName}</p>
                     </div>
                   </div>

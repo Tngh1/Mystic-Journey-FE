@@ -5,40 +5,22 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
-import { login } from "@/lib/api/account";
+import { useAuth } from "@/lib/contexts/AuthContext";
 import { showErrorAlert, showSuccessAlert } from "@/lib/utils/swal";
 
 export default function LoginPage() {
+  const { login } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
-      await login(email, password).then((result) => {
-        if (result.accessToken) {
-          localStorage.setItem("accessToken", result.accessToken);
-        }
-        if (result.refreshToken) {
-          localStorage.setItem("refreshToken", result.refreshToken);
-        }
-        localStorage.setItem("user", JSON.stringify({
-          accountId: result.accountId,
-          userName: result.userName,
-          emailAddress: result.emailAddress,
-          roleId: result.roleId,
-        }));
-
-        document.cookie = `auth_token=${result.accessToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
-      });
-
+      await login(email, password);
       await showSuccessAlert("Welcome back!", "Login successful. Redirecting...");
       router.push("/");
     } catch (err: unknown) {

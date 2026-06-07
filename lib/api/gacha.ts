@@ -94,11 +94,3 @@ export const addBannerItem = async (bannerId: number, data: { itemId: number; dr
     handleApiError(err);
   }
 };
-
-export const remove = async (id: number): Promise<void> => {
-  try {
-    await apiClient.delete(`/api/gacha-banners/${id}`);
-  } catch (err) {
-    handleApiError(err);
-  }
-};

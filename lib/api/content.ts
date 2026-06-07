@@ -140,14 +140,6 @@ export const publish = async (id: number): Promise<ContentResponse> => {
   }
 };
 
-export const remove = async (id: number): Promise<void> => {
-  try {
-    await apiClient.delete(`/api/contents/${id}`);
-  } catch (err) {
-    handleApiError(err);
-  }
-};
-
 export const createCategory = async (data: CreateCategoryRequest): Promise<CategoryResponse> => {
   try {
     const response = await apiClient.post<CategoryResponse>("/api/contents/categories", data);

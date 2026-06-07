@@ -91,14 +91,6 @@ export const update = async (id: number, data: UpdateMonsterRequest): Promise<Mo
   }
 };
 
-export const remove = async (id: number): Promise<void> => {
-  try {
-    await apiClient.delete(`/api/monsters/${id}`);
-  } catch (err) {
-    handleApiError(err);
-  }
-};
-
 export const addDrop = async (monsterId: number, data: { itemId: number; dropRate: number; minQuantity?: number; maxQuantity?: number; isGuaranteed?: boolean; isActive?: boolean }): Promise<MonsterDropResponse> => {
   try {
     const response = await apiClient.post<MonsterDropResponse>(`/api/monsters/${monsterId}/drops`, data);

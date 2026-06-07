@@ -67,11 +67,3 @@ export const update = async (id: number, data: UpdateAdminAccountRequest): Promi
     handleApiError(err);
   }
 };
-
-export const remove = async (id: number): Promise<void> => {
-  try {
-    await apiClient.delete(`/api/admin-accounts/${id}`);
-  } catch (err) {
-    handleApiError(err);
-  }
-};

@@ -62,7 +62,11 @@ export function usePagedQuery<T>({
       setData(response.data.items ?? []);
       setTotalCount(response.data.totalCount ?? 0);
     } catch (err) {
-      setError(handleApiError(err));
+      try {
+        handleApiError(err);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "An unexpected error occurred.");
+      }
     } finally {
       setLoading(false);
     }

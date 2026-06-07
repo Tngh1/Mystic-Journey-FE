@@ -68,11 +68,3 @@ export const update = async (id: number, data: UpdateAchievementRequest): Promis
     handleApiError(err);
   }
 };
-
-export const remove = async (id: number): Promise<void> => {
-  try {
-    await apiClient.delete(`/api/achievements/${id}`);
-  } catch (err) {
-    handleApiError(err);
-  }
-};

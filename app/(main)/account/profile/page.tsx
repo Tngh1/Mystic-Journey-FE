@@ -2,21 +2,17 @@
 
 import Link from "next/link";
 import ProfileSidebar from "@/components/ui/ProfileSidebar";
-import PageLoader from "@/components/ui/PageLoader";
-
-interface UserInfo {
-  accountId: number;
-  userName: string;
-  emailAddress: string;
-  roleId: number;
-}
+import { useAuth } from "@/lib/contexts/AuthContext";
 
 export default function ProfilePage() {
-  const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+  const { user, isLoading } = useAuth();
 
-  if (!storedUser) {
+  if (isLoading) return null;
+
+  // Middleware đã bảo vệ route này, nhưng giữ fallback phòng edge case
+  if (!user) {
     return (
-      <div className="min-h-screen bg-black pt-32 pb-20 flex items-center justify-center px-4 font-['BeVietnamPro']">
+      <div className="min-h-screen bg-black pt-32 pb-20 flex items-center justify-center px-4">
         <div className="text-center bg-white/10 border border-white/10 rounded-xl p-10 max-w-md w-full">
           <h2 className="text-2xl font-bold text-white mb-4">Not Authenticated</h2>
           <p className="text-gray-400 mb-8">Please log in to view your profile.</p>
@@ -26,13 +22,6 @@ export default function ProfilePage() {
         </div>
       </div>
     );
-  }
-
-  let user: UserInfo;
-  try {
-    user = JSON.parse(storedUser);
-  } catch {
-    return <PageLoader />;
   }
 
   return (
@@ -47,18 +36,33 @@ export default function ProfilePage() {
           <section>
             <h2 className="text-xl font-bold text-white mb-4">Account Information</h2>
             <div className="bg-white/5 border border-white/10 rounded-xl p-6 space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400 text-sm">Account ID</span>
-                <span className="text-white font-mono text-sm">{user.accountId}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400 text-sm">Username</span>
-                <span className="text-white font-medium">@{user.userName}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400 text-sm">Email</span>
-                <span className="text-white text-sm">{user.emailAddress}</span>
-              </div>
+              {[
+                { label: "Account ID", value: user.accountId, mono: true },
+                { label: "Username", value: `@${user.userName}` },
+                { label: "Email", value: user.email },
+                { label: "Role", value: user.role },
+              ].map(({ label, value, mono }) => (
+                <div key={label} className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">{label}</span>
+                  <span className={`text-white text-sm ${mono ? "font-mono" : ""}`}>{value}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="mt-8">
+            <h2 className="text-xl font-bold text-white mb-4">Current Position</h2>
+            <div className="bg-white/5 border border-white/10 rounded-xl p-6 space-y-4">
+              {[
+                { label: "Map", value: user.lastMapName },
+                { label: "Position X", value: user.positionX, mono: true },
+                { label: "Position Y", value: user.positionY, mono: true },
+              ].map(({ label, value, mono }) => (
+                <div key={label} className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">{label}</span>
+                  <span className={`text-white text-sm ${mono ? "font-mono" : ""}`}>{value}</span>
+                </div>
+              ))}
             </div>
           </section>
         </main>

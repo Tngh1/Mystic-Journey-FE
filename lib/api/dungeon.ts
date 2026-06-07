@@ -66,11 +66,3 @@ export const update = async (id: number, data: UpdateDungeonConfigRequest): Prom
     handleApiError(err);
   }
 };
-
-export const remove = async (id: number): Promise<void> => {
-  try {
-    await apiClient.delete(`/api/dungeons/${id}`);
-  } catch (err) {
-    handleApiError(err);
-  }
-};

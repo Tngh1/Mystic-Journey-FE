@@ -67,11 +67,3 @@ export const update = async (id: number, data: UpdateQuestRequest): Promise<Ques
     handleApiError(err);
   }
 };
-
-export const remove = async (id: number): Promise<void> => {
-  try {
-    await apiClient.delete(`/api/quests/${id}`);
-  } catch (err) {
-    handleApiError(err);
-  }
-};

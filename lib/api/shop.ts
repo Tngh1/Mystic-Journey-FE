@@ -65,11 +65,3 @@ export const update = async (id: number, data: UpdateShopItemRequest): Promise<S
     handleApiError(err);
   }
 };
-
-export const remove = async (id: number): Promise<void> => {
-  try {
-    await apiClient.delete(`/api/shop-items/${id}`);
-  } catch (err) {
-    handleApiError(err);
-  }
-};
