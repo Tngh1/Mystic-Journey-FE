@@ -1,118 +1,232 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { ArrowLeft, Save } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { ArrowLeft, Loader2, Save } from 'lucide-react';
+import { create, getCategories, CategoryResponse } from '@/lib/api/content';
+
+interface FormData {
+  title: string;
+  summary: string;
+  thumbnailUrl: string;
+  categoryId: number;
+  isPublished: boolean;
+  isActive: boolean;
+}
 
 export default function CreateContentPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    title: "",
-    content: "",
-    type: "News",
+  const [loading, setLoading] = useState(false);
+  const [fetchingCategories, setFetchingCategories] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<CategoryResponse[]>([]);
+  const [formData, setFormData] = useState<FormData>({
+    title: '',
+    summary: '',
+    thumbnailUrl: '',
+    categoryId: 0,
     isPublished: false,
+    isActive: true,
   });
 
-  const handleChange = (field: string, value: any) => {
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      setFetchingCategories(true);
+      const data = await getCategories();
+      setCategories(data.filter((c) => c.isActive));
+      if (data.length > 0) {
+        setFormData((prev) => ({ ...prev, categoryId: data[0].id }));
+      }
+    } catch (err) {
+      console.error('Failed to fetch categories:', err);
+    } finally {
+      setFetchingCategories(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!formData.title.trim()) {
+      setError('Title is required');
+      return;
+    }
+
+    if (!formData.categoryId) {
+      setError('Category is required');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await create({
+        title: formData.title,
+        summary: formData.summary,
+        thumbnailUrl: formData.thumbnailUrl || undefined,
+        categoryId: formData.categoryId,
+        isPublished: formData.isPublished,
+        isActive: formData.isActive,
+      });
+      router.push('/manage-content');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create content');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (field: keyof FormData, value: string | number | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Creating content:", formData);
-    router.push("/manage-content");
-  };
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => router.push("/manage-content")}
-          className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-white">Create New Content</h1>
-          <p className="text-white/50 text-sm">Add news, announcements, or articles</p>
+    <div className="min-h-screen bg-[#111] p-6">
+      <div className="max-w-2xl mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <Link
+            href="/manage-content"
+            className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-4"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back to Content
+          </Link>
+          <h1 className="text-3xl font-bold text-white">Create New Content</h1>
+          <p className="text-gray-400 mt-1">Add a new article or announcement</p>
         </div>
-      </div>
 
-      <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Title <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => handleChange("title", e.target.value)}
-                placeholder="Enter content title"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
-              />
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="bg-[#1a1a1a] rounded-lg p-6">
+          {error && (
+            <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg mb-6">
+              {error}
             </div>
+          )}
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Content Type <span className="text-red-400">*</span>
-              </label>
-              <select
-                value={formData.type}
-                onChange={(e) => handleChange("type", e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              >
-                <option value="News" className="bg-[#1a1a1a]">News</option>
-                <option value="Announcement" className="bg-[#1a1a1a]">Announcement</option>
-                <option value="Article" className="bg-[#1a1a1a]">Article</option>
-                <option value="Event" className="bg-[#1a1a1a]">Event</option>
-              </select>
-            </div>
+          {/* Title */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Title <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => handleChange('title', e.target.value)}
+              placeholder="Enter content title"
+              className="w-full px-4 py-2 bg-[#222] border border-[#333] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#ffc032]"
+            />
           </div>
 
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-white/80">
-              Content <span className="text-red-400">*</span>
+          {/* Summary */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Summary
             </label>
             <textarea
-              value={formData.content}
-              onChange={(e) => handleChange("content", e.target.value)}
-              placeholder="Enter content details"
-              rows={10}
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors resize-none"
-              required
+              value={formData.summary}
+              onChange={(e) => handleChange('summary', e.target.value)}
+              placeholder="Brief description of the content"
+              rows={3}
+              className="w-full px-4 py-2 bg-[#222] border border-[#333] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#ffc032] resize-none"
             />
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Thumbnail URL */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Thumbnail URL
+            </label>
             <input
-              type="checkbox"
-              id="isPublished"
-              checked={formData.isPublished}
-              onChange={(e) => handleChange("isPublished", e.target.checked)}
-              className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0"
+              type="text"
+              value={formData.thumbnailUrl}
+              onChange={(e) => handleChange('thumbnailUrl', e.target.value)}
+              placeholder="https://example.com/image.jpg"
+              className="w-full px-4 py-2 bg-[#222] border border-[#333] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#ffc032]"
             />
-            <label htmlFor="isPublished" className="text-sm text-white/70">
-              Publish immediately
+          </div>
+
+          {/* Category */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Category <span className="text-red-500">*</span>
+            </label>
+            {fetchingCategories ? (
+              <div className="flex items-center gap-2 text-gray-400">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Loading categories...
+              </div>
+            ) : (
+              <select
+                value={formData.categoryId}
+                onChange={(e) => handleChange('categoryId', Number(e.target.value))}
+                className="w-full px-4 py-2 bg-[#222] border border-[#333] rounded-lg text-white focus:outline-none focus:border-[#ffc032]"
+              >
+                {categories.length === 0 && (
+                  <option value={0}>No categories available</option>
+                )}
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          {/* Checkboxes */}
+          <div className="mb-6 space-y-3">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.isPublished}
+                onChange={(e) => handleChange('isPublished', e.target.checked)}
+                className="w-5 h-5 rounded border-[#333] bg-[#222] text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0"
+              />
+              <span className="text-sm text-gray-300">Publish immediately</span>
+            </label>
+
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.isActive}
+                onChange={(e) => handleChange('isActive', e.target.checked)}
+                className="w-5 h-5 rounded border-[#333] bg-[#222] text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0"
+              />
+              <span className="text-sm text-gray-300">Active</span>
             </label>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-6 border-t border-white/10">
-            <button
-              type="button"
-              onClick={() => router.push("/manage-content")}
-              className="px-4 py-2 text-sm font-medium text-white/70 bg-white/5 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
+          {/* Submit */}
+          <div className="flex items-center gap-4">
             <button
               type="submit"
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer"
+              disabled={loading || fetchingCategories}
+              className="flex items-center gap-2 px-6 py-2 bg-[#ffc032] text-[#111] rounded-lg font-semibold hover:bg-[#e6ae2c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Save className="w-4 h-4" /> Create Content
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Save className="w-5 h-5" />
+                  Create Content
+                </>
+              )}
             </button>
+            <Link
+              href="/manage-content"
+              className="px-6 py-2 bg-[#333] text-white rounded-lg font-semibold hover:bg-[#444] transition-colors"
+            >
+              Cancel
+            </Link>
           </div>
         </form>
       </div>

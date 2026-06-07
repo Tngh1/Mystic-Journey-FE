@@ -1,76 +1,203 @@
-# Mystic Journey - Frontend (FE)
+# Mystic Journey — Frontend
 
-Đây là mã nguồn Frontend cho dự án **Mystic Journey**, một nền tảng game giả tưởng với các yếu tố blockchain, được xây dựng bằng các công nghệ web hiện đại để mang lại trải nghiệm mượt mà, giao diện Dark Fantasy và hiệu năng cao.
+A Next.js 16 frontend for **Mystic Journey**, a dark fantasy MMORPG. Built with the App Router, TypeScript, and Tailwind CSS.
 
-## 🚀 Công nghệ sử dụng
+## Tech Stack
 
-- **Framework:** [Next.js 14+](https://nextjs.org/) (Sử dụng App Router)
-- **Ngôn ngữ:** [TypeScript](https://www.typescriptlang.org/)
-- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
-- **Icons:** [Lucide React](https://lucide.dev/)
-- **State Management:** React Hooks (useState, useEffect, Context API)
+| Category | Technology |
+|---|---|
+| Framework | Next.js 16.2.6 (App Router) |
+| Language | TypeScript |
+| UI Library | React 19 |
+| Styling | Tailwind CSS 4 |
+| HTTP Client | Axios |
+| Icons | Lucide React |
+| Charts | ApexCharts |
+| Notifications | SweetAlert2 |
 
-## 📁 Cấu trúc thư mục
+## Project Structure
 
-- `app/`: Chứa các route của ứng dụng (App Router).
-  - `(auth)/`: Các trang liên quan đến xác thực (Đăng nhập, Đăng ký, Quên mật khẩu,...).
-  - `(main)/`: Các trang chính của người dùng (Trang chủ, Profile,...).
-- `components/`: Các UI component có thể tái sử dụng.
-  - `ui/`: Các component cơ bản (Button, Input, Header, Footer,...).
-  - `sections/`: Các phần lớn của một trang (Hero, GameInfo,...).
-- `lib/`: Chứa các hàm tiện ích (utils) và cấu hình API.
-- `public/`: Chứa các tài nguyên tĩnh như hình ảnh, fonts, icons.
+```
+mystic-journey/
+├── app/                        # Next.js App Router
+│   ├── (auth)/                 # Auth route group
+│   │   ├── login/
+│   │   ├── register/
+│   │   ├── forgot-password/
+│   │   └── reset-password/
+│   ├── (main)/                 # Public main route group
+│   │   ├── page.tsx           # Home page
+│   │   ├── account/           # Profile, Security
+│   │   ├── content/           # Blog/news articles
+│   │   ├── wiki/              # Game encyclopedia
+│   │   │   ├── achievements/
+│   │   │   ├── dungeons/
+│   │   │   ├── gacha/
+│   │   │   ├── items/
+│   │   │   ├── maps/
+│   │   │   ├── monsters/
+│   │   │   └── quests/
+│   │   ├── story/
+│   │   ├── terms/
+│   │   └── privacy-policy/
+│   └── (dashboard)/            # Admin panel route group
+│       ├── dashboard/          # Dashboard overview
+│       ├── manage-achievements/
+│       ├── manage-admins/
+│       ├── manage-content/
+│       ├── manage-dungeons/
+│       ├── manage-game-config/
+│       ├── manage-gacha-pools/
+│       ├── manage-items/
+│       ├── manage-mailbox/
+│       ├── manage-monsters/
+│       ├── manage-players/
+│       ├── manage-quests/
+│       ├── manage-shop/
+│       └── manage-transactions/
+├── components/
+│   ├── ui/                    # Reusable UI components
+│   │   ├── AdminSideBar.tsx
+│   │   ├── AdminTopBar.tsx
+│   │   ├── AdminTable.tsx
+│   │   ├── Button.tsx
+│   │   ├── FormModal.tsx
+│   │   └── ...
+│   └── sections/             # Page section components
+│       ├── HeroSection.tsx
+│       ├── FeatureSection.tsx
+│       └── ...
+├── lib/
+│   ├── api/                   # API client modules (22 files)
+│   │   ├── client.ts          # Shared Axios instance with interceptors
+│   │   ├── account.ts
+│   │   ├── admin-account.ts
+│   │   ├── achievement.ts
+│   │   ├── chest.ts
+│   │   ├── content.ts
+│   │   ├── dashboard.ts
+│   │   ├── dungeon.ts
+│   │   ├── friend.ts
+│   │   ├── gacha.ts
+│   │   ├── guild.ts
+│   │   ├── inventory.ts
+│   │   ├── item.ts
+│   │   ├── mail.ts
+│   │   ├── monster.ts
+│   │   ├── player.ts
+│   │   ├── player-profile.ts
+│   │   ├── purchase.ts
+│   │   ├── quest.ts
+│   │   ├── shop.ts
+│   │   ├── skin.ts
+│   │   └── social.ts
+│   └── utils/
+│       └── swal.ts
+└── public/                    # Static assets
+```
 
-## 🛠 Hướng dẫn Cài đặt & Khởi chạy (Getting Started)
+## API Layer (`lib/api/`)
 
-### Yêu cầu hệ thống
-- [Node.js](https://nodejs.org/) (Khuyến nghị bản LTS - v18.x trở lên)
-- npm hoặc yarn hoặc pnpm
+All 22 API modules share a single Axios client instance configured with request/response interceptors.
 
-### Các bước cài đặt
+```typescript
+// lib/api/client.ts — shared base client
+import apiClient, { handleApiError } from "./client";
 
-1. **Clone repository:**
-   ```bash
-   git clone <repo-url>
-   cd Mystic-Journey-FE/mystic-journey
-   ```
+// Usage in any API module:
+export const getAll = async (): Promise<Item[]> => {
+  try {
+    const response = await apiClient.get<Item[]>("/api/items");
+    return response.data;
+  } catch (err) {
+    handleApiError(err);
+  }
+};
+```
 
-2. **Cài đặt thư viện:**
-   ```bash
-   npm install
-   # hoặc
-   yarn install
-   ```
+**Request Interceptor:** Automatically attaches the JWT `accessToken` from `localStorage` to every outgoing request.
 
-3. **Cấu hình biến môi trường:**
-   Tạo file `.env.local` ở thư mục gốc và cấu hình URL của Backend API:
-   ```env
-   NEXT_PUBLIC_API_URL=https://localhost:5001/api
-   ```
-   *(Thay đổi URL tùy thuộc vào cấu hình Backend của bạn)*
+**Response Interceptor:** Handles 401 errors by attempting token refresh via the refresh-token endpoint. Falls back to clearing tokens and redirecting to `/login` on failure.
 
-4. **Khởi chạy môi trường phát triển (Development):**
-   ```bash
-   npm run dev
-   # hoặc
-   yarn dev
-   ```
-   Ứng dụng sẽ chạy tại địa chỉ `http://localhost:3000`. Mở trình duyệt để xem kết quả.
+Each module exports typed functions: `getAll`, `getById`, `getActive`, `create`, `update`, `remove`, and domain-specific methods. Alias functions (e.g., `getAllItems` as alias for `getAll`) have been removed for cleaner codebase.
 
-## 🎨 Hướng dẫn Thiết kế (Design Guidelines)
+## Design System
 
-Dự án áp dụng phong cách thiết kế **Epic Games Style / Dark Fantasy**.
-Vui lòng tham khảo file `DESIGN.md` để biết thêm chi tiết về:
-- Bảng màu (Color Palette)
-- Typography (PatrickHand, BeVietnamPro)
-- Các quy tắc UI/UX
-- Cách sử dụng các components tái sử dụng (như Button, Cards).
+The project uses an **Epic Games / Dark Fantasy** design aesthetic. Design tokens are defined in `app/globals.css` using Tailwind CSS variables.
 
-## 📦 Build cho Môi trường Production
+Key design tokens:
+- **Colors:** Dark navy backgrounds, gold/amber accents, muted text
+- **Fonts:** PatrickHand (headings), BeVietnamPro (body)
+- **Components:** Consistent card, button, modal, table styles
 
-Để build dự án cho môi trường production, chạy lệnh:
+See `DESIGN.md` for the full design system documentation.
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- npm, yarn, or pnpm
+
+### 1. Install dependencies
+
+```bash
+cd Mystic-Journey-FE/mystic-journey
+npm install
+```
+
+### 2. Configure environment
+
+Create `.env.local` at the project root:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=https://localhost:5001/api
+```
+
+### 3. Run development server
+
+```bash
+npm run dev
+```
+
+Frontend is available at `http://localhost:3000`.
+
+### 4. Build for production
+
 ```bash
 npm run build
-# Sau đó khởi chạy production server:
 npm run start
 ```
+
+## Admin Panel
+
+The dashboard (`/dashboard`) provides full CRUD management for all game entities. API endpoints use **soft delete** (no hard delete) — set `isActive: false` instead.
+
+### Role System
+
+The system has 3 roles:
+
+| Role ID | Role Name | Description |
+|---|---|---|
+| 1 | Player | Regular player account |
+| 2 | Admin | Full access to game features and settings |
+| 3 | Super Admin | Full system access including account management |
+
+| Module | Features |
+|---|---|
+| **Players** | List, edit profile, ban/unban |
+| **Accounts** | List, create accounts, manage roles (Player/Admin/Super Admin) |
+| **Items** | Full CRUD with equipment stats |
+| **Monsters** | Full CRUD with drop tables |
+| **Dungeons** | Full CRUD with chest assignment |
+| **Shop** | Full CRUD with stock & purchase limits |
+| **Gacha Pools** | Full CRUD with item drop rates |
+| **Quests** | Full CRUD with rewards |
+| **Achievements** | Full CRUD with reward configuration |
+| **Mailbox** | Send individual or bulk mails with attachments |
+| **Content** | CMS for articles and news |
+| **Game Config** | Runtime settings management |
+| **Transactions** | Purchase history |
+| **Dashboard** | Statistics charts (ApexCharts) |
+
+Admin access requires an account with the `Admin` or `Super Admin` role, assigned via the **Manage Admins** page.

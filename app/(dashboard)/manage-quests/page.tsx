@@ -1,51 +1,104 @@
 "use client";
 
-import AdminTable from "@/components/ui/AdminTable";
 import { useRouter } from "next/navigation";
+import { QuestResponse } from "@/lib/api/quest";
+import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
+import apiClient from "@/lib/api/client";
+import AdminTable from "@/components/ui/AdminTable";
 
 export default function ManageQuestsPage() {
   const router = useRouter();
-  
+
+  const { data: quests, totalCount, loading, error, page, pageSize, setPage, setPageSize, refresh } =
+    usePagedQuery<QuestResponse>({
+      endpoint: "/api/quests",
+      pageSize: 10,
+    });
+
+  const handleDelete = async (quest: QuestResponse) => {
+    if (!confirm(`Delete quest "${quest.title}"?`)) return;
+    try {
+      await apiClient.delete(`/api/quests/${quest.id}`);
+      refresh();
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to delete");
+    }
+  };
+
+  const typeColors: Record<string, string> = {
+    Main: "bg-blue-400/10 text-blue-400",
+    Side: "bg-purple-400/10 text-purple-400",
+    Daily: "bg-green-400/10 text-green-400",
+    Event: "bg-orange-400/10 text-orange-400",
+  };
+
   const columns = [
     { key: "id", label: "ID" },
-    { key: "title", label: "Quest Title" },
-    { 
-      key: "type", 
+    { key: "title", label: "Title" },
+    {
+      key: "type",
       label: "Type",
-      render: (val: string) => {
-        const colors: Record<string, string> = {
-          Main: "text-purple-400 bg-purple-400/10",
-          Side: "text-blue-400 bg-blue-400/10",
-          Daily: "text-green-400 bg-green-400/10",
-        };
-        return <span className={`px-2 py-0.5 rounded text-xs font-semibold ${colors[val] || ''}`}>{val}</span>;
-      }
+      render: (val: string) => (
+        <span
+          className={`px-2 py-1 rounded text-xs font-medium ${typeColors[val] || "bg-gray-400/10 text-gray-400"
+            }`}
+        >
+          {val}
+        </span>
+      ),
     },
-    { key: "reqLevel", label: "Req Level" },
-    { key: "expReward", label: "EXP Reward" },
-    { key: "goldReward", label: "Gold Reward" },
-  ];
-
-  const mockData = [
-    { id: 1, title: "A Hero's Beginning", type: "Main", reqLevel: 1, expReward: 100, goldReward: 50 },
-    { id: 2, title: "Clear the Rats", type: "Side", reqLevel: 2, expReward: 50, goldReward: 20 },
-    { id: 3, title: "Daily Login", type: "Daily", reqLevel: 1, expReward: 10, goldReward: 100 },
+    { key: "requiredLevel", label: "Level" },
+    { key: "rewardExperience", label: "EXP" },
+    { key: "rewardGold", label: "Gold" },
+    { key: "rewardGems", label: "Gems" },
+    {
+      key: "isActive",
+      label: "Status",
+      render: (val: boolean) => (
+        <span
+          className={`px-2 py-1 rounded text-xs font-medium ${val ? "bg-emerald-400/10 text-emerald-400" : "bg-red-400/10 text-red-400"
+            }`}
+        >
+          {val ? "Active" : "Inactive"}
+        </span>
+      ),
+    },
   ];
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white mb-2">Manage Quests</h1>
-        <p className="text-white/50 text-sm">Create and modify quests and their rewards.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white mb-2">Manage Quests</h1>
+          <p className="text-white/50 text-sm">Create and modify game quests for players.</p>
+        </div>
+        <button
+          onClick={() => router.push("/manage-quests/create")}
+          className="px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer"
+        >
+          + Add Quest
+        </button>
       </div>
-      <AdminTable 
-        title="Quests List" 
-        columns={columns} 
-        data={mockData} 
-        onAdd={() => router.push("/manage-quests/create")}
-        onEdit={(item) => router.push(`/manage-quests/edit?id=${item.id}`)}
-        onDelete={(item) => console.log("Delete", item)}
-      />
+
+      {error ? (
+        <div className="bg-red-400/10 border border-red-400/20 rounded-xl p-4 text-red-400">
+          {error}
+          <button onClick={refresh} className="ml-4 underline cursor-pointer">
+            Retry
+          </button>
+        </div>
+      ) : (
+        <AdminTable
+          title="Game Quests"
+          columns={columns}
+          data={quests}
+          serverSide
+          loading={loading}
+          pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
+          onEdit={(quest) => router.push(`/manage-quests/edit?id=${quest.id}`)}
+          onDelete={handleDelete}
+        />
+      )}
     </div>
   );
 }

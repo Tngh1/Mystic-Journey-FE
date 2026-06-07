@@ -1,8 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowLeft, Save } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { create } from "@/lib/api/monster";
+import { ArrowLeft, Save, Loader2 } from "lucide-react";
 
 const MONSTER_TYPES = [
   { value: "Normal", label: "Normal" },
@@ -12,6 +13,8 @@ const MONSTER_TYPES = [
 
 export default function CreateMonsterPage() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     type: "Normal",
@@ -24,19 +27,36 @@ export default function CreateMonsterPage() {
     isActive: true,
   });
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Creating monster:", formData);
-    router.push("/manage-monsters");
+    try {
+      setLoading(true);
+      setError(null);
+      await create({
+        name: formData.name,
+        type: formData.type,
+        level: formData.level,
+        maxHp: formData.maxHp,
+        atk: formData.atk,
+        def: formData.def,
+        experienceReward: formData.expReward,
+        goldReward: formData.goldReward,
+        isActive: formData.isActive,
+      });
+      router.push("/manage-monsters");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to create monster");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-4">
         <button
           onClick={() => router.push("/manage-monsters")}
@@ -50,11 +70,15 @@ export default function CreateMonsterPage() {
         </div>
       </div>
 
-      {/* Form */}
+      {error && (
+        <div className="bg-red-400/10 border border-red-400/20 rounded-lg p-4 text-red-400 text-sm">
+          {error}
+        </div>
+      )}
+
       <div className="bg-white/5 border border-white/10 rounded-xl p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Name */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
                 Monster Name <span className="text-red-400">*</span>
@@ -69,7 +93,6 @@ export default function CreateMonsterPage() {
               />
             </div>
 
-            {/* Type */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
                 Monster Type <span className="text-red-400">*</span>
@@ -79,15 +102,14 @@ export default function CreateMonsterPage() {
                 onChange={(e) => handleChange("type", e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
               >
-                {MONSTER_TYPES.map((type) => (
-                  <option key={type.value} value={type.value} className="bg-[#1a1a1a]">
-                    {type.label}
+                {MONSTER_TYPES.map((t) => (
+                  <option key={t.value} value={t.value} className="bg-[#1a1a1a]">
+                    {t.label}
                   </option>
                 ))}
               </select>
             </div>
 
-            {/* Level */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
                 Level <span className="text-red-400">*</span>
@@ -96,7 +118,6 @@ export default function CreateMonsterPage() {
                 type="number"
                 value={formData.level}
                 onChange={(e) => handleChange("level", Number(e.target.value))}
-                placeholder="1"
                 min="1"
                 max="100"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
@@ -104,7 +125,6 @@ export default function CreateMonsterPage() {
               />
             </div>
 
-            {/* Max HP */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
                 Max HP <span className="text-red-400">*</span>
@@ -113,93 +133,80 @@ export default function CreateMonsterPage() {
                 type="number"
                 value={formData.maxHp}
                 onChange={(e) => handleChange("maxHp", Number(e.target.value))}
-                placeholder="100"
                 min="1"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
                 required
               />
             </div>
 
-            {/* ATK */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
-                Attack (ATK) <span className="text-red-400">*</span>
+                ATK <span className="text-red-400">*</span>
               </label>
               <input
                 type="number"
                 value={formData.atk}
                 onChange={(e) => handleChange("atk", Number(e.target.value))}
-                placeholder="10"
                 min="0"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
                 required
               />
             </div>
 
-            {/* DEF */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
-                Defense (DEF) <span className="text-red-400">*</span>
+                DEF <span className="text-red-400">*</span>
               </label>
               <input
                 type="number"
                 value={formData.def}
                 onChange={(e) => handleChange("def", Number(e.target.value))}
-                placeholder="5"
                 min="0"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
                 required
               />
             </div>
 
-            {/* EXP Reward */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
-                EXP Reward <span className="text-red-400">*</span>
+                EXP Reward
               </label>
               <input
                 type="number"
                 value={formData.expReward}
                 onChange={(e) => handleChange("expReward", Number(e.target.value))}
-                placeholder="10"
                 min="0"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
               />
             </div>
 
-            {/* Gold Reward */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
-                Gold Reward <span className="text-red-400">*</span>
+                Gold Reward
               </label>
               <input
                 type="number"
                 value={formData.goldReward}
                 onChange={(e) => handleChange("goldReward", Number(e.target.value))}
-                placeholder="5"
                 min="0"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
               />
             </div>
           </div>
 
-          {/* Active Status */}
           <div className="flex items-center gap-3">
             <input
               type="checkbox"
               id="isActive"
               checked={formData.isActive}
               onChange={(e) => handleChange("isActive", e.target.checked)}
-              className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0"
+              className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
             />
-            <label htmlFor="isActive" className="text-sm text-white/70">
+            <label htmlFor="isActive" className="text-sm text-white/70 cursor-pointer">
               Monster is active and can spawn in game
             </label>
           </div>
 
-          {/* Actions */}
           <div className="flex items-center justify-end gap-3 pt-6 border-t border-white/10">
             <button
               type="button"
@@ -210,9 +217,11 @@ export default function CreateMonsterPage() {
             </button>
             <button
               type="submit"
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer"
+              disabled={loading}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
             >
-              <Save className="w-4 h-4" /> Create Monster
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {loading ? "Creating..." : "Create Monster"}
             </button>
           </div>
         </form>
