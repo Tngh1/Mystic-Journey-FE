@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Search, ArrowLeft, Loader2, Eye, Edit } from 'lucide-react';
+import { Search, Loader2, Eye, Edit, Settings, Plus } from 'lucide-react';
 import { usePagedQuery } from '@/lib/hooks/usePagedQuery';
 import { GameSettingResponse } from '@/lib/api/game';
 
@@ -58,6 +58,24 @@ const getCategoryFromKey = (key: string): string => {
   return "System";
 };
 
+const categoryColors: Record<string, string> = {
+  Player: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  Energy: 'bg-green-500/20 text-green-400 border-green-500/30',
+  Shop: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+  System: 'bg-gray-500/20 text-gray-300 border-gray-500/30',
+  Events: 'bg-pink-500/20 text-pink-400 border-pink-500/30',
+  Battle: 'bg-red-500/20 text-red-400 border-red-500/30',
+  Gacha: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+  Social: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
+};
+
+const typeColors: Record<string, string> = {
+  boolean: 'bg-green-500/20 text-green-400',
+  number: 'bg-blue-500/20 text-blue-400',
+  string: 'bg-gray-500/20 text-gray-300',
+  json: 'bg-purple-500/20 text-purple-400',
+};
+
 export default function ManageGameConfigPage() {
   const {
     data: settings,
@@ -102,134 +120,151 @@ export default function ManageGameConfigPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#111] p-6">
+    <div className="min-h-screen bg-[#111] text-white p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <Link
-              href="/"
-              className="p-2 rounded-lg bg-[#1a1a1a] hover:bg-[#252525] transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5 text-[#ffc032]" />
-            </Link>
-            <h1 className="text-2xl font-bold text-white">Game Configuration</h1>
+        <div className="mb-8">
+          <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-[#ffc032] to-[#ff8c00] flex items-center justify-center">
+              <Settings className="w-8 h-8 text-[#111]" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-[#ffc032]">Game Configuration</h1>
+              <p className="text-gray-400">Manage game settings and system parameters</p>
+            </div>
           </div>
+        </div>
 
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search by key..."
-                  value={searchTerm}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="pl-10 pr-4 py-2 bg-[#1a1a1a] border border-[#333] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#ffc032] w-full sm:w-64"
-                />
-              </div>
+        {/* Filters */}
+        <div className="bg-[#1a1a1a] rounded-2xl p-6 mb-6 border border-gray-800">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+              <input
+                type="text"
+                placeholder="Search by key..."
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearchChange((e.target as HTMLInputElement).value)}
+                className="w-full pl-12 pr-4 py-3 bg-[#0d0d0d] border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#ffc032] transition-colors"
+              />
+            </div>
 
-              {/* Category Filter */}
-              <select
-                aria-label="Filter game configurations by category"
-                value={selectedCategory}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-                className="px-4 py-2 bg-[#1a1a1a] border border-[#333] rounded-lg text-white focus:outline-none focus:border-[#ffc032]"
-              >
-                {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
+            {/* Category Pills */}
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => handleCategoryChange(cat)}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                    selectedCategory === cat
+                      ? 'bg-[#ffc032] text-[#111] border border-[#ffc032]'
+                      : 'bg-[#0d0d0d] text-gray-300 border border-gray-700 hover:border-gray-600'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
             </div>
           </div>
         </div>
 
         {/* Error Display */}
         {error && (
-          <div className="mb-4 p-4 bg-red-900/20 border border-red-700 rounded-lg text-red-400">
-            {error}
+          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6">
+            <p className="text-red-400">{error}</p>
           </div>
         )}
 
         {/* Table */}
-        <div className="bg-[#1a1a1a] rounded-lg border border-[#333] overflow-hidden">
+        <div className="bg-[#1a1a1a] rounded-2xl border border-gray-800 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[#333]">
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-[#ffc032]">ID</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-[#ffc032]">Key</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-[#ffc032]">Value</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-[#ffc032]">Description</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-[#ffc032]">Type</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-[#ffc032]">Status</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-[#ffc032]">Updated At</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-[#ffc032]">Actions</th>
+                <tr className="border-b border-gray-800">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">ID</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Key</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Value</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Category</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Type</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Status</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredSettings.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
-                      No configurations found
+                    <td colSpan={7} className="px-6 py-12 text-center">
+                      <Settings className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+                      <p className="text-gray-400 text-lg">No configurations found</p>
                     </td>
                   </tr>
                 ) : (
-                  filteredSettings.map((setting) => (
-                    <tr
-                      key={setting.gameSettingId}
-                      className="border-b border-[#333] hover:bg-[#252525] transition-colors"
-                    >
-                      <td className="px-4 py-3 text-sm text-gray-300">{setting.gameSettingId}</td>
-                      <td className="px-4 py-3 text-sm text-white font-mono">{setting.key}</td>
-                      <td className="px-4 py-3 text-sm text-gray-300 max-w-xs truncate">
-                        {setting.value}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-400 max-w-xs truncate">
-                        {setting.description || "-"}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className="px-2 py-1 bg-[#252525] text-[#ffc032] rounded text-xs">
-                          {getTypeFromKey(setting.key)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span
-                          className={`px-2 py-1 rounded text-xs ${setting.isActive
-                              ? "bg-green-900/30 text-green-400"
-                              : "bg-red-900/30 text-red-400"
-                            }`}
-                        >
-                          {setting.isActive ? "Active" : "Inactive"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-400">
-                        {setting.updatedAt ? new Date(setting.updatedAt).toLocaleDateString() : '-'}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <div className="flex items-center gap-2">
-                          <Link
-                            href={`/manage-game-config/detail?id=${setting.key}`}
-                            className="p-1.5 rounded hover:bg-[#333] transition-colors"
-                            title="View"
-                          >
-                            <Eye className="w-4 h-4 text-gray-400" />
-                          </Link>
-                          <Link
-                            href={`/manage-game-config/edit?id=${setting.key}`}
-                            className="p-1.5 rounded hover:bg-[#333] transition-colors"
-                            title="Edit"
-                          >
-                            <Edit className="w-4 h-4 text-[#ffc032]" />
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                  filteredSettings.map((setting) => {
+                    const category = getCategoryFromKey(setting.key);
+                    const type = getTypeFromKey(setting.key);
+                    return (
+                      <tr
+                        key={setting.gameSettingId}
+                        className="border-b border-gray-800/50 hover:bg-[#222] transition-colors"
+                      >
+                        <td className="px-6 py-4 text-sm text-gray-400 font-mono">{setting.gameSettingId}</td>
+                        <td className="px-6 py-4">
+                          <span className="text-white font-mono font-medium">{setting.key}</span>
+                          {setting.description && (
+                            <p className="text-xs text-gray-500 mt-1 max-w-xs truncate" title={setting.description}>
+                              {setting.description}
+                            </p>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <code className="text-sm bg-[#0d0d0d] px-3 py-1.5 rounded-lg text-[#ffc032] font-mono block max-w-xs truncate" title={setting.value || '-'}>
+                            {setting.value || '-'}
+                          </code>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold border ${categoryColors[category] || categoryColors.System}`}>
+                            {category}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${typeColors[type] || typeColors.string}`}>
+                            {type}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          {setting.isActive ? (
+                            <span className="inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
+                              Active
+                            </span>
+                          ) : (
+                            <span className="inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-red-500/20 text-red-400 border border-red-500/30">
+                              Inactive
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <Link
+                              href={`/manage-game-config/detail?id=${setting.key}`}
+                              className="p-2 rounded-lg bg-[#0d0d0d] border border-gray-700 hover:border-gray-600 hover:bg-[#252525] transition-colors"
+                              title="View Details"
+                            >
+                              <Eye className="w-4 h-4 text-gray-400" />
+                            </Link>
+                            <Link
+                              href={`/manage-game-config/edit?id=${setting.key}`}
+                              className="p-2 rounded-lg bg-[#ffc032]/10 border border-[#ffc032]/30 hover:bg-[#ffc032]/20 hover:border-[#ffc032]/50 transition-colors"
+                              title="Edit"
+                            >
+                              <Edit className="w-4 h-4 text-[#ffc032]" />
+                            </Link>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -237,40 +272,41 @@ export default function ManageGameConfigPage() {
 
           {/* Pagination */}
           {totalCount > 0 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-[#333]">
+            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-800">
               <div className="text-sm text-gray-400">
-                Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, totalCount)} of{' '}
-                {totalCount.toLocaleString()} configurations
+                Total Configurations: <span className="text-[#ffc032] font-semibold">{totalCount.toLocaleString()}</span>
               </div>
               <div className="flex items-center gap-3">
                 <select
-                  aria-label="Select game configurations page size"
+                  aria-label="Select page size"
                   value={pageSize}
                   onChange={(e) => setPageSize(Number(e.target.value))}
-                  className="bg-[#0d0d0d] border border-[#333] rounded px-2 py-1 text-sm text-white focus:outline-none"
+                  className="bg-[#0d0d0d] border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none"
                 >
                   <option value={5}>5 / page</option>
                   <option value={10}>10 / page</option>
                   <option value={20}>20 / page</option>
                   <option value={50}>50 / page</option>
                 </select>
-                <button
-                  onClick={() => setPage(page - 1)}
-                  disabled={page === 1}
-                  className="p-2 hover:bg-[#333] rounded transition-colors text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  ←
-                </button>
-                <span className="px-3 py-1 text-sm text-white">
-                  Page {page} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setPage(page + 1)}
-                  disabled={page >= totalPages}
-                  className="p-2 hover:bg-[#333] rounded transition-colors text-gray-40 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  →
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setPage(page - 1)}
+                    disabled={page === 1}
+                    className="p-2 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    ←
+                  </button>
+                  <span className="px-3 py-1 text-sm text-white">
+                    Page {page} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setPage(page + 1)}
+                    disabled={page >= totalPages}
+                    className="p-2 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    →
+                  </button>
+                </div>
               </div>
             </div>
           )}

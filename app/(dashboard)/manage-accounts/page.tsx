@@ -3,14 +3,12 @@
 import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { 
-  ArrowLeft, 
   Search, 
   Loader2, 
   UserCog, 
   Eye, 
   Ban, 
   CheckCircle, 
-  XCircle,
   AlertCircle,
   X,
   Sword,
@@ -167,15 +165,8 @@ export default function ManageAccountsPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-gray-400 hover:text-[#ffc032] transition-colors mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
-          </Link>
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#ffc032] to-[#ff8c00] flex items-center justify-center">
+            <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-[#ffc032] to-[#ff8c00] flex items-center justify-center">
               <UserCog className="w-8 h-8 text-[#111]" />
             </div>
             <div>

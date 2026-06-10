@@ -58,16 +58,9 @@ export default function ManageAdminsPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-gray-400 hover:text-[#ffc032] transition-colors mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
-          </Link>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#ffc032] to-[#ff8c00] flex items-center justify-center">
+              <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-[#ffc032] to-[#ff8c00] flex items-center justify-center">
                 <Shield className="w-8 h-8 text-[#111]" />
               </div>
               <div>
@@ -124,7 +117,7 @@ export default function ManageAdminsPage() {
                       key={admin.accountId}
                       className="border-b border-gray-800/50 hover:bg-[#222] transition-colors"
                     >
-                      <td className="px-6 py-4 text-sm text-gray-400 font-mono">{admin.accountId.toString().slice(0, 8)}...</td>
+                      <td className="px-6 py-4 text-sm text-gray-400 font-mono">{admin.accountId}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-[#ffc032]/20 flex items-center justify-center">

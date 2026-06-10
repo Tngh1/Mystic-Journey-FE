@@ -342,7 +342,7 @@ export default function EditItemPage() {
                         Remove
                       </button>
                     </div>
-                    <p className="truncate text-sm text-white/50">{displayUrl}</p>
+                    <p className="truncate text-sm text-white/50 max-w-0" title={displayUrl}>{displayUrl}</p>
                   </div>
                 </div>
               ) : (

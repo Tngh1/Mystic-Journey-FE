@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Plus, Mail, Eye, ChevronLeft, ChevronRight, Trash2, Package } from 'lucide-react';
-import { MailResponse, getAll, markAsRead, claimReward, remove } from '@/lib/api/mail';
+import { Plus, Mail, Eye, Trash2, Package, CreditCard, Loader2 } from 'lucide-react';
+import { MailResponse, markAsRead, claimReward, remove } from '@/lib/api/mail';
 import { usePagedQuery } from '@/lib/hooks/usePagedQuery';
 
 function formatDate(dateString: string): string {
@@ -20,15 +20,15 @@ function getMailTypeColor(type: string): string {
   const typeLower = type?.toLowerCase() || '';
   switch (typeLower) {
     case 'system':
-      return 'bg-gray-700 text-gray-300';
+      return 'bg-gray-500/20 text-gray-300 border border-gray-500/30';
     case 'gift':
-      return 'bg-green-900/50 text-green-400';
+      return 'bg-green-500/20 text-green-400 border border-green-500/30';
     case 'event':
-      return 'bg-blue-900/50 text-blue-400';
+      return 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
     case 'compensation':
-      return 'bg-orange-900/50 text-orange-400';
+      return 'bg-orange-500/20 text-orange-400 border border-orange-500/30';
     default:
-      return 'bg-gray-700 text-gray-300';
+      return 'bg-gray-500/20 text-gray-300 border border-gray-500/30';
   }
 }
 
@@ -101,39 +101,45 @@ export default function ManageMailboxPage() {
   if (loading && mails.length === 0) {
     return (
       <div className="min-h-screen bg-[#111] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ffc032]"></div>
+        <Loader2 className="w-10 h-10 text-[#ffc032] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#111] p-6">
+    <div className="min-h-screen bg-[#111] text-white p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Mailbox</h1>
-            <p className="text-gray-400">View and manage player mail inbox</p>
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-[#ffc032] to-[#ff8c00] flex items-center justify-center">
+                <Mail className="w-8 h-8 text-[#111]" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-[#ffc032]">Mailbox</h1>
+                <p className="text-gray-400">View and manage player mail inbox</p>
+              </div>
+            </div>
+            <Link
+              href="/manage-mailbox/create"
+              className="px-6 py-3 bg-[#ffc032] text-[#111] font-semibold rounded-xl hover:bg-[#ffd04c] transition-colors flex items-center gap-2"
+            >
+              + Send Mail
+            </Link>
           </div>
-          <Link
-            href="/manage-mailbox/create"
-            className="flex items-center gap-2 px-4 py-2 bg-[#ffc032] text-[#111] rounded-lg font-semibold hover:bg-[#e6ae2c] transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            Send Mail
-          </Link>
         </div>
 
         {error && (
-          <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg mb-6">
-            {error}
+          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6">
+            <p className="text-red-400">{error}</p>
           </div>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Mail List */}
-          <div className="bg-[#1a1a1a] rounded-lg overflow-hidden">
-            <div className="px-4 py-3 border-b border-[#333]">
+          <div className="bg-[#1a1a1a] rounded-2xl overflow-hidden border border-gray-800">
+            <div className="px-6 py-4 border-b border-gray-800">
               <h2 className="text-lg font-semibold text-white">
                 Inbox
                 {loading && (
@@ -145,20 +151,19 @@ export default function ManageMailboxPage() {
             <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
               <table className="w-full">
                 <thead className="sticky top-0 bg-[#1a1a1a]">
-                  <tr className="border-b border-[#333]">
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">ID</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Player</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Title</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Type</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Sent</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Status</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Actions</th>
+                  <tr className="border-b border-gray-800">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">ID</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Player</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Title</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Type</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Status</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {mails.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                      <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
                         No mails found
                       </td>
                     </tr>
@@ -167,40 +172,36 @@ export default function ManageMailboxPage() {
                       <tr
                         key={mail.mailId}
                         onClick={() => handleSelectMail(mail)}
-                        className={`border-b border-[#222] hover:bg-[#252525] transition-colors cursor-pointer ${selectedMail?.mailId === mail.mailId ? 'bg-[#252525]' : ''
-                          }`}
+                        className={`border-b border-gray-800/50 hover:bg-[#222] transition-colors cursor-pointer ${selectedMail?.mailId === mail.mailId ? 'bg-[#222]' : ''}`}
                       >
-                        <td className="px-4 py-3 text-sm text-gray-400">{mail.mailId}</td>
-                        <td className="px-4 py-3 text-sm text-white max-w-[120px]">
+                        <td className="px-6 py-4 text-sm text-gray-400">{mail.mailId}</td>
+                        <td className="px-6 py-4 text-sm text-white">
                           <div className="truncate">{mail.playerName || 'All Players'}</div>
                         </td>
-                        <td className="px-4 py-3 text-sm text-white max-w-[150px]">
+                        <td className="px-6 py-4 text-sm text-white">
                           <div className="truncate">{mail.title}</div>
                         </td>
-                        <td className="px-4 py-3 text-sm">
-                          <span className={`px-2 py-1 rounded text-xs ${getMailTypeColor(mail.type)}`}>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${getMailTypeColor(mail.type)}`}>
                             {mail.type}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-xs text-gray-400">
-                          {formatDate(mail.sentAt)}
-                        </td>
-                        <td className="px-4 py-3 text-sm">
+                        <td className="px-6 py-4">
                           {mail.isRead ? (
-                            <span className="px-2 py-1 bg-gray-800 text-gray-400 rounded text-xs">
+                            <span className="inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-gray-500/20 text-gray-300 border border-gray-500/30">
                               Read
                             </span>
                           ) : (
-                            <span className="px-2 py-1 bg-blue-900/50 text-blue-400 rounded text-xs">
+                            <span className="inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-400 border border-blue-500/30">
                               New
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-sm">
+                        <td className="px-6 py-4">
                           <button
                             onClick={(e) => { e.stopPropagation(); handleDelete(mail.mailId); }}
                             disabled={deletingId === mail.mailId}
-                            className="p-1.5 rounded hover:bg-[#333] transition-colors disabled:opacity-50"
+                            className="p-2 rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-50"
                             title="Delete mail"
                           >
                             <Trash2 className={`w-4 h-4 ${deletingId === mail.mailId ? 'text-gray-600' : 'text-red-400'}`} />
@@ -215,69 +216,50 @@ export default function ManageMailboxPage() {
 
             {/* Pagination */}
             {totalCount > 0 && (
-              <div className="flex items-center justify-between px-4 py-3 border-t border-[#333]">
+              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-800">
                 <div className="text-sm text-gray-400">
-                  {totalCount.toLocaleString()} total
+                  Total: <span className="text-[#ffc032] font-semibold">{totalCount.toLocaleString()}</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <select
-                    title="Items per page"
+                    aria-label="Select page size"
                     value={pageSize}
                     onChange={(e) => setPageSize(Number(e.target.value))}
-                    className="bg-[#0d0d0d] border border-[#333] rounded px-2 py-1 text-sm text-white focus:outline-none"
+                    className="bg-[#0d0d0d] border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none"
                   >
-                    <option value={5}>5</option>
-                    <option value={10}>10</option>
-                    <option value={20}>20</option>
+                    <option value={5}>5 / page</option>
+                    <option value={10}>10 / page</option>
+                    <option value={20}>20 / page</option>
                   </select>
-                  <button
-                    onClick={() => setPage(page - 1)}
-                    disabled={page === 1}
-                    aria-label="Previous page"
-                    className="p-2 hover:bg-[#333] rounded-lg transition-colors text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  <span className="px-2 text-white">
-                    {page}/{totalPages}
-                  </span>
-                  <button
-                    onClick={() => setPage(page + 1)}
-                    disabled={page >= totalPages}
-                    aria-label="Next page"
-                    className="p-2 hover:bg-[#333] rounded-lg transition-colors text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => setPage(page - 1)} disabled={page === 1} className="p-2 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed">←</button>
+                    <span className="px-3 py-1 text-sm text-white">{page} / {totalPages}</span>
+                    <button onClick={() => setPage(page + 1)} disabled={page >= totalPages} className="p-2 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed">→</button>
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
           {/* Mail Detail */}
-          <div className="bg-[#1a1a1a] rounded-lg overflow-hidden">
-            <div className="px-4 py-3 border-b border-[#333]">
+          <div className="bg-[#1a1a1a] rounded-2xl overflow-hidden border border-gray-800">
+            <div className="px-6 py-4 border-b border-gray-800">
               <h2 className="text-lg font-semibold text-white">Mail Detail</h2>
             </div>
 
             {selectedMail ? (
               <div className="p-6">
-                {/* Mail Header */}
                 <div className="mb-6">
                   <div className="flex items-center gap-3 mb-3">
                     <Mail className="w-5 h-5 text-[#ffc032]" />
-                    <span className={`px-2 py-1 rounded text-xs ${getMailTypeColor(selectedMail.type)}`}>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getMailTypeColor(selectedMail.type)}`}>
                       {selectedMail.type}
                     </span>
                     {!selectedMail.isRead && (
-                      <span className="px-2 py-1 bg-blue-900/50 text-blue-400 rounded text-xs">
-                        New
-                      </span>
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-400 border border-blue-500/30">New</span>
                     )}
                     {selectedMail.isClaimed && (
-                      <span className="px-2 py-1 bg-green-900/50 text-green-400 rounded text-xs">
-                        Claimed
-                      </span>
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30">Claimed</span>
                     )}
                   </div>
                   <h3 className="text-xl font-bold text-white mb-2">{selectedMail.title}</h3>
@@ -289,30 +271,25 @@ export default function ManageMailboxPage() {
                   </div>
                 </div>
 
-                {/* Rewards */}
                 {(Number(selectedMail.attachedGold) > 0 || Number(selectedMail.attachedGems) > 0 || selectedMail.attachedItemName) && (
-                  <div className="mb-6 p-4 bg-[#222] rounded-lg">
+                  <div className="mb-6 p-4 bg-[#222] rounded-xl">
                     <h4 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
                       <Package className="w-4 h-4" />
                       Attached Rewards
                     </h4>
                     <div className="flex flex-wrap gap-3">
                       {Number(selectedMail.attachedGold) > 0 && (
-                        <div className="flex items-center gap-2 px-3 py-1 bg-yellow-900/30 rounded">
-                          <span className="text-yellow-400 text-sm font-medium">
-                            {Number(selectedMail.attachedGold).toLocaleString()} Gold
-                          </span>
+                        <div className="flex items-center gap-2 px-3 py-1 bg-yellow-500/20 rounded-lg">
+                          <span className="text-yellow-400 text-sm font-medium">💰 {Number(selectedMail.attachedGold).toLocaleString()} Gold</span>
                         </div>
                       )}
                       {Number(selectedMail.attachedGems) > 0 && (
-                        <div className="flex items-center gap-2 px-3 py-1 bg-blue-900/30 rounded">
-                          <span className="text-blue-400 text-sm font-medium">
-                            {Number(selectedMail.attachedGems).toLocaleString()} Gems
-                          </span>
+                        <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/20 rounded-lg">
+                          <span className="text-blue-400 text-sm font-medium">💎 {Number(selectedMail.attachedGems).toLocaleString()} Gems</span>
                         </div>
                       )}
                       {selectedMail.attachedItemName && (
-                        <div className="flex items-center gap-2 px-3 py-1 bg-purple-900/30 rounded">
+                        <div className="flex items-center gap-2 px-3 py-1 bg-purple-500/20 rounded-lg">
                           <span className="text-purple-400 text-sm font-medium">
                             {selectedMail.attachedItemName}
                             {selectedMail.attachedItemQuantity > 1 && ` x${selectedMail.attachedItemQuantity}`}
@@ -320,31 +297,23 @@ export default function ManageMailboxPage() {
                         </div>
                       )}
                     </div>
-
-                    {/* Claim Button */}
                     {!selectedMail.isClaimed && (
                       <button
                         onClick={handleClaim}
                         disabled={claimingId === selectedMail.mailId}
-                        className="mt-4 flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                        className="mt-4 flex items-center gap-2 px-4 py-2 bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30 rounded-lg font-medium transition-colors disabled:opacity-50"
                       >
                         {claimingId === selectedMail.mailId ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            Claiming...
-                          </>
+                          <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
-                          <>
-                            <Package className="w-4 h-4" />
-                            Claim Reward
-                          </>
+                          <Package className="w-4 h-4" />
                         )}
+                        Claim Reward
                       </button>
                     )}
                   </div>
                 )}
 
-                {/* Content */}
                 <div className="mb-6">
                   <h4 className="text-sm font-semibold text-gray-300 mb-2">Message</h4>
                   <div className="text-white whitespace-pre-wrap leading-relaxed">
@@ -352,19 +321,17 @@ export default function ManageMailboxPage() {
                   </div>
                 </div>
 
-                {/* Expiry */}
                 {selectedMail.expiredAt && (
                   <div className="text-sm text-gray-400">
                     Expires: <span className="text-white">{formatDate(selectedMail.expiredAt)}</span>
                   </div>
                 )}
 
-                {/* Actions */}
-                <div className="mt-6 pt-4 border-t border-[#333] flex items-center gap-3">
+                <div className="mt-6 pt-4 border-t border-gray-800 flex items-center gap-3">
                   <button
                     onClick={() => handleDelete(selectedMail.mailId)}
                     disabled={deletingId === selectedMail.mailId}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 px-4 py-2 bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 rounded-lg font-medium transition-colors disabled:opacity-50"
                   >
                     <Trash2 className="w-4 h-4" />
                     Delete Mail
