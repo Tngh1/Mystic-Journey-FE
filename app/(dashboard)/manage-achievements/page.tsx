@@ -18,7 +18,7 @@ export default function ManageAchievementsPage() {
   const handleDelete = async (achievement: AchievementResponse) => {
     if (!confirm(`Delete achievement "${achievement.name}"?`)) return;
     try {
-      await apiClient.delete(`/api/achievements/${achievement.id}`);
+      await apiClient.delete(`/api/achievements/${achievement.achievementId}`);
       refresh();
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : "Failed to delete");
@@ -34,7 +34,7 @@ export default function ManageAchievementsPage() {
   };
 
   const columns = [
-    { key: "id", label: "ID" },
+    { key: "achievementId", label: "ID" },
     { key: "name", label: "Name" },
     {
       key: "type",
@@ -50,7 +50,7 @@ export default function ManageAchievementsPage() {
     },
     { key: "requiredValue", label: "Required" },
     { key: "rewardGold", label: "Gold" },
-    { key: "rewardGems", label: "Gems" },
+    { key: "rewardGem", label: "Gems" },
     {
       key: "isActive",
       label: "Status",
@@ -93,11 +93,12 @@ export default function ManageAchievementsPage() {
         <AdminTable
           title="Game Achievements"
           columns={columns}
+          idField="achievementId"
           data={achievements}
           serverSide
           loading={loading}
           pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
-          onEdit={(achievement) => router.push(`/manage-achievements/edit?id=${achievement.id}`)}
+          onEdit={(achievement) => router.push(`/manage-achievements/edit?id=${achievement.achievementId}`)}
           onDelete={handleDelete}
         />
       )}

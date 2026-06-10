@@ -58,7 +58,7 @@ export default function ManageMailboxPage() {
     setSelectedMail(mail);
     if (!mail.isRead) {
       try {
-        const updated = await markAsRead(mail.id);
+        const updated = await markAsRead(mail.mailId);
         setSelectedMail(updated);
         refresh();
       } catch {
@@ -71,8 +71,8 @@ export default function ManageMailboxPage() {
     if (!selectedMail) return;
     if (selectedMail.isClaimed) return;
     try {
-      setClaimingId(selectedMail.id);
-      const updated = await claimReward(selectedMail.id);
+      setClaimingId(selectedMail.mailId);
+      const updated = await claimReward(selectedMail.mailId);
       setSelectedMail(updated);
       refresh();
     } catch {
@@ -87,7 +87,7 @@ export default function ManageMailboxPage() {
     try {
       setDeletingId(mailId);
       await remove(mailId);
-      if (selectedMail?.id === mailId) {
+      if (selectedMail?.mailId === mailId) {
         setSelectedMail(null);
       }
       refresh();
@@ -165,12 +165,12 @@ export default function ManageMailboxPage() {
                   ) : (
                     mails.map((mail) => (
                       <tr
-                        key={mail.id}
+                        key={mail.mailId}
                         onClick={() => handleSelectMail(mail)}
-                        className={`border-b border-[#222] hover:bg-[#252525] transition-colors cursor-pointer ${selectedMail?.id === mail.id ? 'bg-[#252525]' : ''
+                        className={`border-b border-[#222] hover:bg-[#252525] transition-colors cursor-pointer ${selectedMail?.mailId === mail.mailId ? 'bg-[#252525]' : ''
                           }`}
                       >
-                        <td className="px-4 py-3 text-sm text-gray-400">{mail.id}</td>
+                        <td className="px-4 py-3 text-sm text-gray-400">{mail.mailId}</td>
                         <td className="px-4 py-3 text-sm text-white max-w-[120px]">
                           <div className="truncate">{mail.playerName || 'All Players'}</div>
                         </td>
@@ -198,12 +198,12 @@ export default function ManageMailboxPage() {
                         </td>
                         <td className="px-4 py-3 text-sm">
                           <button
-                            onClick={(e) => { e.stopPropagation(); handleDelete(mail.id); }}
-                            disabled={deletingId === mail.id}
+                            onClick={(e) => { e.stopPropagation(); handleDelete(mail.mailId); }}
+                            disabled={deletingId === mail.mailId}
                             className="p-1.5 rounded hover:bg-[#333] transition-colors disabled:opacity-50"
                             title="Delete mail"
                           >
-                            <Trash2 className={`w-4 h-4 ${deletingId === mail.id ? 'text-gray-600' : 'text-red-400'}`} />
+                            <Trash2 className={`w-4 h-4 ${deletingId === mail.mailId ? 'text-gray-600' : 'text-red-400'}`} />
                           </button>
                         </td>
                       </tr>
@@ -325,10 +325,10 @@ export default function ManageMailboxPage() {
                     {!selectedMail.isClaimed && (
                       <button
                         onClick={handleClaim}
-                        disabled={claimingId === selectedMail.id}
+                        disabled={claimingId === selectedMail.mailId}
                         className="mt-4 flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
                       >
-                        {claimingId === selectedMail.id ? (
+                        {claimingId === selectedMail.mailId ? (
                           <>
                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                             Claiming...
@@ -362,8 +362,8 @@ export default function ManageMailboxPage() {
                 {/* Actions */}
                 <div className="mt-6 pt-4 border-t border-[#333] flex items-center gap-3">
                   <button
-                    onClick={() => handleDelete(selectedMail.id)}
-                    disabled={deletingId === selectedMail.id}
+                    onClick={() => handleDelete(selectedMail.mailId)}
+                    disabled={deletingId === selectedMail.mailId}
                     className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
                   >
                     <Trash2 className="w-4 h-4" />

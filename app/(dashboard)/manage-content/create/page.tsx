@@ -40,7 +40,7 @@ export default function CreateContentPage() {
       const data = await getCategories();
       setCategories(data.filter((c) => c.isActive));
       if (data.length > 0) {
-        setFormData((prev) => ({ ...prev, categoryId: data[0].id }));
+        setFormData((prev) => ({ ...prev, categoryId: data[0].categoryContentId }));
       }
     } catch (err) {
       console.error('Failed to fetch categories:', err);
@@ -171,7 +171,7 @@ export default function CreateContentPage() {
                   <option value={0}>No categories available</option>
                 )}
                 {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
+                  <option key={cat.categoryContentId} value={cat.categoryContentId}>
                     {cat.name}
                   </option>
                 ))}

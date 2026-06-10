@@ -12,16 +12,12 @@ const classColors: Record<string, string> = {
   Knight: 'bg-red-500/20 text-red-400 border-red-500/30',
   Mage: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
   Archer: 'bg-green-500/20 text-green-400 border-green-500/30',
-  Rogue: 'bg-gray-500/20 text-gray-300 border-gray-500/30',
-  Priest: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
 };
 
 const classIcons: Record<string, string> = {
   Knight: '⚔️',
   Mage: '🔮',
   Archer: '🏹',
-  Rogue: '🗡️',
-  Priest: '✨',
 };
 
 export default function ManagePlayersPage() {
@@ -37,7 +33,7 @@ export default function ManagePlayersPage() {
     setParams,
     refresh,
   } = usePagedQuery<PlayerProfileResponse>({
-    endpoint: '/api/player-profiles',
+    endpoint: '/api/playerprofiles',
     pageSize: 10,
   });
 
@@ -68,8 +64,9 @@ export default function ManagePlayersPage() {
   const [banningId, setBanningId] = useState<number | null>(null);
 
   const handleBan = async (player: PlayerProfileResponse) => {
+    if (player.playerProfileId == null || player.accountId == null) return;
     try {
-      setBanningId(player.id);
+      setBanningId(player.playerProfileId);
       if (player.isBanned) {
         await unbanPlayer(player.accountId);
         await showSuccessAlert('Unbanned!', `${player.displayName} has been unbanned.`);
@@ -135,7 +132,7 @@ export default function ManagePlayersPage() {
           <div className="mt-4">
             <p className="text-sm text-gray-400 mb-3">Filter by Class:</p>
             <div className="flex flex-wrap gap-2">
-              {['Knight', 'Mage', 'Archer', 'Rogue', 'Priest'].map((className) => (
+              {['Knight', 'Mage', 'Archer'].map((className) => (
                 <button
                   key={className}
                   onClick={() => handleClassFilter(className)}
@@ -187,9 +184,9 @@ export default function ManagePlayersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {players.map((player) => (
-                    <tr key={player.id} className="border-b border-gray-800/50 hover:bg-[#222] transition-colors">
-                      <td className="px-6 py-4 text-sm text-gray-400 font-mono">{player.id.toString().slice(0, 8)}...</td>
+                  {players.map((player, index) => (
+                    <tr key={player.playerProfileId ?? `player-${index}`} className="border-b border-gray-800/50 hover:bg-[#222] transition-colors">
+                      <td className="px-6 py-4 text-sm text-gray-400 font-mono">{String(player.playerProfileId ?? 'N/A').slice(0, 8)}...</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-[#ffc032]/20 flex items-center justify-center overflow-hidden">
@@ -239,7 +236,7 @@ export default function ManagePlayersPage() {
                       </td>
                       <td className="px-6 py-4">
                         <Link
-                          href={`/manage-players/edit?id=${player.id}`}
+                          href={`/manage-players/edit?id=${player.playerProfileId ?? ''}`}
                           className="inline-flex items-center gap-2 px-3 py-2 bg-[#ffc032] text-[#111] rounded-lg hover:bg-[#ffd04c] transition-colors text-sm font-medium mb-1"
                         >
                           <Edit className="w-4 h-4" />
@@ -247,14 +244,14 @@ export default function ManagePlayersPage() {
                         </Link>
                         <button
                           onClick={() => handleBan(player)}
-                          disabled={banningId === player.id}
+                          disabled={banningId === player.playerProfileId}
                           className={`inline-flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full ${
                             player.isBanned
                               ? 'bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30'
                               : 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
                           } disabled:opacity-50`}
                         >
-                          {banningId === player.id ? (
+                          {banningId === player.playerProfileId ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
                           ) : player.isBanned ? (
                             <CheckCircle className="w-4 h-4" />
@@ -277,6 +274,7 @@ export default function ManagePlayersPage() {
               </div>
               <div className="flex items-center gap-3">
                 <select
+                  aria-label="Select players page size"
                   value={pageSize}
                   onChange={(e) => setPageSize(Number(e.target.value))}
                   className="bg-[#0d0d0d] border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none"

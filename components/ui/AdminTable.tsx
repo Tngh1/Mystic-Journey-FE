@@ -24,6 +24,8 @@ interface AdminTableProps {
   onEdit?: (item: any) => void;
   onDelete?: (item: any) => void;
   itemsPerPage?: number;
+  /** Field name to use as row key (e.g. "itemId", "monsterId"). Auto-detects common patterns. */
+  idField?: string;
   /** Enable server-side pagination */
   serverSide?: boolean;
   /** Provide server-side pagination state when serverSide=true */
@@ -42,6 +44,7 @@ export default function AdminTable({
   onEdit,
   onDelete,
   itemsPerPage = 10,
+  idField = "id",
   serverSide = false,
   pagination,
   loading = false,
@@ -68,9 +71,9 @@ export default function AdminTable({
   const totalPages = Math.max(1, Math.ceil(totalItems / currentPageSize));
 
   const safePage = Math.min(activePage, totalPages);
-  const startIndex = serverSide && pagination ? (safePage - 1) * currentPageSize : (safePage - 1) * currentPageSize;
-  const endIndex = Math.min(startIndex + currentPageSize, totalItems);
-  const currentData = filteredData.slice(startIndex, endIndex);
+  const startIndex = (serverSide && pagination) ? 0 : (safePage - 1) * currentPageSize;
+  const endIndex = (serverSide && pagination) ? totalItems : Math.min(startIndex + currentPageSize, totalItems);
+  const currentData = (serverSide && pagination) ? data : filteredData.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
     const newPage = Math.max(1, Math.min(page, totalPages));
@@ -205,7 +208,7 @@ export default function AdminTable({
             ) : (
               currentData.map((item, rowIndex) => (
                 <tr
-                  key={item.id || rowIndex}
+                  key={item[idField] || rowIndex}
                   className="border-b border-white/5 hover:bg-white/5 transition-colors group"
                 >
                   {columns.map((col) => (
@@ -218,6 +221,7 @@ export default function AdminTable({
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         {onEdit && (
                           <button
+                            title="Edit"
                             onClick={() => onEdit(item)}
                             className="p-1.5 text-white/50 hover:text-[#ffc032] hover:bg-[#ffc032]/10 rounded transition-colors cursor-pointer"
                           >
@@ -226,6 +230,7 @@ export default function AdminTable({
                         )}
                         {onDelete && (
                           <button
+                            title="Delete"
                             onClick={() => onDelete(item)}
                             className="p-1.5 text-white/50 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors cursor-pointer"
                           >
@@ -249,6 +254,7 @@ export default function AdminTable({
           <div className="flex items-center gap-2">
             <span className="text-sm text-white/50">Rows per page:</span>
             <select
+              aria-label="Rows per page"
               value={currentPageSize}
               onChange={(e) => handlePageSizeChange(Number(e.target.value))}
               className="bg-white/5 border border-white/10 rounded px-2 py-1 text-sm text-white focus:outline-none cursor-pointer"
@@ -284,6 +290,7 @@ export default function AdminTable({
         {totalPages > 1 && (
           <div className="flex items-center gap-1">
             <button
+              title="Previous page"
               onClick={() => handlePageChange(safePage - 1)}
               disabled={safePage === 1}
               className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
@@ -312,6 +319,7 @@ export default function AdminTable({
             )}
 
             <button
+              title="Next page"
               onClick={() => handlePageChange(safePage + 1)}
               disabled={safePage === totalPages}
               className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"

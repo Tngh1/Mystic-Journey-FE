@@ -1,76 +1,29 @@
-import apiClient, { handleApiError } from "./client";
-
-export interface DungeonConfigResponse {
-  id: number;
-  name: string;
-  description: string | null;
-  imageUrl: string | null;
-  type: string;
-  levelRequirement: number;
-  maxMembers: number;
-  difficulty: number;
-  recommendedPower: number;
-  chestId: number | null;
-  isActive: boolean;
-}
-
-export interface CreateDungeonConfigRequest {
-  name: string;
-  description?: string;
-  imageUrl?: string;
-  type?: string;
-  levelRequirement?: number;
-  maxMembers?: number;
-  difficulty?: number;
-  recommendedPower?: number;
-  chestId?: number;
-  isActive?: boolean;
-}
-
-export type UpdateDungeonConfigRequest = CreateDungeonConfigRequest;
+import { get, post, put, del, handleApiError } from "./client";
+import type {
+  DungeonConfigResponse,
+  CreateDungeonConfigRequest,
+  UpdateDungeonConfigRequest,
+  PagedResponse,
+} from "@/lib/types";
 
 export const getById = async (id: number): Promise<DungeonConfigResponse> => {
-  try {
-    const response = await apiClient.get<DungeonConfigResponse>(`/api/dungeons/${id}`);
-    return response.data;
-  } catch (err) {
-    handleApiError(err);
-  }
+  return get<DungeonConfigResponse>(`/api/dungeons/${id}`);
 };
 
-export const getAll = async (page = 1, pageSize = 10): Promise<{ totalCount: number; items: DungeonConfigResponse[] }> => {
-  try {
-    const response = await apiClient.get<{ totalCount: number; items: DungeonConfigResponse[] }>(
-      `/api/dungeons?page=${page}&pageSize=${pageSize}`
-    );
-    return response.data;
-  } catch (err) {
-    handleApiError(err);
-  }
+export const getAll = async (page = 1, pageSize = 10): Promise<PagedResponse<DungeonConfigResponse>> => {
+  return get<PagedResponse<DungeonConfigResponse>>(
+    `/api/dungeons?page=${page}&pageSize=${pageSize}`
+  );
 };
 
 export const create = async (data: CreateDungeonConfigRequest): Promise<DungeonConfigResponse> => {
-  try {
-    const response = await apiClient.post<DungeonConfigResponse>("/api/dungeons", data);
-    return response.data;
-  } catch (err) {
-    handleApiError(err);
-  }
+  return post<DungeonConfigResponse>("/api/dungeons", data);
 };
 
 export const update = async (id: number, data: UpdateDungeonConfigRequest): Promise<DungeonConfigResponse> => {
-  try {
-    const response = await apiClient.put<DungeonConfigResponse>(`/api/dungeons/${id}`, data);
-    return response.data;
-  } catch (err) {
-    handleApiError(err);
-  }
+  return put<DungeonConfigResponse>(`/api/dungeons/${id}`, data);
 };
 
 export const remove = async (id: number): Promise<void> => {
-  try {
-    await apiClient.delete(`/api/dungeons/${id}`);
-  } catch (err) {
-    handleApiError(err);
-  }
+  await del(`/api/dungeons/${id}`);
 };

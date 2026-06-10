@@ -10,8 +10,6 @@ const classColors: Record<string, string> = {
   Knight: 'bg-red-500/20 text-red-400 border-red-500/30',
   Mage: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
   Archer: 'bg-green-500/20 text-green-400 border-green-500/30',
-  Rogue: 'bg-gray-500/20 text-gray-300 border-gray-500/30',
-  Priest: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
 };
 
 export default function EditPlayerPage() {
@@ -195,8 +193,6 @@ export default function EditPlayerPage() {
                     <option value="Knight">Knight</option>
                     <option value="Mage">Mage</option>
                     <option value="Archer">Archer</option>
-                    <option value="Rogue">Rogue</option>
-                    <option value="Priest">Priest</option>
                   </select>
                 </div>
 

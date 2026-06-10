@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getById, update, ShopItemResponse } from "@/lib/api/shop";
-import { getAll, ItemResponse } from "@/lib/api/item";
+import { getAll as getAllItems, ItemResponse } from "@/lib/api/item";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 
 const CURRENCY_TYPES = [
@@ -31,7 +31,7 @@ export default function EditShopItemPage() {
   });
 
   useEffect(() => {
-    getAll()
+    getAllItems(1, 100)
       .then((res) => setItems(res.items))
       .catch(() => {})
       .finally(() => setLoadingItems(false));
@@ -92,6 +92,8 @@ export default function EditShopItemPage() {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <button
+          type="button"
+          title="Back to manage shop"
           onClick={() => router.push("/manage-shop")}
           className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
         >
@@ -123,13 +125,14 @@ export default function EditShopItemPage() {
                 </div>
               ) : (
                 <select
+                  aria-label="Select item for shop"
                   value={formData.itemId}
                   onChange={(e) => handleChange("itemId", Number(e.target.value))}
                   className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
                   required
                 >
                   {items.map((item) => (
-                    <option key={item.id} value={item.id} className="bg-[#1a1a1a]">
+                    <option key={item.itemId} value={item.itemId} className="bg-[#1a1a1a]">
                       {item.name} ({item.type} - {item.rarity})
                     </option>
                   ))}
@@ -142,6 +145,7 @@ export default function EditShopItemPage() {
                 Currency Type
               </label>
               <select
+                aria-label="Select currency type"
                 value={formData.currency}
                 onChange={(e) => handleChange("currency", e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
@@ -159,6 +163,7 @@ export default function EditShopItemPage() {
                 Price
               </label>
               <input
+                aria-label="Enter item price"
                 type="number"
                 value={formData.price}
                 onChange={(e) => handleChange("price", Number(e.target.value))}
@@ -173,6 +178,7 @@ export default function EditShopItemPage() {
                 Stock (-1 = Unlimited)
               </label>
               <input
+                aria-label="Enter stock quantity"
                 type="number"
                 value={formData.stock}
                 onChange={(e) => handleChange("stock", Number(e.target.value))}

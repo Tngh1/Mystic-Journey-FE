@@ -1,9 +1,15 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getById, update, ItemResponse } from "@/lib/api/item";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import {
+  deleteImageFromCloudinary,
+  extractPublicIdFromCloudinaryUrl,
+  uploadImageToCloudinary,
+} from "@/lib/api/cloudinary";
+import { ArrowLeft, Save, Loader2, Upload, Image as ImageIcon, X } from "lucide-react";
 
 const ITEM_TYPES = [
   { value: "Weapon", label: "Weapon" },
@@ -42,6 +48,9 @@ export default function EditItemPage() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [originalIconUrl, setOriginalIconUrl] = useState<string>("");
   const [formData, setFormData] = useState({
     name: "",
     type: "Weapon",
@@ -50,14 +59,20 @@ export default function EditItemPage() {
     description: "",
     baseValue: 0,
     maxStack: 1,
-    isActive: true,
-    isTradable: true,
+    iconUrl: "",
   });
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   useEffect(() => {
     if (!itemId) return;
     getById(Number(itemId))
       .then((item: ItemResponse) => {
+        setOriginalIconUrl(item.iconUrl || "");
         setFormData({
           name: item.name,
           type: item.type,
@@ -66,8 +81,7 @@ export default function EditItemPage() {
           description: item.description || "",
           baseValue: item.baseValue,
           maxStack: item.maxStack,
-          isActive: item.isActive,
-          isTradable: item.isTradable,
+          iconUrl: item.iconUrl || "",
         });
       })
       .catch((err: unknown) => {
@@ -80,12 +94,45 @@ export default function EditItemPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    const url = URL.createObjectURL(file);
+    setSelectedFile(file);
+    setPreviewUrl(url);
+    event.target.value = "";
+  };
+
+  const handleRemoveImage = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setSelectedFile(null);
+    setPreviewUrl("");
+    handleChange("iconUrl", "");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!itemId) return;
     try {
       setLoading(true);
       setError(null);
+
+      let iconUrl = formData.iconUrl || undefined;
+      const originalPublicId = originalIconUrl ? extractPublicIdFromCloudinaryUrl(originalIconUrl) : null;
+
+      if (selectedFile) {
+        if (originalPublicId) {
+          await deleteImageFromCloudinary(originalPublicId);
+        }
+
+        const result = await uploadImageToCloudinary(selectedFile);
+        iconUrl = result.secureUrl;
+      } else if (!formData.iconUrl && originalPublicId) {
+        await deleteImageFromCloudinary(originalPublicId);
+        iconUrl = undefined;
+      }
+
       await update(Number(itemId), {
         name: formData.name,
         type: formData.type,
@@ -94,8 +141,7 @@ export default function EditItemPage() {
         description: formData.description || undefined,
         baseValue: formData.baseValue,
         maxStack: formData.maxStack,
-        isActive: formData.isActive,
-        isTradable: formData.isTradable,
+        iconUrl,
       });
       router.push("/manage-items");
     } catch (err: unknown) {
@@ -113,11 +159,15 @@ export default function EditItemPage() {
     );
   }
 
+  const displayUrl = previewUrl || formData.iconUrl;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <button
           onClick={() => router.push("/manage-items")}
+          title="Back to manage items"
+          aria-label="Back to manage items"
           className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -142,6 +192,8 @@ export default function EditItemPage() {
                 Item Name <span className="text-red-400">*</span>
               </label>
               <input
+                aria-label="Item name"
+                title="Item name"
                 type="text"
                 value={formData.name}
                 onChange={(e) => handleChange("name", e.target.value)}
@@ -155,6 +207,8 @@ export default function EditItemPage() {
                 Item Type <span className="text-red-400">*</span>
               </label>
               <select
+                aria-label="Item type"
+                title="Item type"
                 value={formData.type}
                 onChange={(e) => handleChange("type", e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
@@ -169,10 +223,10 @@ export default function EditItemPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Rarity
-              </label>
+              <label className="block text-sm font-medium text-white/80">Rarity</label>
               <select
+                aria-label="Item rarity"
+                title="Item rarity"
                 value={formData.rarity}
                 onChange={(e) => handleChange("rarity", e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
@@ -186,10 +240,10 @@ export default function EditItemPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Equipment Slot
-              </label>
+              <label className="block text-sm font-medium text-white/80">Equipment Slot</label>
               <select
+                aria-label="Equipment slot"
+                title="Equipment slot"
                 value={formData.slot}
                 onChange={(e) => handleChange("slot", e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
@@ -203,10 +257,10 @@ export default function EditItemPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Base Value (Gold)
-              </label>
+              <label className="block text-sm font-medium text-white/80">Base Value (Gold)</label>
               <input
+                aria-label="Base value"
+                title="Base value"
                 type="number"
                 value={formData.baseValue}
                 onChange={(e) => handleChange("baseValue", Number(e.target.value))}
@@ -217,10 +271,10 @@ export default function EditItemPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Max Stack
-              </label>
+              <label className="block text-sm font-medium text-white/80">Max Stack</label>
               <input
+                aria-label="Max stack"
+                title="Max stack"
                 type="number"
                 value={formData.maxStack}
                 onChange={(e) => handleChange("maxStack", Number(e.target.value))}
@@ -235,6 +289,8 @@ export default function EditItemPage() {
           <div className="space-y-2">
             <label className="block text-sm font-medium text-white/80">Description</label>
             <textarea
+              aria-label="Item description"
+              title="Item description"
               value={formData.description}
               onChange={(e) => handleChange("description", e.target.value)}
               rows={3}
@@ -242,30 +298,59 @@ export default function EditItemPage() {
             />
           </div>
 
-          <div className="flex gap-6">
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="isActive"
-                checked={formData.isActive}
-                onChange={(e) => handleChange("isActive", e.target.checked)}
-                className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
-              />
-              <label htmlFor="isActive" className="text-sm text-white/70 cursor-pointer">
-                Item is active
+          <div className="space-y-4 rounded-xl border border-white/10 bg-white/5 p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <label className="block text-sm font-medium text-white/80">Item Icon</label>
+                <p className="text-sm text-white/45">Select a new image to preview, upload on submit.</p>
+              </div>
+              <label className="inline-flex items-center gap-2 rounded-lg bg-[#ffc032] px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-[#ffc032]/90 cursor-pointer">
+                <Upload className="h-4 w-4" />
+                Select Image
+                <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
               </label>
             </div>
-            <div className="flex items-center gap-3">
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">Icon URL (existing)</label>
               <input
-                type="checkbox"
-                id="isTradable"
-                checked={formData.isTradable}
-                onChange={(e) => handleChange("isTradable", e.target.checked)}
-                className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
+                type="url"
+                value={formData.iconUrl}
+                onChange={(e) => handleChange("iconUrl", e.target.value)}
+                placeholder="https://res.cloudinary.com/... (auto-filled after upload)"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
               />
-              <label htmlFor="isTradable" className="text-sm text-white/70 cursor-pointer">
-                Can be traded
-              </label>
+            </div>
+
+            <div className="rounded-xl border border-dashed border-white/10 bg-black/10 p-4">
+              {displayUrl ? (
+                <div className="flex items-start gap-4">
+                  <div className="relative h-24 w-24 overflow-hidden rounded-xl border border-white/10 bg-white/5">
+                    <Image src={displayUrl} alt="Item icon preview" fill className="object-cover" unoptimized />
+                  </div>
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-medium text-white">
+                        {selectedFile ? "Ready to upload on submit" : "Current icon"}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="inline-flex items-center gap-1 text-sm text-red-300 hover:text-red-200 cursor-pointer"
+                      >
+                        <X className="h-4 w-4" />
+                        Remove
+                      </button>
+                    </div>
+                    <p className="truncate text-sm text-white/50">{displayUrl}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 text-white/45">
+                  <ImageIcon className="h-5 w-5" />
+                  <p className="text-sm">No icon selected yet.</p>
+                </div>
+              )}
             </div>
           </div>
 

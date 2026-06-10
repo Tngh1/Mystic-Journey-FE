@@ -24,7 +24,7 @@ export default function CreateAchievementPage() {
     iconUrl: "",
     requiredValue: 1,
     rewardGold: 0,
-    rewardGems: 0,
+    rewardGem: 0,
     rewardItemId: null as number | null,
     rewardQuantity: 0,
     isActive: true,
@@ -46,7 +46,7 @@ export default function CreateAchievementPage() {
         iconUrl: formData.iconUrl ?? undefined,
         requiredValue: formData.requiredValue,
         rewardGold: formData.rewardGold,
-        rewardGems: formData.rewardGems,
+        rewardGem: formData.rewardGem,
         rewardItemId: formData.rewardItemId,
         rewardQuantity: formData.rewardQuantity,
         isActive: formData.isActive,
@@ -163,8 +163,8 @@ export default function CreateAchievementPage() {
               </label>
               <input
                 type="number"
-                value={formData.rewardGems}
-                onChange={(e) => handleChange("rewardGems", Number(e.target.value))}
+                value={formData.rewardGem}
+                onChange={(e) => handleChange("rewardGem", Number(e.target.value))}
                 placeholder="0"
                 min="0"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"

@@ -17,7 +17,7 @@ export default function ManageTransactionsPage() {
     setParams,
     refresh,
   } = usePagedQuery<PurchaseHistoryResponse>({
-    endpoint: "/api/purchase-histories",
+    endpoint: '/api/purchasehistories',
     pageSize: 10,
   });
 
@@ -115,8 +115,8 @@ export default function ManageTransactionsPage() {
                   </thead>
                   <tbody>
                     {transactions.map((tx) => (
-                      <tr key={tx.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                        <td className="p-4 text-sm text-white/80 whitespace-nowrap font-mono">#{tx.id}</td>
+                      <tr key={tx.purchaseHistoryId} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                        <td className="p-4 text-sm text-white/80 whitespace-nowrap font-mono">#{tx.purchaseHistoryId}</td>
                         <td className="p-4 text-sm text-white/80 whitespace-nowrap">{tx.playerName}</td>
                         <td className="p-4 text-sm text-white/80 whitespace-nowrap">{tx.itemName}</td>
                         <td className="p-4 text-sm text-white/80 whitespace-nowrap text-center">{tx.quantity}</td>
@@ -137,6 +137,7 @@ export default function ManageTransactionsPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <select
+                    aria-label="Select transactions page size"
                     value={pageSize}
                     onChange={(e) => setPageSize(Number(e.target.value))}
                     className="bg-white/5 border border-white/10 rounded px-2 py-1 text-sm text-white focus:outline-none"
