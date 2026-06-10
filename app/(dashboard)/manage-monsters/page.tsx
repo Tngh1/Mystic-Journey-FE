@@ -18,7 +18,7 @@ export default function ManageMonstersPage() {
   const handleDelete = async (monster: MonsterResponse) => {
     if (!confirm(`Delete monster "${monster.name}"?`)) return;
     try {
-      await apiClient.delete(`/api/monsters/${monster.id}`);
+      await apiClient.delete(`/api/monsters/${monster.monsterId}`);
       refresh();
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : "Failed to delete");
@@ -32,7 +32,25 @@ export default function ManageMonstersPage() {
   };
 
   const columns = [
-    { key: "id", label: "ID" },
+    {
+      key: "imageUrl",
+      label: "Image",
+      render: (_: any, m: MonsterResponse) => (
+        <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/5 flex items-center justify-center border border-white/10">
+          {m.imageUrl ? (
+            <img
+              src={m.imageUrl}
+              alt={m.name}
+              className="w-full h-full object-cover"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          ) : (
+            <span className="text-white/20 text-lg">👹</span>
+          )}
+        </div>
+      ),
+    },
+    { key: "monsterId", label: "ID" },
     { key: "name", label: "Name" },
     {
       key: "type",
@@ -77,6 +95,7 @@ export default function ManageMonstersPage() {
         <AdminTable
           title="Monsters List"
           columns={columns}
+          idField="monsterId"
           data={monsters.map((m) => ({
             ...m,
             goldReward: `💰 ${m.goldReward}`,
@@ -84,8 +103,8 @@ export default function ManageMonstersPage() {
           serverSide
           loading={loading}
           pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
-          onEdit={(m) => router.push(`/manage-monsters/edit?id=${m.id}`)}
-          onDelete={handleDelete}
+          onEdit={(m) => router.push(`/manage-monsters/edit?id=${m.monsterId}`)}
+          onDelete={undefined}
         />
       )}
     </div>

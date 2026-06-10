@@ -18,7 +18,7 @@ export default function ManageDungeonsPage() {
   const handleDelete = async (dungeon: DungeonConfigResponse) => {
     if (!confirm(`Delete dungeon "${dungeon.name}"?`)) return;
     try {
-      await apiClient.delete(`/api/dungeons/${dungeon.id}`);
+      await apiClient.delete(`/api/dungeons/${dungeon.dungeonConfigId}`);
       refresh();
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : "Failed to delete");
@@ -26,7 +26,7 @@ export default function ManageDungeonsPage() {
   };
 
   const columns = [
-    { key: "id", label: "ID" },
+    { key: "dungeonConfigId", label: "ID" },
     { key: "name", label: "Dungeon Name" },
     { key: "levelRequirement", label: "Required Level" },
     { key: "difficulty", label: "Difficulty" },
@@ -71,12 +71,13 @@ export default function ManageDungeonsPage() {
         <AdminTable
           title="Dungeon Configurations"
           columns={columns}
+          idField="dungeonConfigId"
           data={dungeons}
           serverSide
           loading={loading}
           pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
-          onEdit={(d) => router.push(`/manage-dungeons/edit?id=${d.id}`)}
-          onDelete={handleDelete}
+          onEdit={(d) => router.push(`/manage-dungeons/edit?id=${d.dungeonConfigId}`)}
+          onDelete={undefined}
         />
       )}
     </div>

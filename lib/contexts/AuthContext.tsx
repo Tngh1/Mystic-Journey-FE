@@ -8,7 +8,8 @@ import {
   useCallback,
   ReactNode,
 } from "react";
-import { getMe, login as apiLogin, logout as apiLogout, MeResponse } from "@/lib/api/account";
+import { getMe, login as apiLogin, logout as apiLogout } from "@/lib/api/account";
+import type { MeResponse } from "@/lib/types";
 
 interface AuthContextType {
   user: MeResponse | null;

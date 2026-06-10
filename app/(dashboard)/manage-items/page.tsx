@@ -18,7 +18,7 @@ export default function ManageItemsPage() {
   const handleDelete = async (item: ItemResponse) => {
     if (!confirm(`Delete item "${item.name}"?`)) return;
     try {
-      await apiClient.delete(`/api/items/${item.id}`);
+      await apiClient.delete(`/api/items/${item.itemId}`);
       refresh();
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : "Failed to delete");
@@ -35,7 +35,25 @@ export default function ManageItemsPage() {
   };
 
   const columns = [
-    { key: "id", label: "ID" },
+    {
+      key: "iconUrl",
+      label: "Image",
+      render: (_: any, item: ItemResponse) => (
+        <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/5 flex items-center justify-center border border-white/10">
+          {item.iconUrl ? (
+            <img
+              src={item.iconUrl}
+              alt={item.name}
+              className="w-full h-full object-cover"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          ) : (
+            <span className="text-white/20 text-lg">📦</span>
+          )}
+        </div>
+      ),
+    },
+    { key: "itemId", label: "ID" },
     { key: "name", label: "Name" },
     { key: "type", label: "Type" },
     {
@@ -48,18 +66,6 @@ export default function ManageItemsPage() {
     { key: "slot", label: "Slot" },
     { key: "baseValue", label: "Base Value" },
     { key: "maxStack", label: "Max Stack" },
-    {
-      key: "isActive",
-      label: "Status",
-      render: (val: boolean) => (
-        <span
-          className={`px-2 py-1 rounded text-xs font-medium ${val ? "bg-emerald-400/10 text-emerald-400" : "bg-red-400/10 text-red-400"
-            }`}
-        >
-          {val ? "Active" : "Inactive"}
-        </span>
-      ),
-    },
   ];
 
   return (
@@ -88,6 +94,7 @@ export default function ManageItemsPage() {
           className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 w-64"
         />
         <select
+          aria-label="Filter items by type"
           onChange={(e) => setParams({ type: e.target.value || undefined })}
           className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#ffc032]/50"
         >
@@ -100,6 +107,7 @@ export default function ManageItemsPage() {
           <option value="QuestItem">Quest Item</option>
         </select>
         <select
+          aria-label="Filter items by rarity"
           onChange={(e) => setParams({ rarity: e.target.value || undefined })}
           className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#ffc032]/50"
         >
@@ -124,6 +132,7 @@ export default function ManageItemsPage() {
         <AdminTable
           title="Game Items"
           columns={columns}
+          idField="itemId"
           data={items.map((item) => ({
             ...item,
             baseValue: `💰 ${item.baseValue}`,
@@ -131,8 +140,8 @@ export default function ManageItemsPage() {
           serverSide
           loading={loading}
           pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
-          onEdit={(item) => router.push(`/manage-items/edit?id=${item.id}`)}
-          onDelete={handleDelete}
+          onEdit={(item) => router.push(`/manage-items/edit?id=${item.itemId}`)}
+          onDelete={undefined}
         />
       )}
     </div>

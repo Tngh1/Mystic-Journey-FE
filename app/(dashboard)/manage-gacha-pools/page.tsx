@@ -11,14 +11,14 @@ export default function ManageGachaPoolsPage() {
 
   const { data: banners, totalCount, loading, error, page, pageSize, setPage, setPageSize, refresh } =
     usePagedQuery<GachaBannerResponse>({
-      endpoint: "/api/gacha-banners",
+    endpoint: '/api/gachabanners',
       pageSize: 10,
     });
 
   const handleDelete = async (item: GachaBannerResponse) => {
     if (!confirm(`Delete gacha banner "${item.name}"?`)) return;
     try {
-      await apiClient.delete(`/api/gacha-banners/${item.id}`);
+      await apiClient.delete(`/api/gachabanners/${item.gachaBannerId}`);
       refresh();
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : "Failed to delete banner");
@@ -26,7 +26,7 @@ export default function ManageGachaPoolsPage() {
   };
 
   const columns = [
-    { key: "id", label: "ID" },
+    { key: "gachaBannerId", label: "ID" },
     { key: "name", label: "Banner Name" },
     { key: "type", label: "Type" },
     { key: "pullCost", label: "Pull Cost (Gems)" },
@@ -79,12 +79,13 @@ export default function ManageGachaPoolsPage() {
         <AdminTable
           title="Gacha Banners"
           columns={columns}
+          idField="gachaBannerId"
           data={banners}
           serverSide
           loading={loading}
           pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
-          onEdit={(item) => router.push(`/manage-gacha-pools/edit?id=${item.id}`)}
-          onDelete={handleDelete}
+          onEdit={(item) => router.push(`/manage-gacha-pools/edit?id=${item.gachaBannerId}`)}
+          onDelete={undefined}
         />
       )}
     </div>

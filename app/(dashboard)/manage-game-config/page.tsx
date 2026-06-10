@@ -70,7 +70,7 @@ export default function ManageGameConfigPage() {
     setPageSize,
     setParams,
   } = usePagedQuery<GameSettingResponse>({
-    endpoint: '/api/game-settings',
+    endpoint: '/api/gamesettings',
     pageSize: 10,
   });
 
@@ -133,6 +133,7 @@ export default function ManageGameConfigPage() {
 
               {/* Category Filter */}
               <select
+                aria-label="Filter game configurations by category"
                 value={selectedCategory}
                 onChange={(e) => handleCategoryChange(e.target.value)}
                 className="px-4 py-2 bg-[#1a1a1a] border border-[#333] rounded-lg text-white focus:outline-none focus:border-[#ffc032]"
@@ -180,10 +181,10 @@ export default function ManageGameConfigPage() {
                 ) : (
                   filteredSettings.map((setting) => (
                     <tr
-                      key={setting.id}
+                      key={setting.gameSettingId}
                       className="border-b border-[#333] hover:bg-[#252525] transition-colors"
                     >
-                      <td className="px-4 py-3 text-sm text-gray-300">{setting.id}</td>
+                      <td className="px-4 py-3 text-sm text-gray-300">{setting.gameSettingId}</td>
                       <td className="px-4 py-3 text-sm text-white font-mono">{setting.key}</td>
                       <td className="px-4 py-3 text-sm text-gray-300 max-w-xs truncate">
                         {setting.value}
@@ -212,14 +213,14 @@ export default function ManageGameConfigPage() {
                       <td className="px-4 py-3 text-sm">
                         <div className="flex items-center gap-2">
                           <Link
-                            href={`/manage-game-config/detail?id=${setting.id}`}
+                            href={`/manage-game-config/detail?id=${setting.key}`}
                             className="p-1.5 rounded hover:bg-[#333] transition-colors"
                             title="View"
                           >
                             <Eye className="w-4 h-4 text-gray-400" />
                           </Link>
                           <Link
-                            href={`/manage-game-config/edit?id=${setting.id}`}
+                            href={`/manage-game-config/edit?id=${setting.key}`}
                             className="p-1.5 rounded hover:bg-[#333] transition-colors"
                             title="Edit"
                           >
@@ -243,6 +244,7 @@ export default function ManageGameConfigPage() {
               </div>
               <div className="flex items-center gap-3">
                 <select
+                  aria-label="Select game configurations page size"
                   value={pageSize}
                   onChange={(e) => setPageSize(Number(e.target.value))}
                   className="bg-[#0d0d0d] border border-[#333] rounded px-2 py-1 text-sm text-white focus:outline-none"

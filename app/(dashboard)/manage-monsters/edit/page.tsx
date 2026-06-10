@@ -1,9 +1,15 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getById, update, MonsterResponse } from "@/lib/api/monster";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import {
+  deleteImageFromCloudinary,
+  extractPublicIdFromCloudinaryUrl,
+  uploadImageToCloudinary,
+} from "@/lib/api/cloudinary";
+import { ArrowLeft, Save, Loader2, Upload, Image as ImageIcon, X } from "lucide-react";
 
 const MONSTER_TYPES = [
   { value: "Normal", label: "Normal" },
@@ -19,32 +25,44 @@ export default function EditMonsterPage() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [originalImageUrl, setOriginalImageUrl] = useState<string>("");
   const [formData, setFormData] = useState({
     name: "",
     type: "Normal",
+    description: "",
     level: 1,
     maxHp: 100,
     atk: 10,
     def: 5,
     expReward: 10,
     goldReward: 5,
-    isActive: true,
+    imageUrl: "",
   });
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   useEffect(() => {
     if (!monsterId) return;
     getById(Number(monsterId))
       .then((m: MonsterResponse) => {
+        setOriginalImageUrl(m.imageUrl || "");
         setFormData({
           name: m.name,
           type: m.type,
+          description: m.description || "",
           level: m.level,
           maxHp: m.maxHp,
           atk: m.atk,
           def: m.def,
           expReward: m.experienceReward,
           goldReward: m.goldReward,
-          isActive: m.isActive,
+          imageUrl: m.imageUrl || "",
         });
       })
       .catch((err: unknown) => {
@@ -57,22 +75,56 @@ export default function EditMonsterPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    const url = URL.createObjectURL(file);
+    setSelectedFile(file);
+    setPreviewUrl(url);
+    event.target.value = "";
+  };
+
+  const handleRemoveImage = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setSelectedFile(null);
+    setPreviewUrl("");
+    handleChange("imageUrl", "");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!monsterId) return;
     try {
       setLoading(true);
       setError(null);
+
+      let imageUrl = formData.imageUrl || undefined;
+      const originalPublicId = originalImageUrl ? extractPublicIdFromCloudinaryUrl(originalImageUrl) : null;
+
+      if (selectedFile) {
+        if (originalPublicId) {
+          await deleteImageFromCloudinary(originalPublicId);
+        }
+
+        const result = await uploadImageToCloudinary(selectedFile);
+        imageUrl = result.secureUrl;
+      } else if (!formData.imageUrl && originalPublicId) {
+        await deleteImageFromCloudinary(originalPublicId);
+        imageUrl = undefined;
+      }
+
       await update(Number(monsterId), {
         name: formData.name,
         type: formData.type,
+        description: formData.description || undefined,
         level: formData.level,
         maxHp: formData.maxHp,
         atk: formData.atk,
         def: formData.def,
         experienceReward: formData.expReward,
         goldReward: formData.goldReward,
-        isActive: formData.isActive,
+        imageUrl,
       });
       router.push("/manage-monsters");
     } catch (err: unknown) {
@@ -90,11 +142,15 @@ export default function EditMonsterPage() {
     );
   }
 
+  const displayUrl = previewUrl || formData.imageUrl;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <button
           onClick={() => router.push("/manage-monsters")}
+          title="Back to manage monsters"
+          aria-label="Back to manage monsters"
           className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -119,6 +175,8 @@ export default function EditMonsterPage() {
                 Monster Name <span className="text-red-400">*</span>
               </label>
               <input
+                aria-label="Monster name"
+                title="Monster name"
                 type="text"
                 value={formData.name}
                 onChange={(e) => handleChange("name", e.target.value)}
@@ -128,10 +186,10 @@ export default function EditMonsterPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Monster Type
-              </label>
+              <label className="block text-sm font-medium text-white/80">Monster Type</label>
               <select
+                aria-label="Monster type"
+                title="Monster type"
                 value={formData.type}
                 onChange={(e) => handleChange("type", e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
@@ -144,11 +202,23 @@ export default function EditMonsterPage() {
               </select>
             </div>
 
+            <div className="space-y-2 md:col-span-2">
+              <label className="block text-sm font-medium text-white/80">Description</label>
+              <textarea
+                aria-label="Monster description"
+                title="Monster description"
+                value={formData.description}
+                onChange={(e) => handleChange("description", e.target.value)}
+                rows={3}
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors resize-none"
+              />
+            </div>
+
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Level
-              </label>
+              <label className="block text-sm font-medium text-white/80">Level</label>
               <input
+                aria-label="Monster level"
+                title="Monster level"
                 type="number"
                 value={formData.level}
                 onChange={(e) => handleChange("level", Number(e.target.value))}
@@ -159,10 +229,10 @@ export default function EditMonsterPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Max HP
-              </label>
+              <label className="block text-sm font-medium text-white/80">Max HP</label>
               <input
+                aria-label="Monster max hp"
+                title="Monster max hp"
                 type="number"
                 value={formData.maxHp}
                 onChange={(e) => handleChange("maxHp", Number(e.target.value))}
@@ -172,10 +242,10 @@ export default function EditMonsterPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                ATK
-              </label>
+              <label className="block text-sm font-medium text-white/80">ATK</label>
               <input
+                aria-label="Monster attack"
+                title="Monster attack"
                 type="number"
                 value={formData.atk}
                 onChange={(e) => handleChange("atk", Number(e.target.value))}
@@ -185,10 +255,10 @@ export default function EditMonsterPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                DEF
-              </label>
+              <label className="block text-sm font-medium text-white/80">DEF</label>
               <input
+                aria-label="Monster defense"
+                title="Monster defense"
                 type="number"
                 value={formData.def}
                 onChange={(e) => handleChange("def", Number(e.target.value))}
@@ -198,10 +268,10 @@ export default function EditMonsterPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                EXP Reward
-              </label>
+              <label className="block text-sm font-medium text-white/80">EXP Reward</label>
               <input
+                aria-label="Monster experience reward"
+                title="Monster experience reward"
                 type="number"
                 value={formData.expReward}
                 onChange={(e) => handleChange("expReward", Number(e.target.value))}
@@ -211,10 +281,10 @@ export default function EditMonsterPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Gold Reward
-              </label>
+              <label className="block text-sm font-medium text-white/80">Gold Reward</label>
               <input
+                aria-label="Monster gold reward"
+                title="Monster gold reward"
                 type="number"
                 value={formData.goldReward}
                 onChange={(e) => handleChange("goldReward", Number(e.target.value))}
@@ -224,17 +294,60 @@ export default function EditMonsterPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="isActive"
-              checked={formData.isActive}
-              onChange={(e) => handleChange("isActive", e.target.checked)}
-              className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
-            />
-            <label htmlFor="isActive" className="text-sm text-white/70 cursor-pointer">
-              Monster is active and can spawn in game
-            </label>
+          <div className="space-y-4 rounded-xl border border-white/10 bg-white/5 p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <label className="block text-sm font-medium text-white/80">Monster Image</label>
+                <p className="text-sm text-white/45">Select a new image to preview, upload on submit.</p>
+              </div>
+              <label className="inline-flex items-center gap-2 rounded-lg bg-[#ffc032] px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-[#ffc032]/90 cursor-pointer">
+                <Upload className="h-4 w-4" />
+                Select Image
+                <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
+              </label>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">Image URL (existing)</label>
+              <input
+                type="url"
+                value={formData.imageUrl}
+                onChange={(e) => handleChange("imageUrl", e.target.value)}
+                placeholder="https://res.cloudinary.com/... (auto-filled after upload)"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+              />
+            </div>
+
+            <div className="rounded-xl border border-dashed border-white/10 bg-black/10 p-4">
+              {displayUrl ? (
+                <div className="flex items-start gap-4">
+                  <div className="relative h-24 w-24 overflow-hidden rounded-xl border border-white/10 bg-white/5">
+                    <Image src={displayUrl} alt="Monster image preview" fill className="object-cover" unoptimized />
+                  </div>
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-medium text-white">
+                        {selectedFile ? "Ready to upload on submit" : "Current image"}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="inline-flex items-center gap-1 text-sm text-red-300 hover:text-red-200 cursor-pointer"
+                      >
+                        <X className="h-4 w-4" />
+                        Remove
+                      </button>
+                    </div>
+                    <p className="truncate text-sm text-white/50">{displayUrl}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 text-white/45">
+                  <ImageIcon className="h-5 w-5" />
+                  <p className="text-sm">No image selected yet.</p>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-6 border-t border-white/10">

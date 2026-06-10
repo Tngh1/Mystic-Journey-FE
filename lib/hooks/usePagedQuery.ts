@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import apiClient, { handleApiError } from "../api/client";
+import apiClient, { normalizeError } from "../api/client";
 
 export interface PagedResponse<T> {
   totalCount: number;
@@ -62,11 +62,7 @@ export function usePagedQuery<T>({
       setData(response.data.items ?? []);
       setTotalCount(response.data.totalCount ?? 0);
     } catch (err) {
-      try {
-        handleApiError(err);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "An unexpected error occurred.");
-      }
+      setError(normalizeError(err).message);
     } finally {
       setLoading(false);
     }

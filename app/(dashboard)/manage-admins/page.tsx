@@ -23,14 +23,14 @@ export default function ManageAdminsPage() {
     setPageSize,
     refresh,
   } = usePagedQuery<AccountAdminResponse>({
-    endpoint: '/api/admin-accounts',
+    endpoint: '/api/adminaccounts',
     pageSize: 10,
   });
 
   const handleDelete = async (admin: AccountAdminResponse) => {
     if (!confirm(`Delete account "${admin.userName}"?`)) return;
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin-accounts/${admin.accountId}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/adminaccounts/${admin.accountId}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -184,6 +184,7 @@ export default function ManageAdminsPage() {
               </div>
               <div className="flex items-center gap-3">
                 <select
+                  aria-label="Select admins page size"
                   value={pageSize}
                   onChange={(e) => setPageSize(Number(e.target.value))}
                   className="bg-[#0d0d0d] border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none"
