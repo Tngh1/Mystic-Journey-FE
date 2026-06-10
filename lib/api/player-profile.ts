@@ -1,10 +1,6 @@
 import { get, put } from "./client";
-import type {
-  PlayerProfileResponse,
-  PlayerProfileWithStats,
-  UpdatePlayerProfileRequest,
-  PagedResponse,
-} from "@/lib/types";
+import type { PlayerProfileResponse, PlayerProfileWithStats, UpdatePlayerProfileRequest, PagedResponse } from "@/lib/types";
+export type { PlayerProfileResponse, PlayerProfileWithStats, UpdatePlayerProfileRequest, PagedResponse } from "@/lib/types";
 
 export const getPlayerProfileById = async (id: number): Promise<PlayerProfileWithStats> => {
   return get<PlayerProfileWithStats>(`/api/playerprofiles/${id}`);

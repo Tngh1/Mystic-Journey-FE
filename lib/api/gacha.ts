@@ -1,13 +1,6 @@
 import { get, post, put } from "./client";
-import type {
-  GachaBannerResponse,
-  GachaBannerDetailResponse,
-  GachaBannerItemResponse,
-  CreateGachaBannerRequest,
-  UpdateGachaBannerRequest,
-  AddGachaBannerItemRequest,
-  PagedResponse,
-} from "@/lib/types";
+import type { GachaBannerResponse, GachaBannerDetailResponse, GachaBannerItemResponse, CreateGachaBannerRequest, UpdateGachaBannerRequest, AddGachaBannerItemRequest, PagedResponse } from "@/lib/types";
+export type { GachaBannerResponse, GachaBannerDetailResponse, GachaBannerItemResponse, CreateGachaBannerRequest, UpdateGachaBannerRequest, AddGachaBannerItemRequest, PagedResponse } from "@/lib/types";
 
 export const getById = async (id: number): Promise<GachaBannerDetailResponse> => {
   return get<GachaBannerDetailResponse>(`/api/gachabanners/${id}`);

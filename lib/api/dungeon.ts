@@ -1,10 +1,6 @@
-import { get, post, put, del, handleApiError } from "./client";
-import type {
-  DungeonConfigResponse,
-  CreateDungeonConfigRequest,
-  UpdateDungeonConfigRequest,
-  PagedResponse,
-} from "@/lib/types";
+import { get, post, put, del } from "./client";
+import type { DungeonConfigResponse, CreateDungeonConfigRequest, UpdateDungeonConfigRequest, PagedResponse } from "@/lib/types";
+export type { DungeonConfigResponse, CreateDungeonConfigRequest, UpdateDungeonConfigRequest, PagedResponse } from "@/lib/types";
 
 export const getById = async (id: number): Promise<DungeonConfigResponse> => {
   return get<DungeonConfigResponse>(`/api/dungeons/${id}`);

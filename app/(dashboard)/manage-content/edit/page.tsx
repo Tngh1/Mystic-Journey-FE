@@ -51,7 +51,7 @@ function EditContentContent() {
         getCategories(),
       ]);
       setContent(contentData);
-      setCategories(categoriesData.filter((c) => c.isActive));
+      setCategories(categoriesData.filter((c: CategoryResponse) => c.isActive));
       setFormData({
         title: contentData.title,
         summary: contentData.summary || '',

@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Loader2, Save, Shield, User, Heart, Sword, ShieldCheck, Zap, Skull } from 'lucide-react';
-import { getPlayerProfileAdmin, updatePlayerProfileAdmin, PlayerStatsResponse, PlayerProfileWithStats } from '@/lib/api/player-profile';
+import { getPlayerProfileAdmin, updatePlayerProfileAdmin, PlayerProfileWithStats } from '@/lib/api/player-profile';
+import type { PlayerStatsResponse } from '@/lib/types';
 
 const classColors: Record<string, string> = {
   Knight: 'bg-red-500/20 text-red-400 border-red-500/30',
@@ -24,16 +25,20 @@ export default function EditPlayerPage() {
 
   const [formData, setFormData] = useState<{
     displayName: string;
+    avatarUrl: string;
     playerClass: string;
     level: number;
+    experiencePoints: number;
     gold: number;
     gems: number;
     energy: number;
     isBanned: boolean;
   }>({
     displayName: '',
+    avatarUrl: '',
     playerClass: 'Knight',
     level: 1,
+    experiencePoints: 0,
     gold: 0,
     gems: 0,
     energy: 100,
@@ -58,8 +63,10 @@ export default function EditPlayerPage() {
 
       setFormData({
         displayName: data.displayName,
+        avatarUrl: data.avatarUrl || '',
         playerClass: data.playerClass,
         level: data.level,
+        experiencePoints: data.experiencePoints,
         gold: data.gold,
         gems: data.gems,
         energy: data.energy,
