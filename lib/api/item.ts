@@ -1,10 +1,6 @@
 import { get, post, put, del } from "./client";
-import type {
-  ItemResponse,
-  CreateItemRequest,
-  UpdateItemRequest,
-  PagedResponse,
-} from "@/lib/types";
+import type { ItemResponse, CreateItemRequest, UpdateItemRequest, PagedResponse } from "@/lib/types";
+export type { ItemResponse, CreateItemRequest, UpdateItemRequest, PagedResponse } from "@/lib/types";
 
 export const getById = async (id: number): Promise<ItemResponse> => {
   return get<ItemResponse>(`/api/items/${id}`);

@@ -1,10 +1,6 @@
 import { get, post, put, del } from "./client";
-import type {
-  AccountAdminResponse,
-  CreateAdminAccountRequest,
-  UpdateAdminAccountRequest,
-  PagedResponse,
-} from "@/lib/types";
+import type { AccountAdminResponse, CreateAdminAccountRequest, UpdateAdminAccountRequest, PagedResponse } from "@/lib/types";
+export type { AccountAdminResponse, CreateAdminAccountRequest, UpdateAdminAccountRequest, PagedResponse } from "@/lib/types";
 
 export const getById = async (id: number): Promise<AccountAdminResponse> => {
   return get<AccountAdminResponse>(`/api/adminaccounts/${id}`);

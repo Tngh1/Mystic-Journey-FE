@@ -1,16 +1,6 @@
 import { get, post, put, del } from "./client";
-import type {
-  ContentResponse,
-  ContentDetailResponse,
-  CategoryResponse,
-  CreateContentRequest,
-  UpdateContentRequest,
-  CreateCategoryRequest,
-  CreateBlockRequest,
-  UpdateBlockRequest,
-  BlockResponse,
-  PagedResponse,
-} from "@/lib/types";
+import type { ContentResponse, ContentDetailResponse, CategoryResponse, CreateContentRequest, UpdateContentRequest, CreateCategoryRequest, CreateBlockRequest, UpdateBlockRequest, BlockResponse, PagedResponse } from "@/lib/types";
+export type { ContentResponse, ContentDetailResponse, CategoryResponse, CreateContentRequest, UpdateContentRequest, CreateCategoryRequest, CreateBlockRequest, UpdateBlockRequest, BlockResponse, PagedResponse } from "@/lib/types";
 
 export const getById = async (id: number): Promise<ContentDetailResponse> => {
   return get<ContentDetailResponse>(`/api/contents/${id}`);

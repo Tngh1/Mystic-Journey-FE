@@ -1,10 +1,6 @@
 import { get, post, del } from "./client";
-import type {
-  MailResponse,
-  SendMailByListIdRequest,
-  SendMailToAllRequest,
-  PagedResponse,
-} from "@/lib/types";
+import type { MailResponse, SendMailByListIdRequest, SendMailToAllRequest, PagedResponse } from "@/lib/types";
+export type { MailResponse, SendMailByListIdRequest, SendMailToAllRequest, PagedResponse } from "@/lib/types";
 
 export const getById = async (id: number): Promise<MailResponse> => {
   return get<MailResponse>(`/api/mails/${id}`);

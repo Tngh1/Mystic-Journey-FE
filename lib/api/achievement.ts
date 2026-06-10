@@ -1,10 +1,6 @@
-import { get, post, put, handleApiError } from "./client";
-import type {
-  AchievementResponse,
-  CreateAchievementRequest,
-  UpdateAchievementRequest,
-  PagedResponse,
-} from "@/lib/types";
+import { get, post, put } from "./client";
+import type { AchievementResponse, CreateAchievementRequest, UpdateAchievementRequest, PagedResponse } from "@/lib/types";
+export type { AchievementResponse, CreateAchievementRequest, UpdateAchievementRequest, PagedResponse } from "@/lib/types";
 
 export const getById = async (id: number): Promise<AchievementResponse> => {
   return get<AchievementResponse>(`/api/achievements/${id}`);

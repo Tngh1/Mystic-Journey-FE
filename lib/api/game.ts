@@ -1,11 +1,6 @@
 import { get, put, post } from "./client";
-import type {
-  GameSettingResponse,
-  UpdateGameSettingRequest,
-  DailyLoginRewardResponse,
-  CreateDailyLoginRewardRequest,
-  PagedResponse,
-} from "@/lib/types";
+import type { GameSettingResponse, UpdateGameSettingRequest, DailyLoginRewardResponse, CreateDailyLoginRewardRequest, PagedResponse } from "@/lib/types";
+export type { GameSettingResponse, UpdateGameSettingRequest, DailyLoginRewardResponse, CreateDailyLoginRewardRequest, PagedResponse } from "@/lib/types";
 
 export const getSettingById = async (id: number): Promise<GameSettingResponse> => {
   return get<GameSettingResponse>(`/api/gamesettings/${id}`);

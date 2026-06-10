@@ -1,19 +1,19 @@
 import { createHash } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 
-const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-const apiKey = process.env.CLOUDINARY_API_KEY;
-const apiSecret = process.env.CLOUDINARY_API_SECRET;
-
-function validateCloudinaryServerConfig() {
+function getCloudinaryServerConfig() {
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const apiKey = process.env.CLOUDINARY_API_KEY;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET;
   if (!cloudName || !apiKey || !apiSecret) {
     throw new Error("Missing Cloudinary server config.");
   }
+  return { cloudName, apiKey, apiSecret };
 }
 
 export async function POST(request: NextRequest) {
   try {
-    validateCloudinaryServerConfig();
+    const { cloudName, apiKey, apiSecret } = getCloudinaryServerConfig();
 
     const body = (await request.json()) as { publicId?: string };
     const publicId = body.publicId?.trim();

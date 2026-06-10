@@ -1,10 +1,6 @@
 import { get, post, put } from "./client";
-import type {
-  QuestResponse,
-  CreateQuestRequest,
-  UpdateQuestRequest,
-  PagedResponse,
-} from "@/lib/types";
+import type { QuestResponse, CreateQuestRequest, UpdateQuestRequest, PagedResponse } from "@/lib/types";
+export type { QuestResponse, CreateQuestRequest, UpdateQuestRequest, PagedResponse } from "@/lib/types";
 
 export const getById = async (id: number): Promise<QuestResponse> => {
   return get<QuestResponse>(`/api/quests/${id}`);

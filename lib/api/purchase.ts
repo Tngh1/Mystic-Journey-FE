@@ -1,8 +1,6 @@
 import { get } from "./client";
-import type {
-  PurchaseHistoryResponse,
-  PagedResponse,
-} from "@/lib/types";
+import type { PurchaseHistoryResponse, PagedResponse } from "@/lib/types";
+export type { PurchaseHistoryResponse, PagedResponse } from "@/lib/types";
 
 export const getAll = async (page = 1, pageSize = 10): Promise<PagedResponse<PurchaseHistoryResponse>> => {
   return get<PagedResponse<PurchaseHistoryResponse>>(

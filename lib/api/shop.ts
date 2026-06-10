@@ -1,10 +1,6 @@
 import { get, post, put, del } from "./client";
-import type {
-  ShopItemResponse,
-  CreateShopItemRequest,
-  UpdateShopItemRequest,
-  PagedResponse,
-} from "@/lib/types";
+import type { ShopItemResponse, CreateShopItemRequest, UpdateShopItemRequest, PagedResponse } from "@/lib/types";
+export type { ShopItemResponse, CreateShopItemRequest, UpdateShopItemRequest, PagedResponse } from "@/lib/types";
 
 export const getById = async (id: number): Promise<ShopItemResponse> => {
   return get<ShopItemResponse>(`/api/shopitems/${id}`);
