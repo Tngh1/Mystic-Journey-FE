@@ -53,7 +53,6 @@ interface FormData {
   thumbnailUrl: string;
   categoryId: number;
   isPublished: boolean;
-  isActive: boolean;
 }
 
 interface LocalBlock extends BlockResponse {

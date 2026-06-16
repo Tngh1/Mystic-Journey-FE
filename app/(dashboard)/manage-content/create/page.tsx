@@ -52,7 +52,6 @@ interface FormData {
   thumbnailUrl: string;
   categoryId: number;
   isPublished: boolean;
-  isActive: boolean;
 }
 
 interface LocalBlock {
@@ -698,7 +697,6 @@ export default function CreateContentPage() {
         thumbnailUrl: formData.thumbnailUrl || undefined,
         categoryId: formData.categoryId,
         isPublished: formData.isPublished,
-        isActive: formData.isActive,
       });
 
       // 3. Create all blocks after content is created
