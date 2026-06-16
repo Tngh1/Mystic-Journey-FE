@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense, useRef, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   DndContext,
@@ -23,7 +23,6 @@ import { CSS } from '@dnd-kit/utilities';
 import {
   ArrowLeft,
   Loader2,
-  Trash2,
   GripVertical,
   Image as ImageIcon,
   Type,
@@ -41,9 +40,11 @@ import {
   Upload,
   X,
   Quote,
+  Globe,
+  GlobeLock,
   Plus,
 } from 'lucide-react';
-import { create, getCategories, createBlock, CategoryResponse, ContentResponse } from '@/lib/api/content';
+import { getById, update, publish, getCategories, createBlock, updateBlock, removeBlock, ContentDetailResponse, CategoryResponse, BlockResponse } from '@/lib/api/content';
 import { uploadImageToCloudinary } from '@/lib/api/cloudinary';
 
 interface FormData {
@@ -55,25 +56,21 @@ interface FormData {
   isActive: boolean;
 }
 
-interface LocalBlock {
-  tempId: string;
-  title: string;
-  contentData: string;
-  mediaUrl: string;
-  caption: string;
-  blockType: 'text' | 'image';
-  sortOrder: number;
-  isActive: boolean;
+interface LocalBlock extends BlockResponse {
+  tempId?: string;
+  isNew?: boolean;
+  isDirty?: boolean;
 }
 
 interface EditableBlockProps {
   block: LocalBlock;
-  onUpdate: (tempId: string, updates: Partial<LocalBlock>) => void;
-  onDelete: (tempId: string) => void;
-  onRegisterEditor?: (id: string, getContent: () => string) => void;
+  onUpdate: (id: string | number, updates: Partial<LocalBlock>) => void;
+  onDelete: (id: string | number) => void;
+  onRegisterEditor?: (id: string | number, getContent: () => string) => void;
 }
 
 function EditableTextBlock({ block, onUpdate, onDelete, onRegisterEditor }: EditableBlockProps) {
+  const blockId = block.tempId || block.blockContentId;
   const {
     attributes,
     listeners,
@@ -81,7 +78,7 @@ function EditableTextBlock({ block, onUpdate, onDelete, onRegisterEditor }: Edit
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: block.tempId });
+  } = useSortable({ id: blockId });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -134,16 +131,16 @@ function EditableTextBlock({ block, onUpdate, onDelete, onRegisterEditor }: Edit
         }
         return block.contentData || '';
       };
-      onRegisterEditor(block.tempId, getContent);
+      onRegisterEditor(blockId, getContent);
     }
-  }, [block.tempId, onRegisterEditor, block.contentData, stripDirectionStyles]);
+  }, [blockId, onRegisterEditor, block.contentData, stripDirectionStyles]);
 
   const execCommand = (command: string, value?: string) => {
     document.execCommand(command, false, value);
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onUpdate(block.tempId, { title: e.target.value });
+    onUpdate(blockId, { title: e.target.value });
   };
 
   return (
@@ -163,7 +160,7 @@ function EditableTextBlock({ block, onUpdate, onDelete, onRegisterEditor }: Edit
         </div>
 
         <div className="flex-1 p-4 space-y-3">
-          {/* Header with title and delete */}
+          {/* Header with title and actions */}
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded text-xs font-medium">
               <Type className="w-3 h-3 inline mr-1" />
@@ -177,7 +174,7 @@ function EditableTextBlock({ block, onUpdate, onDelete, onRegisterEditor }: Edit
               className="flex-1 px-3 py-1.5 bg-[#1a1a1a] border border-[#333] rounded text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500"
             />
             <button
-              onClick={() => onDelete(block.tempId)}
+              onClick={() => onDelete(blockId)}
               className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
               title="Delete"
             >
@@ -328,7 +325,8 @@ function EditableTextBlock({ block, onUpdate, onDelete, onRegisterEditor }: Edit
   );
 }
 
-function EditableImageBlock({ block, onUpdate, onDelete }: EditableBlockProps) {
+function EditableImageBlock({ block, onUpdate, onDelete, onRegisterEditor }: EditableBlockProps) {
+  const blockId = block.tempId || block.blockContentId;
   const {
     attributes,
     listeners,
@@ -336,7 +334,7 @@ function EditableImageBlock({ block, onUpdate, onDelete }: EditableBlockProps) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: block.tempId });
+  } = useSortable({ id: blockId });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -362,7 +360,7 @@ function EditableImageBlock({ block, onUpdate, onDelete }: EditableBlockProps) {
       setUploading(true);
       setError(null);
       const result = await uploadImageToCloudinary(file);
-      onUpdate(block.tempId, { mediaUrl: result.secureUrl });
+      onUpdate(blockId, { mediaUrl: result.secureUrl });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to upload image');
     } finally {
@@ -377,11 +375,11 @@ function EditableImageBlock({ block, onUpdate, onDelete }: EditableBlockProps) {
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onUpdate(block.tempId, { title: e.target.value });
+    onUpdate(blockId, { title: e.target.value });
   };
 
   const handleCaptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onUpdate(block.tempId, { caption: e.target.value });
+    onUpdate(blockId, { caption: e.target.value });
   };
 
   return (
@@ -409,7 +407,7 @@ function EditableImageBlock({ block, onUpdate, onDelete }: EditableBlockProps) {
             </span>
             <div className="flex-1" />
             <button
-              onClick={() => onDelete(block.tempId)}
+              onClick={() => onDelete(blockId)}
               className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
               title="Delete"
             >
@@ -459,7 +457,7 @@ function EditableImageBlock({ block, onUpdate, onDelete }: EditableBlockProps) {
               <img src={block.mediaUrl} alt="Preview" className="w-full max-h-48 object-contain rounded-lg bg-[#111]" />
               <button
                 type="button"
-                onClick={() => onUpdate(block.tempId, { mediaUrl: '' })}
+                onClick={() => onUpdate(blockId, { mediaUrl: '' })}
                 className="absolute top-2 right-2 p-1.5 bg-red-500/80 text-white rounded-lg hover:bg-red-600 transition-colors"
               >
                 <X className="w-4 h-4" />
@@ -470,7 +468,7 @@ function EditableImageBlock({ block, onUpdate, onDelete }: EditableBlockProps) {
           {/* Caption */}
           <input
             type="text"
-            value={block.caption}
+            value={block.caption || ''}
             onChange={handleCaptionChange}
             placeholder="Image caption (optional)"
             className="w-full px-3 py-1.5 bg-[#1a1a1a] border border-[#333] rounded text-white text-sm placeholder-gray-500 focus:outline-none focus:border-purple-500"
@@ -620,22 +618,28 @@ function InsertZone({
   );
 }
 
-export default function CreateContentPage() {
+function UpdateContentContent() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const contentId = searchParams.get('id');
+
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const [fetchingCategories, setFetchingCategories] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [content, setContent] = useState<ContentDetailResponse | null>(null);
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
-  const [blocks, setBlocks] = useState<LocalBlock[]>([]);
+  // Single ordered list of all blocks (existing + newly added)
+  const [allBlocks, setAllBlocks] = useState<LocalBlock[]>([]);
+  // IDs of existing blocks queued for deletion — sent to API on Save Changes
+  const [deletedBlockIds, setDeletedBlockIds] = useState<number[]>([]);
 
-  // Map to store getContent functions from editor children
-  const editorContentGetters = useRef<Map<string, () => string>>(new Map());
+  const editorContentGetters = useRef<Map<string | number, () => string>>(new Map());
 
   const sensors = useSensors(
     useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   const [formData, setFormData] = useState<FormData>({
@@ -647,63 +651,85 @@ export default function CreateContentPage() {
   });
 
   useEffect(() => {
-    fetchCategories();
-  }, []);
+    if (contentId) fetchData();
+  }, [contentId]);
 
-  const fetchCategories = async () => {
+  const fetchData = async () => {
     try {
-      setFetchingCategories(true);
-      const data = await getCategories();
-      setCategories(data.filter((c) => c.isActive));
-      if (data.length > 0) {
-        setFormData((prev) => ({ ...prev, categoryId: data[0].categoryContentId }));
-      }
+      setLoading(true);
+      setError(null);
+      const [contentData, categoriesData] = await Promise.all([
+        getById(Number(contentId)),
+        getCategories(),
+      ]);
+      setContent(contentData);
+      setCategories(categoriesData.filter((c: CategoryResponse) => c.isActive));
+      // Load existing blocks — all treated as non-new, clean
+      setAllBlocks((contentData.blocks || []).map(b => ({ ...b, isDirty: false, isNew: false })));
+      setFormData({
+        title: contentData.title,
+        summary: contentData.summary || '',
+        thumbnailUrl: contentData.thumbnailUrl || '',
+        categoryId: contentData.categoryId ?? 0,
+        isPublished: contentData.isPublished,
+      });
     } catch (err) {
-      console.error('Failed to fetch categories:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch content');
     } finally {
+      setLoading(false);
       setFetchingCategories(false);
     }
   };
 
+  // Stable key for a block: string tempId for new blocks, numeric blockContentId for existing ones
+  const getBlockKey = (b: LocalBlock): string | number => b.tempId ?? b.blockContentId;
+
+  const collectEditorContent = () =>
+    allBlocks.map(b => {
+      const key = getBlockKey(b);
+      const getContent = editorContentGetters.current.get(key);
+      if (getContent) return { ...b, contentData: getContent(), isDirty: true };
+      return b;
+    });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!content) return;
     setError(null);
-
-    if (!formData.title.trim()) {
-      setError('Title is required');
-      return;
-    }
-
-    if (!formData.categoryId) {
-      setError('Category is required');
-      return;
-    }
-
     try {
-      setLoading(true);
+      setSubmitting(true);
+      const updatedBlocks = collectEditorContent();
 
-      // 1. Collect latest text content from all editors
-      const updatedBlocks = blocks.map(b => {
-        const getContent = editorContentGetters.current.get(b.tempId);
-        if (getContent) {
-          return { ...b, contentData: getContent() };
-        }
-        return b;
-      });
-
-      // 2. Create the content first
-      const content: ContentResponse = await create({
+      // 1. Update main content info
+      await update(content.contentId, {
         title: formData.title,
         summary: formData.summary,
         thumbnailUrl: formData.thumbnailUrl || undefined,
         categoryId: formData.categoryId,
         isPublished: formData.isPublished,
-        isActive: formData.isActive,
       });
 
-      // 3. Create all blocks after content is created
+      // 2. Delete queued blocks
+      for (const id of deletedBlockIds) {
+        await removeBlock(id);
+      }
+
+      // 3. Update existing dirty blocks
+      for (const block of updatedBlocks.filter(b => !b.isNew && b.isDirty)) {
+        await updateBlock(block.blockContentId, {
+          title: block.title,
+          contentData: block.contentData || undefined,
+          mediaUrl: block.mediaUrl || undefined,
+          caption: block.caption || undefined,
+          blockType: block.blockType,
+          isActive: block.isActive,
+        });
+      }
+
+      // 4. Create new blocks in their current visual order
       for (let i = 0; i < updatedBlocks.length; i++) {
         const block = updatedBlocks[i];
+        if (!block.isNew) continue;
         await createBlock({
           title: block.title,
           contentId: content.contentId,
@@ -718,63 +744,119 @@ export default function CreateContentPage() {
 
       router.push('/manage-content');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create content');
+      setError(err instanceof Error ? err.message : 'Failed to update content');
     } finally {
-      setLoading(false);
+      setSubmitting(false);
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!content) return;
+    setError(null);
+    try {
+      setPublishing(true);
+      await publish(content.contentId);
+      setContent(prev => prev ? { ...prev, isPublished: !prev.isPublished } : null);
+      setFormData(prev => ({ ...prev, isPublished: !prev.isPublished }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update publish status');
+    } finally {
+      setPublishing(false);
     }
   };
 
   const handleChange = (field: keyof FormData, value: string | number | boolean) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleRegisterEditor = useCallback((id: string, getContent: () => string) => {
+  const handleRegisterEditor = useCallback((id: string | number, getContent: () => string) => {
     editorContentGetters.current.set(id, getContent);
   }, []);
 
+  // Insert a new block at a specific index in the list
   const handleInsertBlock = (type: 'text' | 'image', insertAtIndex: number) => {
     const newBlock: LocalBlock = {
-      tempId: `temp-${Date.now()}`,
+      blockContentId: -Date.now(),
+      tempId: `new-${Date.now()}`,
+      contentId: Number(contentId),
       title: type === 'text' ? 'New Text Block' : 'New Image Block',
-      contentData: '',
-      mediaUrl: '',
-      caption: '',
+      contentData: null,
+      mediaUrl: null,
+      caption: null,
       blockType: type,
-      sortOrder: insertAtIndex + 1,
+      sortOrder: 0,
       isActive: true,
+      isNew: true,
+      isDirty: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: null,
     };
-    setBlocks((prev) => [
+    setAllBlocks(prev => [
       ...prev.slice(0, insertAtIndex),
       newBlock,
       ...prev.slice(insertAtIndex),
     ]);
   };
 
-  // Top-level buttons always append to the end
-  const handleAddText = () => handleInsertBlock('text', blocks.length);
-  const handleAddImage = () => handleInsertBlock('image', blocks.length);
+  // Top-level buttons append to the end
+  const handleAddText = () => handleInsertBlock('text', allBlocks.length);
+  const handleAddImage = () => handleInsertBlock('image', allBlocks.length);
 
-  const handleUpdateBlock = (tempId: string, updates: Partial<LocalBlock>) => {
-    setBlocks((prev) =>
-      prev.map((b) => (b.tempId === tempId ? { ...b, ...updates } : b))
-    );
+  const handleUpdateBlock = (id: string | number, updates: Partial<LocalBlock>) => {
+    setAllBlocks(prev => prev.map(b => {
+      if (getBlockKey(b) === id) {
+        // Mark existing blocks as dirty so they get saved
+        return { ...b, ...updates, ...(!b.isNew && { isDirty: true }) };
+      }
+      return b;
+    }));
   };
 
-  const handleDeleteBlock = (tempId: string) => {
-    setBlocks((prev) => prev.filter((b) => b.tempId !== tempId));
+  const handleDeleteBlock = (id: string | number) => {
+    // Remove from local state immediately for instant UI feedback
+    const block = allBlocks.find(b => getBlockKey(b) === id);
+    setAllBlocks(prev => prev.filter(b => getBlockKey(b) !== id));
+    if (block && !block.isNew) {
+      setDeletedBlockIds(prev => [...prev, block.blockContentId]);
+      editorContentGetters.current.delete(block.blockContentId);
+    } else if (block?.tempId) {
+      editorContentGetters.current.delete(block.tempId);
+    }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-
     if (over && active.id !== over.id) {
-      setBlocks((items) => {
-        const oldIndex = items.findIndex((item) => item.tempId === active.id);
-        const newIndex = items.findIndex((item) => item.tempId === over.id);
+      setAllBlocks(items => {
+        const oldIndex = items.findIndex(item => getBlockKey(item) === active.id);
+        const newIndex = items.findIndex(item => getBlockKey(item) === over.id);
         return arrayMove(items, oldIndex, newIndex);
       });
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#111] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#ffc032] animate-spin" />
+      </div>
+    );
+  }
+
+  if (!content) {
+    return (
+      <div className="min-h-screen bg-[#111] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-400 mb-4">Content not found</p>
+          <Link href="/manage-content" className="text-[#ffc032] hover:underline">
+            Back to Content
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const sortableIds = allBlocks.map(b => getBlockKey(b));
 
   return (
     <div className="min-h-screen bg-[#111] p-6">
@@ -788,8 +870,27 @@ export default function CreateContentPage() {
             <ArrowLeft className="w-5 h-5" />
             Back to Content
           </Link>
-          <h1 className="text-3xl font-bold text-white">Create New Content</h1>
-          <p className="text-gray-400 mt-1">Add content info and blocks</p>
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-white">Update Content</h1>
+            <button
+              onClick={handlePublish}
+              disabled={publishing}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                content.isPublished
+                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  : 'bg-green-600 text-white hover:bg-green-500'
+              }`}
+            >
+              {publishing ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : content.isPublished ? (
+                <GlobeLock className="w-5 h-5" />
+              ) : (
+                <Globe className="w-5 h-5" />
+              )}
+              {content.isPublished ? 'Unpublish' : 'Publish'}
+            </button>
+          </div>
         </div>
 
         {/* 2-Column Layout */}
@@ -814,8 +915,7 @@ export default function CreateContentPage() {
                   type="text"
                   value={formData.title}
                   onChange={(e) => handleChange('title', e.target.value)}
-                  placeholder="Enter content title"
-                  className="w-full px-4 py-2 bg-[#222] border border-[#333] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#ffc032]"
+                  className="w-full px-4 py-2 bg-[#222] border border-[#333] rounded-lg text-white focus:outline-none focus:border-[#ffc032]"
                 />
               </div>
 
@@ -827,9 +927,8 @@ export default function CreateContentPage() {
                 <textarea
                   value={formData.summary}
                   onChange={(e) => handleChange('summary', e.target.value)}
-                  placeholder="Brief description of the content"
                   rows={3}
-                  className="w-full px-4 py-2 bg-[#222] border border-[#333] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#ffc032] resize-none"
+                  className="w-full px-4 py-2 bg-[#222] border border-[#333] rounded-lg text-white focus:outline-none focus:border-[#ffc032] resize-none"
                 />
               </div>
 
@@ -857,7 +956,6 @@ export default function CreateContentPage() {
                     onChange={(e) => handleChange('categoryId', Number(e.target.value))}
                     className="w-full px-4 py-2 bg-[#222] border border-[#333] rounded-lg text-white focus:outline-none focus:border-[#ffc032]"
                   >
-                    {categories.length === 0 && <option value={0}>No categories available</option>}
                     {categories.map((cat) => (
                       <option key={cat.categoryContentId} value={cat.categoryContentId}>
                         {cat.name}
@@ -867,18 +965,6 @@ export default function CreateContentPage() {
                 )}
               </div>
 
-              {/* Checkboxes */}
-              <div className="mb-6 space-y-3">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.isPublished}
-                    onChange={(e) => handleChange('isPublished', e.target.checked)}
-                    className="w-5 h-5 rounded border-[#333] bg-[#222] text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0"
-                  />
-                  <span className="text-sm text-gray-300">Publish immediately</span>
-                </label>
-              </div>
             </div>
 
             {/* Actions */}
@@ -886,16 +972,16 @@ export default function CreateContentPage() {
               <div className="flex items-center gap-4">
                 <button
                   type="submit"
-                  disabled={loading || fetchingCategories}
+                  disabled={submitting}
                   className="flex items-center gap-2 px-6 py-2 bg-[#ffc032] text-[#111] rounded-lg font-semibold hover:bg-[#e6ae2c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? (
+                  {submitting ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      Creating...
+                      Saving...
                     </>
                   ) : (
-                    'Create Content'
+                    'Save Changes'
                   )}
                 </button>
                 <Link
@@ -931,7 +1017,7 @@ export default function CreateContentPage() {
             </div>
 
             {/* Block List */}
-            {blocks.length === 0 ? (
+            {allBlocks.length === 0 ? (
               <div className="text-center py-16 text-gray-400 border-2 border-dashed border-gray-700 rounded-lg">
                 <Quote className="w-12 h-12 mx-auto mb-3 text-gray-600" />
                 <p>No blocks added yet.</p>
@@ -939,15 +1025,15 @@ export default function CreateContentPage() {
               </div>
             ) : (
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <SortableContext items={blocks.map((b) => b.tempId)} strategy={verticalListSortingStrategy}>
+                <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
                   <div>
                     {/* Insert zone before the first block */}
                     <InsertZone
                       onAddText={() => handleInsertBlock('text', 0)}
                       onAddImage={() => handleInsertBlock('image', 0)}
                     />
-                    {blocks.map((block, index) => (
-                      <div key={block.tempId}>
+                    {allBlocks.map((block, index) => (
+                      <div key={String(getBlockKey(block))}>
                         {block.blockType === 'text' ? (
                           <EditableTextBlock
                             block={block}
@@ -977,5 +1063,19 @@ export default function CreateContentPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function UpdateContentPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#111] flex items-center justify-center">
+          <Loader2 className="w-8 h-8 text-[#ffc032] animate-spin" />
+        </div>
+      }
+    >
+      <UpdateContentContent />
+    </Suspense>
   );
 }

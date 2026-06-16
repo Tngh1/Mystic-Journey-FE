@@ -124,7 +124,7 @@ export default function ManageMonstersPage() {
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
                             <button
-                              onClick={() => router.push(`/manage-monsters/edit?id=${m.monsterId}`)}
+                              onClick={() => router.push(`/manage-monsters/update?id=${m.monsterId}`)}
                               className="px-4 py-2 bg-[#ffc032] text-[#111] rounded-lg hover:bg-[#ffd04c] transition-colors text-sm font-medium"
                             >
                               Edit

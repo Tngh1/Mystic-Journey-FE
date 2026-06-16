@@ -2,142 +2,48 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Calendar, User, Tag, Bell, Star, Gift, Swords, TrendingUp } from "lucide-react";
+import { Calendar, Tag, Bell, Loader2 } from "lucide-react";
+import { ContentResponse, getAll, getCategories } from "@/lib/api/content";
 
-interface Content {
-  id: number;
-  title: string;
-  content: string;
-  type: "event" | "update" | "maintenance" | "promotion";
-  imageUrl: string;
-  author: string;
-  createdAt: string;
-  isPinned: boolean;
-  startDate?: string;
-  endDate?: string;
+interface CategoryInfo {
+  categoryContentId: number;
+  name: string;
 }
 
-const contentTypes = {
-  event: { label: "Event", color: "bg-purple-500/20 text-purple-400 border-purple-500/30", icon: Star },
-  update: { label: "Update", color: "bg-blue-500/20 text-blue-400 border-blue-500/30", icon: TrendingUp },
-  maintenance: { label: "Maintenance", color: "bg-red-500/20 text-red-400 border-red-500/30", icon: Swords },
-  promotion: { label: "Promotion", color: "bg-amber-500/20 text-amber-400 border-amber-500/30", icon: Gift },
-};
-
 export default function ContentPage() {
-  const [contents, setContents] = useState<Content[]>([]);
+  const [contents, setContents] = useState<ContentResponse[]>([]);
+  const [categories, setCategories] = useState<CategoryInfo[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedType, setSelectedType] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
   useEffect(() => {
-    const mockData: Content[] = [
-      {
-        id: 1,
-        title: "🎉 Summer Festival Event 2024",
-        content: "Join us for the biggest summer festival event! Collect exclusive summer-themed items, participate in special quests, and win amazing rewards. The festival features limited-time dungeons, daily login bonuses, and a special gacha pool with rare items.",
-        type: "event",
-        imageUrl: "/images/announcements/summer-festival.jpg",
-        author: "Game Master",
-        createdAt: "2024-06-01",
-        isPinned: true,
-        startDate: "2024-06-01",
-        endDate: "2024-06-30",
-      },
-      {
-        id: 2,
-        title: "⚔️ New Character Class: Shadow Knight",
-        content: "A new character class has arrived! Introducing the Shadow Knight - a powerful melee fighter with dark abilities. Unlock this class at level 30 and discover unique skills that combine offense and defense.",
-        type: "update",
-        imageUrl: "/images/announcements/shadow-knight.jpg",
-        author: "Dev Team",
-        createdAt: "2024-05-28",
-        isPinned: true,
-      },
-      {
-        id: 3,
-        title: "🔧 Scheduled Server Maintenance",
-        content: "Server maintenance will be performed on June 5th from 02:00 to 06:00 UTC. During this time, the game will be unavailable. We're implementing new features and fixing reported issues.",
-        type: "maintenance",
-        imageUrl: "/images/announcements/maintenance.jpg",
-        author: "System",
-        createdAt: "2024-05-30",
-        isPinned: false,
-      },
-      {
-        id: 4,
-        title: "💎 Double Gem Bonus for First Purchase",
-        content: "For a limited time, all first-time gem purchasers will receive double gems! This is the perfect opportunity to stock up on gems for the upcoming summer event.",
-        type: "promotion",
-        imageUrl: "/images/announcements/double-gems.jpg",
-        author: "Admin",
-        createdAt: "2024-05-25",
-        isPinned: false,
-        startDate: "2024-05-25",
-        endDate: "2024-06-15",
-      },
-      {
-        id: 5,
-        title: "🏰 New Dungeon: Crystal Caverns",
-        content: "Explore the new Crystal Caverns dungeon! This challenging new content features crystal-themed monsters, exclusive equipment drops, and a special boss fight against the Crystal Guardian.",
-        type: "update",
-        imageUrl: "/images/announcements/crystal-caverns.jpg",
-        author: "Dev Team",
-        createdAt: "2024-05-20",
-        isPinned: false,
-      },
-      {
-        id: 6,
-        title: "🎊 Anniversary Celebration",
-        content: "Mystic Journey is turning 1 year old! Celebrate with us through special anniversary events, login rewards, and exclusive anniversary items. Don't miss out on this historic celebration!",
-        type: "event",
-        imageUrl: "/images/announcements/anniversary.jpg",
-        author: "Game Master",
-        createdAt: "2024-05-15",
-        isPinned: false,
-        startDate: "2024-05-15",
-        endDate: "2024-06-15",
-      },
-      {
-        id: 7,
-        title: "🛒 Limited Time Shop Items",
-        content: "New items have arrived in the shop! Limited edition weapons and armor sets are available for a short period. These items won't return for a long time, so act fast!",
-        type: "promotion",
-        imageUrl: "/images/announcements/limited-items.jpg",
-        author: "Shop Manager",
-        createdAt: "2024-05-10",
-        isPinned: false,
-        endDate: "2024-05-31",
-      },
-      {
-        id: 8,
-        title: "⚡ Performance Optimization Update",
-        content: "We've improved game performance significantly. Loading times have been reduced by 40%, and frame rates are now more stable on all devices. Enjoy a smoother gaming experience!",
-        type: "update",
-        imageUrl: "/images/announcements/optimization.jpg",
-        author: "Tech Team",
-        createdAt: "2024-05-05",
-        isPinned: false,
-      },
-    ];
-
-    setTimeout(() => {
-      setContents(mockData);
-      setLoading(false);
-    }, 500);
+    fetchData();
   }, []);
 
-  const filteredContents = contents.filter((c) => {
-    if (selectedType === "all") return true;
-    return c.type === selectedType;
-  });
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [contentsData, categoriesData] = await Promise.all([
+        getAll(1, 100),
+        getCategories()
+      ]);
+      setContents(contentsData.items.filter(c => c.isPublished));
+      setCategories(categoriesData.filter(c => c.isActive));
+    } catch (error) {
+      console.error("Failed to fetch contents:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const pinnedContents = filteredContents.filter((c) => c.isPinned);
-  const regularContents = filteredContents.filter((c) => !c.isPinned);
+  const filteredContents = selectedCategory
+    ? contents.filter((c) => c.categoryId === selectedCategory)
+    : contents;
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center pt-20">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-[#ffc032]"></div>
+        <Loader2 className="w-16 h-16 text-[#ffc032] animate-spin" />
       </div>
     );
   }
@@ -167,55 +73,35 @@ export default function ContentPage() {
         {/* Filter Tabs */}
         <div className="flex flex-wrap justify-center gap-3 mb-10">
           <button
-            onClick={() => setSelectedType("all")}
+            onClick={() => setSelectedCategory(null)}
             className={`px-5 py-2.5 rounded-xl font-medium transition-all duration-300 cursor-pointer ${
-              selectedType === "all"
+              selectedCategory === null
                 ? "bg-[#ffc032] text-black shadow-lg shadow-[#ffc032]/20"
                 : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white border border-white/10"
             }`}
           >
             All
           </button>
-          {Object.entries(contentTypes).map(([key, { label }]) => (
+          {categories.map((cat) => (
             <button
-              key={key}
-              onClick={() => setSelectedType(key)}
+              key={cat.categoryContentId}
+              onClick={() => setSelectedCategory(cat.categoryContentId)}
               className={`px-5 py-2.5 rounded-xl font-medium transition-all duration-300 cursor-pointer ${
-                selectedType === key
+                selectedCategory === cat.categoryContentId
                   ? "bg-[#ffc032] text-black shadow-lg shadow-[#ffc032]/20"
                   : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white border border-white/10"
               }`}
             >
-              {label}
+              {cat.name}
             </button>
           ))}
         </div>
 
-        {/* Pinned Contents */}
-        {pinnedContents.length > 0 && (
-          <div className="mb-10">
-            <h2 className="text-lg font-semibold text-white/80 mb-4 flex items-center gap-2">
-              <Tag className="w-5 h-5 text-[#ffc032]" />
-              Pinned Contents
-            </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {pinnedContents.map((item) => (
-                <ContentCard key={item.id} content={item} isPinned />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Regular Contents */}
-        <div>
-          {pinnedContents.length > 0 && (
-            <h2 className="text-lg font-semibold text-white/80 mb-4">Recent Updates</h2>
-          )}
-          <div className="space-y-4">
-            {regularContents.map((item) => (
-              <ContentCard key={item.id} content={item} />
-            ))}
-          </div>
+        {/* Contents Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredContents.map((item) => (
+            <ContentCard key={item.contentId} content={item} />
+          ))}
         </div>
 
         {/* Empty State */}
@@ -230,77 +116,68 @@ export default function ContentPage() {
   );
 }
 
-function ContentCard({ content, isPinned = false }: { content: Content; isPinned?: boolean }) {
-  const typeConfig = contentTypes[content.type];
-  const TypeIcon = typeConfig.icon;
+function ContentCard({ content }: { content: ContentResponse }) {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
 
   return (
     <Link
-      href={`/content/${content.id}`}
-      className={`group relative block bg-gradient-to-br from-white/5 to-white/10 border border-white/10 rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#ffc032]/30 hover:shadow-xl hover:shadow-[#ffc032]/5 ${
-        isPinned ? "ring-2 ring-[#ffc032]/30" : ""
-      }`}
+      href={`/content/${content.slug || content.contentId}`}
+      className="group relative block bg-gradient-to-br from-white/5 to-white/10 border border-white/10 rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#ffc032]/30 hover:shadow-xl hover:shadow-[#ffc032]/5"
     >
-      {/* Pinned Badge */}
-      {isPinned && (
-        <div className="absolute top-4 right-4 z-10">
-          <span className="px-3 py-1 bg-[#ffc032] text-black text-xs font-bold rounded-full flex items-center gap-1">
-            <Star className="w-3 h-3" /> PINNED
-          </span>
-        </div>
-      )}
-
       {/* Image Section */}
-      <div className="relative h-40">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
-            <TypeIcon className="w-8 h-8 text-[#ffc032]" />
+      <div className="relative h-48">
+        {content.thumbnailUrl ? (
+          <img
+            src={content.thumbnailUrl}
+            alt={content.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-[#ffc032]/20 to-[#ff8c00]/20 flex items-center justify-center">
+            <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+              <Bell className="w-8 h-8 text-[#ffc032]" />
+            </div>
           </div>
-        </div>
-        {/* Type Badge */}
-        <div className="absolute bottom-4 left-4">
-          <span className={`px-3 py-1 ${typeConfig.color} border rounded-full text-xs font-medium flex items-center gap-1.5`}>
-            <TypeIcon className="w-3.5 h-3.5" />
-            {typeConfig.label}
-          </span>
-        </div>
+        )}
+        
+        {/* Category Badge */}
+        {content.categoryName && (
+          <div className="absolute top-4 left-4">
+            <span className="px-3 py-1 bg-black/50 backdrop-blur-sm text-white text-xs font-medium rounded-full flex items-center gap-1.5">
+              <Tag className="w-3.5 h-3.5" />
+              {content.categoryName}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Content */}
       <div className="p-6">
-        <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[#ffc032] transition-colors">
+        <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[#ffc032] transition-colors line-clamp-2">
           {content.title}
         </h3>
-        <p className="text-white/60 text-sm mb-4 line-clamp-3">
-          {content.content}
-        </p>
+        {content.summary && (
+          <p className="text-white/60 text-sm mb-4 line-clamp-3">
+            {content.summary}
+          </p>
+        )}
 
         {/* Meta Info */}
-        <div className="flex flex-wrap items-center gap-4 text-xs text-white/50 mb-4">
-          <div className="flex items-center gap-1.5">
-            <User className="w-4 h-4" />
-            <span>{content.author}</span>
-          </div>
+        <div className="flex items-center gap-3 text-xs text-white/50">
           <div className="flex items-center gap-1.5">
             <Calendar className="w-4 h-4" />
-            <span>{content.createdAt}</span>
+            <span>{formatDate(content.createdAt)}</span>
           </div>
-          {content.startDate && (
-            <div className="flex items-center gap-1.5">
-              <span className="text-[#ffc032]">Start:</span>
-              <span>{content.startDate}</span>
-            </div>
-          )}
-          {content.endDate && (
-            <div className="flex items-center gap-1.5">
-              <span className="text-red-400">End:</span>
-              <span>{content.endDate}</span>
-            </div>
-          )}
         </div>
 
         {/* Read More Button */}
-        <div className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-[#ffc032]/20 text-white/70 hover:text-[#ffc032] rounded-xl transition-all duration-300 font-medium">
+        <div className="w-full flex items-center justify-center gap-2 px-4 py-2.5 mt-4 bg-white/5 hover:bg-[#ffc032]/20 text-white/70 hover:text-[#ffc032] rounded-xl transition-all duration-300 font-medium">
           Read More
         </div>
       </div>

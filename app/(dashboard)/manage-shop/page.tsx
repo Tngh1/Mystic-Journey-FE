@@ -158,7 +158,7 @@ export default function ManageShopPage() {
                         </td>
                         <td className="px-6 py-4">
                           <button
-                            onClick={() => router.push(`/manage-shop/edit?id=${item.shopItemId}`)}
+                            onClick={() => router.push(`/manage-shop/update?id=${item.shopItemId}`)}
                             className="px-4 py-2 bg-[#ffc032] text-[#111] rounded-lg hover:bg-[#ffd04c] transition-colors text-sm font-medium"
                           >
                             Edit

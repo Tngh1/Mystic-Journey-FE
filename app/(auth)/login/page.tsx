@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import { useAuth } from "@/lib/contexts/AuthContext";
+import { getMe } from "@/lib/api/account";
 import { showErrorAlert, showSuccessAlert } from "@/lib/utils/swal";
 
 export default function LoginPage() {
@@ -21,8 +22,12 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await login(email, password);
+      const me = await getMe();
       await showSuccessAlert("Welcome back!", "Login successful. Redirecting...");
-      router.push("/");
+
+      const adminRoles = ["Admin", "SuperAdmin"];
+      const destination = adminRoles.includes(me.role) ? "/dashboard" : "/";
+      router.push(destination);
     } catch (err: unknown) {
       await showErrorAlert("Login Failed", err instanceof Error ? err.message : "Invalid credentials. Please try again.");
     } finally {

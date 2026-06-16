@@ -47,3 +47,11 @@ export const updateBlock = async (id: number, data: UpdateBlockRequest): Promise
 export const removeBlock = async (id: number): Promise<void> => {
   await del(`/api/contents/blocks/${id}`);
 };
+
+export const updateCategory = async (id: number, data: CreateCategoryRequest): Promise<CategoryResponse> => {
+  return put<CategoryResponse>(`/api/contents/categories/${id}`, data);
+};
+
+export const getCategoriesPaged = async (page = 1, pageSize = 10): Promise<PagedResponse<CategoryResponse>> => {
+  return get<PagedResponse<CategoryResponse>>(`/api/contents/categories-paged?page=${page}&pageSize=${pageSize}`);
+};

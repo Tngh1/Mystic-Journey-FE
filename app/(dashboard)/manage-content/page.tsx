@@ -1,7 +1,7 @@
 'use client';
 
 import Link from "next/link";
-import { Plus, Pencil, Globe, GlobeLock, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
+import { Plus, Pencil, Globe, GlobeLock, FileText, Image as ImageIcon, Type } from 'lucide-react';
 import { ContentResponse } from "@/lib/api/content";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import apiClient from "@/lib/api/client";
@@ -39,12 +39,29 @@ export default function ManageContentPage() {
     setParams({ search: value || undefined });
   };
 
+  const [togglingId, setTogglingId] = useState<number | null>(null);
+
   const handleTogglePublish = async (content: ContentResponse) => {
+    setTogglingId(content.contentId);
     try {
-      await apiClient.post(`/api/contents/${content.contentId}/publish`, {});
+      if (content.isPublished) {
+        // Unpublish: use the update endpoint with isPublished: false
+        await apiClient.put(`/api/contents/${content.contentId}`, {
+          title: content.title,
+          summary: content.summary,
+          thumbnailUrl: content.thumbnailUrl,
+          categoryId: content.categoryId,
+          isPublished: false,
+        });
+      } else {
+        // Publish: use the dedicated publish endpoint
+        await apiClient.post(`/api/contents/${content.contentId}/publish`, {});
+      }
       refresh();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to toggle publish status');
+    } finally {
+      setTogglingId(null);
     }
   };
 
@@ -109,74 +126,85 @@ export default function ManageContentPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-800">
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">ID</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Title</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Category</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Published</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Status</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Created</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Actions</th>
+                  <th className="px-4 py-4 text-left text-sm font-semibold text-gray-400">ID</th>
+                  <th className="px-4 py-4 text-left text-sm font-semibold text-gray-400">Thumbnail</th>
+                  <th className="px-4 py-4 text-left text-sm font-semibold text-gray-400">Title</th>
+                  <th className="px-4 py-4 text-left text-sm font-semibold text-gray-400">Category</th>
+                  <th className="px-4 py-4 text-left text-sm font-semibold text-gray-400">Published</th>
+                  <th className="px-4 py-4 text-left text-sm font-semibold text-gray-400">Created By</th>
+                  <th className="px-4 py-4 text-left text-sm font-semibold text-gray-400">Created</th>
+                  <th className="px-4 py-4 text-left text-sm font-semibold text-gray-400">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {contents.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-gray-400">
+                    <td colSpan={8} className="px-6 py-12 text-center text-gray-400">
                       No content found
                     </td>
                   </tr>
                 ) : (
                   contents.map((content) => (
                     <tr key={content.contentId} className="border-b border-gray-800/50 hover:bg-[#222] transition-colors">
-                      <td className="px-6 py-4 text-sm text-gray-400 font-mono">{content.contentId}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4 text-sm text-gray-400 font-mono">{content.contentId}</td>
+                      <td className="px-4 py-4">
+                        {content.thumbnailUrl ? (
+                          <img 
+                            src={content.thumbnailUrl} 
+                            alt={content.title} 
+                            className="w-16 h-12 object-cover rounded-lg bg-[#0d0d0d]"
+                          />
+                        ) : (
+                          <div className="w-16 h-12 rounded-lg bg-[#222] flex items-center justify-center">
+                            <ImageIcon className="w-6 h-6 text-gray-600" />
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-4 py-4">
                         <div className="font-medium">{content.title}</div>
                         <div className="text-xs text-gray-500">{content.slug}</div>
+                        {content.summary && (
+                          <div className="text-xs text-gray-400 mt-1 max-w-xs truncate">
+                            {content.summary}
+                          </div>
+                        )}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4">
                         <span className="px-3 py-1 bg-[#333] text-gray-300 rounded-lg text-xs font-medium">
                           {content.categoryName || '-'}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4">
                         <button
                           onClick={() => handleTogglePublish(content)}
-                          className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                          disabled={togglingId === content.contentId}
+                          className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
                             content.isPublished
-                              ? 'bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30'
-                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                              ? 'bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30'
+                              : 'bg-gray-700 text-gray-300 hover:bg-green-500/20 hover:text-green-400 hover:border hover:border-green-500/30'
                           }`}
                         >
-                          {content.isPublished ? (
-                            <>
-                              <Globe className="w-3 h-3" />
-                              Published
-                            </>
+                          {togglingId === content.contentId ? (
+                            <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                          ) : content.isPublished ? (
+                            <Globe className="w-3 h-3" />
                           ) : (
-                            <>
-                              <GlobeLock className="w-3 h-3" />
-                              Draft
-                            </>
+                            <GlobeLock className="w-3 h-3" />
                           )}
+                          {content.isPublished ? 'Published' : 'Draft'}
                         </button>
                       </td>
-                      <td className="px-6 py-4">
-                        {content.isActive ? (
-                          <span className="inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
-                            Active
-                          </span>
-                        ) : (
-                          <span className="inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-red-500/20 text-red-400 border border-red-500/30">
-                            Inactive
-                          </span>
-                        )}
+                      <td className="px-4 py-4">
+                        <span className="text-sm text-gray-300 font-medium">
+                          {content.createdByName || 'Unknown'}
+                        </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-400">
+                      <td className="px-4 py-4 text-sm text-gray-400">
                         {formatDate(content.createdAt)}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4">
                         <Link
-                          href={`/manage-content/edit?id=${content.contentId}`}
+                          href={`/manage-content/update?id=${content.contentId}`}
                           className="px-4 py-2 bg-[#ffc032] text-[#111] rounded-lg hover:bg-[#ffd04c] transition-colors text-sm font-medium"
                         >
                           Edit

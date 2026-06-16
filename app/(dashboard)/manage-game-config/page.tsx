@@ -254,9 +254,9 @@ export default function ManageGameConfigPage() {
                               <Eye className="w-4 h-4 text-gray-400" />
                             </Link>
                             <Link
-                              href={`/manage-game-config/edit?id=${setting.key}`}
+                              href={`/manage-game-config/update?id=${setting.key}`}
                               className="p-2 rounded-lg bg-[#ffc032]/10 border border-[#ffc032]/30 hover:bg-[#ffc032]/20 hover:border-[#ffc032]/50 transition-colors"
-                              title="Edit"
+                              title="Update"
                             >
                               <Edit className="w-4 h-4 text-[#ffc032]" />
                             </Link>

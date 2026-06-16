@@ -488,7 +488,7 @@ export interface ContentResponse {
   categoryId: number | null;
   categoryName: string | null;
   isPublished: boolean;
-  isActive: boolean;
+  createdByName: string;
   createdAt: string;
   updatedAt: string | null;
   publishedAt: string | null;
@@ -528,7 +528,6 @@ export interface CreateContentRequest {
   thumbnailUrl?: string;
   categoryId?: number;
   isPublished?: boolean;
-  isActive?: boolean;
 }
 
 export type UpdateContentRequest = CreateContentRequest;

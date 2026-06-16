@@ -229,7 +229,7 @@ export default function ManagePlayersPage() {
                       </td>
                       <td className="px-6 py-4">
                         <Link
-                          href={`/manage-players/edit?id=${player.playerProfileId ?? ''}`}
+                          href={`/manage-players/update?id=${player.playerProfileId ?? ''}`}
                           className="inline-flex items-center gap-2 px-3 py-2 bg-[#ffc032] text-[#111] rounded-lg hover:bg-[#ffd04c] transition-colors text-sm font-medium mb-1"
                         >
                           <Edit className="w-4 h-4" />

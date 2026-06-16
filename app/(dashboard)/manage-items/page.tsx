@@ -196,7 +196,7 @@ export default function ManageItemsPage() {
                         <td className="px-6 py-4 text-gray-300">{item.maxStack}</td>
                         <td className="px-6 py-4">
                           <button
-                            onClick={() => router.push(`/manage-items/edit?id=${item.itemId}`)}
+                            onClick={() => router.push(`/manage-items/update?id=${item.itemId}`)}
                             className="px-4 py-2 bg-[#ffc032] text-[#111] rounded-lg hover:bg-[#ffd04c] transition-colors text-sm font-medium"
                           >
                             Edit
