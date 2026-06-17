@@ -13,8 +13,20 @@ const QUEST_TYPES = [
 ];
 
 const DEFAULT_STATUSES = [
-  { value: "Available", label: "Available" },
-  { value: "Locked", label: "Locked" },
+  { value: "NotStarted", label: "Not Started" },
+  { value: "InProgress", label: "In Progress" },
+  { value: "Completed", label: "Completed" },
+  { value: "Claimed", label: "Claimed" },
+  { value: "Failed", label: "Failed" },
+];
+
+const OBJECTIVE_TYPES = [
+  { value: "Explore", label: "Explore" },
+  { value: "Defeat", label: "Defeat" },
+  { value: "Collect", label: "Collect" },
+  { value: "Talk", label: "Talk" },
+  { value: "OpenChest", label: "Open Chest" },
+  { value: "Interact", label: "Interact" },
 ];
 
 export default function EditQuestPage() {
@@ -29,8 +41,15 @@ export default function EditQuestPage() {
     title: "",
     description: "",
     type: "Main",
-    defaultStatus: "Available",
+    defaultStatus: "NotStarted",
+    mapName: "ElfForest",
+    regionName: "",
+    objectiveType: "Explore",
+    objectiveTarget: "",
+    objectiveLocation: "",
+    questGiverName: "",
     requiredLevel: 1,
+    targetAmount: 1,
     rewardExperience: 0,
     rewardGold: 0,
     rewardGems: 0,
@@ -46,8 +65,19 @@ export default function EditQuestPage() {
           title: quest.title,
           description: quest.description || "",
           type: quest.type,
-          defaultStatus: quest.defaultStatus,
+          defaultStatus: DEFAULT_STATUSES.some((status) => status.value === quest.defaultStatus)
+            ? quest.defaultStatus
+            : "NotStarted",
+          mapName: quest.mapName || "ElfForest",
+          regionName: quest.regionName || "",
+          objectiveType: OBJECTIVE_TYPES.some((objective) => objective.value === quest.objectiveType)
+            ? quest.objectiveType
+            : "Explore",
+          objectiveTarget: quest.objectiveTarget || "",
+          objectiveLocation: quest.objectiveLocation || "",
+          questGiverName: quest.questGiverName || "",
           requiredLevel: quest.requiredLevel,
+          targetAmount: Math.max(1, quest.targetAmount || 1),
           rewardExperience: quest.rewardExperience,
           rewardGold: quest.rewardGold,
           rewardGems: quest.rewardGems,
@@ -76,7 +106,14 @@ export default function EditQuestPage() {
         description: formData.description,
         type: formData.type,
         defaultStatus: formData.defaultStatus,
+        mapName: formData.mapName.trim() || "ElfForest",
+        regionName: formData.regionName.trim() || null,
+        objectiveType: formData.objectiveType,
+        objectiveTarget: formData.objectiveTarget.trim() || null,
+        objectiveLocation: formData.objectiveLocation.trim() || null,
+        questGiverName: formData.questGiverName.trim() || null,
         requiredLevel: formData.requiredLevel,
+        targetAmount: Math.max(1, formData.targetAmount),
         rewardExperience: formData.rewardExperience,
         rewardGold: formData.rewardGold,
         rewardGems: formData.rewardGems,
@@ -173,12 +210,109 @@ export default function EditQuestPage() {
 
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
+                Map Name <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.mapName}
+                onChange={(e) => handleChange("mapName", e.target.value)}
+                placeholder="ElfForest"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">
+                Region Name
+              </label>
+              <input
+                type="text"
+                value={formData.regionName}
+                onChange={(e) => handleChange("regionName", e.target.value)}
+                placeholder="Forest Entrance"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">
+                Objective Type <span className="text-red-400">*</span>
+              </label>
+              <select
+                value={formData.objectiveType}
+                onChange={(e) => handleChange("objectiveType", e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+                required
+              >
+                {OBJECTIVE_TYPES.map((objective) => (
+                  <option key={objective.value} value={objective.value} className="bg-[#1a1a1a]">
+                    {objective.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">
+                Objective Target
+              </label>
+              <input
+                type="text"
+                value={formData.objectiveTarget}
+                onChange={(e) => handleChange("objectiveTarget", e.target.value)}
+                placeholder="Boss name, chest key, NPC name"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">
+                Objective Location
+              </label>
+              <input
+                type="text"
+                value={formData.objectiveLocation}
+                onChange={(e) => handleChange("objectiveLocation", e.target.value)}
+                placeholder="x,y or area name"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">
+                Quest Giver
+              </label>
+              <input
+                type="text"
+                value={formData.questGiverName}
+                onChange={(e) => handleChange("questGiverName", e.target.value)}
+                placeholder="NPC display name"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">
                 Required Level
               </label>
               <input
                 type="number"
                 value={formData.requiredLevel}
                 onChange={(e) => handleChange("requiredLevel", Number(e.target.value))}
+                min="1"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">
+                Target Amount
+              </label>
+              <input
+                type="number"
+                value={formData.targetAmount}
+                onChange={(e) => handleChange("targetAmount", Number(e.target.value))}
                 min="1"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
               />

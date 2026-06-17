@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { QuestResponse } from "@/lib/api/quest";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
-import apiClient from "@/lib/api/client";
 import AdminTable from "@/components/ui/AdminTable";
 
 export default function ManageQuestsPage() {
@@ -15,16 +14,6 @@ export default function ManageQuestsPage() {
       pageSize: 10,
     });
 
-  const handleDelete = async (quest: QuestResponse) => {
-    if (!confirm(`Delete quest "${quest.title}"?`)) return;
-    try {
-      await apiClient.delete(`/api/quests/${quest.questId}`);
-      refresh();
-    } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to delete");
-    }
-  };
-
   const typeColors: Record<string, string> = {
     Main: "bg-blue-400/10 text-blue-400",
     Side: "bg-purple-400/10 text-purple-400",
@@ -35,6 +24,7 @@ export default function ManageQuestsPage() {
   const columns = [
     { key: "questId", label: "ID" },
     { key: "title", label: "Title" },
+    { key: "mapName", label: "Map" },
     {
       key: "type",
       label: "Type",
@@ -47,6 +37,8 @@ export default function ManageQuestsPage() {
         </span>
       ),
     },
+    { key: "objectiveType", label: "Objective" },
+    { key: "targetAmount", label: "Target" },
     { key: "requiredLevel", label: "Level" },
     { key: "rewardExperience", label: "EXP" },
     { key: "rewardGold", label: "Gold" },
@@ -97,7 +89,6 @@ export default function ManageQuestsPage() {
           loading={loading}
           pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
           onEdit={(quest) => router.push(`/manage-quests/edit?id=${quest.questId}`)}
-          onDelete={handleDelete}
         />
       )}
     </div>
