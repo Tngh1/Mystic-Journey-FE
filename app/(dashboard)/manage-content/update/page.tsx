@@ -26,17 +26,6 @@ import {
   GripVertical,
   Image as ImageIcon,
   Type,
-  Bold,
-  Italic,
-  Underline,
-  Strikethrough,
-  Undo,
-  Redo,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  List,
-  ListOrdered,
   Upload,
   X,
   Quote,
@@ -46,6 +35,8 @@ import {
 } from 'lucide-react';
 import { getById, update, publish, getCategories, createBlock, updateBlock, removeBlock, ContentDetailResponse, CategoryResponse, BlockResponse } from '@/lib/api/content';
 import { uploadImageToCloudinary } from '@/lib/api/cloudinary';
+import { showErrorAlert, showConfirmAlert } from '@/lib/utils/swal';
+import EditableTextBlock from '@/components/ui/EditableTextBlock';
 
 interface FormData {
   title: string;
@@ -61,271 +52,12 @@ interface LocalBlock extends BlockResponse {
   isDirty?: boolean;
 }
 
-interface EditableBlockProps {
+function EditableImageBlock({ block, onUpdate, onDelete }: {
   block: LocalBlock;
-  onUpdate: (id: string | number, updates: Partial<LocalBlock>) => void;
-  onDelete: (id: string | number) => void;
-  onRegisterEditor?: (id: string | number, getContent: () => string) => void;
-}
-
-function EditableTextBlock({ block, onUpdate, onDelete, onRegisterEditor }: EditableBlockProps) {
-  const blockId = block.tempId || block.blockContentId;
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: blockId });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    zIndex: isDragging ? 50 : undefined,
-  };
-
-  const editorRef = useRef<HTMLDivElement>(null);
-  const isInitializedRef = useRef(false);
-
-  const stripDirectionStyles = useCallback((html: string): string => {
-    if (!html) return '';
-    return html
-      .replace(/dir="[^"]*"/gi, '')
-      .replace(/style="[^"]*direction\s*:[^;]*;?/gi, '')
-      .replace(/style="[^"]*text-align\s*:[^;]*;?/gi, '')
-      .replace(/style=""/gi, '')
-      .replace(/\s+style=""/g, '');
-  }, []);
-
-  const fixEditorDirection = useCallback(() => {
-    if (editorRef.current) {
-      editorRef.current.style.direction = 'ltr';
-      editorRef.current.style.textAlign = 'left';
-    }
-  }, []);
-
-  useEffect(() => {
-    fixEditorDirection();
-  }, [fixEditorDirection]);
-
-  const initializeEditor = useCallback(() => {
-    if (editorRef.current && !isInitializedRef.current) {
-      editorRef.current.innerHTML = block.contentData || '';
-      isInitializedRef.current = true;
-      fixEditorDirection();
-    }
-  }, [block.contentData, fixEditorDirection]);
-
-  useEffect(() => {
-    initializeEditor();
-  }, [initializeEditor]);
-
-  useEffect(() => {
-    if (onRegisterEditor && editorRef.current) {
-      const getContent = () => {
-        if (editorRef.current) {
-          return stripDirectionStyles(editorRef.current.innerHTML);
-        }
-        return block.contentData || '';
-      };
-      onRegisterEditor(blockId, getContent);
-    }
-  }, [blockId, onRegisterEditor, block.contentData, stripDirectionStyles]);
-
-  const execCommand = (command: string, value?: string) => {
-    document.execCommand(command, false, value);
-  };
-
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onUpdate(blockId, { title: e.target.value });
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="bg-[#222] border border-blue-500/50 rounded-lg overflow-hidden"
-    >
-      <div className="flex items-stretch">
-        {/* Drag Handle */}
-        <div
-          {...attributes}
-          {...listeners}
-          className="flex items-center px-2 bg-[#1a1a1a] border-r border-blue-500/30 cursor-grab active:cursor-grabbing hover:bg-[#252525]"
-        >
-          <GripVertical className="w-4 h-4 text-blue-400/50" />
-        </div>
-
-        <div className="flex-1 p-4 space-y-3">
-          {/* Header with title and actions */}
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded text-xs font-medium">
-              <Type className="w-3 h-3 inline mr-1" />
-              Text
-            </span>
-            <input
-              type="text"
-              value={block.title}
-              onChange={handleTitleChange}
-              placeholder="Block title"
-              className="flex-1 px-3 py-1.5 bg-[#1a1a1a] border border-[#333] rounded text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500"
-            />
-            <button
-              onClick={() => onDelete(blockId)}
-              className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
-              title="Delete"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Inline Toolbar */}
-          <div className="flex flex-wrap items-center gap-1 p-2 border border-[#333] rounded-lg bg-[#1a1a1a]">
-            <button
-              type="button"
-              onClick={() => execCommand('undo')}
-              className="p-1.5 text-gray-400 hover:text-white hover:bg-[#333] rounded transition-colors"
-              title="Undo"
-            >
-              <Undo className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => execCommand('redo')}
-              className="p-1.5 text-gray-400 hover:text-white hover:bg-[#333] rounded transition-colors"
-              title="Redo"
-            >
-              <Redo className="w-4 h-4" />
-            </button>
-
-            <div className="w-px h-5 bg-gray-700 mx-1" />
-
-            <button
-              type="button"
-              onClick={() => execCommand('bold')}
-              className="p-1.5 text-gray-400 hover:text-white hover:bg-[#333] rounded transition-colors font-bold"
-              title="Bold"
-            >
-              <Bold className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => execCommand('italic')}
-              className="p-1.5 text-gray-400 hover:text-white hover:bg-[#333] rounded transition-colors italic"
-              title="Italic"
-            >
-              <Italic className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => execCommand('underline')}
-              className="p-1.5 text-gray-400 hover:text-white hover:bg-[#333] rounded transition-colors underline"
-              title="Underline"
-            >
-              <Underline className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => execCommand('strikeThrough')}
-              className="p-1.5 text-gray-400 hover:text-white hover:bg-[#333] rounded transition-colors line-through"
-              title="Strikethrough"
-            >
-              <Strikethrough className="w-4 h-4" />
-            </button>
-
-            <div className="w-px h-5 bg-gray-700 mx-1" />
-
-            <button
-              type="button"
-              onClick={() => execCommand('formatBlock', 'h1')}
-              className="px-2 py-1 text-gray-400 hover:text-white hover:bg-[#333] rounded transition-colors text-xs font-bold"
-              title="Heading 1"
-            >
-              H1
-            </button>
-            <button
-              type="button"
-              onClick={() => execCommand('formatBlock', 'h2')}
-              className="px-2 py-1 text-gray-400 hover:text-white hover:bg-[#333] rounded transition-colors text-xs font-bold"
-              title="Heading 2"
-            >
-              H2
-            </button>
-            <button
-              type="button"
-              onClick={() => execCommand('formatBlock', 'h3')}
-              className="px-2 py-1 text-gray-400 hover:text-white hover:bg-[#333] rounded transition-colors text-xs font-bold"
-              title="Heading 3"
-            >
-              H3
-            </button>
-
-            <div className="w-px h-5 bg-gray-700 mx-1" />
-
-            <button
-              type="button"
-              onClick={() => execCommand('justifyLeft')}
-              className="p-1.5 text-gray-400 hover:text-white hover:bg-[#333] rounded transition-colors"
-              title="Align Left"
-            >
-              <AlignLeft className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => execCommand('justifyCenter')}
-              className="p-1.5 text-gray-400 hover:text-white hover:bg-[#333] rounded transition-colors"
-              title="Align Center"
-            >
-              <AlignCenter className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => execCommand('justifyRight')}
-              className="p-1.5 text-gray-400 hover:text-white hover:bg-[#333] rounded transition-colors"
-              title="Align Right"
-            >
-              <AlignRight className="w-4 h-4" />
-            </button>
-
-            <div className="w-px h-5 bg-gray-700 mx-1" />
-
-            <button
-              type="button"
-              onClick={() => execCommand('insertUnorderedList')}
-              className="p-1.5 text-gray-400 hover:text-white hover:bg-[#333] rounded transition-colors"
-              title="Bullet List"
-            >
-              <List className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => execCommand('insertOrderedList')}
-              className="p-1.5 text-gray-400 hover:text-white hover:bg-[#333] rounded transition-colors"
-              title="Numbered List"
-            >
-              <ListOrdered className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Editor Area */}
-          <div
-            ref={editorRef}
-            contentEditable
-            suppressContentEditableWarning
-            style={{ direction: 'ltr', textAlign: 'left' }}
-            className="min-h-[100px] p-4 bg-[#1a1a1a] border border-[#333] rounded-lg text-white outline-none focus:border-blue-500 empty:before:content-[attr(data-placeholder)] empty:before:text-gray-500"
-            data-placeholder="Nhập nội dung đoạn văn..."
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function EditableImageBlock({ block, onUpdate, onDelete, onRegisterEditor }: EditableBlockProps) {
-  const blockId = block.tempId || block.blockContentId;
+  onUpdate: (id: string, updates: Partial<LocalBlock>) => void;
+  onDelete: (id: string) => void;
+}) {
+  const blockId = String(block.tempId ?? block.blockContentId);
   const {
     attributes,
     listeners,
@@ -373,10 +105,6 @@ function EditableImageBlock({ block, onUpdate, onDelete, onRegisterEditor }: Edi
     await handleFileSelect(e.dataTransfer.files);
   };
 
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onUpdate(blockId, { title: e.target.value });
-  };
-
   const handleCaptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onUpdate(blockId, { caption: e.target.value });
   };
@@ -406,11 +134,28 @@ function EditableImageBlock({ block, onUpdate, onDelete, onRegisterEditor }: Edi
             </span>
             <div className="flex-1" />
             <button
-              onClick={() => onDelete(blockId)}
-              className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
-              title="Delete"
+              type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onClick={async (e) => {
+                e.stopPropagation();
+                const result = await showConfirmAlert(
+                  'Delete this content block?',
+                  'This action cannot be undone.',
+                  'Delete',
+                  'Cancel'
+                );
+                if (result.isConfirmed) {
+                  onDelete(blockId);
+                }
+              }}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-red-400 hover:text-white bg-red-500/10 hover:bg-red-500 border border-red-500/30 rounded transition-colors"
+              title="Delete this block"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
+              Delete Block
             </button>
           </div>
 
@@ -478,12 +223,10 @@ function EditableImageBlock({ block, onUpdate, onDelete, onRegisterEditor }: Edi
   );
 }
 
-interface ThumbnailUploaderProps {
+function ThumbnailUploader({ value, onChange }: {
   value: string;
   onChange: (url: string) => void;
-}
-
-function ThumbnailUploader({ value, onChange }: ThumbnailUploaderProps) {
+}) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -634,7 +377,14 @@ function UpdateContentContent() {
   // IDs of existing blocks queued for deletion — sent to API on Save Changes
   const [deletedBlockIds, setDeletedBlockIds] = useState<number[]>([]);
 
-  const editorContentGetters = useRef<Map<string | number, () => string>>(new Map());
+  const editorContentGetters = useRef<Map<string, () => string>>(new Map());
+
+  // Stable random id generator that won't collide on rapid clicks.
+  // crypto.randomUUID() is available in modern browsers and Next.js client.
+  const generateId = () =>
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `new-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -651,6 +401,7 @@ function UpdateContentContent() {
 
   useEffect(() => {
     if (contentId) fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contentId]);
 
   const fetchData = async () => {
@@ -664,7 +415,9 @@ function UpdateContentContent() {
       setContent(contentData);
       setCategories(categoriesData.filter((c: CategoryResponse) => c.isActive));
       // Load existing blocks — all treated as non-new, clean
-      setAllBlocks((contentData.blocks || []).map(b => ({ ...b, isDirty: false, isNew: false })));
+      setAllBlocks((contentData.blocks || [])
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map(b => ({ ...b, isDirty: false, isNew: false })));
       setFormData({
         title: contentData.title,
         summary: contentData.summary || '',
@@ -681,7 +434,7 @@ function UpdateContentContent() {
   };
 
   // Stable key for a block: string tempId for new blocks, numeric blockContentId for existing ones
-  const getBlockKey = (b: LocalBlock): string | number => b.tempId ?? b.blockContentId;
+  const getBlockKey = (b: LocalBlock): string => String(b.tempId ?? b.blockContentId);
 
   const collectEditorContent = () =>
     allBlocks.map(b => {
@@ -695,9 +448,31 @@ function UpdateContentContent() {
     e.preventDefault();
     if (!content) return;
     setError(null);
+
+    const updatedBlocks = collectEditorContent();
+
+    // Validation: image blocks must have a mediaUrl
+    const invalidImageBlock = updatedBlocks.find(
+      (b) => b.blockType === 'image' && !b.mediaUrl?.trim()
+    );
+    if (invalidImageBlock) {
+      setError('All image blocks must contain an image');
+      return;
+    }
+
+    // Validation: text blocks must have non-empty visible content
+    const emptyTextBlock = updatedBlocks.find((b) => {
+      if (b.blockType !== 'text') return false;
+      const text = (b.contentData || '').replace(/<[^>]*>/g, '').trim();
+      return !text;
+    });
+    if (emptyTextBlock) {
+      setError('All text blocks must contain content');
+      return;
+    }
+
     try {
       setSubmitting(true);
-      const updatedBlocks = collectEditorContent();
 
       // 1. Update main content info
       await update(content.contentId, {
@@ -709,41 +484,58 @@ function UpdateContentContent() {
       });
 
       // 2. Delete queued blocks
-      for (const id of deletedBlockIds) {
-        await removeBlock(id);
-      }
+      await Promise.all(deletedBlockIds.map((id) => removeBlock(id)));
 
-      // 3. Update existing dirty blocks
-      for (const block of updatedBlocks.filter(b => !b.isNew && b.isDirty)) {
-        await updateBlock(block.blockContentId, {
-          title: block.title,
-          contentData: block.contentData || undefined,
-          mediaUrl: block.mediaUrl || undefined,
-          caption: block.caption || undefined,
-          blockType: block.blockType,
-          isActive: block.isActive,
-        });
-      }
+      // 3. Reorder existing blocks by sortOrder, then write all changes
+      //    in parallel: existing blocks (all, since reorder may have shifted
+      //    positions) and new blocks.  One failure doesn't block the others.
+      const updateOps = updatedBlocks
+        .map((b, i) => ({ ...b, sortOrder: i + 1 }))
+        .filter((b) => !b.isNew)
+        .map((b) =>
+          updateBlock(b.blockContentId, {
+            contentData: b.contentData || undefined,
+            mediaUrl: b.mediaUrl || undefined,
+            caption: b.caption || undefined,
+            blockType: b.blockType,
+            sortOrder: b.sortOrder,
+            isActive: b.isActive,
+          })
+        );
 
-      // 4. Create new blocks in their current visual order
-      for (let i = 0; i < updatedBlocks.length; i++) {
-        const block = updatedBlocks[i];
-        if (!block.isNew) continue;
-        await createBlock({
-          title: block.title,
-          contentId: content.contentId,
-          contentData: block.contentData || undefined,
-          mediaUrl: block.mediaUrl || undefined,
-          caption: block.caption || undefined,
-          blockType: block.blockType,
-          sortOrder: i + 1,
-          isActive: block.isActive,
-        });
+      const createOps = updatedBlocks
+        .map((b, i) => ({ b, sortOrder: i + 1 }))
+        .filter(({ b }) => b.isNew)
+        .map(({ b, sortOrder }) =>
+          createBlock({
+            contentId: content.contentId,
+            contentData: b.contentData || undefined,
+            mediaUrl: b.mediaUrl || undefined,
+            caption: b.caption || undefined,
+            blockType: b.blockType,
+            sortOrder,
+            isActive: b.isActive,
+          })
+        );
+
+      const allResults = await Promise.allSettled([...updateOps, ...createOps]);
+      const failed = allResults.filter((r) => r.status === 'rejected');
+      if (failed.length > 0) {
+        const firstReason = (failed[0] as PromiseRejectedResult).reason;
+        const message =
+          firstReason instanceof Error
+            ? firstReason.message
+            : `${failed.length} block operation(s) failed. Some changes may not have been saved — please review and try again.`;
+        throw new Error(message);
       }
 
       router.push('/manage-content');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update content');
+      const message = err instanceof Error ? err.message : 'Failed to update content';
+      setError(message);
+      if (/category is inactive/i.test(message)) {
+        await showErrorAlert('Cannot Publish Content', message);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -758,7 +550,9 @@ function UpdateContentContent() {
       setContent(prev => prev ? { ...prev, isPublished: !prev.isPublished } : null);
       setFormData(prev => ({ ...prev, isPublished: !prev.isPublished }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update publish status');
+      const message = err instanceof Error ? err.message : 'Failed to update publish status';
+      setError(message);
+      await showErrorAlert('Cannot Publish Content', message);
     } finally {
       setPublishing(false);
     }
@@ -768,18 +562,21 @@ function UpdateContentContent() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleRegisterEditor = useCallback((id: string | number, getContent: () => string) => {
+  const handleRegisterEditor = useCallback((id: string, getContent: () => string) => {
     editorContentGetters.current.set(id, getContent);
+  }, []);
+
+  const handleUnregisterEditor = useCallback((id: string) => {
+    editorContentGetters.current.delete(id);
   }, []);
 
   // Insert a new block at a specific index in the list
   const handleInsertBlock = (type: 'text' | 'image', insertAtIndex: number) => {
     const newBlock: LocalBlock = {
       blockContentId: -Date.now(),
-      tempId: `new-${Date.now()}`,
-      contentId: Number(contentId),
-      title: type === 'text' ? 'New Text Block' : 'New Image Block',
-      contentData: null,
+      tempId: generateId(),
+      contentId: Number(contentId) || 0,
+      contentData: type === 'text' ? '<p><br></p>' : null,
       mediaUrl: null,
       caption: null,
       blockType: type,
@@ -801,23 +598,21 @@ function UpdateContentContent() {
   const handleAddText = () => handleInsertBlock('text', allBlocks.length);
   const handleAddImage = () => handleInsertBlock('image', allBlocks.length);
 
-  const handleUpdateBlock = (id: string | number, updates: Partial<LocalBlock>) => {
+  const handleUpdateBlock = (id: string, updates: Partial<LocalBlock>) => {
     setAllBlocks(prev => prev.map(b => {
       if (getBlockKey(b) === id) {
-        // Mark existing blocks as dirty so they get saved
         return { ...b, ...updates, ...(!b.isNew && { isDirty: true }) };
       }
       return b;
     }));
   };
 
-  const handleDeleteBlock = (id: string | number) => {
-    // Remove from local state immediately for instant UI feedback
+  const handleDeleteBlock = (id: string) => {
     const block = allBlocks.find(b => getBlockKey(b) === id);
     setAllBlocks(prev => prev.filter(b => getBlockKey(b) !== id));
     if (block && !block.isNew) {
       setDeletedBlockIds(prev => [...prev, block.blockContentId]);
-      editorContentGetters.current.delete(block.blockContentId);
+      editorContentGetters.current.delete(String(block.blockContentId));
     } else if (block?.tempId) {
       editorContentGetters.current.delete(block.tempId);
     }
@@ -825,10 +620,10 @@ function UpdateContentContent() {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (over && active.id !== over.id) {
+    if (over && String(active.id) !== String(over.id)) {
       setAllBlocks(items => {
-        const oldIndex = items.findIndex(item => getBlockKey(item) === active.id);
-        const newIndex = items.findIndex(item => getBlockKey(item) === over.id);
+        const oldIndex = items.findIndex(item => getBlockKey(item) === String(active.id));
+        const newIndex = items.findIndex(item => getBlockKey(item) === String(over.id));
         return arrayMove(items, oldIndex, newIndex);
       });
     }
@@ -855,7 +650,7 @@ function UpdateContentContent() {
     );
   }
 
-  const sortableIds = allBlocks.map(b => getBlockKey(b));
+  const sortableIds = allBlocks.map(getBlockKey);
 
   return (
     <div className="min-h-screen bg-[#111] p-6">
@@ -1032,13 +827,14 @@ function UpdateContentContent() {
                       onAddImage={() => handleInsertBlock('image', 0)}
                     />
                     {allBlocks.map((block, index) => (
-                      <div key={String(getBlockKey(block))}>
+                      <div key={getBlockKey(block)}>
                         {block.blockType === 'text' ? (
                           <EditableTextBlock
-                            block={block}
-                            onUpdate={handleUpdateBlock}
+                            id={getBlockKey(block)}
+                            contentData={block.contentData || ''}
                             onDelete={handleDeleteBlock}
                             onRegisterEditor={handleRegisterEditor}
+                            onUnregisterEditor={handleUnregisterEditor}
                           />
                         ) : (
                           <EditableImageBlock

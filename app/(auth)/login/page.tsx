@@ -6,7 +6,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import { useAuth } from "@/lib/contexts/AuthContext";
-import { getMe } from "@/lib/api/account";
 import { showErrorAlert, showSuccessAlert } from "@/lib/utils/swal";
 
 export default function LoginPage() {
@@ -21,8 +20,7 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await login(email, password);
-      const me = await getMe();
+      const me = await login(email, password);
       await showSuccessAlert("Welcome back!", "Login successful. Redirecting...");
 
       const adminRoles = ["Admin", "SuperAdmin"];

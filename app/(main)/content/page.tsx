@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Calendar, Tag, Bell, Loader2 } from "lucide-react";
+import { Calendar, Tag, Bell, Loader2, User, ArrowRight } from "lucide-react";
 import { ContentResponse, getAll, getCategories } from "@/lib/api/content";
 
 interface CategoryInfo {
@@ -98,7 +98,7 @@ export default function ContentPage() {
         </div>
 
         {/* Contents Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 max-w-5xl mx-auto">
           {filteredContents.map((item) => (
             <ContentCard key={item.contentId} content={item} />
           ))}
@@ -118,25 +118,25 @@ export default function ContentPage() {
 
 function ContentCard({ content }: { content: ContentResponse }) {
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
+    return new Date(dateString).toLocaleDateString('vi-VN', {
       day: 'numeric',
+      month: 'numeric',
+      year: 'numeric',
     });
   };
 
   return (
     <Link
       href={`/content/${content.slug || content.contentId}`}
-      className="group relative block bg-gradient-to-br from-white/5 to-white/10 border border-white/10 rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#ffc032]/30 hover:shadow-xl hover:shadow-[#ffc032]/5"
+      className="group relative flex flex-col md:flex-row bg-[#1a1a1a]/80 border border-white/10 rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#ffc032]/30 hover:shadow-xl hover:shadow-[#ffc032]/5"
     >
       {/* Image Section */}
-      <div className="relative h-48">
+      <div className="relative w-full md:w-[320px] lg:w-[380px] h-48 md:h-auto shrink-0 overflow-hidden">
         {content.thumbnailUrl ? (
           <img
             src={content.thumbnailUrl}
             alt={content.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-[#ffc032]/20 to-[#ff8c00]/20 flex items-center justify-center">
@@ -148,8 +148,8 @@ function ContentCard({ content }: { content: ContentResponse }) {
         
         {/* Category Badge */}
         {content.categoryName && (
-          <div className="absolute top-4 left-4">
-            <span className="px-3 py-1 bg-black/50 backdrop-blur-sm text-white text-xs font-medium rounded-full flex items-center gap-1.5">
+          <div className="absolute top-4 left-4 z-10">
+            <span className="px-3 py-1 bg-black/60 backdrop-blur-md text-white text-xs font-medium rounded-full flex items-center gap-1.5 border border-white/10">
               <Tag className="w-3.5 h-3.5" />
               {content.categoryName}
             </span>
@@ -158,27 +158,29 @@ function ContentCard({ content }: { content: ContentResponse }) {
       </div>
 
       {/* Content */}
-      <div className="p-6">
-        <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[#ffc032] transition-colors line-clamp-2">
+      <div className="p-6 md:p-8 flex flex-col flex-1 justify-center">
+        <h3 className="text-xl md:text-2xl font-bold text-white mb-3 group-hover:text-[#ffc032] transition-colors line-clamp-2">
           {content.title}
         </h3>
         {content.summary && (
-          <p className="text-white/60 text-sm mb-4 line-clamp-3">
+          <p className="text-white/60 text-sm md:text-base mb-6 line-clamp-2 leading-relaxed">
             {content.summary}
           </p>
         )}
 
         {/* Meta Info */}
-        <div className="flex items-center gap-3 text-xs text-white/50">
-          <div className="flex items-center gap-1.5">
-            <Calendar className="w-4 h-4" />
-            <span>{formatDate(content.createdAt)}</span>
+        <div className="mt-auto pt-2 flex flex-wrap items-center justify-between gap-4 text-sm">
+          <div className="flex items-center gap-5 text-white/50">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="w-4 h-4" />
+              <span>{formatDate(content.createdAt)}</span>
+            </div>
           </div>
-        </div>
 
-        {/* Read More Button */}
-        <div className="w-full flex items-center justify-center gap-2 px-4 py-2.5 mt-4 bg-white/5 hover:bg-[#ffc032]/20 text-white/70 hover:text-[#ffc032] rounded-xl transition-all duration-300 font-medium">
-          Read More
+          {/* Read More Link */}
+          <div className="flex items-center gap-1.5 text-[#ffc032] font-medium group-hover:translate-x-1 transition-transform">
+            Xem thêm <ArrowRight className="w-4 h-4" />
+          </div>
         </div>
       </div>
     </Link>

@@ -6,6 +6,7 @@ import { ContentResponse } from "@/lib/api/content";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import apiClient from "@/lib/api/client";
 import { useState } from "react";
+import { showErrorAlert } from "@/lib/utils/swal";
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -59,7 +60,11 @@ export default function ManageContentPage() {
       }
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to toggle publish status');
+      // Surface the server-side message (e.g. inactive-category validation) as-is
+      await showErrorAlert(
+        "Cannot Publish Content",
+        err instanceof Error ? err.message : "Failed to toggle publish status"
+      );
     } finally {
       setTogglingId(null);
     }

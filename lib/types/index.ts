@@ -496,7 +496,6 @@ export interface ContentResponse {
 
 export interface BlockResponse {
   blockContentId: number;
-  title: string;
   contentId: number;
   contentData: string | null;
   mediaUrl: string | null;
@@ -541,7 +540,6 @@ export interface CreateCategoryRequest {
 }
 
 export interface CreateBlockRequest {
-  title: string;
   contentId: number;
   contentData?: string;
   mediaUrl?: string;
@@ -552,6 +550,24 @@ export interface CreateBlockRequest {
 }
 
 export type UpdateBlockRequest = Partial<CreateBlockRequest>;
+
+export interface CreateContentWithBlocksRequest {
+  title: string;
+  summary?: string;
+  thumbnailUrl?: string;
+  categoryId?: number;
+  isPublished?: boolean;
+  blocks: CreateContentBlockItem[];
+}
+
+export interface CreateContentBlockItem {
+  contentData?: string;
+  mediaUrl?: string;
+  caption?: string;
+  blockType?: string;
+  sortOrder?: number;
+  isActive?: boolean;
+}
 
 /* ─── Dashboard ──────────────────────────────────────────────────────────── */
 
