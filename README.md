@@ -1,6 +1,8 @@
 # Mystic Journey — Frontend
 
-A Next.js 16 frontend for **Mystic Journey**, a dark fantasy MMORPG. Built with the App Router, TypeScript, and Tailwind CSS.
+Next.js 16 frontend for **Mystic Journey**, a dark fantasy MMORPG. Built with App Router, TypeScript, Tailwind CSS 4, and HttpOnly Cookie-based authentication.
+
+---
 
 ## Tech Stack
 
@@ -10,194 +12,161 @@ A Next.js 16 frontend for **Mystic Journey**, a dark fantasy MMORPG. Built with 
 | Language | TypeScript |
 | UI Library | React 19 |
 | Styling | Tailwind CSS 4 |
-| HTTP Client | Axios |
+| HTTP Client | Axios (`withCredentials: true`) |
 | Icons | Lucide React |
 | Charts | ApexCharts |
 | Notifications | SweetAlert2 |
+
+---
+
+## Authentication — HttpOnly Cookie Pattern
+
+The frontend **never reads or stores tokens**. All authentication is handled server-side via HttpOnly cookies.
+
+```
+Login
+  ↓  POST /api/accounts/login
+  ↓  Backend sets HttpOnly cookie: access_token, refresh_token
+  ↓  Frontend calls GET /api/accounts/me
+  ↓  User info stored in AuthContext
+  ↓  UI renders based on user state
+```
+
+### AuthContext (`lib/contexts/AuthContext.tsx`)
+
+Central context that manages authentication state for the entire app:
+
+```typescript
+const { user, isLoading, login, logout, refreshUser } = useAuth();
+```
+
+| Field / Method | Description |
+|---|---|
+| `user` | Current user info (`MeResponse`), `null` if not authenticated |
+| `isLoading` | `true` while fetching `/me` on first load (prevents UI flash) |
+| `login(email, password)` | Calls API → backend sets cookie → re-fetches `/me` |
+| `logout()` | Calls API → backend clears cookie → `setUser(null)` |
+| `refreshUser()` | Re-fetches `/me` (use after profile update) |
+
+> **Rule:** Every component that needs user info must use `useAuth()` — never call `getMe()` directly.
+
+### Axios Client (`lib/api/client.ts`)
+
+- `withCredentials: true` — browser automatically sends cookies with every request
+- No request interceptor for Bearer header — backend reads token from cookie
+- Response interceptor handles `401`: attempts token refresh automatically; on failure rejects so `AuthContext` catches it and sets `user = null`
+
+### Middleware (`proxy.ts`)
+
+Server-side route guard — reads `access_token` cookie directly from the request:
+
+| Route | Behavior |
+|---|---|
+| `/dashboard`, `/manage-*`, `/account` | Redirect to `/login?redirect=<path>` if unauthenticated |
+| `/login`, `/register`, `/forgot-password`, `/reset-password` | Redirect to `/` if already authenticated |
+
+---
 
 ## Project Structure
 
 ```
 mystic-journey/
-├── app/                        # Next.js App Router
-│   ├── (auth)/                 # Auth route group
-│   │   ├── login/
-│   │   ├── register/
-│   │   ├── forgot-password/
-│   │   └── reset-password/
-│   ├── (main)/                 # Public main route group
-│   │   ├── page.tsx           # Home page
-│   │   ├── account/           # Profile, Security
-│   │   ├── content/           # Blog/news articles
-│   │   ├── wiki/              # Game encyclopedia
-│   │   │   ├── achievements/
-│   │   │   ├── dungeons/
-│   │   │   ├── gacha/
-│   │   │   ├── items/
-│   │   │   ├── maps/
-│   │   │   ├── monsters/
-│   │   │   └── quests/
-│   │   ├── story/
-│   │   ├── terms/
-│   │   └── privacy-policy/
-│   └── (dashboard)/            # Admin panel route group
-│       ├── dashboard/          # Dashboard overview
-│       ├── manage-achievements/
-│       ├── manage-admins/
-│       ├── manage-content/
-│       ├── manage-dungeons/
-│       ├── manage-game-config/
-│       ├── manage-gacha-pools/
-│       ├── manage-items/
-│       ├── manage-mailbox/
-│       ├── manage-monsters/
-│       ├── manage-players/
-│       ├── manage-quests/
-│       ├── manage-shop/
-│       └── manage-transactions/
+├── app/
+│   ├── layout.tsx                  # Root layout — wraps AuthProvider
+│   ├── (auth)/                     # Auth pages (login, register, ...)
+│   ├── (main)/                     # Public pages (home, wiki, account, ...)
+│   └── (dashboard)/                # Admin panel (manage-*)
 ├── components/
-│   ├── ui/                    # Reusable UI components
-│   │   ├── AdminSideBar.tsx
-│   │   ├── AdminTopBar.tsx
-│   │   ├── AdminTable.tsx
-│   │   ├── Button.tsx
-│   │   ├── FormModal.tsx
-│   │   └── ...
-│   └── sections/             # Page section components
-│       ├── HeroSection.tsx
-│       ├── FeatureSection.tsx
-│       └── ...
+│   └── ui/
+│       ├── Header.tsx              # Uses useAuth() — shows avatar or Login button
+│       ├── AdminTopBar.tsx         # Uses useAuth() — shows username and role
+│       ├── AdminSideBar.tsx
+│       ├── AdminTable.tsx
+│       ├── Button.tsx
+│       ├── FormModal.tsx
+│       └── ProfileSidebar.tsx
 ├── lib/
-│   ├── api/                   # API client modules (22 files)
-│   │   ├── client.ts          # Shared Axios instance with interceptors
-│   │   ├── account.ts
-│   │   ├── admin-account.ts
-│   │   ├── achievement.ts
-│   │   ├── chest.ts
-│   │   ├── content.ts
-│   │   ├── dashboard.ts
-│   │   ├── dungeon.ts
-│   │   ├── friend.ts
-│   │   ├── gacha.ts
-│   │   ├── guild.ts
-│   │   ├── inventory.ts
-│   │   ├── item.ts
-│   │   ├── mail.ts
-│   │   ├── monster.ts
-│   │   ├── player.ts
-│   │   ├── player-profile.ts
-│   │   ├── purchase.ts
-│   │   ├── quest.ts
-│   │   ├── shop.ts
-│   │   ├── skin.ts
-│   │   └── social.ts
+│   ├── api/
+│   │   ├── client.ts               # Shared Axios instance with interceptors
+│   │   ├── account.ts              # login, logout, getMe, register, ...
+│   │   └── *.ts                    # Other API modules
+│   ├── contexts/
+│   │   └── AuthContext.tsx         # AuthProvider + useAuth hook
+│   ├── hooks/
+│   │   └── usePagedQuery.ts        # Pagination hook for admin tables
 │   └── utils/
-│       └── swal.ts
-└── public/                    # Static assets
+│       └── swal.ts                 # SweetAlert2 helpers
+└── proxy.ts                        # Route protection middleware (server-side)
 ```
 
-## API Layer (`lib/api/`)
-
-All 22 API modules share a single Axios client instance configured with request/response interceptors.
-
-```typescript
-// lib/api/client.ts — shared base client
-import apiClient, { handleApiError } from "./client";
-
-// Usage in any API module:
-export const getAll = async (): Promise<Item[]> => {
-  try {
-    const response = await apiClient.get<Item[]>("/api/items");
-    return response.data;
-  } catch (err) {
-    handleApiError(err);
-  }
-};
-```
-
-**Request Interceptor:** Automatically attaches the JWT `accessToken` from `localStorage` to every outgoing request.
-
-**Response Interceptor:** Handles 401 errors by attempting token refresh via the refresh-token endpoint. Falls back to clearing tokens and redirecting to `/login` on failure.
-
-Each module exports typed functions: `getAll`, `getById`, `getActive`, `create`, `update`, `remove`, and domain-specific methods. Alias functions (e.g., `getAllItems` as alias for `getAll`) have been removed for cleaner codebase.
-
-## Design System
-
-The project uses an **Epic Games / Dark Fantasy** design aesthetic. Design tokens are defined in `app/globals.css` using Tailwind CSS variables.
-
-Key design tokens:
-- **Colors:** Dark navy backgrounds, gold/amber accents, muted text
-- **Fonts:** PatrickHand (headings), BeVietnamPro (body)
-- **Components:** Consistent card, button, modal, table styles
-
-See `DESIGN.md` for the full design system documentation.
+---
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js 18+
-- npm, yarn, or pnpm
+- Mystic Journey Backend API running
 
-### 1. Install dependencies
+### 1. Install Dependencies
 
 ```bash
-cd Mystic-Journey-FE/mystic-journey
+cd mystic-journey
 npm install
 ```
 
-### 2. Configure environment
+### 2. Configure Environment
 
 Create `.env.local` at the project root:
 
 ```env
-NEXT_PUBLIC_API_BASE_URL=https://localhost:5001/api
+NEXT_PUBLIC_API_BASE_URL=https://localhost:7116
 ```
 
-### 3. Run development server
+### 3. Run Development Server
 
 ```bash
 npm run dev
 ```
 
-Frontend is available at `http://localhost:3000`.
+Frontend available at `http://localhost:3000`.
 
-### 4. Build for production
+### 4. Build for Production
 
 ```bash
 npm run build
 npm run start
 ```
 
+---
+
 ## Admin Panel
 
-The dashboard (`/dashboard`) provides full CRUD management for all game entities. API endpoints use **soft delete** (no hard delete) — set `isActive: false` instead.
-
-### Role System
-
-The system has 3 roles:
-
-| Role ID | Role Name | Description |
-|---|---|---|
-| 1 | Player | Regular player account |
-| 2 | Admin | Full access to game features and settings |
-| 3 | Super Admin | Full system access including account management |
+The dashboard at `/dashboard` provides full CRUD management for all game entities. Requires `Admin` or `SuperAdmin` role.
 
 | Module | Features |
 |---|---|
-| **Players** | List, edit profile, ban/unban |
-| **Accounts** | List, create accounts, manage roles (Player/Admin/Super Admin) |
-| **Items** | Full CRUD with equipment stats |
-| **Monsters** | Full CRUD with drop tables |
-| **Dungeons** | Full CRUD with chest assignment |
-| **Shop** | Full CRUD with stock & purchase limits |
-| **Gacha Pools** | Full CRUD with item drop rates |
-| **Quests** | Full CRUD with rewards |
-| **Achievements** | Full CRUD with reward configuration |
-| **Mailbox** | Send individual or bulk mails with attachments |
-| **Content** | CMS for articles and news |
-| **Game Config** | Runtime settings management |
-| **Transactions** | Purchase history |
-| **Dashboard** | Statistics charts (ApexCharts) |
+| Players | List, edit profile, ban/unban |
+| Admins | Create and edit admin accounts |
+| Items | Full CRUD with equipment stats |
+| Monsters | Full CRUD with drop tables |
+| Dungeons | Full CRUD with chest assignment |
+| Shop | Full CRUD with stock and purchase limits |
+| Gacha Pools | Full CRUD with item drop rates |
+| Quests | Full CRUD with rewards |
+| Achievements | Full CRUD with reward configuration |
+| Mailbox | Send individual and broadcast mails with attachments |
+| Content | CMS for articles and news |
+| Game Config | Runtime settings management |
+| Transactions | Purchase history |
+| Dashboard | Statistics charts (ApexCharts) |
 
-Admin access requires an account with the `Admin` or `Super Admin` role, assigned via the **Manage Admins** page.
+---
+
+## Role System
+
+| Role | Description |
+|---|---|
+| `Player` | Regular player account |
+| `Admin` | Full access to game features and settings |
+| `SuperAdmin` | Full system access including account management |

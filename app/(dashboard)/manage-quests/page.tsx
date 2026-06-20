@@ -18,7 +18,7 @@ export default function ManageQuestsPage() {
   const handleDelete = async (quest: QuestResponse) => {
     if (!confirm(`Delete quest "${quest.title}"?`)) return;
     try {
-      await apiClient.delete(`/api/quests/${quest.id}`);
+      await apiClient.delete(`/api/quests/${quest.questId}`);
       refresh();
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : "Failed to delete");
@@ -33,7 +33,7 @@ export default function ManageQuestsPage() {
   };
 
   const columns = [
-    { key: "id", label: "ID" },
+    { key: "questId", label: "ID" },
     { key: "title", label: "Title" },
     {
       key: "type",
@@ -91,11 +91,12 @@ export default function ManageQuestsPage() {
         <AdminTable
           title="Game Quests"
           columns={columns}
+          idField="questId"
           data={quests}
           serverSide
           loading={loading}
           pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
-          onEdit={(quest) => router.push(`/manage-quests/edit?id=${quest.id}`)}
+          onEdit={(quest) => router.push(`/manage-quests/edit?id=${quest.questId}`)}
           onDelete={handleDelete}
         />
       )}

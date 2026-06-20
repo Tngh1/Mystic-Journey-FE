@@ -33,7 +33,7 @@ export default function ManageContentPage() {
 
   const handleTogglePublish = async (content: ContentResponse) => {
     try {
-      await apiClient.post(`/api/contents/${content.id}/publish`, {});
+      await apiClient.post(`/api/contents/${content.contentId}/publish`, {});
       refresh();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to toggle publish status');
@@ -109,10 +109,10 @@ export default function ManageContentPage() {
                 ) : (
                   contents.map((content) => (
                     <tr
-                      key={content.id}
+                      key={content.contentId}
                       className="border-b border-[#222] hover:bg-[#252525] transition-colors"
                     >
-                      <td className="px-4 py-3 text-sm text-gray-400">{content.id}</td>
+                      <td className="px-4 py-3 text-sm text-gray-400">{content.contentId}</td>
                       <td className="px-4 py-3 text-sm text-white max-w-[300px]">
                         <div className="truncate font-medium">{content.title}</div>
                         <div className="text-xs text-gray-500 truncate">{content.slug}</div>
@@ -160,7 +160,7 @@ export default function ManageContentPage() {
                       <td className="px-4 py-3 text-sm">
                         <div className="flex items-center justify-center gap-2">
                           <Link
-                            href={`/manage-content/edit?id=${content.id}`}
+                            href={`/manage-content/edit?id=${content.contentId}`}
                             className="p-2 hover:bg-[#333] rounded-lg transition-colors text-gray-400 hover:text-[#ffc032]"
                             title="Edit"
                           >

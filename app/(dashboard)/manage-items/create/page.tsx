@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import Image from "next/image";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { create, getAll } from "@/lib/api/item";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { create } from "@/lib/api/item";
+import { uploadImageToCloudinary } from "@/lib/api/cloudinary";
+import { ArrowLeft, Save, Loader2, Upload, Image as ImageIcon, X } from "lucide-react";
 
 const ITEM_TYPES = [
   { value: "Weapon", label: "Weapon" },
@@ -38,6 +40,8 @@ export default function CreateItemPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
   const [formData, setFormData] = useState({
     name: "",
     type: "Weapon",
@@ -46,12 +50,34 @@ export default function CreateItemPage() {
     description: "",
     baseValue: 0,
     maxStack: 1,
-    isActive: true,
-    isTradable: true,
+    iconUrl: "",
   });
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   const handleChange = (field: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    const url = URL.createObjectURL(file);
+    setSelectedFile(file);
+    setPreviewUrl(url);
+    event.target.value = "";
+  };
+
+  const handleRemoveImage = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setSelectedFile(null);
+    setPreviewUrl("");
+    handleChange("iconUrl", "");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -59,6 +85,14 @@ export default function CreateItemPage() {
     try {
       setLoading(true);
       setError(null);
+
+      let iconUrl = formData.iconUrl || undefined;
+
+      if (selectedFile) {
+        const result = await uploadImageToCloudinary(selectedFile);
+        iconUrl = result.secureUrl;
+      }
+
       await create({
         name: formData.name,
         type: formData.type,
@@ -67,8 +101,7 @@ export default function CreateItemPage() {
         description: formData.description || undefined,
         baseValue: formData.baseValue,
         maxStack: formData.maxStack,
-        isActive: formData.isActive,
-        isTradable: formData.isTradable,
+        iconUrl,
       });
       router.push("/manage-items");
     } catch (err: unknown) {
@@ -78,11 +111,15 @@ export default function CreateItemPage() {
     }
   };
 
+  const displayUrl = previewUrl || formData.iconUrl;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <button
           onClick={() => router.push("/manage-items")}
+          title="Back to manage items"
+          aria-label="Back to manage items"
           className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -121,6 +158,8 @@ export default function CreateItemPage() {
                 Item Type <span className="text-red-400">*</span>
               </label>
               <select
+                aria-label="Item type"
+                title="Item type"
                 value={formData.type}
                 onChange={(e) => handleChange("type", e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
@@ -140,6 +179,8 @@ export default function CreateItemPage() {
                 Rarity <span className="text-red-400">*</span>
               </label>
               <select
+                aria-label="Item rarity"
+                title="Item rarity"
                 value={formData.rarity}
                 onChange={(e) => handleChange("rarity", e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
@@ -157,6 +198,8 @@ export default function CreateItemPage() {
                 Equipment Slot
               </label>
               <select
+                aria-label="Equipment slot"
+                title="Equipment slot"
                 value={formData.slot}
                 onChange={(e) => handleChange("slot", e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
@@ -212,30 +255,59 @@ export default function CreateItemPage() {
             />
           </div>
 
-          <div className="flex gap-6">
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="isActive"
-                checked={formData.isActive}
-                onChange={(e) => handleChange("isActive", e.target.checked)}
-                className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
-              />
-              <label htmlFor="isActive" className="text-sm text-white/70 cursor-pointer">
-                Item is active
+          <div className="space-y-4 rounded-xl border border-white/10 bg-white/5 p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <label className="block text-sm font-medium text-white/80">Item Icon</label>
+                <p className="text-sm text-white/45">Select image to preview, upload on submit.</p>
+              </div>
+              <label className="inline-flex items-center gap-2 rounded-lg bg-[#ffc032] px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-[#ffc032]/90 cursor-pointer">
+                <Upload className="h-4 w-4" />
+                Select Image
+                <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
               </label>
             </div>
-            <div className="flex items-center gap-3">
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">Icon URL (existing)</label>
               <input
-                type="checkbox"
-                id="isTradable"
-                checked={formData.isTradable}
-                onChange={(e) => handleChange("isTradable", e.target.checked)}
-                className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
+                type="url"
+                value={formData.iconUrl}
+                onChange={(e) => handleChange("iconUrl", e.target.value)}
+                placeholder="https://res.cloudinary.com/... (auto-filled after upload)"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
               />
-              <label htmlFor="isTradable" className="text-sm text-white/70 cursor-pointer">
-                Can be traded
-              </label>
+            </div>
+
+            <div className="rounded-xl border border-dashed border-white/10 bg-black/10 p-4">
+              {displayUrl ? (
+                <div className="flex items-start gap-4">
+                  <div className="relative h-24 w-24 overflow-hidden rounded-xl border border-white/10 bg-white/5">
+                    <Image src={displayUrl} alt="Item icon preview" fill className="object-cover" unoptimized />
+                  </div>
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-medium text-white">
+                        {selectedFile ? "Ready to upload on submit" : "Current icon"}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="inline-flex items-center gap-1 text-sm text-red-300 hover:text-red-200 cursor-pointer"
+                      >
+                        <X className="h-4 w-4" />
+                        Remove
+                      </button>
+                    </div>
+                    <p className="truncate text-sm text-white/50">{displayUrl}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 text-white/45">
+                  <ImageIcon className="h-5 w-5" />
+                  <p className="text-sm">No icon selected yet.</p>
+                </div>
+              )}
             </div>
           </div>
 

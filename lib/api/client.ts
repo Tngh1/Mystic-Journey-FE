@@ -1,63 +1,81 @@
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError, AxiosRequestConfig } from "axios";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000";
 
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: BASE_URL,
   headers: { "Content-Type": "application/json" },
+  withCredentials: true,
+  timeout: 15000,
 });
-
-apiClient.interceptors.request.use(
-  (config) => {
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
 
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config as AxiosError["config"] & { _retry?: boolean };
+    const originalRequest = error.config as (AxiosRequestConfig & { _retry?: boolean }) | undefined;
+
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        const refreshToken = localStorage.getItem("refreshToken");
-        if (!refreshToken) throw new Error("No refresh token");
-        const res = await axios.post(`${API_BASE_URL}/accounts/refresh-token`, { refreshToken });
-        const { accessToken, refreshToken: newRefresh } = res.data;
-        if (accessToken) {
-          localStorage.setItem("accessToken", accessToken);
-          if (newRefresh) localStorage.setItem("refreshToken", newRefresh);
-          originalRequest.headers = originalRequest.headers || {};
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-          return apiClient(originalRequest);
-        }
+        await apiClient.post("/api/accounts/refresh-token");
+        return apiClient(originalRequest);
       } catch {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        window.location.href = "/login";
+        return Promise.reject(new ApiError("Session expired. Please log in again."));
       }
     }
-    if (error.response?.data && typeof error.response.data === "object" && "message" in error.response.data) {
-      throw new Error((error.response.data as { message: string }).message);
-    }
-    throw new Error(error.message || "An unexpected error occurred.");
+
+    throw normalizeError(error);
   }
 );
 
-export default apiClient;
+/* ─── Typed helper functions ─────────────────────────────────────────────── */
 
-export function handleApiError(error: unknown): never {
+export async function get<T = unknown>(path: string, params?: Record<string, unknown>): Promise<T> {
+  const response = await apiClient.get<T>(path, { params });
+  return response.data;
+}
+
+export async function post<T = unknown>(path: string, data?: unknown): Promise<T> {
+  const response = await apiClient.post<T>(path, data);
+  return response.data;
+}
+
+export async function put<T = unknown>(path: string, data?: unknown): Promise<T> {
+  const response = await apiClient.put<T>(path, data);
+  return response.data;
+}
+
+export async function del<T = unknown>(path: string): Promise<T> {
+  const response = await apiClient.delete<T>(path);
+  return response.data;
+}
+
+/* ─── Error helpers ──────────────────────────────────────────────────────── */
+
+export class ApiError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+export function normalizeError(error: unknown): ApiError {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<{ message?: string }>;
-    const message = axiosError.response?.data?.message || axiosError.message || "An error occurred.";
-    throw new Error(message);
+    return new ApiError(
+      axiosError.response?.data?.message ||
+        axiosError.message ||
+        "An error occurred."
+    );
   }
-  throw new Error("An unexpected error occurred.");
+  if (error instanceof Error) {
+    return new ApiError(error.message);
+  }
+  return new ApiError("An unexpected error occurred.");
 }
+
+export function handleApiError(error: unknown): never {
+  throw normalizeError(error);
+}
+
+export default apiClient;

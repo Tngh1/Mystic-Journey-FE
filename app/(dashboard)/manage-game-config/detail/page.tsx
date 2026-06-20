@@ -129,7 +129,7 @@ export default function GameConfigDetailPage() {
               <h1 className="text-2xl font-bold text-white">Configuration Details</h1>
             </div>
             <Link
-              href={`/manage-game-config/edit?id=${setting.id}`}
+              href={`/manage-game-config/edit?id=${setting.key}`}
               className="flex items-center gap-2 px-4 py-2 bg-[#ffc032] text-[#111] rounded-lg font-semibold hover:bg-[#e6a82a] transition-colors"
             >
               <Edit className="w-4 h-4" />
@@ -179,7 +179,7 @@ export default function GameConfigDetailPage() {
               {/* ID */}
               <div className="space-y-1">
                 <p className="text-sm text-gray-400">ID</p>
-                <p className="text-white font-medium">{setting.id}</p>
+                <p className="text-white font-medium">{setting.gameSettingId}</p>
               </div>
 
               {/* Type */}
@@ -256,7 +256,7 @@ export default function GameConfigDetailPage() {
                 Back to List
               </Link>
               <Link
-                href={`/manage-game-config/edit?id=${setting.id}`}
+                href={`/manage-game-config/edit?id=${setting.key}`}
                 className="flex items-center gap-2 px-4 py-2 bg-[#ffc032] text-[#111] rounded-lg font-semibold hover:bg-[#e6a82a] transition-colors"
               >
                 <Edit className="w-4 h-4" />

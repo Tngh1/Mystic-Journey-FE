@@ -1,96 +1,31 @@
-import apiClient, { handleApiError } from "./client";
-
-export interface GameSettingResponse {
-  id: number;
-  key: string;
-  value: string | null;
-  description: string | null;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string | null;
-  updatedBy: string | null;
-}
-
-export type UpdateGameSettingRequest = {
-  value?: string;
-  description?: string;
-  isActive?: boolean;
-};
-
-export interface DailyLoginRewardResponse {
-  id: number;
-  dayNumber: number;
-  rewardType: string;
-  rewardValue: number;
-  rewardItemId: number | null;
-  rewardItemName: string | null;
-  rewardItemQuantity: number;
-  isActive: boolean;
-}
-
-export interface CreateDailyLoginRewardRequest {
-  dayNumber: number;
-  rewardType?: string;
-  rewardValue?: number;
-  rewardItemId?: number;
-  rewardItemQuantity?: number;
-  isActive?: boolean;
-}
+import { get, put, post } from "./client";
+import type { GameSettingResponse, UpdateGameSettingRequest, DailyLoginRewardResponse, CreateDailyLoginRewardRequest, PagedResponse } from "@/lib/types";
+export type { GameSettingResponse, UpdateGameSettingRequest, DailyLoginRewardResponse, CreateDailyLoginRewardRequest, PagedResponse } from "@/lib/types";
 
 export const getSettingById = async (id: number): Promise<GameSettingResponse> => {
-  try {
-    const response = await apiClient.get<GameSettingResponse>(`/api/game-settings/${id}`);
-    return response.data;
-  } catch (err) {
-    handleApiError(err);
-  }
+  return get<GameSettingResponse>(`/api/gamesettings/${id}`);
 };
 
 export const getSettingByKey = async (key: string): Promise<GameSettingResponse> => {
-  try {
-    const response = await apiClient.get<GameSettingResponse>(`/api/game-settings/key/${key}`);
-    return response.data;
-  } catch (err) {
-    handleApiError(err);
-  }
+  return get<GameSettingResponse>(`/api/gamesettings/key/${key}`);
 };
 
-export const getAllSettings = async (page = 1, pageSize = 10): Promise<{ totalCount: number; items: GameSettingResponse[] }> => {
-  try {
-    const response = await apiClient.get<{ totalCount: number; items: GameSettingResponse[] }>(
-      `/api/game-settings?page=${page}&pageSize=${pageSize}`
-    );
-    return response.data;
-  } catch (err) {
-    handleApiError(err);
-  }
+export const getAllSettings = async (page = 1, pageSize = 10): Promise<PagedResponse<GameSettingResponse>> => {
+  return get<PagedResponse<GameSettingResponse>>(
+    `/api/gamesettings?page=${page}&pageSize=${pageSize}`
+  );
 };
 
 export const updateSettingByKey = async (key: string, data: UpdateGameSettingRequest): Promise<GameSettingResponse> => {
-  try {
-    const response = await apiClient.put<GameSettingResponse>(`/api/game-settings/key/${key}`, data);
-    return response.data;
-  } catch (err) {
-    handleApiError(err);
-  }
+  return put<GameSettingResponse>(`/api/gamesettings/key/${key}`, data);
 };
 
-export const getAllDailyLoginRewards = async (page = 1, pageSize = 10): Promise<{ totalCount: number; items: DailyLoginRewardResponse[] }> => {
-  try {
-    const response = await apiClient.get<{ totalCount: number; items: DailyLoginRewardResponse[] }>(
-      `/api/daily-login-rewards?page=${page}&pageSize=${pageSize}`
-    );
-    return response.data;
-  } catch (err) {
-    handleApiError(err);
-  }
+export const getAllDailyLoginRewards = async (page = 1, pageSize = 10): Promise<PagedResponse<DailyLoginRewardResponse>> => {
+  return get<PagedResponse<DailyLoginRewardResponse>>(
+    `/api/DailyLoginRewards?page=${page}&pageSize=${pageSize}`
+  );
 };
 
 export const createDailyLoginReward = async (data: CreateDailyLoginRewardRequest): Promise<DailyLoginRewardResponse> => {
-  try {
-    const response = await apiClient.post<DailyLoginRewardResponse>("/api/daily-login-rewards", data);
-    return response.data;
-  } catch (err) {
-    handleApiError(err);
-  }
+  return post<DailyLoginRewardResponse>("/api/DailyLoginRewards", data);
 };

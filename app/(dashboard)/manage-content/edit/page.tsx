@@ -51,7 +51,7 @@ function EditContentContent() {
         getCategories(),
       ]);
       setContent(contentData);
-      setCategories(categoriesData.filter((c) => c.isActive));
+      setCategories(categoriesData.filter((c: CategoryResponse) => c.isActive));
       setFormData({
         title: contentData.title,
         summary: contentData.summary || '',
@@ -76,7 +76,7 @@ function EditContentContent() {
 
     try {
       setSubmitting(true);
-      await update(content.id, {
+      await update(content.contentId, {
         title: formData.title,
         summary: formData.summary,
         thumbnailUrl: formData.thumbnailUrl || undefined,
@@ -99,7 +99,7 @@ function EditContentContent() {
 
     try {
       setPublishing(true);
-      await publish(content.id);
+      await publish(content.contentId);
       setContent((prev) =>
         prev ? { ...prev, isPublished: !prev.isPublished } : null
       );
@@ -235,7 +235,7 @@ function EditContentContent() {
                 className="w-full px-4 py-2 bg-[#222] border border-[#333] rounded-lg text-white focus:outline-none focus:border-[#ffc032]"
               >
                 {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
+                  <option key={cat.categoryContentId} value={cat.categoryContentId}>
                     {cat.name}
                   </option>
                 ))}

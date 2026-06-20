@@ -4,14 +4,13 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Loader2, Save, Shield, User, Heart, Sword, ShieldCheck, Zap, Skull } from 'lucide-react';
-import { getPlayerProfileAdmin, updatePlayerProfileAdmin, PlayerStatsResponse, PlayerProfileWithStats } from '@/lib/api/player-profile';
+import { getPlayerProfileAdmin, updatePlayerProfileAdmin, PlayerProfileWithStats } from '@/lib/api/player-profile';
+import type { PlayerStatsResponse } from '@/lib/types';
 
 const classColors: Record<string, string> = {
   Knight: 'bg-red-500/20 text-red-400 border-red-500/30',
   Mage: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
   Archer: 'bg-green-500/20 text-green-400 border-green-500/30',
-  Rogue: 'bg-gray-500/20 text-gray-300 border-gray-500/30',
-  Priest: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
 };
 
 export default function EditPlayerPage() {
@@ -26,16 +25,20 @@ export default function EditPlayerPage() {
 
   const [formData, setFormData] = useState<{
     displayName: string;
+    avatarUrl: string;
     playerClass: string;
     level: number;
+    experiencePoints: number;
     gold: number;
     gems: number;
     energy: number;
     isBanned: boolean;
   }>({
     displayName: '',
+    avatarUrl: '',
     playerClass: 'Knight',
     level: 1,
+    experiencePoints: 0,
     gold: 0,
     gems: 0,
     energy: 100,
@@ -60,8 +63,10 @@ export default function EditPlayerPage() {
 
       setFormData({
         displayName: data.displayName,
+        avatarUrl: data.avatarUrl || '',
         playerClass: data.playerClass,
         level: data.level,
+        experiencePoints: data.experiencePoints,
         gold: data.gold,
         gems: data.gems,
         energy: data.energy,
@@ -195,8 +200,6 @@ export default function EditPlayerPage() {
                     <option value="Knight">Knight</option>
                     <option value="Mage">Mage</option>
                     <option value="Archer">Archer</option>
-                    <option value="Rogue">Rogue</option>
-                    <option value="Priest">Priest</option>
                   </select>
                 </div>
 

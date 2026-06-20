@@ -96,18 +96,6 @@ export default function RegisterPage() {
         confirmPassword: confirmPassword,
       });
 
-      if (result.accessToken) {
-        localStorage.setItem("accessToken", result.accessToken);
-      }
-      if (result.refreshToken) {
-        localStorage.setItem("refreshToken", result.refreshToken);
-      }
-      localStorage.setItem("user", JSON.stringify({
-        accountId: result.accountId,
-        userName: result.userName,
-        emailAddress: result.emailAddress,
-        roleId: result.roleId,
-      }));
       await showSuccessAlert("Registration Successful!", "Welcome to Mystic Journey!");
       router.push("/");
     } catch (err: unknown) {

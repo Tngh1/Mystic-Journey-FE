@@ -30,7 +30,7 @@ const menuGroups = [
   {
     title: "USER MANAGEMENT",
     items: [
-      { icon: Users, label: "Manage Players", href: "/manage-players" },
+      { icon: Users, label: "Manage Accounts", href: "/manage-accounts" },
       { icon: ShieldCheck, label: "Manage Admins", href: "/manage-admins" },
     ]
   },
