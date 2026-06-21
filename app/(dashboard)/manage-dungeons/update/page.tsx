@@ -88,7 +88,7 @@ export default function EditDungeonPage() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-white">Edit Dungeon</h1>
+          <h1 className="text-2xl font-bold text-white">Update Dungeon</h1>
           <p className="text-white/50 text-sm">Update dungeon details (ID: {dungeonId})</p>
         </div>
       </div>
@@ -208,7 +208,7 @@ export default function EditDungeonPage() {
               className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {loading ? "Saving..." : "Save Changes"}
+              {loading ? "Updating..." : "Update Dungeon"}
             </button>
           </div>
         </form>

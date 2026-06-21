@@ -100,7 +100,7 @@ export default function EditShopItemPage() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-white">Edit Shop Item</h1>
+          <h1 className="text-2xl font-bold text-white">Update Shop Item</h1>
           <p className="text-white/50 text-sm">Update shop item details (ID: {shopItemId})</p>
         </div>
       </div>
@@ -215,7 +215,7 @@ export default function EditShopItemPage() {
               className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {loading ? "Saving..." : "Save Changes"}
+              {loading ? "Updating..." : "Update Shop Item"}
             </button>
           </div>
         </form>

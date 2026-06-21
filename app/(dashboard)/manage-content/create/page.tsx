@@ -35,11 +35,12 @@ import { createWithBlocks, getCategories, CategoryResponse } from '@/lib/api/con
 import { uploadImageToCloudinary } from '@/lib/api/cloudinary';
 import EditableTextBlock from '@/components/ui/EditableTextBlock';
 import { showConfirmAlert } from '@/lib/utils/swal';
+import ImageUploader from '@/components/ui/ImageUploader';
 
 interface FormData {
   title: string;
   summary: string;
-  thumbnailUrl: string;
+  thumbnailUrl: string | File | null;
   categoryId: number;
   isPublished: boolean;
 }
@@ -48,6 +49,7 @@ interface LocalBlock {
   tempId: string;
   contentData: string;
   mediaUrl: string;
+  mediaFile?: File | null;
   caption: string;
   blockType: 'text' | 'image';
   isActive: boolean;
@@ -75,10 +77,9 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
   };
 
   const [isDraggingFile, setIsDraggingFile] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleFileSelect = async (files: FileList | null) => {
+  const handleFileSelect = (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
     const file = files[0];
@@ -87,22 +88,15 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
       return;
     }
 
-    try {
-      setUploading(true);
-      setError(null);
-      const result = await uploadImageToCloudinary(file);
-      onUpdate(block.tempId, { mediaUrl: result.secureUrl });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to upload image');
-    } finally {
-      setUploading(false);
-    }
+    setError(null);
+    const objectUrl = URL.createObjectURL(file);
+    onUpdate(block.tempId, { mediaUrl: objectUrl, mediaFile: file });
   };
 
-  const handleDrop = async (e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDraggingFile(false);
-    await handleFileSelect(e.dataTransfer.files);
+    handleFileSelect(e.dataTransfer.files);
   };
 
   const handleCaptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -181,24 +175,15 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
                   : 'border-gray-600 hover:border-gray-500'
               }`}
             >
-              {uploading ? (
-                <div className="flex flex-col items-center gap-2">
-                  <Loader2 className="w-6 h-6 text-purple-400 animate-spin" />
-                  <p className="text-gray-400 text-sm">Uploading...</p>
-                </div>
-              ) : (
-                <>
-                  <Upload className="w-8 h-8 text-gray-500 mx-auto mb-2" />
-                  <p className="text-gray-400 text-sm">Drag & drop or click to upload</p>
-                </>
-              )}
+              <Upload className="w-8 h-8 text-gray-500 mx-auto mb-2" />
+              <p className="text-gray-400 text-sm">Drag & drop or click to upload</p>
             </div>
           ) : (
             <div className="relative">
               <img src={block.mediaUrl} alt="Preview" className="w-full max-h-48 object-contain rounded-lg bg-[#111]" />
               <button
                 type="button"
-                onClick={() => onUpdate(block.tempId, { mediaUrl: '' })}
+                onClick={() => onUpdate(block.tempId, { mediaUrl: '', mediaFile: null })}
                 className="absolute top-2 right-2 p-1.5 bg-red-500/80 text-white rounded-lg hover:bg-red-600 transition-colors"
               >
                 <X className="w-4 h-4" />
@@ -220,98 +205,6 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
   );
 }
 
-function ThumbnailUploader({ value, onChange }: {
-  value: string;
-  onChange: (url: string) => void;
-}) {
-  const [isDragging, setIsDragging] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleFileSelect = async (files: FileList | null) => {
-    if (!files || files.length === 0) return;
-
-    const file = files[0];
-    if (!file.type.startsWith('image/')) {
-      setError('Please select an image file');
-      return;
-    }
-
-    try {
-      setUploading(true);
-      setError(null);
-      const result = await uploadImageToCloudinary(file);
-      onChange(result.secureUrl);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to upload image');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleDrop = async (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    await handleFileSelect(e.dataTransfer.files);
-  };
-
-  return (
-    <div>
-      <label className="block text-sm font-medium text-gray-300 mb-2">
-        Thumbnail
-      </label>
-
-      {error && (
-        <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-2 rounded-lg text-sm mb-2">
-          {error}
-        </div>
-      )}
-
-      {!value ? (
-        <div
-          onDrop={handleDrop}
-          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-          onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
-          onClick={() => {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*';
-            input.onchange = (e) => handleFileSelect((e.target as HTMLInputElement).files);
-            input.click();
-          }}
-          className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-            isDragging
-              ? 'border-[#ffc032] bg-[#ffc032]/10'
-              : 'border-gray-600 hover:border-gray-500'
-          }`}
-        >
-          {uploading ? (
-            <div className="flex flex-col items-center gap-2">
-              <Loader2 className="w-6 h-6 text-[#ffc032] animate-spin" />
-              <p className="text-gray-400 text-sm">Uploading...</p>
-            </div>
-          ) : (
-            <>
-              <ImageIcon className="w-8 h-8 text-gray-500 mx-auto mb-2" />
-              <p className="text-gray-400 text-sm">Click or drag image here</p>
-            </>
-          )}
-        </div>
-      ) : (
-        <div className="relative">
-          <img src={value} alt="Thumbnail" className="w-full h-40 object-cover rounded-lg bg-[#111]" />
-          <button
-            type="button"
-            onClick={() => onChange('')}
-            className="absolute top-2 right-2 p-1.5 bg-red-500/80 text-white rounded-lg hover:bg-red-600 transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ── InsertZone ─────────────────────────────────────────────────────────────
 // Thin separator between blocks that reveals Text / Image insert buttons on hover.
@@ -385,7 +278,7 @@ export default function CreateContentPage() {
   const [formData, setFormData] = useState<FormData>({
     title: '',
     summary: '',
-    thumbnailUrl: '',
+    thumbnailUrl: '' as string | File | null,
     categoryId: 0,
     isPublished: false,
   });
@@ -432,9 +325,9 @@ export default function CreateContentPage() {
       return b;
     });
 
-    // 2. Validation: image blocks must have a mediaUrl
+    // 2. Validation: image blocks must have a mediaUrl or mediaFile
     const invalidImageBlock = updatedBlocks.find(
-      (b) => b.blockType === 'image' && !b.mediaUrl?.trim()
+      (b) => b.blockType === 'image' && !b.mediaUrl?.trim() && !b.mediaFile
     );
     if (invalidImageBlock) {
       setError('All image blocks must contain an image');
@@ -454,13 +347,29 @@ export default function CreateContentPage() {
 
     try {
       setLoading(true);
+
+      const finalBlocks = await Promise.all(updatedBlocks.map(async (b) => {
+        if (b.blockType === 'image' && b.mediaFile) {
+          const result = await uploadImageToCloudinary(b.mediaFile);
+          return { ...b, mediaUrl: result.secureUrl };
+        }
+        return b;
+      }));
+
+      let finalThumbnailUrl = formData.thumbnailUrl;
+      if (finalThumbnailUrl instanceof File) {
+        const result = await uploadImageToCloudinary(finalThumbnailUrl);
+        finalThumbnailUrl = result.secureUrl;
+      }
+      const thumbnailUrl = typeof finalThumbnailUrl === 'string' && finalThumbnailUrl ? finalThumbnailUrl : undefined;
+
       await createWithBlocks({
         title: formData.title,
         summary: formData.summary,
-        thumbnailUrl: formData.thumbnailUrl || undefined,
+        thumbnailUrl: thumbnailUrl,
         categoryId: formData.categoryId,
         isPublished: formData.isPublished,
-        blocks: updatedBlocks.map((block, index) => ({
+        blocks: finalBlocks.map((block, index) => ({
           contentData: block.contentData || undefined,
           mediaUrl: block.mediaUrl || undefined,
           caption: block.caption || undefined,
@@ -478,7 +387,7 @@ export default function CreateContentPage() {
     }
   };
 
-  const handleChange = (field: keyof FormData, value: string | number | boolean) => {
+  const handleChange = (field: keyof FormData, value: string | number | boolean | File | null) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -545,7 +454,7 @@ export default function CreateContentPage() {
             <ArrowLeft className="w-5 h-5" />
             Back to Content
           </Link>
-          <h1 className="text-3xl font-bold text-white">Create New Content</h1>
+          <h1 className="text-2xl font-bold text-white">Create New Content</h1>
           <p className="text-gray-400 mt-1">Add content info and blocks</p>
         </div>
 
@@ -592,9 +501,10 @@ export default function CreateContentPage() {
 
               {/* Thumbnail */}
               <div className="mb-4">
-                <ThumbnailUploader
+                <ImageUploader
                   value={formData.thumbnailUrl}
                   onChange={(url) => handleChange('thumbnailUrl', url)}
+                  label="Thumbnail"
                 />
               </div>
 

@@ -4,11 +4,11 @@ import { post } from "@/lib/api/client";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const result = await post("/api/accounts/register", body);
-    return NextResponse.json(result, { status: 201 });
+    await post("/api/auth/change-password", body);
+    return NextResponse.json({ message: "Password changed successfully." });
   } catch (error) {
     return NextResponse.json(
-      { message: error instanceof Error ? error.message : "Registration failed." },
+      { message: error instanceof Error ? error.message : "Failed to change password." },
       { status: 400 },
     );
   }

@@ -1,14 +1,13 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import Link from 'next/link';
-import { 
-  Search, 
-  Loader2, 
-  UserCog, 
-  Eye, 
-  Ban, 
-  CheckCircle, 
+import {
+  Search,
+  Loader2,
+  UserCog,
+  Eye,
+  Ban,
+  CheckCircle,
   AlertCircle,
   X,
   Sword,
@@ -89,10 +88,10 @@ export default function ManageAccountsPage() {
   const handleRoleFilter = (role: string) => {
     if (selectedRole === role) {
       setSelectedRole('');
-      setParams({});
+      setParams({ ...(searchKeyword ? { search: searchKeyword } : {}) });
     } else {
       setSelectedRole(role);
-      setParams({ roleName: role });
+      setParams({ ...(searchKeyword ? { search: searchKeyword } : {}), roleName: role });
     }
   };
 
@@ -161,229 +160,175 @@ export default function ManageAccountsPage() {
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   return (
-    <div className="min-h-screen bg-[#111] text-white p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-[#ffc032] to-[#ff8c00] flex items-center justify-center">
-              <UserCog className="w-8 h-8 text-[#111]" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-[#ffc032]">Manage Accounts</h1>
-              <p className="text-gray-400">View and manage all user accounts</p>
-            </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-[#ffc032] to-[#ff8c00] flex items-center justify-center shrink-0">
+            <UserCog className="w-7 h-7 text-[#111]" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-[#ffc032]">Manage Accounts</h1>
+            <p className="text-sm text-gray-500">View and manage all user accounts</p>
           </div>
         </div>
-
-        {/* Search and Filters */}
-        <div className="bg-[#1a1a1a] rounded-2xl p-6 mb-6 border border-gray-800">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-              <input
-                type="text"
-                placeholder="Search by username or email..."
-                value={searchKeyword}
-                onChange={(e) => handleSearch(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchKeyword)}
-                className="w-full pl-12 pr-4 py-3 bg-[#0d0d0d] border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#ffc032] transition-colors"
-              />
-            </div>
-            <button
-              onClick={() => { setSearchKeyword(''); setSelectedRole(''); setParams({}); }}
-              className="px-6 py-3 bg-[#333] text-gray-300 font-semibold rounded-xl hover:bg-[#444] transition-colors"
-            >
-              Clear
-            </button>
-          </div>
-
-          {/* Role Filters */}
-          <div className="mt-4">
-            <p className="text-sm text-gray-400 mb-3">Filter by Role:</p>
-            <div className="flex flex-wrap gap-2">
-              {['Super Admin', 'Admin', 'Player', 'Guest'].map((role) => (
-                <button
-                  key={role}
-                  onClick={() => handleRoleFilter(role)}
-                  className={`px-4 py-2 rounded-lg border transition-all ${
-                    selectedRole === role
-                      ? 'bg-[#ffc032] text-[#111] border-[#ffc032]'
-                      : 'bg-[#0d0d0d] text-gray-300 border-gray-700 hover:border-gray-600'
-                  }`}
-                >
-                  {role}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6">
-            <p className="text-red-400">{error}</p>
-          </div>
-        )}
-
-        {/* Accounts Table */}
-        {loading && accounts.length === 0 ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-10 h-10 text-[#ffc032] animate-spin" />
-          </div>
-        ) : accounts.length === 0 ? (
-          <div className="bg-[#1a1a1a] rounded-2xl p-12 border border-gray-800 text-center">
-            <UserCog className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <p className="text-xl text-gray-400">No accounts found</p>
-          </div>
-        ) : (
-          <div className="bg-[#1a1a1a] rounded-2xl border border-gray-800 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-800">
-                    <th className="text-left px-6 py-4 text-sm font-semibold text-gray-400">Account ID</th>
-                    <th className="text-left px-6 py-4 text-sm font-semibold text-gray-400">Username</th>
-                    <th className="text-left px-6 py-4 text-sm font-semibold text-gray-400">Email</th>
-                    <th className="text-left px-6 py-4 text-sm font-semibold text-gray-400">Role</th>
-                    <th className="text-left px-6 py-4 text-sm font-semibold text-gray-400">Player Profile</th>
-                    <th className="text-left px-6 py-4 text-sm font-semibold text-gray-400">Status</th>
-                    <th className="text-left px-6 py-4 text-sm font-semibold text-gray-400">Created</th>
-                    <th className="text-left px-6 py-4 text-sm font-semibold text-gray-400">Last Login</th>
-                    <th className="text-left px-6 py-4 text-sm font-semibold text-gray-400">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {accounts.map((account) => (
-                    <tr
-                      key={account.accountId}
-                      className="border-b border-gray-800/50 hover:bg-[#222] transition-colors"
-                    >
-                      <td className="px-6 py-4 text-sm text-gray-400 font-mono">
-                        {account.accountId}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-[#ffc032]/20 flex items-center justify-center">
-                            <UserCog className="w-5 h-5 text-[#ffc032]" />
-                          </div>
-                          <p className="font-medium">{account.userName}</p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-gray-300">{account.email}</td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold border ${
-                            roleColors[account.roleName] || 'bg-gray-500/20 text-gray-300 border-gray-500/30'
-                          }`}
-                        >
-                          {account.roleName}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        {account.playerProfileId ? (
-                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
-                            <CheckCircle className="w-3 h-3" />
-                            {account.playerDisplayName || 'Active'}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
-                            <AlertCircle className="w-3 h-3" />
-                            No Profile
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        {account.isActive ? (
-                          <span className="inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
-                            Active
-                          </span>
-                        ) : (
-                          <span className="inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-red-500/20 text-red-400 border border-red-500/30">
-                            Banned
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-gray-400 text-sm">{formatDate(account.createdAt)}</td>
-                      <td className="px-6 py-4 text-gray-400 text-sm">{formatDate(account.lastLogin)}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col gap-1">
-                          <button
-                            onClick={() => handleViewProfile(account)}
-                            className="inline-flex items-center gap-2 px-3 py-2 bg-[#ffc032] text-[#111] rounded-lg hover:bg-[#ffd04c] transition-colors text-sm font-medium w-fit"
-                          >
-                            <Eye className="w-4 h-4" />
-                            View Profile
-                          </button>
-                          {account.roleName === 'Player' && (
-                            <button
-                              onClick={() => handleBan(account)}
-                              disabled={banningId === account.accountId}
-                              className={`inline-flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full ${
-                                account.isActive
-                                  ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
-                                  : 'bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30'
-                              } disabled:opacity-50`}
-                            >
-                              {banningId === account.accountId ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : account.isActive ? (
-                                <Ban className="w-4 h-4" />
-                              ) : (
-                                <CheckCircle className="w-4 h-4" />
-                              )}
-                              {account.isActive ? 'Ban' : 'Unban'}
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-800">
-              <div className="text-sm text-gray-400">
-                Total Accounts: <span className="text-[#ffc032] font-semibold">{totalCount.toLocaleString()}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <select
-                  aria-label="Select accounts page size"
-                  value={pageSize}
-                  onChange={(e) => setPageSize(Number(e.target.value))}
-                  className="bg-[#0d0d0d] border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none"
-                >
-                  <option value={5}>5 / page</option>
-                  <option value={10}>10 / page</option>
-                  <option value={20}>20 / page</option>
-                  <option value={50}>50 / page</option>
-                </select>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setPage(page - 1)}
-                    disabled={page === 1}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    ←
-                  </button>
-                  <span className="px-3 py-1 text-sm text-white">
-                    Page {page} of {totalPages}
-                  </span>
-                  <button
-                    onClick={() => setPage(page + 1)}
-                    disabled={page >= totalPages}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    →
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Filters */}
+      <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-5">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search by username or email..."
+              value={searchKeyword}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 bg-[#111] border border-gray-700 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+            />
+          </div>
+          <select
+            aria-label="Filter by role"
+            value={selectedRole}
+            onChange={(e) => handleRoleFilter(e.target.value)}
+            className="px-4 py-2.5 bg-[#111] border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-[#ffc032] transition-colors"
+          >
+            <option value="">All Roles</option>
+            <option value="Super Admin">Super Admin</option>
+            <option value="Admin">Admin</option>
+            <option value="Player">Player</option>
+            <option value="Guest">Guest</option>
+          </select>
+        </div>
+      </div>
+
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+          <p className="text-red-400 text-sm">{error}</p>
+        </div>
+      )}
+
+      {/* Accounts Table */}
+      {loading && accounts.length === 0 ? (
+        <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-12 flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-[#ffc032] border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : accounts.length === 0 ? (
+        <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-12 flex flex-col items-center justify-center text-center">
+          <UserCog className="w-12 h-12 text-gray-600 mb-3" />
+          <p className="text-gray-400">No accounts found</p>
+        </div>
+      ) : (
+        <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-gray-800">
+                  <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Account ID</th>
+                  <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Username</th>
+                  <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+                  <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
+                  <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Profile</th>
+                  <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Created</th>
+                  <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {accounts.map((account) => (
+                  <tr key={account.accountId} className="border-b border-gray-800/50 hover:bg-[#1e1e1e] transition-colors group">
+                    <td className="px-5 py-3.5 text-sm text-gray-400 font-mono">{account.accountId}</td>
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-[#ffc032]/20 flex items-center justify-center shrink-0">
+                          <UserCog className="w-5 h-5 text-[#ffc032]" />
+                        </div>
+                        <p className="text-sm font-medium text-white">{account.userName}</p>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5 text-sm text-gray-400">{account.email}</td>
+                    <td className="px-5 py-3.5">
+                      <span className={`text-xs font-semibold ${roleColors[account.roleName]?.split(' ')[1] || 'text-gray-300'}`}>
+                        {account.roleName}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      {account.playerProfileId ? (
+                        <span className="inline-flex items-center gap-1 text-xs text-green-400 font-semibold">
+                          <CheckCircle className="w-3 h-3" />
+                          {account.playerDisplayName || 'Active'}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs text-yellow-400 font-semibold">
+                          <AlertCircle className="w-3 h-3" />
+                          No Profile
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${account.isActive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                        {account.isActive ? 'Active' : 'Banned'}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 text-sm text-gray-400">{formatDate(account.createdAt)}</td>
+                    <td className="px-5 py-3.5 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => handleViewProfile(account)}
+                          className="px-3 py-1.5 bg-[#ffc032] text-[#111] rounded-lg hover:bg-[#ffd04c] transition-colors text-xs font-semibold"
+                        >
+                          View
+                        </button>
+                        {account.roleName === 'Player' && (
+                          <button
+                            onClick={() => handleBan(account)}
+                            disabled={banningId === account.accountId}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 ${
+                              account.isActive
+                                ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                                : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                            }`}
+                          >
+                            {banningId === account.accountId ? <Loader2 className="w-4 h-4 animate-spin" /> : account.isActive ? <Ban className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                            {account.isActive ? 'Ban' : 'Unban'}
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {totalCount > 0 && (
+            <div className="px-5 py-3.5 border-t border-gray-800 flex items-center justify-between">
+              <div className="text-xs text-gray-500">Total: {totalCount.toLocaleString()}</div>
+              <div className="flex items-center gap-1.5">
+                <button
+                  aria-label="Previous page"
+                  onClick={() => setPage(page - 1)}
+                  disabled={page === 1}
+                  className="p-1.5 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  ←
+                </button>
+                <span className="px-2 py-1 text-xs text-white">
+                  {page} / {totalPages}
+                </span>
+                <button
+                  aria-label="Next page"
+                  onClick={() => setPage(page + 1)}
+                  disabled={page >= totalPages}
+                  className="p-1.5 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  →
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Player Profile Modal */}
       {viewingAccount && (

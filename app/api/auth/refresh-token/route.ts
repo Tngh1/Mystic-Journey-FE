@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { post } from "@/lib/api/client";
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
-    const body = await request.json();
-    await post("/api/accounts/refresh-token", body);
+    await post("/api/auth/refresh-token");
     return NextResponse.json({ message: "Token refreshed successfully." });
   } catch (error) {
     return NextResponse.json(

@@ -3,7 +3,7 @@ import { get } from "@/lib/api/client";
 
 export async function GET() {
   try {
-    const result = await get("/api/accounts/me");
+    const result = await get("/api/auth/me");
     return NextResponse.json(result);
   } catch (error) {
     return NextResponse.json(

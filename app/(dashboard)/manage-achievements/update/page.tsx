@@ -4,6 +4,12 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getById, update, AchievementResponse } from "@/lib/api/achievement";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import ImageUploader from "@/components/ui/ImageUploader";
+import {
+  deleteImageFromCloudinary,
+  extractPublicIdFromCloudinaryUrl,
+  uploadImageToCloudinary,
+} from "@/lib/api/cloudinary";
 
 const ACHIEVEMENT_TYPES = [
   { value: "Combat", label: "Combat" },
@@ -21,11 +27,12 @@ export default function EditAchievementPage() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [originalIconUrl, setOriginalIconUrl] = useState<string>("");
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     type: "Combat",
-    iconUrl: "",
+    iconUrl: "" as string | File | null,
     requiredValue: 1,
     rewardGold: 0,
     rewardGem: 0,
@@ -38,6 +45,7 @@ export default function EditAchievementPage() {
     if (!achievementId) return;
     getById(Number(achievementId))
       .then((achievement: AchievementResponse) => {
+        setOriginalIconUrl(achievement.iconUrl || "");
         setFormData({
           name: achievement.name,
           description: achievement.description || "",
@@ -67,11 +75,25 @@ export default function EditAchievementPage() {
     try {
       setLoading(true);
       setError(null);
+
+      let finalIconUrl = formData.iconUrl;
+      if (finalIconUrl instanceof File) {
+        const result = await uploadImageToCloudinary(finalIconUrl);
+        finalIconUrl = result.secureUrl;
+      }
+
+      const iconUrl = typeof finalIconUrl === 'string' && finalIconUrl ? finalIconUrl : undefined;
+      const originalPublicId = originalIconUrl ? extractPublicIdFromCloudinaryUrl(originalIconUrl) : null;
+
+      if (iconUrl !== originalIconUrl && originalPublicId) {
+        await deleteImageFromCloudinary(originalPublicId);
+      }
+
       await update(Number(achievementId), {
         name: formData.name,
         description: formData.description,
         type: formData.type,
-        iconUrl: formData.iconUrl || null,
+        iconUrl: iconUrl || null,
         requiredValue: formData.requiredValue,
         rewardGold: formData.rewardGold,
         rewardGem: formData.rewardGem,
@@ -105,7 +127,7 @@ export default function EditAchievementPage() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-white">Edit Achievement</h1>
+          <h1 className="text-2xl font-bold text-white">Update Achievement</h1>
           <p className="text-white/50 text-sm">Update achievement details (ID: {achievementId})</p>
         </div>
       </div>
@@ -163,18 +185,7 @@ export default function EditAchievementPage() {
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Icon URL
-              </label>
-              <input
-                type="text"
-                value={formData.iconUrl}
-                onChange={(e) => handleChange("iconUrl", e.target.value)}
-                placeholder="https://example.com/icon.png"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              />
-            </div>
+
 
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
@@ -226,6 +237,14 @@ export default function EditAchievementPage() {
             />
           </div>
 
+          <div className="space-y-2 rounded-xl border border-white/10 bg-white/5 p-4">
+            <ImageUploader
+              value={formData.iconUrl}
+              onChange={(url) => handleChange("iconUrl", url)}
+              label="Achievement Icon"
+            />
+          </div>
+
           <div className="flex items-center gap-3">
             <input
               type="checkbox"
@@ -253,7 +272,7 @@ export default function EditAchievementPage() {
               className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {loading ? "Saving..." : "Save Changes"}
+              {loading ? "Updating..." : "Update Achievement"}
             </button>
           </div>
         </form>

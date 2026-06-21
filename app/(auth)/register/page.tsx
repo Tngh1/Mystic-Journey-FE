@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import { useAuth } from "@/lib/contexts/AuthContext";
-import { sendVerificationCode, verifyEmail } from "@/lib/api/account";
+import { sendVerificationCode, verifyEmail } from "@/lib/api/auth";
 import { showErrorAlert, showSuccessAlert } from "@/lib/utils/swal";
 
 const OTP_RESEND_COOLDOWN = 60;
@@ -62,7 +62,7 @@ export default function RegisterPage() {
     }
     setIsVerifying(true);
     try {
-      await verifyEmail(email, otp);
+      await verifyEmail({ email, verificationCode: otp });
       await showSuccessAlert("Verified!", "Your email has been verified. You can now complete registration.");
       setIsEmailVerified(true);
     } catch (err: unknown) {

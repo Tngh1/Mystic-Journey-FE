@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getById, update, ItemResponse } from "@/lib/api/item";
@@ -9,7 +8,8 @@ import {
   extractPublicIdFromCloudinaryUrl,
   uploadImageToCloudinary,
 } from "@/lib/api/cloudinary";
-import { ArrowLeft, Save, Loader2, Upload, Image as ImageIcon, X } from "lucide-react";
+import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import ImageUploader from "@/components/ui/ImageUploader";
 
 const ITEM_TYPES = [
   { value: "Weapon", label: "Weapon" },
@@ -48,8 +48,7 @@ export default function EditItemPage() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>("");
+
   const [originalIconUrl, setOriginalIconUrl] = useState<string>("");
   const [formData, setFormData] = useState({
     name: "",
@@ -59,14 +58,10 @@ export default function EditItemPage() {
     description: "",
     baseValue: 0,
     maxStack: 1,
-    iconUrl: "",
+    iconUrl: "" as string | File | null,
   });
 
-  useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-    };
-  }, [previewUrl]);
+
 
   useEffect(() => {
     if (!itemId) return;
@@ -94,23 +89,6 @@ export default function EditItemPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    const url = URL.createObjectURL(file);
-    setSelectedFile(file);
-    setPreviewUrl(url);
-    event.target.value = "";
-  };
-
-  const handleRemoveImage = () => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setSelectedFile(null);
-    setPreviewUrl("");
-    handleChange("iconUrl", "");
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!itemId) return;
@@ -118,19 +96,17 @@ export default function EditItemPage() {
       setLoading(true);
       setError(null);
 
-      let iconUrl = formData.iconUrl || undefined;
+      let finalIconUrl = formData.iconUrl;
+      if (finalIconUrl instanceof File) {
+        const result = await uploadImageToCloudinary(finalIconUrl);
+        finalIconUrl = result.secureUrl;
+      }
+
+      const iconUrl = typeof finalIconUrl === 'string' && finalIconUrl ? finalIconUrl : undefined;
       const originalPublicId = originalIconUrl ? extractPublicIdFromCloudinaryUrl(originalIconUrl) : null;
 
-      if (selectedFile) {
-        if (originalPublicId) {
-          await deleteImageFromCloudinary(originalPublicId);
-        }
-
-        const result = await uploadImageToCloudinary(selectedFile);
-        iconUrl = result.secureUrl;
-      } else if (!formData.iconUrl && originalPublicId) {
+      if (iconUrl !== originalIconUrl && originalPublicId) {
         await deleteImageFromCloudinary(originalPublicId);
-        iconUrl = undefined;
       }
 
       await update(Number(itemId), {
@@ -159,7 +135,7 @@ export default function EditItemPage() {
     );
   }
 
-  const displayUrl = previewUrl || formData.iconUrl;
+
 
   return (
     <div className="space-y-6">
@@ -173,7 +149,7 @@ export default function EditItemPage() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-white">Edit Item</h1>
+          <h1 className="text-2xl font-bold text-white">Update Item</h1>
           <p className="text-white/50 text-sm">Update item details (ID: {itemId})</p>
         </div>
       </div>
@@ -298,60 +274,12 @@ export default function EditItemPage() {
             />
           </div>
 
-          <div className="space-y-4 rounded-xl border border-white/10 bg-white/5 p-4">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <label className="block text-sm font-medium text-white/80">Item Icon</label>
-                <p className="text-sm text-white/45">Select a new image to preview, upload on submit.</p>
-              </div>
-              <label className="inline-flex items-center gap-2 rounded-lg bg-[#ffc032] px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-[#ffc032]/90 cursor-pointer">
-                <Upload className="h-4 w-4" />
-                Select Image
-                <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
-              </label>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">Icon URL (existing)</label>
-              <input
-                type="url"
-                value={formData.iconUrl}
-                onChange={(e) => handleChange("iconUrl", e.target.value)}
-                placeholder="https://res.cloudinary.com/... (auto-filled after upload)"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              />
-            </div>
-
-            <div className="rounded-xl border border-dashed border-white/10 bg-black/10 p-4">
-              {displayUrl ? (
-                <div className="flex items-start gap-4">
-                  <div className="relative h-24 w-24 overflow-hidden rounded-xl border border-white/10 bg-white/5">
-                    <Image src={displayUrl} alt="Item icon preview" fill className="object-cover" unoptimized />
-                  </div>
-                  <div className="flex-1 min-w-0 space-y-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-medium text-white">
-                        {selectedFile ? "Ready to upload on submit" : "Current icon"}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={handleRemoveImage}
-                        className="inline-flex items-center gap-1 text-sm text-red-300 hover:text-red-200 cursor-pointer"
-                      >
-                        <X className="h-4 w-4" />
-                        Remove
-                      </button>
-                    </div>
-                    <p className="truncate text-sm text-white/50 max-w-0" title={displayUrl}>{displayUrl}</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3 text-white/45">
-                  <ImageIcon className="h-5 w-5" />
-                  <p className="text-sm">No icon selected yet.</p>
-                </div>
-              )}
-            </div>
+          <div className="space-y-2 rounded-xl border border-white/10 bg-white/5 p-4">
+            <ImageUploader
+              value={formData.iconUrl}
+              onChange={(url) => handleChange("iconUrl", url)}
+              label="Item Icon"
+            />
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-6 border-t border-white/10">
@@ -368,7 +296,7 @@ export default function EditItemPage() {
               className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {loading ? "Saving..." : "Save Changes"}
+              {loading ? "Updating..." : "Update Item"}
             </button>
           </div>
         </form>

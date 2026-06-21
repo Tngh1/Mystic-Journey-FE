@@ -10,10 +10,12 @@ import {
 } from "react";
 import {
   getMe,
-  login as apiLogin,
-  register as apiRegister,
   logout as apiLogout,
 } from "@/lib/api/account";
+import {
+  login as apiLogin,
+  register as apiRegister,
+} from "@/lib/api/auth";
 import type { MeResponse, RegisterRequest } from "@/lib/types";
 
 interface AuthContextType {

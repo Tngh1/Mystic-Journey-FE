@@ -17,7 +17,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        await apiClient.post("/api/accounts/refresh-token");
+        await apiClient.post("/api/auth/refresh-token");
         return apiClient(originalRequest);
       } catch {
         return Promise.reject(new ApiError("Session expired. Please log in again."));
@@ -45,8 +45,8 @@ export async function put<T = unknown>(path: string, data?: unknown): Promise<T>
   return response.data;
 }
 
-export async function del<T = unknown>(path: string): Promise<T> {
-  const response = await apiClient.delete<T>(path);
+export async function del<T = unknown>(path: string, params?: Record<string, unknown>): Promise<T> {
+  const response = await apiClient.delete<T>(path, { params });
   return response.data;
 }
 

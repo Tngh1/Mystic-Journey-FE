@@ -4,12 +4,12 @@ import { post } from "@/lib/api/client";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    await post("/api/accounts/reset-password", body);
-    return NextResponse.json({ message: "Password reset successfully." });
+    await post("/api/auth/logout", body);
+    return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json(
-      { message: error instanceof Error ? error.message : "Password reset failed." },
-      { status: 400 },
+      { message: error instanceof Error ? error.message : "Logout failed." },
+      { status: 500 },
     );
   }
 }

@@ -143,7 +143,7 @@ export default function EditPlayerPage() {
               <User className="w-8 h-8 text-[#111]" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-[#ffc032]">Edit Player</h1>
+              <h1 className="text-3xl font-bold text-[#ffc032]">Update Player</h1>
               <p className="text-gray-400">Update player profile information</p>
             </div>
           </div>
@@ -353,7 +353,7 @@ export default function EditPlayerPage() {
                 className="px-6 py-3 bg-[#ffc032] text-[#111] font-semibold rounded-xl hover:bg-[#ffd04c] transition-colors flex items-center gap-2 disabled:opacity-50"
               >
                 {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                {saving ? 'Saving...' : 'Save Changes'}
+                {saving ? "Updating..." : "Update Player"}
               </button>
             </div>
           </form>

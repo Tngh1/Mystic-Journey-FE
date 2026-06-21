@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { ArrowLeft, Loader2, Save, Shield, UserPlus, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Loader2, Save, Eye, EyeOff } from 'lucide-react';
 import { create } from '@/lib/api/admin-account';
 
 export default function CreateAdminPage() {
@@ -61,201 +60,160 @@ export default function CreateAdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#111] text-white p-6">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <Link
-            href="/manage-admins"
-            className="inline-flex items-center gap-2 text-gray-400 hover:text-[#ffc032] transition-colors mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Admins
-          </Link>
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#ffc032] to-[#ff8c00] flex items-center justify-center">
-              <UserPlus className="w-8 h-8 text-[#111]" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-[#ffc032]">Create Account</h1>
-                <p className="text-gray-400">Create a new admin or player account</p>
-            </div>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => router.push("/manage-admins")}
+          className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <div>
+          <h1 className="text-2xl font-bold text-white">Create Account</h1>
+          <p className="text-white/50 text-sm">Create a new admin or player account</p>
         </div>
+      </div>
 
-        {/* Success Message */}
-        {success && (
-          <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 mb-6">
-            <p className="text-green-400">Account created successfully! Redirecting...</p>
-          </div>
-        )}
+      {/* Success Message */}
+      {success && (
+        <div className="bg-green-400/10 border border-green-400/20 rounded-lg p-4 text-green-400 text-sm">
+          Account created successfully! Redirecting...
+        </div>
+      )}
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6">
-            <p className="text-red-400">{error}</p>
-          </div>
-        )}
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-400/10 border border-red-400/20 rounded-lg p-4 text-red-400 text-sm">
+          {error}
+        </div>
+      )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit}>
-          <div className="bg-[#1a1a1a] rounded-2xl border border-gray-800 p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-              <Shield className="w-5 h-5 text-[#ffc032]" />
-              Account Information
-            </h2>
+      <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Username */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">
+                Username <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="text"
+                name="userName"
+                value={formData.userName}
+                onChange={handleChange}
+                placeholder="Enter username"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+                required
+              />
+            </div>
 
-            <div className="space-y-6">
-              {/* Username */}
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">
-                  Username <span className="text-red-400">*</span>
-                </label>
+            {/* Email */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">
+                Email <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Enter email address"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+                required
+              />
+            </div>
+
+            {/* Password */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">
+                Password <span className="text-red-400">*</span>
+              </label>
+              <div className="relative">
                 <input
-                  type="text"
-                  name="userName"
-                  value={formData.userName}
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  value={formData.password}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-[#0d0d0d] border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#ffc032] transition-colors"
-                  placeholder="Enter username"
+                  placeholder="Enter password"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 pr-12 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
                   required
+                  minLength={6}
                 />
-              </div>
-
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">
-                  Email <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-[#0d0d0d] border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#ffc032] transition-colors"
-                  placeholder="Enter email address"
-                  required
-                />
-              </div>
-
-              {/* Password */}
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">
-                  Password <span className="text-red-400">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-[#0d0d0d] border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#ffc032] transition-colors pr-12"
-                    placeholder="Enter password"
-                    required
-                    minLength={6}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Display Name (Optional) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">
-                  Display Name <span className="text-gray-500">(Optional)</span>
-                </label>
-                <input
-                  type="text"
-                  name="displayName"
-                  value={formData.displayName}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-[#0d0d0d] border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#ffc032] transition-colors"
-                  placeholder="Enter display name"
-                />
-              </div>
-
-              {/* Role */}
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">
-                  Role <span className="text-red-400">*</span>
-                </label>
-                <select
-                  name="roleId"
-                  value={formData.roleId}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-[#0d0d0d] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-[#ffc032] transition-colors"
-                  required
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors cursor-pointer"
                 >
-                  <option value={2}>Admin</option>
-                  <option value={3}>Super Admin</option>
-                  <option value={1}>Player</option>
-                </select>
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
+            </div>
 
-              {/* Active Status */}
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  name="isActive"
-                  id="isActive"
-                  checked={formData.isActive}
-                  onChange={handleChange}
-                  className="w-5 h-5 rounded border-gray-700 bg-[#0d0d0d] text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0"
-                />
-                <label htmlFor="isActive" className="text-sm font-medium text-gray-300">
-                  Active
-                </label>
-              </div>
+            {/* Display Name */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">
+                Display Name
+              </label>
+              <input
+                type="text"
+                name="displayName"
+                value={formData.displayName}
+                onChange={handleChange}
+                placeholder="Enter display name (optional)"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+              />
+            </div>
+
+            {/* Role */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">
+                Role <span className="text-red-400">*</span>
+              </label>
+              <select
+                name="roleId"
+                value={formData.roleId}
+                onChange={handleChange}
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+                required
+              >
+                <option value={2} className="bg-[#1a1a1a]">Admin</option>
+                <option value={3} className="bg-[#1a1a1a]">Super Admin</option>
+                <option value={1} className="bg-[#1a1a1a]">Player</option>
+              </select>
             </div>
           </div>
 
-          {/* Role Info */}
-          <div className="bg-[#1a1a1a] rounded-2xl border border-gray-800 p-6 mb-6">
-            <h3 className="text-sm font-semibold text-gray-400 mb-4">Role Permissions</h3>
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-purple-500 mt-2" />
-                <div>
-                  <p className="font-medium text-purple-400">Super Admin</p>
-                  <p className="text-sm text-gray-500">Full system access including account management</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-red-500 mt-2" />
-                <div>
-                  <p className="font-medium text-red-400">Admin</p>
-                  <p className="text-sm text-gray-500">Full access to all game features and settings</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-blue-500 mt-2" />
-                <div>
-                  <p className="font-medium text-blue-400">Player</p>
-                  <p className="text-sm text-gray-500">Regular player account</p>
-                </div>
-              </div>
-            </div>
+          {/* Active Status */}
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              name="isActive"
+              id="isActive"
+              checked={formData.isActive}
+              onChange={handleChange}
+              className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
+            />
+            <label htmlFor="isActive" className="text-sm text-white/70 cursor-pointer">
+              Account is active
+            </label>
           </div>
 
-          {/* Submit Button */}
-          <div className="flex justify-end gap-4">
-            <Link
-              href="/manage-admins"
-              className="px-6 py-3 bg-gray-800 text-white rounded-xl hover:bg-gray-700 transition-colors"
+          {/* Actions */}
+          <div className="flex items-center justify-end gap-3 pt-6 border-t border-white/10">
+            <button
+              type="button"
+              onClick={() => router.push("/manage-admins")}
+              className="px-4 py-2 text-sm font-medium text-white/70 bg-white/5 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
             >
               Cancel
-            </Link>
+            </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-3 bg-[#ffc032] text-[#111] font-semibold rounded-xl hover:bg-[#ffd04c] transition-colors flex items-center gap-2 disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
             >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               {loading ? 'Creating...' : 'Create Account'}
             </button>
           </div>

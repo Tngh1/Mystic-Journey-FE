@@ -42,18 +42,19 @@ export interface MeResponse {
   userName: string;
   email: string;
   role: string;
+  playerProfileId: number | null;
+  playerClass: string;
+  level: number;
   lastMapName: string;
   positionX: number;
   positionY: number;
 }
 
-export interface AccountResponse {
+export interface LoginResponse {
   accountId: number;
   userName: string;
   emailAddress: string;
-  roleId: number;
   role: string;
-  isActive: boolean;
   accessToken?: string;
   accessTokenExpiresAt?: string;
   refreshToken?: string;
