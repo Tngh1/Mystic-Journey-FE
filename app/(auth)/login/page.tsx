@@ -27,7 +27,8 @@ export default function LoginPage() {
       const destination = adminRoles.includes(me.role) ? "/dashboard" : "/";
       router.push(destination);
     } catch (err: unknown) {
-      await showErrorAlert("Login Failed", err instanceof Error ? err.message : "Invalid credentials. Please try again.");
+      const message = err instanceof Error ? err.message : "Invalid credentials. Please try again.";
+      await showErrorAlert("Login Failed", message);
     } finally {
       setIsLoading(false);
     }

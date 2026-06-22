@@ -637,7 +637,7 @@ export interface GameSettingResponse {
 export interface UpdateGameSettingRequest {
   value?: string;
   description?: string;
-  isActive?: boolean;
+  isActive: boolean;
 }
 
 export interface DailyLoginRewardResponse {
@@ -649,6 +649,7 @@ export interface DailyLoginRewardResponse {
   rewardItemName: string | null;
   rewardItemQuantity: number;
   isActive: boolean;
+  createdAt: string;
 }
 
 export interface CreateDailyLoginRewardRequest {
@@ -656,7 +657,7 @@ export interface CreateDailyLoginRewardRequest {
   rewardType?: string;
   rewardValue?: number;
   rewardItemId?: number;
-  rewardItemQuantity?: number;
+  rewardItemQuantity: number;
   isActive?: boolean;
 }
 

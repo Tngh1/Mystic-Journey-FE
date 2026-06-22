@@ -28,44 +28,67 @@ apiClient.interceptors.response.use(
   }
 );
 
+/* ─── ApiResponse envelope (BE unified format) ─────────────────────────── */
+
+interface ApiEnvelope<T> {
+  success: boolean;
+  message: string;
+  errorCode: string;
+  data: T | null;
+}
+
+/** Unwrap BE ApiResponse<T> envelope. If body is not an envelope, return as-is. */
+function unwrap<T>(body: unknown): T {
+  if (body && typeof body === "object" && "success" in body && "data" in body) {
+    const env = body as ApiEnvelope<T>;
+    if (env.data !== null && env.data !== undefined) return env.data;
+  }
+  return body as T;
+}
+
 /* ─── Typed helper functions ─────────────────────────────────────────────── */
 
 export async function get<T = unknown>(path: string, params?: Record<string, unknown>): Promise<T> {
-  const response = await apiClient.get<T>(path, { params });
-  return response.data;
+  const response = await apiClient.get<ApiEnvelope<T> | T>(path, { params });
+  return unwrap<T>(response.data);
 }
 
 export async function post<T = unknown>(path: string, data?: unknown): Promise<T> {
-  const response = await apiClient.post<T>(path, data);
-  return response.data;
+  const response = await apiClient.post<ApiEnvelope<T> | T>(path, data);
+  return unwrap<T>(response.data);
 }
 
 export async function put<T = unknown>(path: string, data?: unknown): Promise<T> {
-  const response = await apiClient.put<T>(path, data);
-  return response.data;
+  const response = await apiClient.put<ApiEnvelope<T> | T>(path, data);
+  return unwrap<T>(response.data);
 }
 
 export async function del<T = unknown>(path: string, params?: Record<string, unknown>): Promise<T> {
-  const response = await apiClient.delete<T>(path, { params });
-  return response.data;
+  const response = await apiClient.delete<ApiEnvelope<T> | T>(path, { params });
+  return unwrap<T>(response.data);
 }
 
 /* ─── Error helpers ──────────────────────────────────────────────────────── */
 
 export class ApiError extends Error {
-  constructor(message: string) {
+  code?: string;
+  status?: number;
+  constructor(message: string, code?: string, status?: number) {
     super(message);
     this.name = "ApiError";
+    this.code = code;
+    this.status = status;
   }
 }
 
 export function normalizeError(error: unknown): ApiError {
   if (axios.isAxiosError(error)) {
-    const axiosError = error as AxiosError<{ message?: string }>;
+    const axiosError = error as AxiosError<ApiEnvelope<unknown>>;
+    const body = axiosError.response?.data;
     return new ApiError(
-      axiosError.response?.data?.message ||
-        axiosError.message ||
-        "An error occurred."
+      body?.message || axiosError.message || "An error occurred.",
+      body?.errorCode,
+      axiosError.response?.status
     );
   }
   if (error instanceof Error) {
