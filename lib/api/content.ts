@@ -1,6 +1,6 @@
 import { get, post, put, del } from "./client";
-import type { ContentResponse, ContentDetailResponse, CategoryResponse, CreateContentRequest, UpdateContentRequest, CreateCategoryRequest, CreateBlockRequest, UpdateBlockRequest, BlockResponse, PagedResponse } from "@/lib/types";
-export type { ContentResponse, ContentDetailResponse, CategoryResponse, CreateContentRequest, UpdateContentRequest, CreateCategoryRequest, CreateBlockRequest, UpdateBlockRequest, BlockResponse, PagedResponse } from "@/lib/types";
+import type { ContentResponse, ContentDetailResponse, CategoryResponse, UpdateContentRequest, CreateCategoryRequest, CreateBlockRequest, UpdateBlockRequest, BlockResponse, PagedResponse, CreateContentWithBlocksRequest } from "@/lib/types";
+export type { ContentResponse, ContentDetailResponse, CategoryResponse, UpdateContentRequest, CreateCategoryRequest, CreateBlockRequest, UpdateBlockRequest, BlockResponse, PagedResponse, CreateContentWithBlocksRequest } from "@/lib/types";
 
 export const getById = async (id: number): Promise<ContentDetailResponse> => {
   return get<ContentDetailResponse>(`/api/contents/${id}`);
@@ -20,8 +20,10 @@ export const getCategories = async (): Promise<CategoryResponse[]> => {
   return get<CategoryResponse[]>("/api/contents/categories");
 };
 
-export const create = async (data: CreateContentRequest): Promise<ContentResponse> => {
-  return post<ContentResponse>("/api/contents", data);
+export const createWithBlocks = async (
+  data: CreateContentWithBlocksRequest
+): Promise<ContentDetailResponse> => {
+  return post<ContentDetailResponse>("/api/contents/with-blocks", data);
 };
 
 export const update = async (id: number, data: UpdateContentRequest): Promise<ContentResponse> => {
@@ -46,4 +48,8 @@ export const updateBlock = async (id: number, data: UpdateBlockRequest): Promise
 
 export const removeBlock = async (id: number): Promise<void> => {
   await del(`/api/contents/blocks/${id}`);
+};
+
+export const updateCategory = async (id: number, data: CreateCategoryRequest): Promise<CategoryResponse> => {
+  return put<CategoryResponse>(`/api/contents/categories/${id}`, data);
 };

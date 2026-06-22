@@ -8,13 +8,21 @@ import {
   useCallback,
   ReactNode,
 } from "react";
-import { getMe, login as apiLogin, logout as apiLogout } from "@/lib/api/account";
-import type { MeResponse } from "@/lib/types";
+import {
+  getMe,
+  logout as apiLogout,
+} from "@/lib/api/account";
+import {
+  login as apiLogin,
+  register as apiRegister,
+} from "@/lib/api/auth";
+import type { MeResponse, RegisterRequest } from "@/lib/types";
 
 interface AuthContextType {
   user: MeResponse | null;
   isLoading: boolean;
-  login: (emailOrUsername: string, password: string) => Promise<void>;
+  login: (emailOrUsername: string, password: string) => Promise<MeResponse>;
+  register: (data: RegisterRequest) => Promise<MeResponse>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -29,8 +37,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const me = await getMe();
       setUser(me);
+      return me;
     } catch {
       setUser(null);
+      return null;
     } finally {
       setIsLoading(false);
     }
@@ -40,10 +50,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetchUser();
   }, [fetchUser]);
 
-  const login = async (emailOrUsername: string, password: string) => {
+  const login = async (emailOrUsername: string, password: string): Promise<MeResponse> => {
     await apiLogin(emailOrUsername, password);
     setIsLoading(true);
-    await fetchUser();
+    const me = await fetchUser();
+    if (!me) {
+      throw new Error("Failed to load user profile after login.");
+    }
+    return me;
+  };
+
+  const register = async (data: RegisterRequest): Promise<MeResponse> => {
+    await apiRegister(data);
+    setIsLoading(true);
+    const me = await fetchUser();
+    if (!me) {
+      throw new Error("Failed to load user profile after registration.");
+    }
+    return me;
   };
 
   const logout = async () => {
@@ -60,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

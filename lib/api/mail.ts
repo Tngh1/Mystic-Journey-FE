@@ -32,6 +32,6 @@ export const claimReward = async (id: number): Promise<MailResponse> => {
   return post<MailResponse>(`/api/mails/${id}/claim`);
 };
 
-export const remove = async (id: number): Promise<void> => {
-  await del(`/api/mails/${id}`);
+export const remove = async (mailId: number, playerProfileId: number): Promise<void> => {
+  await del(`/api/mails/${mailId}`, { playerProfileId });
 };

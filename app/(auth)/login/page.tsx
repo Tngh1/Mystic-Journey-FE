@@ -20,11 +20,15 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await login(email, password);
+      const me = await login(email, password);
       await showSuccessAlert("Welcome back!", "Login successful. Redirecting...");
-      router.push("/");
+
+      const adminRoles = ["Admin", "SuperAdmin"];
+      const destination = adminRoles.includes(me.role) ? "/dashboard" : "/";
+      router.push(destination);
     } catch (err: unknown) {
-      await showErrorAlert("Login Failed", err instanceof Error ? err.message : "Invalid credentials. Please try again.");
+      const message = err instanceof Error ? err.message : "Invalid credentials. Please try again.";
+      await showErrorAlert("Login Failed", message);
     } finally {
       setIsLoading(false);
     }
