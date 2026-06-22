@@ -5,13 +5,15 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
-import { register, sendVerificationCode, verifyEmail } from "@/lib/api/account";
+import { useAuth } from "@/lib/contexts/AuthContext";
+import { sendVerificationCode, verifyEmail } from "@/lib/api/auth";
 import { showErrorAlert, showSuccessAlert } from "@/lib/utils/swal";
 
 const OTP_RESEND_COOLDOWN = 60;
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { register } = useAuth();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
@@ -60,7 +62,7 @@ export default function RegisterPage() {
     }
     setIsVerifying(true);
     try {
-      await verifyEmail(email, otp);
+      await verifyEmail({ email, verificationCode: otp });
       await showSuccessAlert("Verified!", "Your email has been verified. You can now complete registration.");
       setIsEmailVerified(true);
     } catch (err: unknown) {
@@ -89,7 +91,7 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const result = await register({
+      await register({
         userName: username,
         emailAddress: email,
         password: password,

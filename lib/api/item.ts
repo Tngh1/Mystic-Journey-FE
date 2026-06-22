@@ -12,6 +12,11 @@ export const getAll = async (page = 1, pageSize = 10): Promise<PagedResponse<Ite
   );
 };
 
+export const getAllSimple = async (): Promise<ItemResponse[]> => {
+  const res = await get<PagedResponse<ItemResponse>>(`/api/items?page=1&pageSize=1000`);
+  return (res as unknown as { items: ItemResponse[] }).items ?? res.items ?? [];
+};
+
 export const create = async (data: CreateItemRequest): Promise<ItemResponse> => {
   return post<ItemResponse>("/api/items", data);
 };

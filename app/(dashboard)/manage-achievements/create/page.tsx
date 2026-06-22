@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { create } from "@/lib/api/achievement";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import ImageUploader from "@/components/ui/ImageUploader";
+import { uploadImageToCloudinary } from "@/lib/api/cloudinary";
 
 const ACHIEVEMENT_TYPES = [
   { value: "Combat", label: "Combat" },
@@ -21,7 +23,7 @@ export default function CreateAchievementPage() {
     name: "",
     description: "",
     type: "Combat",
-    iconUrl: "",
+    iconUrl: "" as string | File | null,
     requiredValue: 1,
     rewardGold: 0,
     rewardGem: 0,
@@ -39,11 +41,19 @@ export default function CreateAchievementPage() {
     try {
       setLoading(true);
       setError(null);
+      let finalIconUrl = formData.iconUrl;
+      if (finalIconUrl instanceof File) {
+        const result = await uploadImageToCloudinary(finalIconUrl);
+        finalIconUrl = result.secureUrl;
+      }
+
+      const iconUrl = typeof finalIconUrl === 'string' && finalIconUrl ? finalIconUrl : undefined;
+
       await create({
         name: formData.name,
         description: formData.description,
         type: formData.type,
-        iconUrl: formData.iconUrl ?? undefined,
+        iconUrl,
         requiredValue: formData.requiredValue,
         rewardGold: formData.rewardGold,
         rewardGem: formData.rewardGem,
@@ -130,18 +140,7 @@ export default function CreateAchievementPage() {
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Icon URL
-              </label>
-              <input
-                type="text"
-                value={formData.iconUrl}
-                onChange={(e) => handleChange("iconUrl", e.target.value)}
-                placeholder="https://example.com/icon.png"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              />
-            </div>
+
 
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
@@ -194,6 +193,14 @@ export default function CreateAchievementPage() {
               placeholder="Enter achievement description"
               rows={3}
               className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors resize-none"
+            />
+          </div>
+
+          <div className="space-y-2 rounded-xl border border-white/10 bg-white/5 p-4">
+            <ImageUploader
+              value={formData.iconUrl}
+              onChange={(url) => handleChange("iconUrl", url)}
+              label="Achievement Icon"
             />
           </div>
 
