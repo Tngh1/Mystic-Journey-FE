@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import apiClient, { normalizeError } from "../api/client";
+import { get, normalizeError } from "../api/client";
 
 export interface PagedResponse<T> {
   totalCount: number;
@@ -21,7 +21,9 @@ export interface UsePagedQueryReturn<T> {
   pageSize: number;
   setPage: (page: number) => void;
   setPageSize: (size: number) => void;
-  setParams: (params: Record<string, string | number | boolean | undefined>) => void;
+  setParams: (
+    params: Record<string, string | number | boolean | undefined>,
+  ) => void;
   refresh: () => void;
 }
 
@@ -52,15 +54,15 @@ export function usePagedQuery<T>({
         pageSize: String(pageSize),
         ...Object.fromEntries(
           Object.entries(params).filter(
-            ([, v]) => v !== undefined && v !== null && v !== ""
-          )
+            ([, v]) => v !== undefined && v !== null && v !== "",
+          ),
         ),
       });
-      const response = await apiClient.get<PagedResponse<T>>(
-        `${endpoint}?${queryParams.toString()}`
+      const response = await get<PagedResponse<T>>(
+        `${endpoint}?${queryParams.toString()}`,
       );
-      setData(response.data.items ?? []);
-      setTotalCount(response.data.totalCount ?? 0);
+      setData(response.items ?? []);
+      setTotalCount(response.totalCount ?? 0);
     } catch (err) {
       setError(normalizeError(err).message);
     } finally {

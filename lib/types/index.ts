@@ -1,4 +1,4 @@
-﻿/* ─── Shared / Common ─────────────────────────────────────────────────────── */
+/* ─── Shared / Common ─────────────────────────────────────────────────────── */
 
 export interface PagedResponse<T> {
   totalCount: number;
@@ -314,12 +314,14 @@ export interface QuestResponse {
   rewardGems: number;
   rewardItemId: number | null;
   rewardItemName: string | null;
+  rewardSkillId: number | null;
+  rewardSkillName: string | null;
   isActive: boolean;
 }
 
 export interface CreateQuestRequest {
   title: string;
-  description?: string;
+  description?: string | null;
   type?: string;
   defaultStatus?: string;
   mapName?: string;
@@ -334,6 +336,7 @@ export interface CreateQuestRequest {
   rewardGold?: number;
   rewardGems?: number;
   rewardItemId?: number | null;
+  rewardSkillId?: number | null;
   isActive?: boolean;
 }
 
@@ -735,4 +738,3 @@ export interface ApiResponse<T> {
   message: string | null;
   data: T;
 }
-
