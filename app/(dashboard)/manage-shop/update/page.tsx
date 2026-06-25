@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getById, update, ShopItemResponse } from "@/lib/api/shop";
 import { getAll as getAllItems, ItemResponse } from "@/lib/api/item";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, ShoppingBag } from "lucide-react";
 
 const CURRENCY_TYPES = [
   { value: "Gold", label: "Gold" },
@@ -82,8 +82,9 @@ export default function EditShopItemPage() {
 
   if (fetching) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-[#ffc032]" />
+      <div className="flex flex-col items-center justify-center py-32 space-y-4">
+        <Loader2 className="w-10 h-10 animate-spin text-[#ffc032]" />
+        <p className="text-gray-400">Loading shop item data...</p>
       </div>
     );
   }
@@ -100,7 +101,7 @@ export default function EditShopItemPage() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-white">Update Shop Item</h1>
+          <h1 className="text-2xl font-bold text-[#ffc032]">Update Shop Item</h1>
           <p className="text-white/50 text-sm">Update shop item details (ID: {shopItemId})</p>
         </div>
       </div>
@@ -111,8 +112,13 @@ export default function EditShopItemPage() {
         </div>
       )}
 
-      <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 space-y-6">
+          <div className="flex items-center gap-2 border-b border-gray-800 pb-3">
+            <ShoppingBag className="w-5 h-5 text-[#ffc032]" />
+            <h2 className="text-lg font-bold text-white">Pricing & Availability</h2>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
@@ -128,7 +134,7 @@ export default function EditShopItemPage() {
                   aria-label="Select item for shop"
                   value={formData.itemId}
                   onChange={(e) => handleChange("itemId", Number(e.target.value))}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+                  className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032] transition-colors"
                   required
                 >
                   {items.map((item) => (
@@ -148,7 +154,7 @@ export default function EditShopItemPage() {
                 aria-label="Select currency type"
                 value={formData.currency}
                 onChange={(e) => handleChange("currency", e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032] transition-colors"
               >
                 {CURRENCY_TYPES.map((type) => (
                   <option key={type.value} value={type.value} className="bg-[#1a1a1a]">
@@ -169,7 +175,7 @@ export default function EditShopItemPage() {
                 onChange={(e) => handleChange("price", Number(e.target.value))}
                 min="0"
                 step="0.01"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
               />
             </div>
 
@@ -183,43 +189,43 @@ export default function EditShopItemPage() {
                 value={formData.stock}
                 onChange={(e) => handleChange("stock", Number(e.target.value))}
                 min="-1"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 pt-2">
             <input
               type="checkbox"
               id="isActive"
               checked={formData.isActive}
               onChange={(e) => handleChange("isActive", e.target.checked)}
-              className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
+              className="w-5 h-5 rounded border-gray-700 bg-[#111] text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
             />
             <label htmlFor="isActive" className="text-sm text-white/70 cursor-pointer">
-              Item is available for purchase
+              Item is available for purchase in shop
             </label>
           </div>
+        </div>
 
-          <div className="flex items-center justify-end gap-3 pt-6 border-t border-white/10">
-            <button
-              type="button"
-              onClick={() => router.push("/manage-shop")}
-              className="px-4 py-2 text-sm font-medium text-white/70 bg-white/5 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-            >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {loading ? "Updating..." : "Update Shop Item"}
-            </button>
-          </div>
-        </form>
-      </div>
+        <div className="flex items-center justify-end gap-3 pt-4">
+          <button
+            type="button"
+            onClick={() => router.push("/manage-shop")}
+            className="px-6 py-2.5 text-sm font-medium text-white/70 bg-[#1a1a1a] border border-gray-800 hover:bg-[#252525] rounded-xl transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-[#111] bg-[#ffc032] hover:bg-[#ffd04c] rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {loading ? "Updating..." : "Update Shop Item"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
