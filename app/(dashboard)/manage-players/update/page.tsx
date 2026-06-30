@@ -7,7 +7,7 @@ import {
   ArrowLeft, Loader2, Save, User, Heart, Sword, ShieldCheck, Zap, Skull,
   Package, RefreshCw, CheckCircle, ChevronRight,
 } from 'lucide-react';
-import { getPlayerProfileAdmin, updatePlayerProfileAdmin, PlayerProfileWithStats } from '@/lib/api/player-profile';
+import { getPlayerProfileAdmin, updatePlayerProfileAdmin, PlayerProfileWithStats } from '@/lib/api/player-profiles';
 import { getInventoryByProfileId } from '@/lib/api/inventory';
 import type { PlayerStatsResponse, InventoryItemResponse, InventorySummaryResponse, PlayerSkinSummaryResponse } from '@/lib/types';
 
@@ -262,7 +262,7 @@ function InventoryTab({ playerProfileId }: { playerProfileId: number }) {
   };
 
   useEffect(() => {
-    loadInventory();
+    void Promise.resolve().then(loadInventory);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playerProfileId]);
 
@@ -734,13 +734,6 @@ export default function EditPlayerPage() {
 
   const [stats, setStats] = useState<PlayerStatsResponse | null>(null);
 
-  useEffect(() => {
-    if (playerId) {
-      fetchPlayer();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playerId]);
-
   const fetchPlayer = async () => {
     if (!playerId) return;
 
@@ -768,6 +761,13 @@ export default function EditPlayerPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (playerId) {
+      void Promise.resolve().then(fetchPlayer);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playerId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;

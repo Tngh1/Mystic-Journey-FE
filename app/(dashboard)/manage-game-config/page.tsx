@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Search, Eye, Edit } from 'lucide-react';
 import { usePagedQuery } from '@/lib/hooks/usePagedQuery';
-import { GameSettingResponse } from '@/lib/api/game';
+import { GameSettingResponse } from '@/lib/api/game-settings';
 
 const CATEGORIES = ['All', 'Player', 'Energy', 'Shop', 'System', 'Events', 'Battle', 'Gacha', 'Social'];
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from "next/navigation";
-import { GachaBannerResponse } from "@/lib/api/gacha";
+import { GachaBannerResponse } from "@/lib/api/gacha-banners";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import apiClient from "@/lib/api/client";
 import { Gem, Search, Plus } from "lucide-react";

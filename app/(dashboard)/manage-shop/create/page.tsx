@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getAll as getAllItems, ItemResponse } from "@/lib/api/item";
-import { create } from "@/lib/api/shop";
+import { getAll as getAllItems, ItemResponse } from "@/lib/api/items";
+import { create } from "@/lib/api/shop-items";
 import { ArrowLeft, Save, Loader2, ShoppingBag } from "lucide-react";
 
 const CURRENCY_TYPES = [

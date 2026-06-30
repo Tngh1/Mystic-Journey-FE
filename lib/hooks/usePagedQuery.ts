@@ -71,7 +71,7 @@ export function usePagedQuery<T>({
   }, [endpoint, page, pageSize, params, refreshKey]);
 
   useEffect(() => {
-    fetchData();
+    void Promise.resolve().then(fetchData);
   }, [fetchData]);
 
   return {

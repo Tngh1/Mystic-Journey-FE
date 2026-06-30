@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { usePagedQuery } from '@/lib/hooks/usePagedQuery';
-import { CategoryResponse } from '@/lib/api/content';
+import { CategoryResponse } from '@/lib/api/contents';
 
 export default function ManageCategoryContentPage() {
   const [searchTerm, setSearchTerm] = useState('');

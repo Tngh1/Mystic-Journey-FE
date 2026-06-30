@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { create } from "@/lib/api/quest";
-import { getAllSimple as getItems } from "@/lib/api/item";
+import { create } from "@/lib/api/quests";
+import { getAllSimple as getItems } from "@/lib/api/items";
 import type { ItemResponse } from "@/lib/types";
 import { ArrowLeft, Save, Loader2, BookOpen, Target, Shield, Gift } from "lucide-react";
 

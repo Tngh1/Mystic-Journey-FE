@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { create } from "@/lib/api/dungeon";
+import { create } from "@/lib/api/dungeons";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 
 export default function CreateDungeonPage() {

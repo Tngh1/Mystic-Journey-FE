@@ -2,11 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getById, update, MonsterResponse } from "@/lib/api/monster";
+import { getById, update, MonsterResponse } from "@/lib/api/monsters";
 import {
-  deleteImageFromCloudinary,
-  extractPublicIdFromCloudinaryUrl,
-  uploadImageToCloudinary,
+  uploadImageWithCleanup,
 } from "@/lib/api/cloudinary";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import ImageUploader from "@/components/ui/ImageUploader";
@@ -76,17 +74,12 @@ export default function EditMonsterPage() {
       setLoading(true);
       setError(null);
 
-      let finalImageUrl = formData.imageUrl;
-      if (finalImageUrl instanceof File) {
-        const result = await uploadImageToCloudinary(finalImageUrl);
+      let finalImageUrl: string | undefined;
+      if (formData.imageUrl instanceof File) {
+        const result = await uploadImageWithCleanup(formData.imageUrl, originalImageUrl);
         finalImageUrl = result.secureUrl;
-      }
-
-      const imageUrl = typeof finalImageUrl === 'string' && finalImageUrl ? finalImageUrl : undefined;
-      const originalPublicId = originalImageUrl ? extractPublicIdFromCloudinaryUrl(originalImageUrl) : null;
-
-      if (imageUrl !== originalImageUrl && originalPublicId) {
-        await deleteImageFromCloudinary(originalPublicId);
+      } else if (typeof formData.imageUrl === 'string' && formData.imageUrl) {
+        finalImageUrl = formData.imageUrl;
       }
 
       await update(Number(monsterId), {
@@ -99,7 +92,7 @@ export default function EditMonsterPage() {
         def: formData.def,
         experienceReward: formData.expReward,
         goldReward: formData.goldReward,
-        imageUrl,
+        imageUrl: finalImageUrl,
       });
       router.push("/manage-monsters");
     } catch (err: unknown) {

@@ -21,9 +21,9 @@ import {
   Check,
   Plus,
 } from "lucide-react";
-import { sendByList, sendBroadcast } from "@/lib/api/mail";
-import type { SendMailByListIdRequest, SendMailToAllRequest } from "@/lib/api/mail";
-import { getAllSimple } from "@/lib/api/item";
+import { sendByList, sendBroadcast } from "@/lib/api/mails";
+import type { SendMailByListIdRequest, SendMailToAllRequest } from "@/lib/api/mails";
+import { getAllSimple } from "@/lib/api/items";
 import type { ItemResponse } from "@/lib/types";
 
 const MAIL_TYPES = [

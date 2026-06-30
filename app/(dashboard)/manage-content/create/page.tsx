@@ -31,7 +31,7 @@ import {
   Quote,
   Plus,
 } from 'lucide-react';
-import { createWithBlocks, getCategories, CategoryResponse } from '@/lib/api/content';
+import { createWithBlocks, getCategories, CategoryResponse } from '@/lib/api/contents';
 import { uploadImageToCloudinary } from '@/lib/api/cloudinary';
 import EditableTextBlock from '@/components/ui/EditableTextBlock';
 import { showConfirmAlert } from '@/lib/utils/swal';

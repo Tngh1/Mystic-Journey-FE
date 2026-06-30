@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { create } from "@/lib/api/item";
+import { create } from "@/lib/api/items";
 import { ArrowLeft, Save, Loader2, Package, Shield, Image as ImageIcon } from "lucide-react";
 import ImageUploader from "@/components/ui/ImageUploader";
 import { uploadImageToCloudinary } from "@/lib/api/cloudinary";

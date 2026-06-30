@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import ProfileSidebar from "@/components/ui/ProfileSidebar";
 import { useAuth } from "@/lib/contexts/AuthContext";
-import { changePassword } from "@/lib/api/account";
+import { changePassword } from "@/lib/api/auth";
 import { showSuccessAlert, showErrorAlert } from "@/lib/utils/swal";
 
 type PasswordField = "currentPassword" | "newPassword" | "confirmPassword";

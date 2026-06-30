@@ -14,7 +14,7 @@ import {
   List,
   ChevronRight,
 } from "lucide-react";
-import { ContentDetailResponse, ContentResponse, getBySlug, getAll } from "@/lib/api/content";
+import { ContentDetailResponse, ContentResponse, getBySlug, getAll } from "@/lib/api/contents";
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Heading extraction utilities

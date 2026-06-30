@@ -3,12 +3,10 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Loader2, Save } from 'lucide-react';
-import { updateCategory, getCategories, CategoryResponse } from '@/lib/api/content';
+import { updateCategory, getCategories, CategoryResponse } from '@/lib/api/contents';
 import ImageUploader from '@/components/ui/ImageUploader';
 import {
-  deleteImageFromCloudinary,
-  extractPublicIdFromCloudinaryUrl,
-  uploadImageToCloudinary,
+  uploadImageWithCleanup,
 } from '@/lib/api/cloudinary';
 
 interface FormData {
@@ -82,24 +80,19 @@ function UpdateCategoryContentContent() {
     try {
       setSubmitting(true);
 
-      let finalIconUrl = formData.iconUrl;
-      if (finalIconUrl instanceof File) {
-        const result = await uploadImageToCloudinary(finalIconUrl);
+      let finalIconUrl: string | undefined;
+      if (formData.iconUrl instanceof File) {
+        const result = await uploadImageWithCleanup(formData.iconUrl, originalIconUrl);
         finalIconUrl = result.secureUrl;
-      }
-
-      const iconUrl = typeof finalIconUrl === 'string' && finalIconUrl ? finalIconUrl : undefined;
-      const originalPublicId = originalIconUrl ? extractPublicIdFromCloudinaryUrl(originalIconUrl) : null;
-
-      if (iconUrl !== originalIconUrl && originalPublicId) {
-        await deleteImageFromCloudinary(originalPublicId);
+      } else if (typeof formData.iconUrl === 'string' && formData.iconUrl) {
+        finalIconUrl = formData.iconUrl;
       }
 
       await updateCategory(category.categoryContentId, {
         name: formData.name,
         slug: formData.slug || undefined,
         description: formData.description || undefined,
-        iconUrl,
+        iconUrl: finalIconUrl,
         isActive: formData.isActive,
       });
       router.push('/manage-category-content');

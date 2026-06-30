@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ShopItemResponse, remove } from "@/lib/api/shop";
+import { ShopItemResponse, remove } from "@/lib/api/shop-items";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import { Search, ShoppingBag, Plus } from "lucide-react";
 import { useState } from "react";

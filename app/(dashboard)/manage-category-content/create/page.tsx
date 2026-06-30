@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Loader2, Save } from 'lucide-react';
-import { createCategory } from '@/lib/api/content';
+import { createCategory } from '@/lib/api/contents';
 import ImageUploader from '@/components/ui/ImageUploader';
 import { uploadImageToCloudinary } from '@/lib/api/cloudinary';
 

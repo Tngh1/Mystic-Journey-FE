@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getById, update, DungeonConfigResponse } from "@/lib/api/dungeon";
+import { getById, update, DungeonConfigResponse } from "@/lib/api/dungeons";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 
 export default function EditDungeonPage() {

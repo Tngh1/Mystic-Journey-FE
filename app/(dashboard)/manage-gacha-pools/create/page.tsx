@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { create } from "@/lib/api/gacha";
+import { create } from "@/lib/api/gacha-banners";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 
 const BANNER_TYPES = [

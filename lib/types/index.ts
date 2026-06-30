@@ -262,6 +262,49 @@ export interface AddMonsterDropRequest {
   isActive?: boolean;
 }
 
+export interface MonsterSpawnResponse {
+  monsterSpawnId: number;
+  monsterId: number;
+  monsterName: string;
+  monsterType: string;
+  mapName: string;
+  regionName?: string;
+  location?: string;
+  spawnCount: number;
+  respawnSeconds: number;
+  dungeonId?: number;
+  dungeonName?: string;
+  isDungeonRepeatable: boolean;
+  isActive: boolean;
+}
+
+export interface CreateMonsterSpawnRequest {
+  monsterId: number;
+  mapName: string;
+  regionName?: string;
+  location?: string;
+  spawnCount?: number;
+  respawnSeconds?: number;
+  dungeonId?: number;
+  isActive?: boolean;
+}
+
+export interface PlayerMonsterCatalogItem {
+  monsterId: number;
+  name: string;
+  type: string;
+  description: string;
+  level: number;
+  maxHp: number;
+  atk: number;
+  def: number;
+  experienceReward: number;
+  goldReward: number;
+  imageUrl?: string;
+  isDiscovered: boolean;
+  timesDefeated: number;
+}
+
 /* ─── Dungeon ────────────────────────────────────────────────────────────── */
 
 export interface DungeonConfigResponse {

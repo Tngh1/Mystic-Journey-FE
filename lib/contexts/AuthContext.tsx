@@ -11,7 +11,7 @@ import {
 import {
   getMe,
   logout as apiLogout,
-} from "@/lib/api/account";
+} from "@/lib/api/auth";
 import {
   login as apiLogin,
   register as apiRegister,

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Package, Search, Plus } from 'lucide-react';
-import { ItemResponse } from "@/lib/api/item";
+import { ItemResponse } from "@/lib/api/items";
 import { usePagedQuery } from '@/lib/hooks/usePagedQuery';
 import apiClient from "@/lib/api/client";
 import AdminTable from "@/components/ui/AdminTable";
