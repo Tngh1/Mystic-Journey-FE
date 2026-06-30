@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpen, Package, Ghost, Castle, Gem, Scroll, Trophy, ChevronRight, Sparkles, Swords, Shield, Star, Map } from "lucide-react";
 
@@ -17,20 +16,15 @@ interface WikiCategory {
 
 export default function WikiPage() {
   const router = useRouter();
-  const [categories, setCategories] = useState<WikiCategory[]>([]);
-
-  useEffect(() => {
-    const wikiCategories: WikiCategory[] = [
-      { id: "maps", name: "Maps", description: "Explore regions, dungeons, and hidden locations across the world", icon: <Map className="w-10 h-10" />, href: "/wiki/maps", color: "text-teal-400", gradient: "from-teal-500/20 to-cyan-500/20", count: 6 },
-      { id: "items", name: "Items", description: "Weapons, armor, accessories, and crafting materials", icon: <Package className="w-10 h-10" />, href: "/wiki/items", color: "text-blue-400", gradient: "from-blue-500/20 to-cyan-500/20", count: 156 },
-      { id: "monsters", name: "Monsters", description: "Enemies, bosses, and creatures of Eldoria", icon: <Ghost className="w-10 h-10" />, href: "/wiki/monsters", color: "text-red-400", gradient: "from-red-500/20 to-orange-500/20", count: 89 },
-      { id: "dungeons", name: "Dungeons", description: "Challenging dungeons and boss encounters", icon: <Castle className="w-10 h-10" />, href: "/wiki/dungeons", color: "text-purple-400", gradient: "from-purple-500/20 to-pink-500/20", count: 24 },
-      { id: "gacha", name: "Gacha", description: "Gacha pools, rates, and featured items", icon: <Gem className="w-10 h-10" />, href: "/wiki/gacha", color: "text-[#ffc032]", gradient: "from-[#ffc032]/20 to-amber-500/20", count: 12 },
-      { id: "quests", name: "Quests", description: "Main story, side quests, and daily tasks", icon: <Scroll className="w-10 h-10" />, href: "/wiki/quests", color: "text-green-400", gradient: "from-green-500/20 to-emerald-500/20", count: 234 },
-      { id: "achievements", name: "Achievements", description: "Trophies, milestones, and rewards", icon: <Trophy className="w-10 h-10" />, href: "/wiki/achievements", color: "text-amber-400", gradient: "from-amber-500/20 to-yellow-500/20", count: 48 },
-    ];
-    setCategories(wikiCategories);
-  }, []);
+  const categories: WikiCategory[] = [
+    { id: "maps", name: "Maps", description: "Explore the Enchanted Forest and discover hidden locations, dungeons, and scenic regions across Mystic Journey", icon: <Map className="w-10 h-10" />, href: "/wiki/maps", color: "text-teal-400", gradient: "from-teal-500/20 to-cyan-500/20", count: 6 },
+    { id: "items", name: "Items", description: "Weapons, armor, accessories, consumables, and crafting materials found in Mystic Journey", icon: <Package className="w-10 h-10" />, href: "/wiki/items", color: "text-blue-400", gradient: "from-blue-500/20 to-cyan-500/20", count: 8 },
+    { id: "monsters", name: "Monsters", description: "Enemies, minibosses, and creatures lurking in the Enchanted Forest and beyond", icon: <Ghost className="w-10 h-10" />, href: "/wiki/monsters", color: "text-red-400", gradient: "from-red-500/20 to-orange-500/20", count: 12 },
+    { id: "dungeons", name: "Dungeons", description: "Challenging dungeons and boss encounters — including the Shadow-infested Forest Core", icon: <Castle className="w-10 h-10" />, href: "/wiki/dungeons", color: "text-purple-400", gradient: "from-purple-500/20 to-pink-500/20", count: 4 },
+    { id: "gacha", name: "Gacha", description: "Gacha pools, drop rates, and featured items available in Mystic Journey", icon: <Gem className="w-10 h-10" />, href: "/wiki/gacha", color: "text-[#ffc032]", gradient: "from-[#ffc032]/20 to-amber-500/20", count: 12 },
+    { id: "quests", name: "Quests", description: "The Chapter 1 main story chain, daily quests, and all adventure tasks in Mystic Journey", icon: <Scroll className="w-10 h-10" />, href: "/wiki/quests", color: "text-green-400", gradient: "from-green-500/20 to-emerald-500/20", count: 8 },
+    { id: "achievements", name: "Achievements", description: "Trophies, milestones, and rewards for your heroic deeds", icon: <Trophy className="w-10 h-10" />, href: "/wiki/achievements", color: "text-amber-400", gradient: "from-amber-500/20 to-yellow-500/20", count: 48 },
+  ];
 
   return (
     <div className="min-h-screen pt-20 pb-12">

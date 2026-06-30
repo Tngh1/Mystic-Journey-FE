@@ -37,12 +37,6 @@ function UpdateCategoryContentContent() {
     isActive: true,
   });
 
-  useEffect(() => {
-    if (categoryId) {
-      fetchCategory();
-    }
-  }, [categoryId]);
-
   const fetchCategory = async () => {
     try {
       setLoading(true);
@@ -66,6 +60,13 @@ function UpdateCategoryContentContent() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (categoryId) {
+      void Promise.resolve().then(fetchCategory);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryId]);
 
   const handleChange = (field: keyof FormData, value: string | boolean | File | null) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

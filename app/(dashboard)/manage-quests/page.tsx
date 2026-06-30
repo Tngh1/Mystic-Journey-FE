@@ -14,6 +14,23 @@ const typeColors: Record<string, string> = {
   Event: "text-orange-400",
 };
 
+const statusColors: Record<string, string> = {
+  NotStarted: "text-gray-400",
+  InProgress: "text-yellow-400",
+  Completed: "text-green-400",
+  Claimed: "text-blue-400",
+  Failed: "text-red-400",
+};
+
+const objectiveColors: Record<string, string> = {
+  Explore: "text-cyan-400",
+  Defeat: "text-red-400",
+  Collect: "text-amber-400",
+  Talk: "text-purple-400",
+  OpenChest: "text-yellow-400",
+  Interact: "text-teal-400",
+};
+
 const columns = [
   { key: "questId", label: "ID" },
   { key: "title", label: "Title" },
@@ -24,13 +41,45 @@ const columns = [
       <span className={`font-semibold ${typeColors[val] || "text-gray-300"}`}>{val}</span>
     ),
   },
-  { key: "requiredLevel", label: "Level" },
+  {
+    key: "defaultStatus",
+    label: "Default Status",
+    render: (val: string) => (
+      <span className={`text-xs font-medium ${statusColors[val] || "text-gray-400"}`}>{val}</span>
+    ),
+  },
+  { key: "mapName", label: "Map" },
+  {
+    key: "objectiveType",
+    label: "Objective",
+    render: (val: string) => (
+      <span className={`text-xs font-semibold ${objectiveColors[val] || "text-gray-300"}`}>{val}</span>
+    ),
+  },
+  { key: "requiredLevel", label: "Lv.Req" },
+  { key: "targetAmount", label: "Target" },
   { key: "rewardExperience", label: "EXP" },
   { key: "rewardGold", label: "Gold" },
   { key: "rewardGems", label: "Gems" },
   {
+    key: "rewardItemName",
+    label: "Reward Item",
+    render: (val: string | null) => (
+      <span className="text-xs text-gray-400">{val ?? "—"}</span>
+    ),
+  },
+  {
+    key: "rewardSkillName",
+    label: "Reward Skill",
+    render: (_val: string | null, row: QuestResponse) => (
+      <span className="text-xs text-gray-400">
+        {row.rewardSkillName ?? (row.rewardSkillId ? `#${row.rewardSkillId}` : "-")}
+      </span>
+    ),
+  },
+  {
     key: "isActive",
-    label: "Status",
+    label: "Active",
     render: (val: boolean) => (
       <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${val ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
         {val ? "Active" : "Inactive"}

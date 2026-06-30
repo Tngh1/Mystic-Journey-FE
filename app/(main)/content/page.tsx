@@ -16,10 +16,6 @@ export default function ContentPage() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -35,6 +31,11 @@ export default function ContentPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    void Promise.resolve().then(fetchData);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filteredContents = selectedCategory
     ? contents.filter((c) => c.categoryId === selectedCategory)

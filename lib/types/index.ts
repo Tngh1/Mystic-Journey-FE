@@ -344,25 +344,42 @@ export interface QuestResponse {
   description: string | null;
   type: string;
   defaultStatus: string;
+  mapName: string;
+  regionName: string | null;
+  objectiveType: string;
+  objectiveTarget: string | null;
+  objectiveLocation: string | null;
+  questGiverName: string | null;
   requiredLevel: number;
+  targetAmount: number;
   rewardExperience: number;
   rewardGold: number;
   rewardGems: number;
   rewardItemId: number | null;
   rewardItemName: string | null;
+  rewardSkillId: number | null;
+  rewardSkillName: string | null;
   isActive: boolean;
 }
 
 export interface CreateQuestRequest {
   title: string;
-  description?: string;
+  description?: string | null;
   type?: string;
   defaultStatus?: string;
+  mapName?: string;
+  regionName?: string | null;
+  objectiveType?: string;
+  objectiveTarget?: string | null;
+  objectiveLocation?: string | null;
+  questGiverName?: string | null;
   requiredLevel?: number;
+  targetAmount?: number;
   rewardExperience?: number;
   rewardGold?: number;
   rewardGems?: number;
   rewardItemId?: number | null;
+  rewardSkillId?: number | null;
   isActive?: boolean;
 }
 
@@ -709,4 +726,58 @@ export interface CreateDailyLoginRewardRequest {
 export interface CloudinaryUploadResult {
   secureUrl: string;
   publicId: string;
+}
+
+/* ─── Inventory ───────────────────────────────────────────────────────────── */
+
+export interface InventoryItemResponse {
+  inventoryItemId: number;
+  playerProfileId: number;
+  itemId: number;
+  itemName: string;
+  itemDescription: string | null;
+  itemType: string;
+  itemRarity: string;
+  iconUrl: string | null;
+  quantity: number;
+  isEquipped: boolean;
+  isSkin: boolean;
+  equippedSlot: string | null;
+  enhancementLevel: number;
+  createdAt: string;
+  baseHp: number;
+  baseAtk: number;
+  baseDef: number;
+  bonusHp: number;
+  bonusAtk: number;
+  bonusDef: number;
+  bonusCritRate: number;
+  bonusCritDamage: number;
+}
+
+export interface PlayerSkinSummaryResponse {
+  playerSkinId: number;
+  skinId: number;
+  skinName: string;
+  skinDescription: string | null;
+  skinType: string;
+  skinRarity: string;
+  iconUrl: string | null;
+  previewUrl: string | null;
+  isEquipped: boolean;
+}
+
+export interface InventorySummaryResponse {
+  totalItems: number;
+  totalSkins: number;
+  equippedItems: InventoryItemResponse[];
+  bagItems: InventoryItemResponse[];
+  bagCapacity: number;
+  playerSkins: PlayerSkinSummaryResponse[];
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string | null;
+  data: T;
 }

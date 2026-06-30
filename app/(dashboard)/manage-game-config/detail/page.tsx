@@ -64,15 +64,6 @@ export default function GameConfigDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!id) {
-      setError("No ID provided");
-      setLoading(false);
-      return;
-    }
-    fetchSetting();
-  }, [id]);
-
   const fetchSetting = async () => {
     try {
       setLoading(true);
@@ -85,6 +76,18 @@ export default function GameConfigDetailPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!id) {
+      void Promise.resolve().then(() => {
+        setError("No ID provided");
+        setLoading(false);
+      });
+      return;
+    }
+    void Promise.resolve().then(fetchSetting);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   if (loading) {
     return (

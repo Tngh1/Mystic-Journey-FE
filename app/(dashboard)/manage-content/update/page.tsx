@@ -294,11 +294,6 @@ function UpdateContentContent() {
     isPublished: false,
   });
 
-  useEffect(() => {
-    if (contentId) fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contentId]);
-
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -329,6 +324,13 @@ function UpdateContentContent() {
       setFetchingCategories(false);
     }
   };
+
+  useEffect(() => {
+    if (contentId) {
+      void Promise.resolve().then(fetchData);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contentId]);
 
   // Stable key for a block: string tempId for new blocks, numeric blockContentId for existing ones
   const getBlockKey = (b: LocalBlock): string => String(b.tempId ?? b.blockContentId);
@@ -730,7 +732,7 @@ function UpdateContentContent() {
               <div className="text-center py-16 text-gray-400 border-2 border-dashed border-gray-700 rounded-lg">
                 <Quote className="w-12 h-12 mx-auto mb-3 text-gray-600" />
                 <p>No blocks added yet.</p>
-                <p className="text-sm mt-1">Click "Add Text" or "Add Image" to create content blocks.</p>
+                <p className="text-sm mt-1">Click &quot;Add Text&quot; or &quot;Add Image&quot; to create content blocks.</p>
               </div>
             ) : (
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>

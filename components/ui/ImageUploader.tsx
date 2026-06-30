@@ -15,15 +15,29 @@ export default function ImageUploader({ value, onChange, label, className = "" }
 
   // Generate object URL for File values to display as preview
   useEffect(() => {
+    let cancelled = false;
+    let objectUrl: string | null = null;
+    let nextPreviewUrl: string | null = null;
+
     if (value instanceof File) {
-      const objectUrl = URL.createObjectURL(value);
-      setPreviewUrl(objectUrl);
-      return () => URL.revokeObjectURL(objectUrl);
+      objectUrl = URL.createObjectURL(value);
+      nextPreviewUrl = objectUrl;
     } else if (typeof value === 'string') {
-      setPreviewUrl(value);
-    } else {
-      setPreviewUrl(null);
+      nextPreviewUrl = value;
     }
+
+    void Promise.resolve().then(() => {
+      if (!cancelled) {
+        setPreviewUrl(nextPreviewUrl);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
   }, [value]);
 
   const handleFileSelect = (files: FileList | null) => {

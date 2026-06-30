@@ -7,7 +7,7 @@ import Button from "./Button";
 
 const MAIN_NAV = [
   { label: "Game Features", href: "#game-features", highlight: true },
-  { label: "Chumbi", href: "#chumbi" },
+  { label: "Classes", href: "#classes" },
   { label: "Gallery", href: "#gallery" },
   { label: "Litepaper", href: "#litepaper" },
   { label: "Whitepaper", href: "#whitepaper" },
@@ -52,11 +52,11 @@ export default function Footer() {
             <div className="mb-8">
               <Link href="/" className="inline-block">
                 <span className="font-black text-2xl tracking-widest text-[#ffc032] uppercase">
-                  chumbi
+                  Mystic
                 </span>
                 <span className="font-black text-2xl tracking-widest text-white uppercase">
                   {" "}
-                  valley
+                  Journey
                 </span>
               </Link>
             </div>

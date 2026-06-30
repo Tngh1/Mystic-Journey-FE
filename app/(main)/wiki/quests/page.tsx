@@ -1,12 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Scroll, Search, ChevronRight, Star, MapPin, Users, Clock, Sword, Shield, Gift, Map } from "lucide-react";
+import { Scroll, Search, Star, MapPin, Clock, Gift, Map, Gem } from "lucide-react";
+import { getAll, type QuestResponse } from "@/lib/api/quests";
+
+type QuestType = "main" | "side" | "daily" | "event";
+type QuestFilterType = "all" | QuestType;
+
+const questTypeKeys: QuestType[] = ["main", "side", "daily", "event"];
+const questFilterTypes: QuestFilterType[] = ["all", ...questTypeKeys];
 
 interface Quest {
   id: number;
   title: string;
-  type: "main" | "side" | "daily" | "event";
+  type: QuestType;
   difficulty: string;
   level: number;
   description: string;
@@ -14,6 +21,7 @@ interface Quest {
   rewards: {
     exp: number;
     gold: number;
+    gems: number;
     items: string[];
   };
   location: string;
@@ -27,30 +35,126 @@ const questTypeColors = {
   event: { bg: "bg-purple-500/20", text: "text-purple-400", border: "border-purple-500/30", label: "Event" },
 };
 
+function normalizeQuestType(type?: string | null): QuestType {
+  const normalized = type?.trim().toLowerCase();
+  return questTypeKeys.includes(normalized as QuestType) ? (normalized as QuestType) : "main";
+}
+
+function compact(values: Array<string | null | undefined>) {
+  return values.filter((value): value is string => Boolean(value && value.trim()));
+}
+
+function objectiveLabel(quest: QuestResponse) {
+  const type = quest.objectiveType.toLowerCase();
+  const target = quest.objectiveTarget?.trim();
+  const amount = Math.max(1, quest.targetAmount || 1);
+
+  if (type === "talk") return `Talk to ${target || quest.questGiverName || "quest giver"}`;
+  if (type === "collect") return `Collect ${amount} ${target || "quest item"}`;
+  if (type === "defeat") return `Defeat ${amount} ${target || "enemy"}`;
+  if (type === "equipskill") return `Equip ${target || "a skill"}`;
+  if (type === "openchest") return `Open ${target || "a chest"}`;
+  if (type === "interact") return `Interact with ${target || "the objective"}`;
+  if (type === "explore") return `Explore ${target || quest.objectiveLocation || quest.regionName || quest.mapName}`;
+
+  return target ? `${quest.objectiveType}: ${target}` : quest.objectiveType;
+}
+
+function buildObjectives(quest: QuestResponse) {
+  const type = quest.objectiveType.toLowerCase();
+  const location = quest.objectiveLocation?.trim();
+  const giver = quest.questGiverName?.trim();
+  const objectives = compact([
+    location && type !== "talk" ? `Go to ${location}` : null,
+    objectiveLabel(quest),
+    giver && type !== "talk" ? `Report to ${giver}` : null,
+  ]);
+
+  return [...new Set(objectives)].length > 0 ? [...new Set(objectives)] : ["Complete the quest objective"];
+}
+
+function getDifficulty(quest: QuestResponse) {
+  const title = quest.title.toLowerCase();
+  const objectiveType = quest.objectiveType.toLowerCase();
+  if (title.includes("boss") || title.includes("king") || quest.requiredLevel >= 5) return "Hard";
+  if (objectiveType === "defeat" || quest.requiredLevel >= 3) return "Normal";
+  return "Easy";
+}
+
+function getDuration(quest: QuestResponse) {
+  const objectiveType = quest.objectiveType.toLowerCase();
+  const title = quest.title.toLowerCase();
+  if (normalizeQuestType(quest.type) === "daily") return "Daily";
+  if (objectiveType === "defeat" && (title.includes("boss") || title.includes("king"))) return "Boss";
+  if (objectiveType === "defeat") return "Combat";
+  if (objectiveType === "collect") return "Explore";
+  if (objectiveType === "talk") return "Story";
+  return "Adventure";
+}
+
+function mapApiQuest(quest: QuestResponse): Quest {
+  return {
+    id: quest.questId,
+    title: quest.title,
+    type: normalizeQuestType(quest.type),
+    difficulty: getDifficulty(quest),
+    level: quest.requiredLevel,
+    description: quest.description || "No quest description available.",
+    objectives: buildObjectives(quest),
+    rewards: {
+      exp: quest.rewardExperience,
+      gold: quest.rewardGold,
+      gems: quest.rewardGems,
+      items: compact([quest.rewardItemName, quest.rewardSkillName]),
+    },
+    location: quest.objectiveLocation || quest.regionName || quest.mapName,
+    duration: getDuration(quest),
+  };
+}
+
+function filterButtonClass(type: QuestFilterType, selectedType: QuestFilterType) {
+  if (selectedType !== type) {
+    return "bg-white/5 text-white/70 hover:bg-white/10 border border-white/10";
+  }
+
+  if (type === "all") {
+    return "bg-white/20 text-white";
+  }
+
+  return `${questTypeColors[type].bg} ${questTypeColors[type].text}`;
+}
+
 export default function WikiQuestsPage() {
   const [quests, setQuests] = useState<Quest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedType, setSelectedType] = useState<string>("all");
+  const [selectedType, setSelectedType] = useState<QuestFilterType>("all");
 
   useEffect(() => {
-    const mockQuests: Quest[] = [
-      { id: 1, title: "The Beginning", type: "main", difficulty: "Easy", level: 1, description: "Meet the Village Elder and begin your journey in Eldoria.", objectives: ["Talk to the Village Elder", "Visit the Training Arena"], rewards: { exp: 100, gold: 50, items: ["Wooden Sword", "Starter Armor"] }, location: "Dawnhaven Village", duration: "5 min" },
-      { id: 2, title: "Herb Collection", type: "main", difficulty: "Easy", level: 3, description: "Gather healing herbs from the nearby forest for the village healer.", objectives: ["Collect 5 Healing Herbs", "Return to the Healer"], rewards: { exp: 150, gold: 80, items: ["Health Potion x3"] }, location: "Forest Path", duration: "10 min" },
-      { id: 3, title: "Monster Infestation", type: "main", difficulty: "Normal", level: 5, description: "Clear the goblin camp that has been threatening the village outskirts.", objectives: ["Find the Goblin Camp", "Defeat 10 Goblins", "Defeat Goblin Chief"], rewards: { exp: 500, gold: 200, items: ["Goblin Ear x10", "Iron Dagger"] }, location: "Goblin Cave", duration: "20 min" },
-      { id: 4, title: "Missing Merchant", type: "side", difficulty: "Normal", level: 8, description: "Help find the missing merchant who disappeared on the trade route.", objectives: ["Search the Trade Route", "Investigate the Abandoned Cart", "Defeat the Bandits", "Return the Goods"], rewards: { exp: 400, gold: 300, items: ["Merchant's Badge"] }, location: "Trade Route", duration: "25 min" },
-      { id: 5, title: "Daily Bounties", type: "daily", difficulty: "Easy", level: 5, description: "Complete daily bounties for extra rewards. Resets at midnight.", objectives: ["Defeat 5 Forest Wolves", "Collect 10 Wolf Pelts"], rewards: { exp: 200, gold: 100, items: ["Gold x50"] }, location: "Dark Forest", duration: "15 min" },
-      { id: 6, title: "Dragon Hunt", type: "main", difficulty: "Hard", level: 45, description: "Join the dragon hunting expedition and face the Fire Dragon.", objectives: ["Speak to the Guild Master", "Prepare Equipment", "Travel to Volcano Summit", "Defeat Fire Dragon"], rewards: { exp: 5000, gold: 2000, items: ["Dragon Scale x5", "Legendary Weapon Choice"] }, location: "Guild Hall", duration: "45 min" },
-      { id: 7, title: "Summer Festival Quest", type: "event", difficulty: "Easy", level: 10, description: "Participate in the Summer Festival activities and collect festival tokens.", objectives: ["Collect 20 Festival Tokens", "Complete 3 Mini-games", "Exchange Tokens for Rewards"], rewards: { exp: 1000, gold: 500, items: ["Summer Outfit", "Festival Title"] }, location: "Festival Grounds", duration: "30 min" },
-      { id: 8, title: "Crystal Guardian", type: "main", difficulty: "Hard", level: 35, description: "Enter the Crystal Caverns and defeat the ancient Crystal Guardian.", objectives: ["Enter Crystal Caverns", "Navigate the Crystal Maze", "Defeat Crystal Guardian"], rewards: { exp: 3000, gold: 1500, items: ["Crystal Shard", "Guardian Fragment"] }, location: "Crystal Caverns", duration: "35 min" },
-      { id: 9, title: "Guild Contribution", type: "daily", difficulty: "Easy", level: 15, description: "Contribute to your guild by completing daily tasks.", objectives: ["Donate 100 Gold to Guild", "Complete 1 Dungeon", "Help 1 Guild Member"], rewards: { exp: 300, gold: 100, items: ["Guild Points x50"] }, location: "Guild Hall", duration: "20 min" },
-      { id: 10, title: "Ancient Ruins", type: "side", difficulty: "Expert", level: 40, description: "Explore the ancient ruins and uncover the secrets within.", objectives: ["Enter Ancient Ruins", "Solve 3 Puzzles", "Defeat the Ruins Guardian", "Claim the Treasure"], rewards: { exp: 2500, gold: 1000, items: ["Ancient Artifact", "Epic Equipment"] }, location: "Ancient Ruins", duration: "40 min" },
-    ];
+    let mounted = true;
 
-    setTimeout(() => {
-      setQuests(mockQuests);
-      setLoading(false);
-    }, 300);
+    async function loadQuests() {
+      try {
+        const response = await getAll(1, 1000);
+        if (!mounted) return;
+        const apiQuests = response.items
+          .filter((quest) => quest.isActive)
+          .sort((a, b) => a.requiredLevel - b.requiredLevel || a.questId - b.questId)
+          .map(mapApiQuest);
+        setQuests(apiQuests);
+      } catch (err) {
+        if (!mounted) return;
+        setError(err instanceof Error ? err.message : "Failed to load quests.");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+
+    loadQuests();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const filteredQuests = quests.filter((quest) => {
@@ -64,6 +168,16 @@ export default function WikiQuestsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center pt-20">
         <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-[#ffc032]"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 pt-20 px-4 text-center">
+        <Scroll className="w-16 h-16 text-white/20" />
+        <h1 className="text-2xl font-bold text-white">Unable to load quests</h1>
+        <p className="max-w-xl text-white/50">{error}</p>
       </div>
     );
   }
@@ -99,17 +213,13 @@ export default function WikiQuestsPage() {
               />
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              {["all", "main", "side", "daily", "event"].map((type) => (
+              {questFilterTypes.map((type) => (
                 <button
                   key={type}
                   onClick={() => setSelectedType(type)}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer capitalize ${
-                    selectedType === type
-                      ? questTypeColors[type as keyof typeof questTypeColors]?.bg + " " + questTypeColors[type as keyof typeof questTypeColors]?.text
-                      : "bg-white/5 text-white/70 hover:bg-white/10 border border-white/10"
-                  }`}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer capitalize ${filterButtonClass(type, selectedType)}`}
                 >
-                  {type === "all" ? "All" : questTypeColors[type as keyof typeof questTypeColors]?.label}
+                  {type === "all" ? "All" : questTypeColors[type].label}
                 </button>
               ))}
             </div>
@@ -184,6 +294,12 @@ export default function WikiQuestsPage() {
                       <Gift className="w-4 h-4 text-[#ffc032]" />
                       <span className="text-sm text-white/70">{quest.rewards.gold.toLocaleString()} Gold</span>
                     </div>
+                    {quest.rewards.gems > 0 && (
+                      <div className="flex items-center gap-2">
+                        <Gem className="w-4 h-4 text-cyan-300" />
+                        <span className="text-sm text-white/70">{quest.rewards.gems.toLocaleString()} Gems</span>
+                      </div>
+                    )}
                     {quest.rewards.items.map((item, idx) => (
                       <div key={idx} className="flex items-center gap-2">
                         <div className="w-4 h-4 rounded bg-[#ffc032]/20 flex items-center justify-center">

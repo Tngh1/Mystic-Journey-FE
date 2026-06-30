@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { getAll as getAllItems, ItemResponse } from "@/lib/api/items";
 import { create } from "@/lib/api/shop-items";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, ShoppingBag } from "lucide-react";
 
 const CURRENCY_TYPES = [
   { value: "Gold", label: "Gold" },
@@ -23,6 +23,9 @@ export default function CreateShopItemPage() {
     currency: "Gold",
     price: 0,
     stock: -1,
+    dailyPurchaseLimit: 0,
+    availableFrom: "",
+    availableTo: "",
     isActive: true,
   });
 
@@ -47,7 +50,10 @@ export default function CreateShopItemPage() {
         currency: formData.currency,
         price: formData.price,
         stock: formData.stock,
+        dailyPurchaseLimit: formData.dailyPurchaseLimit,
         isActive: formData.isActive,
+        ...(formData.availableFrom ? { availableFrom: new Date(formData.availableFrom).toISOString() } : {}),
+        ...(formData.availableTo ? { availableTo: new Date(formData.availableTo).toISOString() } : {}),
       });
       router.push("/manage-shop");
     } catch (err: unknown) {
@@ -69,7 +75,7 @@ export default function CreateShopItemPage() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-white">Create Shop Item</h1>
+          <h1 className="text-2xl font-bold text-[#ffc032]">Create Shop Item</h1>
           <p className="text-white/50 text-sm">Add a new item to the shop</p>
         </div>
       </div>
@@ -80,8 +86,13 @@ export default function CreateShopItemPage() {
         </div>
       )}
 
-      <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 space-y-6">
+          <div className="flex items-center gap-2 border-b border-gray-800 pb-3">
+            <ShoppingBag className="w-5 h-5 text-[#ffc032]" />
+            <h2 className="text-lg font-bold text-white">Pricing & Availability</h2>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/80">
@@ -97,7 +108,7 @@ export default function CreateShopItemPage() {
                   aria-label="Select item for shop"
                   value={formData.itemId}
                   onChange={(e) => handleChange("itemId", Number(e.target.value))}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+                  className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032] transition-colors"
                   required
                 >
                   <option value={0} className="bg-[#1a1a1a]">Select an item</option>
@@ -118,7 +129,7 @@ export default function CreateShopItemPage() {
                 aria-label="Select currency type"
                 value={formData.currency}
                 onChange={(e) => handleChange("currency", e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032] transition-colors"
               >
                 {CURRENCY_TYPES.map((type) => (
                   <option key={type.value} value={type.value} className="bg-[#1a1a1a]">
@@ -139,7 +150,7 @@ export default function CreateShopItemPage() {
                 onChange={(e) => handleChange("price", Number(e.target.value))}
                 min="0"
                 step="0.01"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
                 required
               />
             </div>
@@ -154,43 +165,79 @@ export default function CreateShopItemPage() {
                 value={formData.stock}
                 onChange={(e) => handleChange("stock", Number(e.target.value))}
                 min="-1"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">
+                Daily Purchase Limit
+              </label>
+              <input
+                aria-label="Enter daily purchase limit"
+                type="number"
+                value={formData.dailyPurchaseLimit}
+                onChange={(e) => handleChange("dailyPurchaseLimit", Number(e.target.value))}
+                min="0"
+                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">Available From</label>
+              <input
+                aria-label="Enter available from date"
+                type="datetime-local"
+                value={formData.availableFrom}
+                onChange={(e) => handleChange("availableFrom", e.target.value)}
+                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">Available To</label>
+              <input
+                aria-label="Enter available to date"
+                type="datetime-local"
+                value={formData.availableTo}
+                onChange={(e) => handleChange("availableTo", e.target.value)}
+                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 pt-2">
             <input
               type="checkbox"
               id="isActive"
               checked={formData.isActive}
               onChange={(e) => handleChange("isActive", e.target.checked)}
-              className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
+              className="w-5 h-5 rounded border-gray-700 bg-[#111] text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
             />
             <label htmlFor="isActive" className="text-sm text-white/70 cursor-pointer">
-              Item is available for purchase
+              Item is available for purchase in shop
             </label>
           </div>
+        </div>
 
-          <div className="flex items-center justify-end gap-3 pt-6 border-t border-white/10">
-            <button
-              type="button"
-              onClick={() => router.push("/manage-shop")}
-              className="px-4 py-2 text-sm font-medium text-white/70 bg-white/5 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-            >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {loading ? "Creating..." : "Create Shop Item"}
-            </button>
-          </div>
-        </form>
-      </div>
+        <div className="flex items-center justify-end gap-3 pt-4">
+          <button
+            type="button"
+            onClick={() => router.push("/manage-shop")}
+            className="px-6 py-2.5 text-sm font-medium text-white/70 bg-[#1a1a1a] border border-gray-800 hover:bg-[#252525] rounded-xl transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-[#111] bg-[#ffc032] hover:bg-[#ffd04c] rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {loading ? "Creating..." : "Create Shop Item"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

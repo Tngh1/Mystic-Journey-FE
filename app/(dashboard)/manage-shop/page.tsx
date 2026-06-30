@@ -1,10 +1,17 @@
-'use client';
+"use client";
 
 import { useRouter } from "next/navigation";
-import { ShopItemResponse } from "@/lib/api/shop-items";
+import { ShopItemResponse, remove } from "@/lib/api/shop-items";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import { Search, ShoppingBag, Plus } from "lucide-react";
 import { useState } from "react";
+import AdminTable from "@/components/ui/AdminTable";
+
+const currencyColors: Record<string, string> = {
+  Gold: "text-yellow-400",
+  Gems: "text-blue-400",
+  USD: "text-green-400",
+};
 
 export default function ManageShopPage() {
   const router = useRouter();
@@ -31,11 +38,64 @@ export default function ManageShopPage() {
     },
   });
 
-  const currencyColors: Record<string, string> = {
-    Gold: "text-yellow-400",
-    Gems: "text-blue-400",
-    USD: "text-green-400",
+  const handleDelete = async (item: ShopItemResponse) => {
+    if (!confirm(`Are you sure you want to delete "${item.itemName}" from the shop?`)) return;
+    try {
+      await remove(item.shopItemId);
+      refresh();
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to delete shop item");
+    }
   };
+
+  const columns = [
+    { key: "shopItemId", label: "ID" },
+    {
+      key: "itemName",
+      label: "Item Name",
+      render: (val: string, item: ShopItemResponse) => (
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden shrink-0">
+            {item.itemIconUrl ? (
+              <img src={item.itemIconUrl} alt={val} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-sm">📦</span>
+            )}
+          </div>
+          <span className="font-medium text-white">{val}</span>
+        </div>
+      )
+    },
+    {
+      key: "price",
+      label: "Price",
+      render: (val: number) => <span className="text-yellow-400 font-semibold">{val.toLocaleString()}</span>
+    },
+    {
+      key: "currency",
+      label: "Currency",
+      render: (val: string) => <span className={`font-semibold ${currencyColors[val] || "text-gray-300"}`}>{val}</span>
+    },
+    {
+      key: "stock",
+      label: "Stock",
+      render: (val: number) => val === -1 ? <span className="text-green-400 font-medium">Unlimited</span> : val.toLocaleString()
+    },
+    {
+      key: "dailyPurchaseLimit",
+      label: "Daily Limit",
+      render: (val: number) => val === 0 ? <span className="text-gray-400">None</span> : val.toLocaleString()
+    },
+    {
+      key: "isActive",
+      label: "Status",
+      render: (val: boolean) => (
+        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${val ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
+          {val ? "Active" : "Inactive"}
+        </span>
+      )
+    }
+  ];
 
   return (
     <div className="space-y-6">
@@ -105,90 +165,17 @@ export default function ManageShopPage() {
         </div>
       )}
 
-      <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-gray-800">
-                <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
-                <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Item Name</th>
-                <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Price</th>
-                <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Currency</th>
-                <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Stock</th>
-                <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading && shopItems.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-5 py-12 text-center">
-                    <div className="w-8 h-8 border-2 border-[#ffc032] border-t-transparent rounded-full animate-spin mx-auto" />
-                  </td>
-                </tr>
-              ) : shopItems.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-5 py-12 text-center text-gray-500">No shop items found</td>
-                </tr>
-              ) : (
-                shopItems.map((item) => (
-                  <tr key={item.shopItemId} className="border-b border-gray-800/50 hover:bg-[#1e1e1e] transition-colors group">
-                    <td className="px-5 py-3.5 text-sm text-gray-400 font-mono">{item.shopItemId}</td>
-                    <td className="px-5 py-3.5 text-sm text-white font-medium">{item.itemName}</td>
-                    <td className="px-5 py-3.5 text-sm text-yellow-400">{item.price}</td>
-                    <td className="px-5 py-3.5">
-                      <span className={`font-semibold ${currencyColors[item.currency] || "text-gray-300"}`}>{item.currency}</span>
-                    </td>
-                    <td className="px-5 py-3.5 text-sm text-gray-300">
-                      {item.stock === -1 ? <span className="text-green-400">Unlimited</span> : item.stock}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${item.isActive ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
-                        {item.isActive ? "Active" : "Inactive"}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 text-right">
-                      <button
-                        onClick={() => router.push(`/manage-shop/update?id=${item.shopItemId}`)}
-                        className="px-3 py-1.5 bg-[#ffc032] text-[#111] rounded-lg hover:bg-[#ffd04c] transition-colors text-xs font-semibold"
-                      >
-                        Update
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {totalCount > 0 && (
-          <div className="px-5 py-3.5 border-t border-gray-800 flex items-center justify-between">
-            <div className="text-xs text-gray-500">Total: {totalCount.toLocaleString()}</div>
-            <div className="flex items-center gap-1.5">
-              <button
-                aria-label="Previous page"
-                onClick={() => setPage(page - 1)}
-                disabled={page === 1}
-                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                ←
-              </button>
-              <span className="px-2 py-1 text-xs text-white">
-                {page} / {Math.max(1, Math.ceil(totalCount / pageSize))}
-              </span>
-              <button
-                aria-label="Next page"
-                onClick={() => setPage(page + 1)}
-                disabled={page >= Math.ceil(totalCount / pageSize)}
-                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                →
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+      <AdminTable
+        title={`Total Shop Items: ${totalCount.toLocaleString()}`}
+        columns={columns}
+        data={shopItems}
+        loading={loading}
+        serverSide
+        pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
+        onUpdate={(item) => router.push(`/manage-shop/update?id=${item.shopItemId}`)}
+        onDelete={handleDelete}
+        idField="shopItemId"
+      />
     </div>
   );
 }

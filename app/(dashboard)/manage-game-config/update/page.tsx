@@ -35,15 +35,6 @@ export default function EditGameConfigPage() {
     isActive: true,
   });
 
-  useEffect(() => {
-    if (!id) {
-      setError("No ID provided");
-      setFetching(false);
-      return;
-    }
-    fetchSetting();
-  }, [id]);
-
   const fetchSetting = async () => {
     try {
       setFetching(true);
@@ -63,6 +54,18 @@ export default function EditGameConfigPage() {
       setFetching(false);
     }
   };
+
+  useEffect(() => {
+    if (!id) {
+      void Promise.resolve().then(() => {
+        setError("No ID provided");
+        setFetching(false);
+      });
+      return;
+    }
+    void Promise.resolve().then(fetchSetting);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
