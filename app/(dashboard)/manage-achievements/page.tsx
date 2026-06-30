@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from "next/navigation";
-import { AchievementResponse } from "@/lib/api/achievement";
+import { AchievementResponse } from "@/lib/api/achievements";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import apiClient from "@/lib/api/client";
 import { Trophy, Search, Plus } from "lucide-react";

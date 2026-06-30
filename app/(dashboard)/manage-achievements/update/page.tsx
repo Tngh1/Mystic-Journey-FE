@@ -2,13 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getById, update, AchievementResponse } from "@/lib/api/achievement";
+import { getById, update, AchievementResponse } from "@/lib/api/achievements";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import ImageUploader from "@/components/ui/ImageUploader";
 import {
-  deleteImageFromCloudinary,
-  extractPublicIdFromCloudinaryUrl,
-  uploadImageToCloudinary,
+  uploadImageWithCleanup,
 } from "@/lib/api/cloudinary";
 
 const ACHIEVEMENT_TYPES = [
@@ -76,24 +74,19 @@ export default function EditAchievementPage() {
       setLoading(true);
       setError(null);
 
-      let finalIconUrl = formData.iconUrl;
-      if (finalIconUrl instanceof File) {
-        const result = await uploadImageToCloudinary(finalIconUrl);
+      let finalIconUrl: string | undefined;
+      if (formData.iconUrl instanceof File) {
+        const result = await uploadImageWithCleanup(formData.iconUrl, originalIconUrl);
         finalIconUrl = result.secureUrl;
-      }
-
-      const iconUrl = typeof finalIconUrl === 'string' && finalIconUrl ? finalIconUrl : undefined;
-      const originalPublicId = originalIconUrl ? extractPublicIdFromCloudinaryUrl(originalIconUrl) : null;
-
-      if (iconUrl !== originalIconUrl && originalPublicId) {
-        await deleteImageFromCloudinary(originalPublicId);
+      } else if (typeof formData.iconUrl === 'string' && formData.iconUrl) {
+        finalIconUrl = formData.iconUrl;
       }
 
       await update(Number(achievementId), {
         name: formData.name,
         description: formData.description,
         type: formData.type,
-        iconUrl: iconUrl || null,
+        iconUrl: finalIconUrl || null,
         requiredValue: formData.requiredValue,
         rewardGold: formData.rewardGold,
         rewardGem: formData.rewardGem,

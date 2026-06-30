@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Search, Loader2, User, Ban, CheckCircle } from 'lucide-react';
-import { PlayerProfileResponse } from '@/lib/api/player-profile';
-import { banPlayer, unbanPlayer } from '@/lib/api/account';
+import { PlayerProfileResponse } from '@/lib/api/player-profiles';
+import { banPlayer, unbanPlayer } from '@/lib/api/admin-accounts';
 import { usePagedQuery } from '@/lib/hooks/usePagedQuery';
 import { showSuccessAlert, showErrorAlert } from '@/lib/utils/swal';
 

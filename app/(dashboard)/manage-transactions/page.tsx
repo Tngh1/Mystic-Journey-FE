@@ -1,6 +1,6 @@
 "use client";
 
-import { PurchaseHistoryResponse } from "@/lib/api/purchase";
+import { PurchaseHistoryResponse } from "@/lib/api/purchase-histories";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import { CreditCard, Search } from "lucide-react";
 import AdminTable from "@/components/ui/AdminTable";

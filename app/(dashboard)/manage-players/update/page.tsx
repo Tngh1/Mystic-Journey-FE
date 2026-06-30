@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Loader2, Save, Shield, User, Heart, Sword, ShieldCheck, Zap, Skull } from 'lucide-react';
-import { getPlayerProfileAdmin, updatePlayerProfileAdmin, PlayerProfileWithStats } from '@/lib/api/player-profile';
+import { getPlayerProfileAdmin, updatePlayerProfileAdmin, PlayerProfileWithStats } from '@/lib/api/player-profiles';
 import type { PlayerStatsResponse } from '@/lib/types';
 
 const classColors: Record<string, string> = {

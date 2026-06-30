@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { create } from "@/lib/api/monster";
+import { create } from "@/lib/api/monsters";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import ImageUploader from "@/components/ui/ImageUploader";
 import { uploadImageToCloudinary } from "@/lib/api/cloudinary";

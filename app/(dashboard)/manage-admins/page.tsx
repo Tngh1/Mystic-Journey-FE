@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Plus, Shield } from 'lucide-react';
-import { AccountAdminResponse } from '@/lib/api/admin-account';
+import { AccountAdminResponse } from '@/lib/api/admin-accounts';
 import { usePagedQuery } from '@/lib/hooks/usePagedQuery';
 import { useState } from 'react';
 import apiClient from '@/lib/api/client';
