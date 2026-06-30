@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getById, update, GachaBannerDetailResponse } from "@/lib/api/gacha";
+import { getById, update, GachaBannerDetailResponse } from "@/lib/api/gacha-banners";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 
 const BANNER_TYPES = [

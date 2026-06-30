@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Loader2, Edit, Calendar, User, Tag, CheckCircle, XCircle } from "lucide-react";
-import { getSettingByKey, GameSettingResponse } from "@/lib/api/game";
+import { getSettingByKey, GameSettingResponse } from "@/lib/api/game-settings";
 
 const getTypeFromKey = (key: string): string => {
   const lowerKey = key.toLowerCase();

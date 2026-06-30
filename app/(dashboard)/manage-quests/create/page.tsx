@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { create } from "@/lib/api/quest";
-import { getAllSimple as getItems } from "@/lib/api/item";
-import type { ItemResponse } from "@/lib/types";
+import { create } from "@/lib/api/quests";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 
 const QUEST_TYPES = [
@@ -15,79 +13,28 @@ const QUEST_TYPES = [
 ];
 
 const DEFAULT_STATUSES = [
-  { value: "NotStarted", label: "Not Started" },
-  { value: "InProgress", label: "In Progress" },
-  { value: "Completed", label: "Completed" },
-  { value: "Claimed", label: "Claimed" },
-  { value: "Failed", label: "Failed" },
+  { value: "Available", label: "Available" },
+  { value: "Locked", label: "Locked" },
 ];
-
-const OBJECTIVE_TYPES = [
-  { value: "Explore", label: "Explore" },
-  { value: "Defeat", label: "Defeat" },
-  { value: "Collect", label: "Collect" },
-  { value: "Talk", label: "Talk" },
-  { value: "OpenChest", label: "Open Chest" },
-  { value: "Interact", label: "Interact" },
-];
-
-type FormData = {
-  title: string;
-  description: string;
-  type: string;
-  defaultStatus: string;
-  mapName: string;
-  regionName: string;
-  objectiveType: string;
-  objectiveTarget: string;
-  objectiveLocation: string;
-  questGiverName: string;
-  requiredLevel: number;
-  targetAmount: number;
-  rewardExperience: number;
-  rewardGold: number;
-  rewardGems: number;
-  rewardItemId: number | null;
-  rewardSkillId: number | null;
-  isActive: boolean;
-};
 
 export default function CreateQuestPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [itemOptions, setItemOptions] = useState<ItemResponse[]>([]);
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState({
     title: "",
     description: "",
     type: "Main",
-    defaultStatus: "NotStarted",
-    mapName: "ElfForest",
-    regionName: "",
-    objectiveType: "Explore",
-    objectiveTarget: "",
-    objectiveLocation: "",
-    questGiverName: "",
+    defaultStatus: "Available",
     requiredLevel: 1,
-    targetAmount: 1,
     rewardExperience: 0,
     rewardGold: 0,
     rewardGems: 0,
     rewardItemId: null as number | null,
-    rewardSkillId: null as number | null,
     isActive: true,
   });
 
-
-  useEffect(() => {
-    getItems()
-      .then(setItemOptions)
-      .catch(() => setItemOptions([]));
-  }, []);
-  const handleChange = <K extends keyof FormData>(
-    field: K,
-    value: FormData[K],
-  ) => {
+  const handleChange = (field: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -98,22 +45,14 @@ export default function CreateQuestPage() {
       setError(null);
       await create({
         title: formData.title,
-        description: formData.description.trim() || null,
+        description: formData.description,
         type: formData.type,
         defaultStatus: formData.defaultStatus,
-        mapName: formData.mapName.trim() || "ElfForest",
-        regionName: formData.regionName.trim() || null,
-        objectiveType: formData.objectiveType,
-        objectiveTarget: formData.objectiveTarget.trim() || null,
-        objectiveLocation: formData.objectiveLocation.trim() || null,
-        questGiverName: formData.questGiverName.trim() || null,
         requiredLevel: formData.requiredLevel,
-        targetAmount: Math.max(1, formData.targetAmount),
         rewardExperience: formData.rewardExperience,
         rewardGold: formData.rewardGold,
         rewardGems: formData.rewardGems,
         rewardItemId: formData.rewardItemId,
-        rewardSkillId: formData.rewardSkillId,
         isActive: formData.isActive,
       });
       router.push("/manage-quests");
@@ -172,15 +111,9 @@ export default function CreateQuestPage() {
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
                 required
               >
-                <option value="" className="bg-[#1a1a1a]">
-                  Select Quest Type
-                </option>
+                <option value="" className="bg-[#1a1a1a]">Select Quest Type</option>
                 {QUEST_TYPES.map((type) => (
-                  <option
-                    key={type.value}
-                    value={type.value}
-                    className="bg-[#1a1a1a]"
-                  >
+                  <option key={type.value} value={type.value} className="bg-[#1a1a1a]">
                     {type.label}
                   </option>
                 ))}
@@ -197,107 +130,11 @@ export default function CreateQuestPage() {
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
               >
                 {DEFAULT_STATUSES.map((status) => (
-                  <option
-                    key={status.value}
-                    value={status.value}
-                    className="bg-[#1a1a1a]"
-                  >
+                  <option key={status.value} value={status.value} className="bg-[#1a1a1a]">
                     {status.label}
                   </option>
                 ))}
               </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Map Name <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.mapName}
-                onChange={(e) => handleChange("mapName", e.target.value)}
-                placeholder="ElfForest"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Region Name
-              </label>
-              <input
-                type="text"
-                value={formData.regionName}
-                onChange={(e) => handleChange("regionName", e.target.value)}
-                placeholder="Forest Entrance"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Objective Type <span className="text-red-400">*</span>
-              </label>
-              <select
-                value={formData.objectiveType}
-                onChange={(e) => handleChange("objectiveType", e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
-              >
-                {OBJECTIVE_TYPES.map((objective) => (
-                  <option
-                    key={objective.value}
-                    value={objective.value}
-                    className="bg-[#1a1a1a]"
-                  >
-                    {objective.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Objective Target
-              </label>
-              <input
-                type="text"
-                value={formData.objectiveTarget}
-                onChange={(e) =>
-                  handleChange("objectiveTarget", e.target.value)
-                }
-                placeholder="Boss name, chest key, NPC name"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Objective Location
-              </label>
-              <input
-                type="text"
-                value={formData.objectiveLocation}
-                onChange={(e) =>
-                  handleChange("objectiveLocation", e.target.value)
-                }
-                placeholder="x,y or area name"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Quest Giver
-              </label>
-              <input
-                type="text"
-                value={formData.questGiverName}
-                onChange={(e) => handleChange("questGiverName", e.target.value)}
-                placeholder="NPC display name"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              />
             </div>
 
             <div className="space-y-2">
@@ -307,25 +144,7 @@ export default function CreateQuestPage() {
               <input
                 type="number"
                 value={formData.requiredLevel}
-                onChange={(e) =>
-                  handleChange("requiredLevel", Number(e.target.value))
-                }
-                placeholder="1"
-                min="1"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Target Amount
-              </label>
-              <input
-                type="number"
-                value={formData.targetAmount}
-                onChange={(e) =>
-                  handleChange("targetAmount", Number(e.target.value))
-                }
+                onChange={(e) => handleChange("requiredLevel", Number(e.target.value))}
                 placeholder="1"
                 min="1"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
@@ -339,9 +158,7 @@ export default function CreateQuestPage() {
               <input
                 type="number"
                 value={formData.rewardExperience}
-                onChange={(e) =>
-                  handleChange("rewardExperience", Number(e.target.value))
-                }
+                onChange={(e) => handleChange("rewardExperience", Number(e.target.value))}
                 placeholder="0"
                 min="0"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
@@ -355,9 +172,7 @@ export default function CreateQuestPage() {
               <input
                 type="number"
                 value={formData.rewardGold}
-                onChange={(e) =>
-                  handleChange("rewardGold", Number(e.target.value))
-                }
+                onChange={(e) => handleChange("rewardGold", Number(e.target.value))}
                 placeholder="0"
                 min="0"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
@@ -371,67 +186,16 @@ export default function CreateQuestPage() {
               <input
                 type="number"
                 value={formData.rewardGems}
-                onChange={(e) =>
-                  handleChange("rewardGems", Number(e.target.value))
-                }
+                onChange={(e) => handleChange("rewardGems", Number(e.target.value))}
                 placeholder="0"
                 min="0"
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
               />
             </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Reward Item
-              </label>
-              <select
-                value={formData.rewardItemId ?? ""}
-                onChange={(e) =>
-                  handleChange(
-                    "rewardItemId",
-                    e.target.value === "" ? null : Number(e.target.value),
-                  )
-                }
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              >
-                <option value="" className="bg-[#1a1a1a]">
-                  No item reward
-                </option>
-                {itemOptions.map((item) => (
-                  <option
-                    key={item.itemId}
-                    value={item.itemId}
-                    className="bg-[#1a1a1a]"
-                  >
-                    {item.name} #{item.itemId}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Reward Skill ID
-              </label>
-              <input
-                type="number"
-                value={formData.rewardSkillId ?? ""}
-                onChange={(e) =>
-                  handleChange(
-                    "rewardSkillId",
-                    e.target.value === "" ? null : Number(e.target.value),
-                  )
-                }
-                placeholder="Optional skill id"
-                min="1"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              />
-            </div>
           </div>
+
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-white/80">
-              Description
-            </label>
+            <label className="block text-sm font-medium text-white/80">Description</label>
             <textarea
               value={formData.description}
               onChange={(e) => handleChange("description", e.target.value)}
@@ -449,10 +213,7 @@ export default function CreateQuestPage() {
               onChange={(e) => handleChange("isActive", e.target.checked)}
               className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
             />
-            <label
-              htmlFor="isActive"
-              className="text-sm text-white/70 cursor-pointer"
-            >
+            <label htmlFor="isActive" className="text-sm text-white/70 cursor-pointer">
               Quest is active
             </label>
           </div>
@@ -470,11 +231,7 @@ export default function CreateQuestPage() {
               disabled={loading}
               className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
             >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               {loading ? "Creating..." : "Create Quest"}
             </button>
           </div>

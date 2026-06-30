@@ -33,8 +33,8 @@ import {
   GlobeLock,
   Plus,
 } from 'lucide-react';
-import { getById, update, publish, getCategories, createBlock, updateBlock, removeBlock, ContentDetailResponse, CategoryResponse, BlockResponse } from '@/lib/api/content';
-import { uploadImageToCloudinary } from '@/lib/api/cloudinary';
+import { getById, update, publish, getCategories, createBlock, updateBlock, removeBlock, ContentDetailResponse, CategoryResponse, BlockResponse } from '@/lib/api/contents';
+import { uploadImageToCloudinary, uploadImageWithCleanup } from '@/lib/api/cloudinary';
 import EditableTextBlock from '@/components/ui/EditableTextBlock';
 import { showConfirmAlert, showErrorAlert } from '@/lib/utils/swal';
 import ImageUploader from '@/components/ui/ImageUploader';
@@ -269,6 +269,8 @@ function UpdateContentContent() {
   const [allBlocks, setAllBlocks] = useState<LocalBlock[]>([]);
   // IDs of existing blocks queued for deletion — sent to API on Save Changes
   const [deletedBlockIds, setDeletedBlockIds] = useState<number[]>([]);
+  // Original thumbnail URL for cleanup
+  const [originalThumbnailUrl, setOriginalThumbnailUrl] = useState<string>("");
 
   const editorContentGetters = useRef<Map<string, () => string>>(new Map());
 
@@ -311,6 +313,8 @@ function UpdateContentContent() {
       setAllBlocks((contentData.blocks || [])
         .sort((a, b) => a.sortOrder - b.sortOrder)
         .map(b => ({ ...b, isDirty: false, isNew: false })));
+      // Save original thumbnail URL for cleanup
+      setOriginalThumbnailUrl(contentData.thumbnailUrl || "");
       setFormData({
         title: contentData.title,
         summary: contentData.summary || '',
@@ -375,12 +379,14 @@ function UpdateContentContent() {
         return b;
       }));
 
-      let finalThumbnailUrl = formData.thumbnailUrl;
-      if (finalThumbnailUrl instanceof File) {
-        const result = await uploadImageToCloudinary(finalThumbnailUrl);
+      let finalThumbnailUrl: string | undefined;
+      if (formData.thumbnailUrl instanceof File) {
+        const result = await uploadImageWithCleanup(formData.thumbnailUrl, originalThumbnailUrl);
         finalThumbnailUrl = result.secureUrl;
+      } else if (typeof formData.thumbnailUrl === 'string' && formData.thumbnailUrl) {
+        finalThumbnailUrl = formData.thumbnailUrl;
       }
-      const thumbnailUrl = typeof finalThumbnailUrl === 'string' && finalThumbnailUrl ? finalThumbnailUrl : undefined;
+      const thumbnailUrl = finalThumbnailUrl;
 
       // 1. Update main content info
       await update(content.contentId, {

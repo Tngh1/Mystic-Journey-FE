@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Plus, Globe, GlobeLock, FileText, Image as ImageIcon } from 'lucide-react';
-import { ContentResponse } from "@/lib/api/content";
+import { ContentResponse } from "@/lib/api/contents";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import apiClient from "@/lib/api/client";
 import { useState } from "react";

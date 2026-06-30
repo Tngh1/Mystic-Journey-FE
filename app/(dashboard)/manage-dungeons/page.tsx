@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from "next/navigation";
-import { DungeonConfigResponse } from "@/lib/api/dungeon";
+import { DungeonConfigResponse } from "@/lib/api/dungeons";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import apiClient from "@/lib/api/client";
 import { Castle, Search, Plus } from "lucide-react";

@@ -2,6 +2,10 @@ import { get, put, post } from "./client";
 import type { GameSettingResponse, UpdateGameSettingRequest, DailyLoginRewardResponse, CreateDailyLoginRewardRequest, PagedResponse } from "@/lib/types";
 export type { GameSettingResponse, UpdateGameSettingRequest, DailyLoginRewardResponse, CreateDailyLoginRewardRequest, PagedResponse } from "@/lib/types";
 
+// ═══════════════════════════════════════════════════════════════
+// GAME SETTINGS API - Cài đặt game
+// ═══════════════════════════════════════════════════════════════
+
 export const getSettingById = async (id: number): Promise<GameSettingResponse> => {
   return get<GameSettingResponse>(`/api/gamesettings/${id}`);
 };
@@ -20,12 +24,20 @@ export const updateSettingByKey = async (key: string, data: UpdateGameSettingReq
   return put<GameSettingResponse>(`/api/gamesettings/key/${key}`, data);
 };
 
+// ═══════════════════════════════════════════════════════════════
+// DAILY LOGIN REWARDS API - Thưởng đăng nhập hàng ngày
+// ═══════════════════════════════════════════════════════════════
+
 export const getAllDailyLoginRewards = async (page = 1, pageSize = 10): Promise<PagedResponse<DailyLoginRewardResponse>> => {
   return get<PagedResponse<DailyLoginRewardResponse>>(
-    `/api/DailyLoginRewards?page=${page}&pageSize=${pageSize}`
+    `/api/dailyloginrewards?page=${page}&pageSize=${pageSize}`
   );
 };
 
 export const createDailyLoginReward = async (data: CreateDailyLoginRewardRequest): Promise<DailyLoginRewardResponse> => {
-  return post<DailyLoginRewardResponse>("/api/DailyLoginRewards", data);
+  return post<DailyLoginRewardResponse>("/api/dailyloginrewards", data);
+};
+
+export const getDailyLoginRewardsCurrentMonth = async (): Promise<DailyLoginRewardResponse[]> => {
+  return get<DailyLoginRewardResponse[]>(`/api/dailyloginrewards/current-month`);
 };

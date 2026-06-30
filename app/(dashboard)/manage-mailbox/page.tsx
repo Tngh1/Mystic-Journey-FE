@@ -19,7 +19,7 @@ import {
   Zap,
   Inbox,
 } from "lucide-react";
-import { MailResponse, markAsRead, claimReward, remove } from "@/lib/api/mail";
+import { MailResponse, markAsRead, claimReward, remove } from "@/lib/api/mails";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import AdminTable from "@/components/ui/AdminTable";
 

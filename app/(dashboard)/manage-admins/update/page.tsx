@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Loader2, Save, Eye, EyeOff } from 'lucide-react';
-import { getById, update, AccountAdminResponse } from '@/lib/api/admin-account';
+import { getById, update, AccountAdminResponse } from '@/lib/api/admin-accounts';
 
 function EditAdminContent() {
   const router = useRouter();

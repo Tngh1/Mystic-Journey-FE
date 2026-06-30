@@ -2,11 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getById, update, ItemResponse } from "@/lib/api/item";
+import { getById, update, ItemResponse } from "@/lib/api/items";
 import {
-  deleteImageFromCloudinary,
-  extractPublicIdFromCloudinaryUrl,
-  uploadImageToCloudinary,
+  uploadImageWithCleanup,
 } from "@/lib/api/cloudinary";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import ImageUploader from "@/components/ui/ImageUploader";
@@ -96,17 +94,12 @@ export default function EditItemPage() {
       setLoading(true);
       setError(null);
 
-      let finalIconUrl = formData.iconUrl;
-      if (finalIconUrl instanceof File) {
-        const result = await uploadImageToCloudinary(finalIconUrl);
+      let finalIconUrl: string | undefined;
+      if (formData.iconUrl instanceof File) {
+        const result = await uploadImageWithCleanup(formData.iconUrl, originalIconUrl);
         finalIconUrl = result.secureUrl;
-      }
-
-      const iconUrl = typeof finalIconUrl === 'string' && finalIconUrl ? finalIconUrl : undefined;
-      const originalPublicId = originalIconUrl ? extractPublicIdFromCloudinaryUrl(originalIconUrl) : null;
-
-      if (iconUrl !== originalIconUrl && originalPublicId) {
-        await deleteImageFromCloudinary(originalPublicId);
+      } else if (typeof formData.iconUrl === 'string' && formData.iconUrl) {
+        finalIconUrl = formData.iconUrl;
       }
 
       await update(Number(itemId), {
@@ -117,7 +110,7 @@ export default function EditItemPage() {
         description: formData.description || undefined,
         baseValue: formData.baseValue,
         maxStack: formData.maxStack,
-        iconUrl,
+        iconUrl: finalIconUrl,
       });
       router.push("/manage-items");
     } catch (err: unknown) {
