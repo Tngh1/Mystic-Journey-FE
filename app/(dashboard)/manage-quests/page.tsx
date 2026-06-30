@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from "next/navigation";
-import { QuestResponse } from "@/lib/api/quest";
+import { QuestResponse } from "@/lib/api/quests";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import apiClient from "@/lib/api/client";
 import { Scroll, Search, Plus } from "lucide-react";

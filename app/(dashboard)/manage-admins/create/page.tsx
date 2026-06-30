@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Loader2, Save, Eye, EyeOff } from 'lucide-react';
-import { create } from '@/lib/api/admin-account';
+import { create } from '@/lib/api/admin-accounts';
 
 export default function CreateAdminPage() {
   const router = useRouter();

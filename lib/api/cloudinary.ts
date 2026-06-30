@@ -81,3 +81,32 @@ export async function deleteImageFromCloudinary(publicId: string): Promise<void>
     throw new Error(data.error || "Failed to delete image from Cloudinary.");
   }
 }
+
+/**
+ * Upload image với logic xóa ảnh cũ trước (nếu có).
+ * - Nếu có `oldImageUrl`: xóa ảnh cũ khỏi Cloudinary trước, rồi upload ảnh mới.
+ * - Nếu không có `oldImageUrl`: chỉ upload ảnh mới.
+ * 
+ * @param file - File ảnh cần upload
+ * @param oldImageUrl - URL ảnh cũ (nếu có, sẽ bị xóa trước khi upload mới)
+ * @returns Kết quả upload (secureUrl, publicId)
+ */
+export async function uploadImageWithCleanup(
+  file: File,
+  oldImageUrl?: string | null
+): Promise<CloudinaryUploadResult> {
+  // Xóa ảnh cũ nếu tồn tại
+  if (oldImageUrl) {
+    const oldPublicId = extractPublicIdFromCloudinaryUrl(oldImageUrl);
+    if (oldPublicId) {
+      try {
+        await deleteImageFromCloudinary(oldPublicId);
+      } catch (error) {
+        console.warn("[Cloudinary] Failed to delete old image:", error);
+      }
+    }
+  }
+
+  // Upload ảnh mới
+  return uploadImageToCloudinary(file);
+}

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { getSettingByKey, updateSettingByKey, GameSettingResponse } from "@/lib/api/game";
+import { getSettingByKey, updateSettingByKey, GameSettingResponse } from "@/lib/api/game-settings";
 
 const TYPES = ["string", "number", "boolean", "json"];
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from "next/navigation";
-import { MonsterResponse } from "@/lib/api/monster";
+import { MonsterResponse } from "@/lib/api/monsters";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import apiClient from "@/lib/api/client";
 import { Skull, Search, Plus } from "lucide-react";

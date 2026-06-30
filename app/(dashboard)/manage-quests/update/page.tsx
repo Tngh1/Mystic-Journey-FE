@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getById, update, QuestResponse } from "@/lib/api/quest";
+import { getById, update, QuestResponse } from "@/lib/api/quests";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 
 const QUEST_TYPES = [

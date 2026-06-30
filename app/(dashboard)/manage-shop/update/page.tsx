@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getById, update, ShopItemResponse } from "@/lib/api/shop";
-import { getAll as getAllItems, ItemResponse } from "@/lib/api/item";
+import { getById, update, ShopItemResponse } from "@/lib/api/shop-items";
+import { getAll as getAllItems, ItemResponse } from "@/lib/api/items";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 
 const CURRENCY_TYPES = [

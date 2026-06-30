@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Calendar, Tag, Bell, Loader2, User, ArrowRight } from "lucide-react";
-import { ContentResponse, getAll, getCategories } from "@/lib/api/content";
+import { ContentResponse, getAll, getCategories } from "@/lib/api/contents";
 
 interface CategoryInfo {
   categoryContentId: number;
