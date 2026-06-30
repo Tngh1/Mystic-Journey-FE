@@ -319,10 +319,6 @@ export default function ContentDetailPage() {
   const [headings, setHeadings] = useState<HeadingItem[]>([]);
   const [processedTextBlocks, setProcessedTextBlocks] = useState<{ id: number; html: string }[]>([]);
 
-  useEffect(() => {
-    fetchContent();
-  }, [params.id]);
-
   const fetchContent = async () => {
     try {
       setLoading(true);
@@ -351,6 +347,11 @@ export default function ContentDetailPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    void Promise.resolve().then(fetchContent);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.id]);
 
   if (loading) {
     return (

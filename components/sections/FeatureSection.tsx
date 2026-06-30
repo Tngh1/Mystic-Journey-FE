@@ -4,36 +4,60 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Button from "@/components/ui/Button";
 
-const FEATURES = [
+const WORLDS = [
   {
-    title: "Farming",
+    id: "elf-forest",
+    title: "Elf Forest",
+    subtitle: "Chapter I",
     description:
-      "Find rare seeds to start your own farm in the valley. Grow crops with help from your Chumbi including the 8 types of Chumberries.",
-    image: "/images/test.jpg",
+      "Venture into the ancient heartwood where towering trees whisper forgotten magic. The elves have guarded these woods for millennia, but a creeping shadow now threatens their sanctuary. Unravel the mystery before the forest falls to darkness.",
+    image: "/images/worlds/latest/elf-forest.png",
+    accent: "#4ade80",
+    accentDim: "rgba(74,222,128,0.15)",
+    tag: "Enchanted Woodland",
+    tagBg: "bg-emerald-900/60 text-emerald-300 border-emerald-700/50",
   },
   {
-    title: "Breeding",
+    id: "autumn-pumpkin",
+    title: "Autumn Pumpkin",
+    subtitle: "Chapter II",
     description:
-      "Visit the Primordial Tree to breed your Chumbi NFTs. All Chumbi are made up of type, coat, ears, eyes, mouth and pattern. Breed them together to create new combinations.",
-    image: "/images/test.jpg",
+      "A land draped in eternal autumn, where giant pumpkins glow under twilight skies and mischievous spirits roam the misty paths. Ancient harvest rituals have gone awry - restore balance before the harvest moon rises again.",
+    image: "/images/worlds/latest/autumn-pumpkin.png",
+    accent: "#fb923c",
+    accentDim: "rgba(251,146,60,0.15)",
+    tag: "Harvest Twilight",
+    tagBg: "bg-orange-950/60 text-orange-300 border-orange-700/50",
   },
   {
-    title: "Crafting",
+    id: "frozen-mountains",
+    title: "Frozen Mountains",
+    subtitle: "Chapter III",
     description:
-      "Use your farm grown crops and other items to craft rare NFT items that can be used in-game or traded for rewards.",
-    image: "/images/test.jpg",
+      "Scale treacherous glacial peaks where the aurora dances above frozen lakes and ice elementals patrol crystalline caverns. A blizzard of unnatural origin locks the mountain pass - only the bravest heroes can push through.",
+    image: "/images/worlds/latest/frozen-mountains.png",
+    accent: "#7dd3fc",
+    accentDim: "rgba(125,211,252,0.15)",
+    tag: "Glacial Tundra",
+    tagBg: "bg-sky-950/60 text-sky-300 border-sky-700/50",
   },
   {
-    title: "Exploration",
+    id: "vestige-era",
+    title: "Vestige of an Era",
+    subtitle: "Chapter IV",
     description:
-      "Chumbi Valley is made up of many interesting and unique regions, each with their own secrets. Explore to find all the hidden areas and quests.",
-    image: "/images/test.jpg",
+      "Explore the crumbling remnants of a lost civilization swallowed by time. Ancient machines still hum beneath overgrown temples, and forgotten relics pulse with dormant power. Uncover the truth that brought a golden age to ruin.",
+    image: "/images/worlds/latest/vestige-era.png",
+    accent: "#c084fc",
+    accentDim: "rgba(192,132,252,0.15)",
+    tag: "Ancient Ruins",
+    tagBg: "bg-purple-950/60 text-purple-300 border-purple-700/50",
   },
 ];
 
-export default function FeatureSection() {
+export default function WorldSection() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const featureRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const worldRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,7 +67,7 @@ export default function FeatureSection() {
       let closestIndex = 0;
       let closestDistance = Infinity;
 
-      featureRefs.current.forEach((ref, index) => {
+      worldRefs.current.forEach((ref, index) => {
         if (ref) {
           const rect = ref.getBoundingClientRect();
           const sectionCenter = rect.top + rect.height / 2;
@@ -61,26 +85,29 @@ export default function FeatureSection() {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const active = WORLDS[activeIndex];
+
   return (
-    <section className="w-full bg-black px-5 py-16 text-white md:px-10 lg:px-12 lg:py-20">
+    <section id="game-features" className="w-full bg-[#070708] px-5 py-16 text-white md:px-10 lg:px-12 lg:py-20">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-20 grid gap-6 lg:grid-cols-2 lg:items-end">
           <h2 className="text-4xl font-black leading-[1.15] tracking-tight md:text-5xl lg:text-6xl">
-            Gameplay
-            <br />
-            Features
+            Explore the{" "}
+            <span
+              className="transition-colors duration-500"
+              style={{ color: active.accent }}
+            >
+              World
+            </span>
           </h2>
 
-          <p className="max-w-4xl text-base leading-relaxed tracking-wide text-[#ffc032] md:text-lg">
-            Discover all that Chumbi Valley has to offer with your Chumbi
-            companions by your side.
+          <p className="max-w-xl text-base leading-relaxed tracking-wide text-white/50 md:text-lg">
+            Four legendary realms await. Each region holds its own secrets, monsters,
+            and stories - only the worthy may traverse them all.
           </p>
         </div>
 
@@ -88,63 +115,80 @@ export default function FeatureSection() {
         <div className="lg:grid lg:grid-cols-[1.15fr_0.45fr_0.65fr] lg:gap-16">
           {/* Left: Sticky Image */}
           <div className="hidden lg:block lg:sticky lg:top-40 lg:h-[calc(100vh-30rem)] lg:self-start">
-            <div className="relative h-full w-full overflow-hidden">
-              {FEATURES.map((feature, index) => (
+            <div className="relative h-full w-full overflow-hidden rounded-2xl border border-white/10">
+              {WORLDS.map((world, index) => (
                 <div
-                  key={feature.title}
-                  className={`absolute inset-0 transition-all duration-500 ease-out ${index === activeIndex
-                      ? "opacity-100 scale-100"
-                      : "opacity-0 scale-105"
-                    }`}
+                  key={world.id}
+                  className={`absolute inset-0 transition-all duration-700 ease-out ${
+                    index === activeIndex ? "opacity-100 scale-100" : "opacity-0 scale-105"
+                  }`}
                 >
                   <Image
-                    src={feature.image}
-                    alt={feature.title}
+                    src={world.image}
+                    alt={world.title}
                     fill
                     sizes="520px"
                     className="object-cover"
                   />
+                  {/* Color tint overlay */}
+                  <div
+                    className="absolute inset-0 transition-opacity duration-700"
+                    style={{ background: `linear-gradient(to top, ${world.accentDim} 0%, transparent 60%)` }}
+                  />
+                  {/* Chapter badge */}
+                  <div className="absolute top-4 left-4">
+                    <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-widest backdrop-blur-sm ${world.tagBg}`}>
+                      {world.tag}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Right: Feature Content */}
+          {/* Right: World Content */}
           <div className="space-y-32 md:space-y-52 lg:col-span-2">
-            {FEATURES.map((feature, index) => (
+            {WORLDS.map((world, index) => (
               <div
-                key={feature.title}
-                ref={(el) => {
-                  featureRefs.current[index] = el;
-                }}
+                key={world.id}
+                ref={(el) => { worldRefs.current[index] = el; }}
                 className="lg:grid lg:grid-cols-[0.45fr_0.65fr] lg:gap-16"
               >
                 {/* Mobile Image */}
-                <div className="relative mb-6 aspect-[16/9] w-full overflow-hidden lg:hidden">
+                <div className="relative mb-6 aspect-[16/9] w-full overflow-hidden rounded-xl lg:hidden">
                   <Image
-                    src={feature.image}
-                    alt={feature.title}
+                    src={world.image}
+                    alt={world.title}
                     fill
                     sizes="(max-width: 1024px) 100vw, 0px"
                     className="object-cover"
                   />
+                  <div className="absolute top-3 left-3">
+                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider backdrop-blur-sm ${world.tagBg}`}>
+                      {world.tag}
+                    </span>
+                  </div>
                 </div>
 
-                {/* Title */}
-                <h3
-                  className={`text-3xl font-black leading-tight tracking-tight text-white transition-all duration-300 md:text-4xl lg:self-start lg:pt-3 ${index === activeIndex ? "" : "opacity-40"
-                    }`}
-                >
-                  {feature.title}
-                </h3>
-
-                {/* Description */}
+                {/* Chapter label */}
                 <p
-                  className={`max-w-sm text-base leading-loose tracking-wide text-white/90 transition-all duration-300 md:text-lg lg:self-start ${index === activeIndex ? "" : "opacity-40"
-                    }`}
+                  className={`text-xs font-black uppercase tracking-[0.3em] transition-all duration-300 lg:self-start lg:pt-3 ${
+                    index === activeIndex ? "" : "opacity-40"
+                  }`}
+                  style={{ color: index === activeIndex ? world.accent : "white" }}
                 >
-                  {feature.description}
+                  {world.subtitle}
                 </p>
+
+                {/* Title + Description */}
+                <div className={`transition-all duration-300 ${index === activeIndex ? "" : "opacity-40"}`}>
+                  <h3 className="mb-3 text-3xl font-black leading-tight tracking-tight text-white md:text-4xl">
+                    {world.title}
+                  </h3>
+                  <p className="max-w-sm text-base leading-loose tracking-wide text-white/80 md:text-lg">
+                    {world.description}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
@@ -153,23 +197,29 @@ export default function FeatureSection() {
         {/* Bottom CTA */}
         <div className="mt-24 md:mt-28">
           <div className="mb-10 flex items-center gap-4">
-            <div className="h-px flex-1 bg-[#ca831f]" />
-            <div className="h-2 w-2 rounded-full bg-[#ca831f]" />
-            <div className="h-px flex-[2.4] bg-[#ca831f]" />
+            <div className="h-px flex-1" style={{ backgroundColor: active.accent, opacity: 0.5 }} />
+            <div className="h-2 w-2 rounded-full transition-colors duration-500" style={{ backgroundColor: active.accent }} />
+            <div className="h-px flex-[2.4] transition-colors duration-500" style={{ backgroundColor: active.accent, opacity: 0.5 }} />
           </div>
 
           <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
             <h3 className="text-3xl font-black leading-tight md:text-4xl lg:text-5xl">
-              A magical journey awaits...
+              Your legend begins in the{" "}
+              <span className="transition-colors duration-500" style={{ color: active.accent }}>
+                {active.title}
+              </span>
+              ...
             </h3>
 
-            <Button variant="outline" size="md">CHUMBI LORE</Button>
+            <Button variant="outline" size="md">
+              EXPLORE LORE
+            </Button>
           </div>
 
           <div className="mt-10 flex items-center gap-4">
-            <div className="h-px flex-[2.4] bg-[#ca831f]" />
-            <div className="h-2 w-2 rounded-full bg-[#ca831f]" />
-            <div className="h-px flex-1 bg-[#ca831f]" />
+            <div className="h-px flex-[2.4]" style={{ backgroundColor: active.accent, opacity: 0.5 }} />
+            <div className="h-2 w-2 rounded-full transition-colors duration-500" style={{ backgroundColor: active.accent }} />
+            <div className="h-px flex-1" style={{ backgroundColor: active.accent, opacity: 0.5 }} />
           </div>
         </div>
       </div>

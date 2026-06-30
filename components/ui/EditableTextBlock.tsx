@@ -188,7 +188,7 @@ export default function EditableTextBlock({
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) return false;
 
-    let node: Node | null = sel.anchorNode;
+    const node: Node | null = sel.anchorNode;
     if (!node || !editor.contains(node)) return false;
 
     if (command === 'justifyLeft' || command === 'justifyCenter' || command === 'justifyRight') {

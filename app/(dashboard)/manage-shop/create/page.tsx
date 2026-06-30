@@ -23,6 +23,9 @@ export default function CreateShopItemPage() {
     currency: "Gold",
     price: 0,
     stock: -1,
+    dailyPurchaseLimit: 0,
+    availableFrom: "",
+    availableTo: "",
     isActive: true,
   });
 
@@ -47,7 +50,10 @@ export default function CreateShopItemPage() {
         currency: formData.currency,
         price: formData.price,
         stock: formData.stock,
+        dailyPurchaseLimit: formData.dailyPurchaseLimit,
         isActive: formData.isActive,
+        ...(formData.availableFrom ? { availableFrom: new Date(formData.availableFrom).toISOString() } : {}),
+        ...(formData.availableTo ? { availableTo: new Date(formData.availableTo).toISOString() } : {}),
       });
       router.push("/manage-shop");
     } catch (err: unknown) {
@@ -159,6 +165,42 @@ export default function CreateShopItemPage() {
                 value={formData.stock}
                 onChange={(e) => handleChange("stock", Number(e.target.value))}
                 min="-1"
+                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">
+                Daily Purchase Limit
+              </label>
+              <input
+                aria-label="Enter daily purchase limit"
+                type="number"
+                value={formData.dailyPurchaseLimit}
+                onChange={(e) => handleChange("dailyPurchaseLimit", Number(e.target.value))}
+                min="0"
+                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">Available From</label>
+              <input
+                aria-label="Enter available from date"
+                type="datetime-local"
+                value={formData.availableFrom}
+                onChange={(e) => handleChange("availableFrom", e.target.value)}
+                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-white/80">Available To</label>
+              <input
+                aria-label="Enter available to date"
+                type="datetime-local"
+                value={formData.availableTo}
+                onChange={(e) => handleChange("availableTo", e.target.value)}
                 className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
               />
             </div>

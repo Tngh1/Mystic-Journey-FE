@@ -12,7 +12,6 @@ import ImageUploader from "@/components/ui/ImageUploader";
 const ITEM_TYPES = [
   { value: "Weapon", label: "Weapon" },
   { value: "Armor", label: "Armor" },
-  { value: "Accessory", label: "Accessory" },
   { value: "Consumable", label: "Consumable" },
   { value: "Material", label: "Material" },
   { value: "QuestItem", label: "Quest Item" },

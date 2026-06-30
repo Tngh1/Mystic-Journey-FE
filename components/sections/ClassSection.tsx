@@ -5,11 +5,12 @@ import Button from "@/components/ui/Button";
 
 const CLASSES = [
   {
-    id: "warrior",
-    name: "Warrior",
+    id: "knight",
+    name: "Knight",
+    role: "Frontline Defender",
     description:
-      "Heavy armored knight wielding massive swords and shields. Master of close-quarters combat with unmatched durability and strength.",
-    image: "/images/test.jpg",
+      "A sturdy sword fighter built for close combat. Knights protect the party, absorb hits from Shadow Sprouts, and hold the line while exploring the Enchanted Forest.",
+    image: "/images/classes/knight.png",
     badgeColor: "bg-red-600",
     cardBorder: "border-red-600/30",
     buttonBg: "bg-red-600 hover:bg-red-700",
@@ -17,19 +18,21 @@ const CLASSES = [
   {
     id: "mage",
     name: "Mage",
+    role: "Arcane Damage",
     description:
-      "Mysterious spell caster channeling ancient arcane power. Devastating area-of-effect magic from a safe distance.",
-    image: "/images/test.jpg",
+      "A ranged spellcaster who channels elemental magic from a safe distance. Mages control groups of enemies and burst down corrupted forest creatures.",
+    image: "/images/classes/mage.png",
     badgeColor: "bg-purple-600",
     cardBorder: "border-purple-600/30",
     buttonBg: "bg-purple-600 hover:bg-purple-700",
   },
   {
-    id: "ranger",
-    name: "Ranger",
+    id: "archer",
+    name: "Archer",
+    role: "Precision Ranged",
     description:
-      "Swift and agile archer striking from the shadows. Expert in dual-wielding daggers and precise long-range attacks.",
-    image: "/images/test.jpg",
+      "A nimble bow user focused on speed, positioning, and precise shots. Archers thin out threats before they can reach the hero.",
+    image: "/images/classes/archer.png",
     badgeColor: "bg-green-600",
     cardBorder: "border-green-600/30",
     buttonBg: "bg-green-600 hover:bg-green-700",
@@ -38,7 +41,7 @@ const CLASSES = [
 
 export default function ClassSection() {
   return (
-    <section className="relative w-full overflow-hidden bg-black px-5 py-16 md:px-10 lg:px-12 lg:py-24">
+    <section id="classes" className="relative w-full overflow-hidden bg-black px-5 py-16 md:px-10 lg:px-12 lg:py-24">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_rgba(255,255,255,0.1)_1px,_transparent_1px)] bg-[size:32px_32px]" />
@@ -51,7 +54,7 @@ export default function ClassSection() {
             Choose Your Class
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base text-white/60 md:text-lg">
-            Select your path in the mystical valley and begin your adventure
+            Start Chapter 1 as a Knight, Mage, or Archer before answering Elder Rowan&apos;s call.
           </p>
         </div>
 
@@ -82,6 +85,9 @@ export default function ClassSection() {
                 >
                   {classData.name.toUpperCase()}
                 </span>
+                <p className="mt-3 text-xs font-bold uppercase tracking-[0.24em] text-white/35">
+                  {classData.role}
+                </p>
               </div>
 
               {/* Class Name (Mobile) */}
@@ -101,7 +107,7 @@ export default function ClassSection() {
                 fullWidth
                 className={`${classData.buttonBg} tracking-wide`}
               >
-                Choose {classData.name}
+                Start as {classData.name}
               </Button>
             </div>
           ))}

@@ -148,8 +148,8 @@ export default function ManagePlayersPage() {
                   <td colSpan={8} className="px-5 py-12 text-center text-gray-500">No players found</td>
                 </tr>
               ) : (
-                players.map((player) => (
-                  <tr key={player.playerProfileId ?? `player-${Math.random()}`} className="border-b border-gray-800/50 hover:bg-[#1e1e1e] transition-colors group">
+                players.map((player, index) => (
+                  <tr key={player.playerProfileId ?? `player-${index}`} className="border-b border-gray-800/50 hover:bg-[#1e1e1e] transition-colors group">
                     <td className="px-5 py-3.5 text-sm text-gray-400 font-mono">{player.playerProfileId ?? 'N/A'}</td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">

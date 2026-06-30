@@ -82,6 +82,11 @@ export default function ManageShopPage() {
       render: (val: number) => val === -1 ? <span className="text-green-400 font-medium">Unlimited</span> : val.toLocaleString()
     },
     {
+      key: "dailyPurchaseLimit",
+      label: "Daily Limit",
+      render: (val: number) => val === 0 ? <span className="text-gray-400">None</span> : val.toLocaleString()
+    },
+    {
       key: "isActive",
       label: "Status",
       render: (val: boolean) => (

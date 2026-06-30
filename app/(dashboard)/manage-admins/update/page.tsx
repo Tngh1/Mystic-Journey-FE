@@ -24,12 +24,6 @@ function EditAdminContent() {
     newPassword: '',
   });
 
-  useEffect(() => {
-    if (accountId) {
-      fetchAccount();
-    }
-  }, [accountId]);
-
   const fetchAccount = async () => {
     if (!accountId) return;
 
@@ -51,6 +45,13 @@ function EditAdminContent() {
       setFetching(false);
     }
   };
+
+  useEffect(() => {
+    if (accountId) {
+      void Promise.resolve().then(fetchAccount);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountId]);
 
   const getRoleIdFromName = (roleName: string): number => {
     switch (roleName) {

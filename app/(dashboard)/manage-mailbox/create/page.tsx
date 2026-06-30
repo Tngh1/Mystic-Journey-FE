@@ -52,7 +52,7 @@ export default function SendMailPage() {
 
   // Item picker state
   const [allItems, setAllItems] = useState<ItemResponse[]>([]);
-  const [loadingItems, setLoadingItems] = useState(false);
+  const [loadingItems, setLoadingItems] = useState(true);
   const [itemSearch, setItemSearch] = useState("");
   const [showItemDropdown, setShowItemDropdown] = useState(false);
   const [selectedItems, setSelectedItems] = useState<ItemResponse[]>([]);
@@ -73,7 +73,6 @@ export default function SendMailPage() {
 
   // Load items on mount
   useEffect(() => {
-    setLoadingItems(true);
     getAllSimple()
       .then(setAllItems)
       .catch(() => {})
