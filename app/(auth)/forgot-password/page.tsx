@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Button from "@/components/ui/Button";
-import { forgotPassword } from "@/lib/api/account";
+import { forgotPassword } from "@/lib/api/auth";
 import { showErrorAlert } from "@/lib/utils/swal";
 
 export default function ForgotPasswordPage() {

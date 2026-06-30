@@ -2,63 +2,54 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Search, ArrowLeft, Loader2, Eye, Edit } from 'lucide-react';
+import { Search, Eye, Edit } from 'lucide-react';
 import { usePagedQuery } from '@/lib/hooks/usePagedQuery';
-import { GameSettingResponse } from '@/lib/api/game';
+import { GameSettingResponse } from '@/lib/api/game-settings';
 
-const CATEGORIES = [
-  "All",
-  "Player",
-  "Energy",
-  "Shop",
-  "System",
-  "Events",
-  "Battle",
-  "Gacha",
-  "Social",
-];
-
-const getTypeFromKey = (key: string): string => {
-  const lowerKey = key.toLowerCase();
-  if (lowerKey.includes("enable") || lowerKey.includes("active") || lowerKey.includes("is")) {
-    return "boolean";
-  }
-  if (lowerKey.includes("count") || lowerKey.includes("amount") || lowerKey.includes("level") || lowerKey.includes("rate") || lowerKey.includes("time")) {
-    return "number";
-  }
-  if (lowerKey.includes("json") || lowerKey.includes("data") || lowerKey.includes("config")) {
-    return "json";
-  }
-  return "string";
-};
+const CATEGORIES = ['All', 'Player', 'Energy', 'Shop', 'System', 'Events', 'Battle', 'Gacha', 'Social'];
 
 const getCategoryFromKey = (key: string): string => {
-  const lowerKey = key.toLowerCase();
-  if (lowerKey.includes("player") || lowerKey.includes("xp") || lowerKey.includes("exp") || lowerKey.includes("level")) {
-    return "Player";
-  }
-  if (lowerKey.includes("energy") || lowerKey.includes("stamina") || lowerKey.includes("mana")) {
-    return "Energy";
-  }
-  if (lowerKey.includes("shop") || lowerKey.includes("price") || lowerKey.includes("cost") || lowerKey.includes("gem") || lowerKey.includes("gold")) {
-    return "Shop";
-  }
-  if (lowerKey.includes("event") || lowerKey.includes("campaign")) {
-    return "Events";
-  }
-  if (lowerKey.includes("battle") || lowerKey.includes("combat") || lowerKey.includes("pvp") || lowerKey.includes("dungeon")) {
-    return "Battle";
-  }
-  if (lowerKey.includes("gacha") || lowerKey.includes("summon") || lowerKey.includes("draw")) {
-    return "Gacha";
-  }
-  if (lowerKey.includes("social") || lowerKey.includes("friend") || lowerKey.includes("guild") || lowerKey.includes("chat")) {
-    return "Social";
-  }
-  return "System";
+  const k = key.toLowerCase();
+  if (/xp|exp|level/.test(k)) return 'Player';
+  if (/energy|stamina|mana/.test(k)) return 'Energy';
+  if (/shop|price|cost|gem|gold/.test(k)) return 'Shop';
+  if (/event|campaign/.test(k)) return 'Events';
+  if (/battle|combat|pvp|dungeon/.test(k)) return 'Battle';
+  if (/gacha|summon|draw/.test(k)) return 'Gacha';
+  if (/social|friend|guild|chat/.test(k)) return 'Social';
+  return 'System';
+};
+
+const categoryColors: Record<string, string> = {
+  Player: 'text-blue-400',
+  Energy: 'text-green-400',
+  Shop: 'text-yellow-400',
+  System: 'text-gray-300',
+  Events: 'text-pink-400',
+  Battle: 'text-red-400',
+  Gacha: 'text-purple-400',
+  Social: 'text-cyan-400',
+};
+
+const typeColors: Record<string, string> = {
+  boolean: 'text-green-400',
+  number: 'text-blue-400',
+  string: 'text-gray-300',
+  json: 'text-purple-400',
+};
+
+const getTypeFromKey = (key: string): string => {
+  const k = key.toLowerCase();
+  if (/enable|active|is/.test(k)) return 'boolean';
+  if (/count|amount|rate|time/.test(k)) return 'number';
+  if (/json|data|config/.test(k)) return 'json';
+  return 'string';
 };
 
 export default function ManageGameConfigPage() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
   const {
     data: settings,
     totalCount,
@@ -74,207 +65,175 @@ export default function ManageGameConfigPage() {
     pageSize: 10,
   });
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
-    setParams({ search: value || undefined });
-  };
-
-  const handleCategoryChange = (cat: string) => {
-    setSelectedCategory(cat);
-  };
-
-  const filteredSettings = settings.filter((setting) => {
-    const category = getCategoryFromKey(setting.key);
-    return selectedCategory === "All" || category === selectedCategory;
+  const filteredSettings = settings.filter((s) => {
+    const cat = getCategoryFromKey(s.key);
+    return selectedCategory === 'All' || cat === selectedCategory;
   });
 
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-
-  if (loading && settings.length === 0) {
-    return (
-      <div className="min-h-screen bg-[#111] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-[#ffc032] animate-spin" />
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-[#111] p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <Link
-              href="/"
-              className="p-2 rounded-lg bg-[#1a1a1a] hover:bg-[#252525] transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5 text-[#ffc032]" />
-            </Link>
-            <h1 className="text-2xl font-bold text-white">Game Configuration</h1>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-[#ffc032] to-[#ff8c00] flex items-center justify-center shrink-0">
+            <svg className="w-7 h-7 text-[#111]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
           </div>
-
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search by key..."
-                  value={searchTerm}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="pl-10 pr-4 py-2 bg-[#1a1a1a] border border-[#333] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#ffc032] w-full sm:w-64"
-                />
-              </div>
-
-              {/* Category Filter */}
-              <select
-                aria-label="Filter game configurations by category"
-                value={selectedCategory}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-                className="px-4 py-2 bg-[#1a1a1a] border border-[#333] rounded-lg text-white focus:outline-none focus:border-[#ffc032]"
-              >
-                {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div>
+            <h1 className="text-2xl font-bold text-[#ffc032]">Game Configuration</h1>
+            <p className="text-sm text-gray-500">Manage game settings and system parameters</p>
           </div>
         </div>
+      </div>
 
-        {/* Error Display */}
-        {error && (
-          <div className="mb-4 p-4 bg-red-900/20 border border-red-700 rounded-lg text-red-400">
-            {error}
+      {/* Filters */}
+      <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-5">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search by key..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setParams({ search: e.target.value || undefined });
+              }}
+              className="w-full pl-9 pr-4 py-2.5 bg-[#111] border border-gray-700 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+            />
           </div>
-        )}
+          <select
+            aria-label="Filter by category"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="px-4 py-2.5 bg-[#111] border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-[#ffc032] transition-colors"
+          >
+            {CATEGORIES.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
+      </div>
 
-        {/* Table */}
-        <div className="bg-[#1a1a1a] rounded-lg border border-[#333] overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-[#333]">
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-[#ffc032]">ID</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-[#ffc032]">Key</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-[#ffc032]">Value</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-[#ffc032]">Description</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-[#ffc032]">Type</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-[#ffc032]">Status</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-[#ffc032]">Updated At</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-[#ffc032]">Actions</th>
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+          <p className="text-red-400 text-sm">{error}</p>
+        </div>
+      )}
+
+      {/* Table */}
+      <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-gray-800">
+                <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
+                <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Key</th>
+                <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Value</th>
+                <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
+                <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
+                <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading && filteredSettings.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-5 py-12 text-center">
+                    <div className="w-8 h-8 border-2 border-[#ffc032] border-t-transparent rounded-full animate-spin mx-auto" />
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {filteredSettings.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
-                      No configurations found
-                    </td>
-                  </tr>
-                ) : (
-                  filteredSettings.map((setting) => (
-                    <tr
-                      key={setting.gameSettingId}
-                      className="border-b border-[#333] hover:bg-[#252525] transition-colors"
-                    >
-                      <td className="px-4 py-3 text-sm text-gray-300">{setting.gameSettingId}</td>
-                      <td className="px-4 py-3 text-sm text-white font-mono">{setting.key}</td>
-                      <td className="px-4 py-3 text-sm text-gray-300 max-w-xs truncate">
-                        {setting.value}
+              ) : filteredSettings.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-5 py-12 text-center text-gray-500">No configurations found</td>
+                </tr>
+              ) : (
+                filteredSettings.map((setting) => {
+                  const category = getCategoryFromKey(setting.key);
+                  const type = getTypeFromKey(setting.key);
+                  return (
+                    <tr key={setting.gameSettingId} className="border-b border-gray-800/50 hover:bg-[#1e1e1e] transition-colors">
+                      <td className="px-5 py-3.5 text-sm text-gray-400 font-mono">{setting.gameSettingId}</td>
+                      <td className="px-5 py-3.5">
+                        <span className="text-sm font-medium text-white font-mono">{setting.key}</span>
+                        {setting.description && (
+                          <p className="text-xs text-gray-500 mt-0.5 max-w-xs truncate">{setting.description}</p>
+                        )}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-400 max-w-xs truncate">
-                        {setting.description || "-"}
+                      <td className="px-5 py-3.5">
+                        <code className="text-xs bg-[#111] px-2.5 py-1 rounded text-[#ffc032] font-mono">
+                          {setting.value || '-'}
+                        </code>
                       </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className="px-2 py-1 bg-[#252525] text-[#ffc032] rounded text-xs">
-                          {getTypeFromKey(setting.key)}
+                      <td className="px-5 py-3.5">
+                        <span className={`text-xs font-semibold ${categoryColors[category] || 'text-gray-300'}`}>
+                          {category}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span
-                          className={`px-2 py-1 rounded text-xs ${setting.isActive
-                              ? "bg-green-900/30 text-green-400"
-                              : "bg-red-900/30 text-red-400"
-                            }`}
-                        >
-                          {setting.isActive ? "Active" : "Inactive"}
+                      <td className="px-5 py-3.5">
+                        <span className={`text-xs font-medium ${typeColors[type] || 'text-gray-300'}`}>
+                          {type}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-400">
-                        {setting.updatedAt ? new Date(setting.updatedAt).toLocaleDateString() : '-'}
+                      <td className="px-5 py-3.5">
+                        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${setting.isActive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                          {setting.isActive ? 'Active' : 'Inactive'}
+                        </span>
                       </td>
-                      <td className="px-4 py-3 text-sm">
-                        <div className="flex items-center gap-2">
+                      <td className="px-5 py-3.5 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
                           <Link
                             href={`/manage-game-config/detail?id=${setting.key}`}
-                            className="p-1.5 rounded hover:bg-[#333] transition-colors"
-                            title="View"
+                            className="p-1.5 rounded-lg bg-[#111] border border-gray-700 hover:border-gray-600 transition-colors"
+                            title="View Details"
                           >
                             <Eye className="w-4 h-4 text-gray-400" />
                           </Link>
                           <Link
-                            href={`/manage-game-config/edit?id=${setting.key}`}
-                            className="p-1.5 rounded hover:bg-[#333] transition-colors"
-                            title="Edit"
+                            href={`/manage-game-config/update?id=${setting.key}`}
+                            className="p-1.5 rounded-lg bg-[#ffc032]/10 border border-[#ffc032]/30 hover:border-[#ffc032]/50 transition-colors"
+                            title="Update"
                           >
                             <Edit className="w-4 h-4 text-[#ffc032]" />
                           </Link>
                         </div>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          {totalCount > 0 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-[#333]">
-              <div className="text-sm text-gray-400">
-                Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, totalCount)} of{' '}
-                {totalCount.toLocaleString()} configurations
-              </div>
-              <div className="flex items-center gap-3">
-                <select
-                  aria-label="Select game configurations page size"
-                  value={pageSize}
-                  onChange={(e) => setPageSize(Number(e.target.value))}
-                  className="bg-[#0d0d0d] border border-[#333] rounded px-2 py-1 text-sm text-white focus:outline-none"
-                >
-                  <option value={5}>5 / page</option>
-                  <option value={10}>10 / page</option>
-                  <option value={20}>20 / page</option>
-                  <option value={50}>50 / page</option>
-                </select>
-                <button
-                  onClick={() => setPage(page - 1)}
-                  disabled={page === 1}
-                  className="p-2 hover:bg-[#333] rounded transition-colors text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  ←
-                </button>
-                <span className="px-3 py-1 text-sm text-white">
-                  Page {page} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setPage(page + 1)}
-                  disabled={page >= totalPages}
-                  className="p-2 hover:bg-[#333] rounded transition-colors text-gray-40 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  →
-                </button>
-              </div>
-            </div>
-          )}
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
+
+        {totalCount > 0 && (
+          <div className="px-5 py-3.5 border-t border-gray-800 flex items-center justify-between">
+            <div className="text-xs text-gray-500">Total: {totalCount.toLocaleString()}</div>
+            <div className="flex items-center gap-1.5">
+              <button
+                aria-label="Previous page"
+                onClick={() => setPage(page - 1)}
+                disabled={page === 1}
+                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                ←
+              </button>
+              <span className="px-2 py-1 text-xs text-white">
+                {page} / {Math.max(1, Math.ceil(totalCount / pageSize))}
+              </span>
+              <button
+                aria-label="Next page"
+                onClick={() => setPage(page + 1)}
+                disabled={page >= Math.ceil(totalCount / pageSize)}
+                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                →
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

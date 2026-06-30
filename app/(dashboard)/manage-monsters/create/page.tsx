@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { create } from "@/lib/api/monster";
+import { create } from "@/lib/api/monsters";
+import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import ImageUploader from "@/components/ui/ImageUploader";
 import { uploadImageToCloudinary } from "@/lib/api/cloudinary";
-import { ArrowLeft, Save, Loader2, Upload, Image as ImageIcon, X } from "lucide-react";
 
 const MONSTER_TYPES = [
   { value: "Normal", label: "Normal" },
@@ -17,8 +17,6 @@ export default function CreateMonsterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>("");
   const [formData, setFormData] = useState({
     name: "",
     type: "Normal",
@@ -29,34 +27,11 @@ export default function CreateMonsterPage() {
     def: 5,
     expReward: 10,
     goldReward: 5,
-    imageUrl: "",
+    imageUrl: "" as string | File | null,
   });
-
-  useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-    };
-  }, [previewUrl]);
 
   const handleChange = (field: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    const url = URL.createObjectURL(file);
-    setSelectedFile(file);
-    setPreviewUrl(url);
-    event.target.value = "";
-  };
-
-  const handleRemoveImage = () => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setSelectedFile(null);
-    setPreviewUrl("");
-    handleChange("imageUrl", "");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -65,12 +40,13 @@ export default function CreateMonsterPage() {
       setLoading(true);
       setError(null);
 
-      let imageUrl = formData.imageUrl || undefined;
-
-      if (selectedFile) {
-        const result = await uploadImageToCloudinary(selectedFile);
-        imageUrl = result.secureUrl;
+      let finalImageUrl = formData.imageUrl;
+      if (finalImageUrl instanceof File) {
+        const result = await uploadImageToCloudinary(finalImageUrl);
+        finalImageUrl = result.secureUrl;
       }
+
+      const imageUrl = typeof finalImageUrl === 'string' && finalImageUrl ? finalImageUrl : undefined;
 
       await create({
         name: formData.name,
@@ -92,7 +68,7 @@ export default function CreateMonsterPage() {
     }
   };
 
-  const displayUrl = previewUrl || formData.imageUrl;
+
 
   return (
     <div className="space-y-6">
@@ -259,59 +235,11 @@ export default function CreateMonsterPage() {
           </div>
 
           <div className="space-y-4 rounded-xl border border-white/10 bg-white/5 p-4">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <label className="block text-sm font-medium text-white/80">Monster Image</label>
-                <p className="text-sm text-white/45">Select image to preview, upload on submit.</p>
-              </div>
-              <label className="inline-flex items-center gap-2 rounded-lg bg-[#ffc032] px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-[#ffc032]/90 cursor-pointer">
-                <Upload className="h-4 w-4" />
-                Select Image
-                <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
-              </label>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">Image URL (existing)</label>
-              <input
-                type="url"
-                value={formData.imageUrl}
-                onChange={(e) => handleChange("imageUrl", e.target.value)}
-                placeholder="https://res.cloudinary.com/... (auto-filled after upload)"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              />
-            </div>
-
-            <div className="rounded-xl border border-dashed border-white/10 bg-black/10 p-4">
-              {displayUrl ? (
-                <div className="flex items-start gap-4">
-                  <div className="relative h-24 w-24 overflow-hidden rounded-xl border border-white/10 bg-white/5">
-                    <Image src={displayUrl} alt="Monster image preview" fill className="object-cover" unoptimized />
-                  </div>
-                  <div className="flex-1 min-w-0 space-y-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-medium text-white">
-                        {selectedFile ? "Ready to upload on submit" : "Current image"}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={handleRemoveImage}
-                        className="inline-flex items-center gap-1 text-sm text-red-300 hover:text-red-200 cursor-pointer"
-                      >
-                        <X className="h-4 w-4" />
-                        Remove
-                      </button>
-                    </div>
-                    <p className="truncate text-sm text-white/50">{displayUrl}</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3 text-white/45">
-                  <ImageIcon className="h-5 w-5" />
-                  <p className="text-sm">No image selected yet.</p>
-                </div>
-              )}
-            </div>
+            <ImageUploader
+              value={formData.imageUrl}
+              onChange={(url) => handleChange("imageUrl", url)}
+              label="Monster Image"
+            />
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-6 border-t border-white/10">

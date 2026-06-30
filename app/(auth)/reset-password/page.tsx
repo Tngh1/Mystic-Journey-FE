@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState, useRef, useEffect } from "react";
 import Button from "@/components/ui/Button";
-import { resetPassword } from "@/lib/api/account";
+import { resetPassword } from "@/lib/api/auth";
 import { showErrorAlert, showSuccessAlert } from "@/lib/utils/swal";
 
 const CODE_LENGTH = 6;

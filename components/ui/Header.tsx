@@ -42,7 +42,7 @@ export default function Header() {
   };
 
   return (
-    <header className={`fixed top-0 left-0 w-full z-50 transition-colors duration-300 ${isScrolled ? 'bg-black shadow-lg border-b border-gray-800' : 'bg-transparent'}`}>
+    <header className={`fixed top-0 left-0 w-full z-50 transition-colors duration-300 ${isScrolled ? 'bg-black' : 'bg-transparent'}`}>
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="relative w-24 h-12 md:w-32 md:h-16">

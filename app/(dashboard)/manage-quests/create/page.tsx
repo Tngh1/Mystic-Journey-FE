@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { create } from "@/lib/api/quest";
+import { create } from "@/lib/api/quests";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 
 const QUEST_TYPES = [

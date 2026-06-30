@@ -1,8 +1,9 @@
 "use client";
 
-import { PurchaseHistoryResponse } from "@/lib/api/purchase";
+import { PurchaseHistoryResponse } from "@/lib/api/purchase-histories";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
-import { Loader2 } from "lucide-react";
+import { CreditCard, Search } from "lucide-react";
+import AdminTable from "@/components/ui/AdminTable";
 
 export default function ManageTransactionsPage() {
   const {
@@ -41,135 +42,86 @@ export default function ManageTransactionsPage() {
 
   const getCurrencyBadge = (currency: string) => {
     const styles: Record<string, string> = {
-      Gold: "bg-orange-400/10 text-orange-400",
-      Gems: "bg-blue-400/10 text-blue-400",
-      USD: "bg-green-400/10 text-green-400",
+      Gold: "bg-orange-500/20 text-orange-400 border border-orange-500/30",
+      Gems: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
+      USD: "bg-green-500/20 text-green-400 border border-green-500/30",
     };
     return (
-      <span className={`px-2 py-1 rounded text-xs font-medium ${styles[currency] || "bg-white/10 text-white/80"}`}>
+      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${styles[currency] || "bg-gray-500/20 text-gray-300 border border-gray-500/30"}`}>
         {currency}
       </span>
     );
   };
 
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const columns = [
+    { key: "purchaseHistoryId", label: "ID" },
+    { key: "playerName", label: "Player Name" },
+    { key: "itemName", label: "Item Name" },
+    { key: "quantity", label: "Quantity" },
+    {
+      key: "totalPrice",
+      label: "Total Price",
+      render: (val: number, item: PurchaseHistoryResponse) => (
+        <span className="text-[#ffc032] font-semibold">{formatPrice(val, item.currency)}</span>
+      ),
+    },
+    {
+      key: "currency",
+      label: "Currency",
+      render: (val: string) => getCurrencyBadge(val),
+    },
+    {
+      key: "purchasedAt",
+      label: "Purchased At",
+      render: (val: string) => <span className="text-gray-400">{formatDate(val)}</span>,
+    },
+  ];
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white mb-2">Manage Transactions</h1>
-        <p className="text-white/50 text-sm">View and search all player purchase histories.</p>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-[#ffc032] to-[#ff8c00] flex items-center justify-center shrink-0">
+            <CreditCard className="w-7 h-7 text-[#111]" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-[#ffc032]">Manage Transactions</h1>
+            <p className="text-sm text-gray-500">View and search all player purchase histories</p>
+          </div>
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-4">
-        <input
-          type="text"
-          placeholder="Filter by player name..."
-          onChange={(e) => setParams({ search: e.target.value || undefined })}
-          className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 w-64"
-        />
+      <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="relative w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Filter by player name..."
+            onChange={(e) => setParams({ search: e.target.value || undefined })}
+            className="w-full pl-9 pr-4 py-2 bg-[#111] border border-gray-700 rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+          />
+        </div>
       </div>
 
-      {error ? (
-        <div className="bg-red-400/10 border border-red-400/20 rounded-xl p-4 text-red-400">
-          {error}
-          <button onClick={refresh} className="ml-4 underline cursor-pointer">
-            Retry
-          </button>
-        </div>
-      ) : (
-        <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
-          <div className="p-6 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h2 className="text-xl font-bold text-white">
-              Purchase History
-              {loading && (
-                <span className="ml-3 inline-block w-4 h-4 border-2 border-[#ffc032] border-t-transparent rounded-full animate-spin" />
-              )}
-            </h2>
-          </div>
-
-          {loading && transactions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 text-[#ffc032] animate-spin" />
-              <span className="text-white/40 text-sm mt-3">Loading...</span>
-            </div>
-          ) : transactions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-white/40">
-              <p className="text-lg font-medium">No transactions found</p>
-            </div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-white/5 border-b border-white/10">
-                      <th className="p-4 text-xs font-semibold text-white/60 uppercase tracking-wider whitespace-nowrap">ID</th>
-                      <th className="p-4 text-xs font-semibold text-white/60 uppercase tracking-wider whitespace-nowrap">Player Name</th>
-                      <th className="p-4 text-xs font-semibold text-white/60 uppercase tracking-wider whitespace-nowrap">Item Name</th>
-                      <th className="p-4 text-xs font-semibold text-white/60 uppercase tracking-wider whitespace-nowrap">Quantity</th>
-                      <th className="p-4 text-xs font-semibold text-white/60 uppercase tracking-wider whitespace-nowrap">Total Price</th>
-                      <th className="p-4 text-xs font-semibold text-white/60 uppercase tracking-wider whitespace-nowrap">Currency</th>
-                      <th className="p-4 text-xs font-semibold text-white/60 uppercase tracking-wider whitespace-nowrap">Purchased At</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {transactions.map((tx) => (
-                      <tr key={tx.purchaseHistoryId} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                        <td className="p-4 text-sm text-white/80 whitespace-nowrap font-mono">#{tx.purchaseHistoryId}</td>
-                        <td className="p-4 text-sm text-white/80 whitespace-nowrap">{tx.playerName}</td>
-                        <td className="p-4 text-sm text-white/80 whitespace-nowrap">{tx.itemName}</td>
-                        <td className="p-4 text-sm text-white/80 whitespace-nowrap text-center">{tx.quantity}</td>
-                        <td className="p-4 text-sm text-white/80 whitespace-nowrap font-medium">{formatPrice(tx.totalPrice, tx.currency)}</td>
-                        <td className="p-4 text-sm whitespace-nowrap">{getCurrencyBadge(tx.currency)}</td>
-                        <td className="p-4 text-sm text-white/80 whitespace-nowrap">{formatDate(tx.purchasedAt)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Pagination */}
-              <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="text-sm text-white/50">
-                  Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, totalCount)} of{' '}
-                  {totalCount.toLocaleString()} transactions
-                </div>
-                <div className="flex items-center gap-3">
-                  <select
-                    aria-label="Select transactions page size"
-                    value={pageSize}
-                    onChange={(e) => setPageSize(Number(e.target.value))}
-                    className="bg-white/5 border border-white/10 rounded px-2 py-1 text-sm text-white focus:outline-none"
-                  >
-                    <option value={5}>5 / page</option>
-                    <option value={10}>10 / page</option>
-                    <option value={20}>20 / page</option>
-                    <option value={50}>50 / page</option>
-                  </select>
-                  <button
-                    onClick={() => setPage(page - 1)}
-                    disabled={page === 1}
-                    className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    ←
-                  </button>
-                  <span className="px-3 py-1 text-sm text-white">
-                    Page {page} of {totalPages}
-                  </span>
-                  <button
-                    onClick={() => setPage(page + 1)}
-                    disabled={page >= totalPages}
-                    className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    →
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+          <p className="text-red-400 text-sm">{error}</p>
+          <button onClick={refresh} className="mt-2 text-sm underline text-red-300 cursor-pointer">Retry</button>
         </div>
       )}
+
+      {/* Table */}
+      <AdminTable
+        title={`Total Transactions: ${totalCount.toLocaleString()}`}
+        columns={columns}
+        data={transactions}
+        loading={loading}
+        serverSide
+        pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
+        idField="purchaseHistoryId"
+      />
     </div>
   );
 }

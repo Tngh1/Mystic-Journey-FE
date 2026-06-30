@@ -42,18 +42,19 @@ export interface MeResponse {
   userName: string;
   email: string;
   role: string;
+  playerProfileId: number | null;
+  playerClass: string;
+  level: number;
   lastMapName: string;
   positionX: number;
   positionY: number;
 }
 
-export interface AccountResponse {
+export interface LoginResponse {
   accountId: number;
   userName: string;
   emailAddress: string;
-  roleId: number;
   role: string;
-  isActive: boolean;
   accessToken?: string;
   accessTokenExpiresAt?: string;
   refreshToken?: string;
@@ -259,6 +260,49 @@ export interface AddMonsterDropRequest {
   maxQuantity?: number;
   isGuaranteed?: boolean;
   isActive?: boolean;
+}
+
+export interface MonsterSpawnResponse {
+  monsterSpawnId: number;
+  monsterId: number;
+  monsterName: string;
+  monsterType: string;
+  mapName: string;
+  regionName?: string;
+  location?: string;
+  spawnCount: number;
+  respawnSeconds: number;
+  dungeonId?: number;
+  dungeonName?: string;
+  isDungeonRepeatable: boolean;
+  isActive: boolean;
+}
+
+export interface CreateMonsterSpawnRequest {
+  monsterId: number;
+  mapName: string;
+  regionName?: string;
+  location?: string;
+  spawnCount?: number;
+  respawnSeconds?: number;
+  dungeonId?: number;
+  isActive?: boolean;
+}
+
+export interface PlayerMonsterCatalogItem {
+  monsterId: number;
+  name: string;
+  type: string;
+  description: string;
+  level: number;
+  maxHp: number;
+  atk: number;
+  def: number;
+  experienceReward: number;
+  goldReward: number;
+  imageUrl?: string;
+  isDiscovered: boolean;
+  timesDefeated: number;
 }
 
 /* ─── Dungeon ────────────────────────────────────────────────────────────── */
@@ -488,7 +532,7 @@ export interface ContentResponse {
   categoryId: number | null;
   categoryName: string | null;
   isPublished: boolean;
-  isActive: boolean;
+  createdByName: string;
   createdAt: string;
   updatedAt: string | null;
   publishedAt: string | null;
@@ -496,7 +540,6 @@ export interface ContentResponse {
 
 export interface BlockResponse {
   blockContentId: number;
-  title: string;
   contentId: number;
   contentData: string | null;
   mediaUrl: string | null;
@@ -528,7 +571,6 @@ export interface CreateContentRequest {
   thumbnailUrl?: string;
   categoryId?: number;
   isPublished?: boolean;
-  isActive?: boolean;
 }
 
 export type UpdateContentRequest = CreateContentRequest;
@@ -542,7 +584,6 @@ export interface CreateCategoryRequest {
 }
 
 export interface CreateBlockRequest {
-  title: string;
   contentId: number;
   contentData?: string;
   mediaUrl?: string;
@@ -553,6 +594,24 @@ export interface CreateBlockRequest {
 }
 
 export type UpdateBlockRequest = Partial<CreateBlockRequest>;
+
+export interface CreateContentWithBlocksRequest {
+  title: string;
+  summary?: string;
+  thumbnailUrl?: string;
+  categoryId?: number;
+  isPublished?: boolean;
+  blocks: CreateContentBlockItem[];
+}
+
+export interface CreateContentBlockItem {
+  contentData?: string;
+  mediaUrl?: string;
+  caption?: string;
+  blockType?: string;
+  sortOrder?: number;
+  isActive?: boolean;
+}
 
 /* ─── Dashboard ──────────────────────────────────────────────────────────── */
 
@@ -621,7 +680,7 @@ export interface GameSettingResponse {
 export interface UpdateGameSettingRequest {
   value?: string;
   description?: string;
-  isActive?: boolean;
+  isActive: boolean;
 }
 
 export interface DailyLoginRewardResponse {
@@ -633,6 +692,7 @@ export interface DailyLoginRewardResponse {
   rewardItemName: string | null;
   rewardItemQuantity: number;
   isActive: boolean;
+  createdAt: string;
 }
 
 export interface CreateDailyLoginRewardRequest {
@@ -640,7 +700,7 @@ export interface CreateDailyLoginRewardRequest {
   rewardType?: string;
   rewardValue?: number;
   rewardItemId?: number;
-  rewardItemQuantity?: number;
+  rewardItemQuantity: number;
   isActive?: boolean;
 }
 

@@ -17,7 +17,8 @@ import {
   Scroll, 
   Trophy, 
   Mail,
-  Settings
+  Settings,
+  FolderOpen
 } from "lucide-react";
 
 const menuGroups = [
@@ -62,6 +63,7 @@ const menuGroups = [
     title: "COMMUNICATIONS",
     items: [
       { icon: FileText, label: "Manage Content", href: "/manage-content" },
+      { icon: FolderOpen, label: "Manage Category", href: "/manage-category-content" },
       { icon: Mail, label: "Manage Mailbox", href: "/manage-mailbox" },
     ]
   }
