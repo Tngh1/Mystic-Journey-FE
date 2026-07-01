@@ -495,6 +495,13 @@ export interface AddGachaBannerItemRequest {
 
 /* ─── Mail ───────────────────────────────────────────────────────────────── */
 
+export interface MailRewardItemResponse {
+  itemId: number;
+  itemName: string | null;
+  iconUrl: string | null;
+  quantity: number;
+}
+
 export interface MailResponse {
   mailId: number;
   playerProfileId: number;
@@ -504,15 +511,18 @@ export interface MailResponse {
   type: string;
   attachedGold: number;
   attachedGems: number;
-  attachedItemId: number | null;
-  attachedItemName: string | null;
-  attachedItemQuantity: number;
+  attachedItems: MailRewardItemResponse[];
   isRead: boolean;
   isClaimed: boolean;
   isDeleted: boolean;
   deletedAt: string | null;
   sentAt: string;
   expiredAt: string | null;
+}
+
+export interface SendMailRewardItem {
+  itemId: number;
+  quantity: number;
 }
 
 export interface SendMailByListIdRequest {
@@ -522,8 +532,7 @@ export interface SendMailByListIdRequest {
   type?: string;
   attachedGold?: number;
   attachedGems?: number;
-  attachedItemId?: number;
-  attachedItemQuantity?: number;
+  attachedItems?: SendMailRewardItem[];
   expiredAt?: string;
 }
 
@@ -533,8 +542,7 @@ export interface SendMailToAllRequest {
   type?: string;
   attachedGold?: number;
   attachedGems?: number;
-  attachedItemId?: number;
-  attachedItemQuantity?: number;
+  attachedItems?: SendMailRewardItem[];
   expiredAt?: string;
 }
 
