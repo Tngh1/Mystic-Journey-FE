@@ -14,10 +14,9 @@ interface StoryChapter {
 
 export default function StoryPage() {
   const [activeChapter, setActiveChapter] = useState(0);
-  const [isVisible, setIsVisible] = useState<number | null>(null);
+  const [isVisible, setIsVisible] = useState<number | null>(0);
 
   useEffect(() => {
-    setIsVisible(0);
     const timer = setTimeout(() => setIsVisible(null), 100);
     return () => clearTimeout(timer);
   }, []);

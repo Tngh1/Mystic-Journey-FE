@@ -17,6 +17,21 @@ const rarityColors: Record<string, string> = {
   Mythic: "text-red-400",
 };
 
+const formatItemStats = (item: ItemResponse) => {
+  const stats = [
+    item.baseHp ? `HP ${item.baseHp}` : null,
+    item.baseAtk ? `ATK ${item.baseAtk}` : null,
+    item.baseDef ? `DEF ${item.baseDef}` : null,
+    item.bonusHp ? `HP+ ${item.bonusHp}%` : null,
+    item.bonusAtk ? `ATK+ ${item.bonusAtk}%` : null,
+    item.bonusDef ? `DEF+ ${item.bonusDef}%` : null,
+    item.bonusCritRate ? `CRIT ${item.bonusCritRate}%` : null,
+    item.bonusCritDamage ? `CDMG ${item.bonusCritDamage}%` : null,
+  ].filter(Boolean);
+
+  return stats.length > 0 ? stats.join(" / ") : "None";
+};
+
 const columns = [
   {
     key: "iconUrl",
@@ -47,6 +62,13 @@ const columns = [
     ),
   },
   { key: "slot", label: "Slot" },
+  {
+    key: "stats",
+    label: "Stats",
+    render: (_: unknown, item: ItemResponse) => (
+      <span className="text-xs text-gray-400">{formatItemStats(item)}</span>
+    ),
+  },
   { key: "baseValue", label: "Base Value" },
   { key: "maxStack", label: "Max Stack" },
 ];
@@ -124,7 +146,6 @@ export default function ManageItemsPage() {
             <option value="">All Types</option>
             <option value="Weapon">Weapon</option>
             <option value="Armor">Armor</option>
-            <option value="Accessory">Accessory</option>
             <option value="Consumable">Consumable</option>
             <option value="Material">Material</option>
             <option value="QuestItem">Quest Item</option>

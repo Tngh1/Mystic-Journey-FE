@@ -80,7 +80,7 @@ const columns = [
   {
     key: "status",
     label: "Status",
-    render: (_: any, mail: MailResponse) => (
+    render: (_value: never, mail: MailResponse) => (
       <div className="flex flex-col gap-1 items-start">
         {!mail.isRead && (
           <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/15 text-blue-400 border border-blue-500/30">

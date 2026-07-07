@@ -1,13 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Package, Search, ChevronRight, Filter, Star, Zap, Shield, Sword, Sparkles, Heart, Crown } from "lucide-react";
+import { useState, useEffect, type ReactNode } from "react";
+import { Package, Search, ChevronRight, Filter, Star, Shield, Sword, Sparkles, Heart, Crown } from "lucide-react";
+import { getAll, type ItemResponse } from "@/lib/api/items";
+
+type ItemRarity = "common" | "uncommon" | "rare" | "epic" | "legendary" | "mythic";
+
+const rarityKeys: ItemRarity[] = ["common", "uncommon", "rare", "epic", "legendary", "mythic"];
 
 interface Item {
   id: number;
   name: string;
-  rarity: "common" | "uncommon" | "rare" | "epic" | "legendary";
+  rarity: ItemRarity;
   type: string;
   description: string;
   stats: {
@@ -15,8 +19,9 @@ interface Item {
     defense?: number;
     hp?: number;
     critRate?: number;
+    critDamage?: number;
   };
-  icon: React.ReactNode;
+  icon: ReactNode;
 }
 
 const rarityColors = {
@@ -25,6 +30,7 @@ const rarityColors = {
   rare: { bg: "bg-blue-500/20", border: "border-blue-500/30", text: "text-blue-400", glow: "shadow-blue-500/20" },
   epic: { bg: "bg-purple-500/20", border: "border-purple-500/30", text: "text-purple-400", glow: "shadow-purple-500/20" },
   legendary: { bg: "bg-amber-500/20", border: "border-amber-500/30", text: "text-amber-400", glow: "shadow-amber-500/20" },
+  mythic: { bg: "bg-red-500/20", border: "border-red-500/30", text: "text-red-400", glow: "shadow-red-500/20" },
 };
 
 const rarityNames = {
@@ -33,38 +39,89 @@ const rarityNames = {
   rare: "Rare",
   epic: "Epic",
   legendary: "Legendary",
+  mythic: "Mythic",
 };
 
-const itemTypes = ["All", "Weapon", "Armor", "Accessory", "Consumable", "Material"];
+const itemTypes = ["All", "Weapon", "Armor", "Accessory", "Consumable", "Material", "QuestItem"];
+
+function normalizeRarity(rarity?: string | null): ItemRarity {
+  const normalized = rarity?.trim().toLowerCase();
+  return rarityKeys.includes(normalized as ItemRarity) ? (normalized as ItemRarity) : "common";
+}
+
+function statValue(...values: Array<number | null | undefined>): number | undefined {
+  const total = values.reduce<number>((sum, value) => sum + (typeof value === "number" ? value : 0), 0);
+  return total === 0 ? undefined : total;
+}
+
+function getItemIcon(item: ItemResponse): ReactNode {
+  if (item.iconUrl) {
+    return (
+      <span
+        role="img"
+        aria-label={item.name}
+        className="block w-full h-full bg-center bg-cover"
+        style={{ backgroundImage: `url("${item.iconUrl}")` }}
+      />
+    );
+  }
+
+  const type = item.type.toLowerCase();
+  if (type.includes("weapon")) return <Sword className="w-8 h-8" />;
+  if (type.includes("armor")) return <Shield className="w-8 h-8" />;
+  if (type.includes("accessory")) return <Crown className="w-8 h-8" />;
+  if (type.includes("consumable")) return <Heart className="w-8 h-8" />;
+  if (type.includes("quest")) return <Sparkles className="w-8 h-8" />;
+  if (type.includes("material")) return <Package className="w-8 h-8" />;
+  return <Star className="w-8 h-8" />;
+}
+
+function mapApiItem(item: ItemResponse): Item {
+  return {
+    id: item.itemId,
+    name: item.name,
+    rarity: normalizeRarity(item.rarity),
+    type: item.type,
+    description: item.description || "No item description available.",
+    stats: {
+      hp: statValue(item.baseHp, item.bonusHp),
+      attack: statValue(item.baseAtk, item.bonusAtk),
+      defense: statValue(item.baseDef, item.bonusDef),
+      critRate: statValue(item.bonusCritRate),
+      critDamage: statValue(item.bonusCritDamage),
+    },
+    icon: getItemIcon(item),
+  };
+}
 
 export default function WikiItemsPage() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("All");
   const [selectedRarity, setSelectedRarity] = useState<string>("All");
-  const router = useRouter();
 
   useEffect(() => {
-    const mockItems: Item[] = [
-      { id: 1, name: "Dragon Slayer Sword", rarity: "legendary", type: "Weapon", description: "A legendary blade forged from dragon fire. Deals massive damage to dragon-type enemies.", stats: { attack: 500, critRate: 25 }, icon: <Sword className="w-8 h-8" /> },
-      { id: 2, name: "Mystic Staff", rarity: "epic", type: "Weapon", description: "Staff imbued with ancient mystical energies. Enhances all spell damage.", stats: { attack: 350, hp: 200 }, icon: <Sparkles className="w-8 h-8" /> },
-      { id: 3, name: "Knight's Shield", rarity: "rare", type: "Armor", description: "A sturdy shield that provides excellent protection in battle.", stats: { defense: 300, hp: 150 }, icon: <Shield className="w-8 h-8" /> },
-      { id: 4, name: "Speed Boots", rarity: "uncommon", type: "Accessory", description: "Enchanted boots that increase movement speed.", stats: { attack: 50 }, icon: <Zap className="w-8 h-8" /> },
-      { id: 5, name: "Health Potion", rarity: "common", type: "Consumable", description: "Restores 500 HP when consumed.", stats: { hp: 500 }, icon: <Heart className="w-8 h-8" /> },
-      { id: 6, name: "Dragon Scale", rarity: "epic", type: "Material", description: "Rare material dropped by dragons. Used for crafting legendary gear.", stats: {}, icon: <Package className="w-8 h-8" /> },
-      { id: 7, name: "Phoenix Feather", rarity: "legendary", type: "Material", description: "A mystical feather from the phoenix. Required for ultimate gear crafting.", stats: {}, icon: <Star className="w-8 h-8" /> },
-      { id: 8, name: "Shadow Dagger", rarity: "rare", type: "Weapon", description: "A swift dagger favored by assassins. Deals critical damage.", stats: { attack: 200, critRate: 30 }, icon: <Sword className="w-8 h-8" /> },
-      { id: 9, name: "Mage Robes", rarity: "uncommon", type: "Armor", description: "Light armor that boosts magical abilities.", stats: { defense: 100, attack: 80 }, icon: <Sparkles className="w-8 h-8" /> },
-      { id: 10, name: "Crown of Wisdom", rarity: "legendary", type: "Accessory", description: "An ancient crown that enhances all stats significantly.", stats: { attack: 200, defense: 200, hp: 500 }, icon: <Crown className="w-8 h-8" /> },
-      { id: 11, name: "Iron Helmet", rarity: "common", type: "Armor", description: "Basic protective headgear for beginners.", stats: { defense: 50 }, icon: <Shield className="w-8 h-8" /> },
-      { id: 12, name: "Elixir of Power", rarity: "epic", type: "Consumable", description: "Temporarily doubles all damage for 30 seconds.", stats: { attack: 100 }, icon: <Zap className="w-8 h-8" /> },
-    ];
+    let mounted = true;
 
-    setTimeout(() => {
-      setItems(mockItems);
-      setLoading(false);
-    }, 300);
+    async function loadItems() {
+      try {
+        const response = await getAll(1, 1000);
+        if (!mounted) return;
+        setItems(response.items.filter((item) => item.isActive).map(mapApiItem));
+      } catch (err) {
+        if (!mounted) return;
+        setError(err instanceof Error ? err.message : "Failed to load items.");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+
+    loadItems();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const filteredItems = items.filter((item) => {
@@ -79,6 +136,16 @@ export default function WikiItemsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center pt-20">
         <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-[#ffc032]"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 pt-20 px-4 text-center">
+        <Package className="w-16 h-16 text-white/20" />
+        <h1 className="text-2xl font-bold text-white">Unable to load items</h1>
+        <p className="max-w-xl text-white/50">{error}</p>
       </div>
     );
   }
@@ -147,7 +214,7 @@ export default function WikiItemsPage() {
             >
               All
             </button>
-            {(["common", "uncommon", "rare", "epic", "legendary"] as const).map((rarity) => (
+            {rarityKeys.map((rarity) => (
               <button
                 key={rarity}
                 onClick={() => setSelectedRarity(rarity)}
@@ -171,7 +238,7 @@ export default function WikiItemsPage() {
               className={`group bg-white/5 border ${rarityColors[item.rarity].border} rounded-2xl p-6 hover:shadow-xl ${rarityColors[item.rarity].glow} transition-all duration-300 cursor-pointer hover:-translate-y-1`}
             >
               {/* Item Icon */}
-              <div className={`w-20 h-20 mx-auto mb-4 rounded-2xl ${rarityColors[item.rarity].bg} flex items-center justify-center ${rarityColors[item.rarity].text} group-hover:scale-110 transition-transform`}>
+              <div className={`w-20 h-20 mx-auto mb-4 rounded-2xl ${rarityColors[item.rarity].bg} flex items-center justify-center ${rarityColors[item.rarity].text} group-hover:scale-110 transition-transform overflow-hidden`}>
                 {item.icon}
               </div>
 
@@ -211,6 +278,11 @@ export default function WikiItemsPage() {
                 {item.stats.critRate && (
                   <span className="px-2 py-1 bg-purple-500/10 text-purple-400 rounded text-xs">
                     CRIT +{item.stats.critRate}%
+                  </span>
+                )}
+                {item.stats.critDamage && (
+                  <span className="px-2 py-1 bg-pink-500/10 text-pink-400 rounded text-xs">
+                    CDMG +{item.stats.critDamage}%
                   </span>
                 )}
               </div>

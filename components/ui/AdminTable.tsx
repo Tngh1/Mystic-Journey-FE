@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { Plus, Search, Edit2, Trash2 } from "lucide-react";
 
-interface Column {
+interface Column<T extends object> {
   key: string;
   label: string;
   sortable?: boolean;
-  render?: (value: any, item: any) => React.ReactNode;
+  render?: (value: never, item: T) => React.ReactNode;
 }
 
 interface ServerPagination {
@@ -16,15 +16,15 @@ interface ServerPagination {
   setPageSize: (size: number) => void;
 }
 
-interface AdminTableProps {
+interface AdminTableProps<T extends object> {
   title: string;
-  columns: Column[];
-  data: any[];
+  columns: Column<T>[];
+  data: T[];
   onCreate?: () => void;
-  onUpdate?: (item: any) => void;
-  onDelete?: (item: any) => void;
-  onRowClick?: (item: any) => void;
-  selectedId?: any;
+  onUpdate?: (item: T) => void;
+  onDelete?: (item: T) => void;
+  onRowClick?: (item: T) => void;
+  selectedId?: unknown;
   itemsPerPage?: number;
   idField?: string;
   serverSide?: boolean;
@@ -34,7 +34,7 @@ interface AdminTableProps {
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
-export default function AdminTable({
+export default function AdminTable<T extends object>({
   title,
   columns,
   data,
@@ -48,7 +48,7 @@ export default function AdminTable({
   serverSide = false,
   pagination,
   loading = false,
-}: AdminTableProps) {
+}: AdminTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -56,7 +56,7 @@ export default function AdminTable({
     ? data
     : data.filter((item) =>
         columns.some((col) => {
-          const value = item[col.key];
+          const value = (item as Record<string, unknown>)[col.key];
           if (typeof value === "string") {
             return value.toLowerCase().includes(searchTerm.toLowerCase());
           }
@@ -152,10 +152,11 @@ export default function AdminTable({
               </tr>
             ) : (
               currentData.map((item, rowIndex) => {
-                const isSelected = selectedId !== undefined && item[idField] === selectedId;
+                const rowId = (item as Record<string, unknown>)[idField];
+                const isSelected = selectedId !== undefined && rowId === selectedId;
                 return (
                 <tr
-                  key={item[idField] ?? rowIndex}
+                  key={String(rowId ?? rowIndex)}
                   onClick={() => onRowClick?.(item)}
                   className={`border-b border-gray-800/50 hover:bg-[#1e1e1e] transition-colors group ${
                     onRowClick ? "cursor-pointer" : ""
@@ -163,7 +164,7 @@ export default function AdminTable({
                 >
                   {columns.map((col) => (
                     <td key={col.key} className="px-5 py-3.5 text-sm text-white/80 whitespace-nowrap">
-                      {col.render ? col.render(item[col.key], item) : item[col.key]}
+                      {col.render ? col.render((item as Record<string, unknown>)[col.key] as never, item) : String((item as Record<string, unknown>)[col.key] ?? "")}
                     </td>
                   ))}
                   {(onUpdate || onDelete) && (

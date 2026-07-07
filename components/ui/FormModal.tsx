@@ -12,13 +12,15 @@ interface FormField {
   options?: { value: string | number; label: string }[];
 }
 
+type FormValue = string | number | boolean;
+
 interface FormModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   fields: FormField[];
-  initialValues?: Record<string, any>;
-  onSubmit: (values: Record<string, any>) => void;
+  initialValues?: Record<string, FormValue>;
+  onSubmit: (values: Record<string, FormValue>) => void;
 }
 
 export default function FormModal({
@@ -29,16 +31,25 @@ export default function FormModal({
   initialValues = {},
   onSubmit,
 }: FormModalProps) {
-  const [formData, setFormData] = React.useState<Record<string, any>>({});
+  const [formData, setFormData] = React.useState<Record<string, FormValue>>(initialValues);
 
   useEffect(() => {
     if (isOpen) {
-      setFormData(initialValues);
+      void Promise.resolve().then(() => setFormData(initialValues));
     }
   }, [isOpen, initialValues]);
 
-  const handleChange = (name: string, value: any) => {
+  const handleChange = (name: string, value: FormValue) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const getInputValue = (name: string): string | number => {
+    const value = formData[name];
+    return typeof value === "string" || typeof value === "number" ? value : "";
+  };
+
+  const getCheckedValue = (name: string): boolean => {
+    return formData[name] === true;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -78,7 +89,7 @@ export default function FormModal({
                     type="text"
                     name={field.name}
                     placeholder={field.placeholder}
-                    value={formData[field.name] || ""}
+                    value={getInputValue(field.name)}
                     onChange={(e) => handleChange(field.name, e.target.value)}
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
                     required={field.required}
@@ -90,7 +101,7 @@ export default function FormModal({
                     type="number"
                     name={field.name}
                     placeholder={field.placeholder}
-                    value={formData[field.name] || ""}
+                    value={getInputValue(field.name)}
                     onChange={(e) => handleChange(field.name, Number(e.target.value))}
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
                     required={field.required}
@@ -100,7 +111,7 @@ export default function FormModal({
                 {field.type === "select" && (
                   <select
                     name={field.name}
-                    value={formData[field.name] || ""}
+                    value={getInputValue(field.name)}
                     onChange={(e) => handleChange(field.name, e.target.value)}
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
                     required={field.required}
@@ -120,7 +131,7 @@ export default function FormModal({
                   <textarea
                     name={field.name}
                     placeholder={field.placeholder}
-                    value={formData[field.name] || ""}
+                    value={getInputValue(field.name)}
                     onChange={(e) => handleChange(field.name, e.target.value)}
                     rows={3}
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors resize-none"
@@ -132,7 +143,7 @@ export default function FormModal({
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={formData[field.name] || false}
+                      checked={getCheckedValue(field.name)}
                       onChange={(e) => handleChange(field.name, e.target.checked)}
                       className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0"
                     />
@@ -146,7 +157,7 @@ export default function FormModal({
                   <input
                     type="date"
                     name={field.name}
-                    value={formData[field.name] || ""}
+                    value={getInputValue(field.name)}
                     onChange={(e) => handleChange(field.name, e.target.value)}
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
                     required={field.required}

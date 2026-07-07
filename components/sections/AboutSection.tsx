@@ -1,7 +1,7 @@
 const ABOUT_CONTENT = {
   title: "About",
   description:
-    "Immerse yourself in Chumbi Valley; an enchanting and mystical play-to-earn blockchain game with intriguing and adorable NFT creatures known as Chumbi. Explore the unchartered forest, start a farm, grow crops and craft special items with your Chumbi companions by your side, while earning crypto rewards.",
+    "Embark on an epic fantasy adventure in Mystic Journey — a turn-based RPG where heroes rise to protect a world threatened by shadows. Begin your legend in Chapter 1: the Enchanted Forest, where Elder Rowan calls upon brave warriors to investigate the dark corruption spreading through the ancient woods. Choose your class, master your skills, and uncover the secrets of a mystical realm.",
 };
 
 export default function AboutSection() {
