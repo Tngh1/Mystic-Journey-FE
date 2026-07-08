@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Trophy, Search, ChevronRight, Star, Lock, CheckCircle, Swords, Shield, Crown, Gem, Users } from "lucide-react";
+import PageLoader from "@/components/ui/PageLoader";
 
 interface Achievement {
   id: number;
@@ -84,48 +85,44 @@ export default function WikiAchievementsPage() {
   const totalPoints = achievements.filter(a => a.isUnlocked).reduce((sum, a) => sum + a.points, 0);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center pt-20">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-[#ffc032]"></div>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-12">
+    <div className="min-h-screen pt-[88px] md:pt-[112px] flex flex-col">
       {/* Hero */}
-      <div className="relative bg-gradient-to-b from-amber-500/10 to-transparent py-16">
-        <div className="container mx-auto px-4 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/20 rounded-full mb-4">
-            <Trophy className="w-5 h-5 text-amber-400" />
-            <span className="text-amber-400 font-medium">Achievement Gallery</span>
+      <div className="relative bg-gradient-to-b from-amber-500/10 to-transparent py-8 md:py-12">
+        <div className="max-w-[1200px] mx-auto px-4 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500/20 rounded-full mb-3">
+            <Trophy className="w-4 h-4 text-amber-400" />
+            <span className="text-amber-400 font-medium text-sm">Achievement Gallery</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Achievements</h1>
-          <p className="text-white/70 text-lg max-w-2xl mx-auto">
+          <h1 className="text-2xl md:text-4xl font-bold text-white mb-2">Achievements</h1>
+          <p className="text-white/60 text-sm md:text-base max-w-xl mx-auto">
             Track your accomplishments and unlock rewards
           </p>
 
           {/* Stats */}
-          <div className="flex flex-wrap justify-center gap-6 mt-8">
-            <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-4">
-              <p className="text-3xl font-bold text-white">{unlockedCount}/{achievements.length}</p>
-              <p className="text-white/50 text-sm">Unlocked</p>
+          <div className="flex flex-wrap justify-center gap-4 mt-4 md:mt-6">
+            <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5">
+              <p className="text-xl md:text-2xl font-bold text-white">{unlockedCount}/{achievements.length}</p>
+              <p className="text-white/40 text-xs">Unlocked</p>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-4">
-              <p className="text-3xl font-bold text-amber-400">{totalPoints.toLocaleString()}</p>
-              <p className="text-white/50 text-sm">Total Points</p>
+            <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5">
+              <p className="text-xl md:text-2xl font-bold text-amber-400">{totalPoints.toLocaleString()}</p>
+              <p className="text-white/40 text-xs">Total Points</p>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-4">
-              <p className="text-3xl font-bold text-white">{Math.round((unlockedCount / achievements.length) * 100)}%</p>
-              <p className="text-white/50 text-sm">Completion</p>
+            <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5">
+              <p className="text-xl md:text-2xl font-bold text-white">{Math.round((unlockedCount / achievements.length) * 100)}%</p>
+              <p className="text-white/40 text-xs">Completion</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="flex-grow max-w-[1200px] mx-auto w-full px-4 pb-8 md:pb-12">
         {/* Filters */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8">
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 mb-6">
           <div className="flex flex-col md:flex-row gap-4 items-center">
             <div className="relative flex-1 w-full">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />

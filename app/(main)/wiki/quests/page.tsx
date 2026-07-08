@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Scroll, Search, Star, MapPin, Clock, Gift, Map, Gem } from "lucide-react";
 import { getAll, type QuestResponse } from "@/lib/api/quests";
+import PageLoader from "@/components/ui/PageLoader";
 
 type QuestType = "main" | "side" | "daily" | "event";
 type QuestFilterType = "all" | QuestType;
@@ -165,11 +166,7 @@ export default function WikiQuestsPage() {
   });
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center pt-20">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-[#ffc032]"></div>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (error) {
@@ -183,24 +180,24 @@ export default function WikiQuestsPage() {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-12">
+    <div className="min-h-screen pt-[88px] md:pt-[112px] flex flex-col">
       {/* Hero */}
-      <div className="relative bg-gradient-to-b from-green-500/10 to-transparent py-16">
-        <div className="container mx-auto px-4 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/20 rounded-full mb-4">
-            <Scroll className="w-5 h-5 text-green-400" />
-            <span className="text-green-400 font-medium">Quest Database</span>
+      <div className="relative bg-gradient-to-b from-green-500/10 to-transparent py-8 md:py-12">
+        <div className="max-w-[1200px] mx-auto px-4 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-500/20 rounded-full mb-3">
+            <Scroll className="w-4 h-4 text-green-400" />
+            <span className="text-green-400 font-medium text-sm">Quest Database</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Quests</h1>
-          <p className="text-white/70 text-lg max-w-2xl mx-auto">
+          <h1 className="text-2xl md:text-4xl font-bold text-white mb-2">Quests</h1>
+          <p className="text-white/60 text-sm md:text-base max-w-xl mx-auto">
             Browse all available quests and their rewards
           </p>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="flex-grow max-w-[1200px] mx-auto w-full px-4 pb-8 md:pb-12">
         {/* Filters */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8">
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />

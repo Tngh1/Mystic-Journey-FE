@@ -121,7 +121,7 @@ export default function ManageQuestsPage() {
         </div>
       </div>
 
-      <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-[#111111] border border-gray-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="relative w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <input

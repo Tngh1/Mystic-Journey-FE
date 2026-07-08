@@ -114,7 +114,7 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
         <div
           {...attributes}
           {...listeners}
-          className="flex items-center px-2 bg-[#1a1a1a] border-r border-purple-500/30 cursor-grab active:cursor-grabbing hover:bg-[#252525]"
+          className="flex items-center px-2 bg-[#111111] border-r border-purple-500/30 cursor-grab active:cursor-grabbing hover:bg-[#252525]"
         >
           <GripVertical className="w-4 h-4 text-purple-400/50" />
         </div>
@@ -145,7 +145,7 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
                   onDelete(blockId);
                 }
               }}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-red-400 hover:text-white bg-red-500/10 hover:bg-red-500 border border-red-500/30 rounded transition-colors"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-red-400 hover:text-white bg-red-500/10 hover:bg-red-500 border border-red-500/30 rounded transition-colors cursor-pointer"
               title="Delete this block"
             >
               <X className="w-3.5 h-3.5" />
@@ -187,7 +187,7 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
               <button
                 type="button"
                 onClick={() => onUpdate(blockId, { mediaUrl: '', mediaFile: null })}
-                className="absolute top-2 right-2 p-1.5 bg-red-500/80 text-white rounded-lg hover:bg-red-600 transition-colors"
+                className="absolute top-2 right-2 p-1.5 bg-red-500/80 text-white rounded-lg hover:bg-red-600 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -200,7 +200,7 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
             value={block.caption || ''}
             onChange={handleCaptionChange}
             placeholder="Image caption (optional)"
-            className="w-full px-3 py-1.5 bg-[#1a1a1a] border border-[#333] rounded text-white text-sm placeholder-gray-500 focus:outline-none focus:border-purple-500"
+            className="w-full px-3 py-1.5 bg-[#111111] border border-[#333] rounded text-white text-sm placeholder-gray-500 focus:outline-none focus:border-purple-500"
           />
         </div>
       </div>
@@ -232,14 +232,14 @@ function InsertZone({
             <button
               type="button"
               onClick={onAddText}
-              className="flex items-center gap-1 px-2.5 py-0.5 text-xs bg-blue-500/20 text-blue-400 border border-blue-500/40 rounded-full hover:bg-blue-500/30 transition-colors font-medium whitespace-nowrap"
+              className="flex items-center gap-1 px-2.5 py-0.5 text-xs bg-blue-500/20 text-blue-400 border border-blue-500/40 rounded-full hover:bg-blue-500/30 transition-colors font-medium whitespace-nowrap cursor-pointer"
             >
               <Type className="w-3 h-3" /> Text
             </button>
             <button
               type="button"
               onClick={onAddImage}
-              className="flex items-center gap-1 px-2.5 py-0.5 text-xs bg-purple-500/20 text-purple-400 border border-purple-500/40 rounded-full hover:bg-purple-500/30 transition-colors font-medium whitespace-nowrap"
+              className="flex items-center gap-1 px-2.5 py-0.5 text-xs bg-purple-500/20 text-purple-400 border border-purple-500/40 rounded-full hover:bg-purple-500/30 transition-colors font-medium whitespace-nowrap cursor-pointer"
             >
               <ImageIcon className="w-3 h-3" /> Image
             </button>
@@ -575,7 +575,7 @@ function UpdateContentContent() {
         <div className="mb-6">
           <Link
             href="/manage-content"
-            className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-4"
+            className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-4 cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5" />
             Back to Content
@@ -607,7 +607,7 @@ function UpdateContentContent() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left: Content Info */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="bg-[#1a1a1a] rounded-lg p-6">
+            <div className="bg-[#111111] rounded-lg p-6">
               {error && (
                 <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg mb-6">
                   {error}
@@ -679,12 +679,12 @@ function UpdateContentContent() {
             </div>
 
             {/* Actions */}
-            <div className="bg-[#1a1a1a] rounded-lg p-6">
+            <div className="bg-[#111111] rounded-lg p-6">
               <div className="flex items-center gap-4">
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex items-center gap-2 px-6 py-2 bg-[#ffc032] text-[#111] rounded-lg font-semibold hover:bg-[#e6ae2c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-6 py-2 bg-[#ffc032] text-[#111] rounded-lg font-semibold hover:bg-[#e6ae2c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {submitting ? (
                     <>
@@ -697,7 +697,7 @@ function UpdateContentContent() {
                 </button>
                 <Link
                   href="/manage-content"
-                  className="px-6 py-2 bg-[#333] text-white rounded-lg font-semibold hover:bg-[#444] transition-colors"
+                  className="px-6 py-2 bg-[#333] text-white rounded-lg font-semibold hover:bg-[#444] transition-colors cursor-pointer"
                 >
                   Cancel
                 </Link>
@@ -706,20 +706,20 @@ function UpdateContentContent() {
           </form>
 
           {/* Right: Block Content */}
-          <div className="bg-[#1a1a1a] rounded-lg p-6">
+          <div className="bg-[#111111] rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-white">Block Contents</h2>
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleAddText}
-                  className="flex items-center gap-2 px-3 py-2 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg font-medium hover:bg-blue-500/30 transition-colors text-sm"
+                  className="flex items-center gap-2 px-3 py-2 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg font-medium hover:bg-blue-500/30 transition-colors text-sm cursor-pointer"
                 >
                   <Type className="w-4 h-4" />
                   Add Text
                 </button>
                 <button
                   onClick={handleAddImage}
-                  className="flex items-center gap-2 px-3 py-2 bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded-lg font-medium hover:bg-purple-500/30 transition-colors text-sm"
+                  className="flex items-center gap-2 px-3 py-2 bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded-lg font-medium hover:bg-purple-500/30 transition-colors text-sm cursor-pointer"
                 >
                   <ImageIcon className="w-4 h-4" />
                   Add Image

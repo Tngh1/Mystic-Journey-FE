@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Calendar, Tag, Bell, Loader2, User, ArrowRight } from "lucide-react";
-import { ContentResponse, getAll, getCategories } from "@/lib/api/contents";
+import { Calendar, Tag, Bell, ArrowRight } from "lucide-react";
+import type { ContentResponse } from "@/lib/api/contents";
+import PageLoader from "@/components/ui/PageLoader";
 
 interface CategoryInfo {
   categoryContentId: number;
   name: string;
+  isActive?: boolean;
 }
 
 export default function ContentPage() {
@@ -19,12 +21,13 @@ export default function ContentPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
+      // Gọi qua Next.js API routes để tránh browser gặp lỗi SSL/CORS khi BE chạy HTTPS self-signed.
       const [contentsData, categoriesData] = await Promise.all([
-        getAll(1, 100),
-        getCategories()
+        fetch("/api/contents?page=1&pageSize=100").then((r) => r.json()),
+        fetch("/api/contents/categories").then((r) => r.json()),
       ]);
-      setContents(contentsData.items.filter(c => c.isPublished));
-      setCategories(categoriesData.filter(c => c.isActive));
+      setContents((contentsData?.items ?? []).filter((c: ContentResponse) => c.isPublished));
+      setCategories(Array.isArray(categoriesData) ? categoriesData.filter((c: CategoryInfo) => c.isActive) : []);
     } catch (error) {
       console.error("Failed to fetch contents:", error);
     } finally {
@@ -42,35 +45,31 @@ export default function ContentPage() {
     : contents;
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center pt-20">
-        <Loader2 className="w-16 h-16 text-[#ffc032] animate-spin" />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-12">
+    <div className="min-h-screen pt-[88px] md:pt-[112px] flex flex-col">
       {/* Hero Section */}
-      <div className="relative overflow-hidden py-16">
+      <div className="relative overflow-hidden py-8 md:py-12">
         <div className="absolute inset-0 bg-[url('/images/patterns/grid.svg')] opacity-5"></div>
-        <div className="container mx-auto px-4 relative z-10">
+        <div className="max-w-[1200px] mx-auto px-4 relative z-10">
           <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#ffc032]/20 rounded-full mb-6">
-              <Bell className="w-5 h-5 text-[#ffc032]" />
-              <span className="text-[#ffc032] font-medium">Latest Contents</span>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 md:py-2 bg-[#ffc032]/20 rounded-full mb-3 md:mb-4">
+              <Bell className="w-4 h-4 text-[#ffc032]" />
+              <span className="text-[#ffc032] font-medium text-sm">Latest Contents</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-2 md:mb-3">
               Contents
             </h1>
-            <p className="text-white/70 text-lg">
-              Stay updated with the latest news, events, and updates from the Mystic Journey team
+            <p className="text-white/60 text-sm md:text-base">
+              Stay updated with the latest news and events
             </p>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="flex-grow max-w-[1200px] mx-auto w-full px-4 pb-8 md:pb-12">
         {/* Filter Tabs */}
         <div className="flex flex-wrap justify-center gap-3 mb-10">
           <button
@@ -129,7 +128,7 @@ function ContentCard({ content }: { content: ContentResponse }) {
   return (
     <Link
       href={`/content/${content.slug || content.contentId}`}
-      className="group relative flex flex-col md:flex-row bg-[#1a1a1a]/80 border border-white/10 rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#ffc032]/30 hover:shadow-xl hover:shadow-[#ffc032]/5"
+      className="group relative flex flex-col md:flex-row bg-[#111111]/80 border border-white/10 rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#ffc032]/30 hover:shadow-xl hover:shadow-[#ffc032]/5"
     >
       {/* Image Section */}
       <div className="relative w-full md:w-[320px] lg:w-[380px] h-48 md:h-auto shrink-0 overflow-hidden">

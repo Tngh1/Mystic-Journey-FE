@@ -2,12 +2,16 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Loader2, Save } from 'lucide-react';
+import { Loader2, Save, FolderTree, Image as ImageIcon } from 'lucide-react';
 import { updateCategory, getCategories, CategoryResponse } from '@/lib/api/contents';
 import ImageUploader from '@/components/ui/ImageUploader';
-import {
-  uploadImageWithCleanup,
-} from '@/lib/api/cloudinary';
+import { uploadImageWithCleanup } from '@/lib/api/cloudinary';
+import FormHeader from '@/components/form/FormHeader';
+import FormSection from '@/components/form/FormSection';
+import FormField from '@/components/form/FormField';
+import FormActions from '@/components/form/FormActions';
+import FormAlert from '@/components/form/FormAlert';
+import { TextInput, TextArea, Checkbox } from '@/components/form/FormInput';
 
 interface FormData {
   name: string;
@@ -16,7 +20,6 @@ interface FormData {
   iconUrl: string | File | null;
   isActive: boolean;
 }
-
 
 function UpdateCategoryContentContent() {
   const router = useRouter();
@@ -68,7 +71,7 @@ function UpdateCategoryContentContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryId]);
 
-  const handleChange = (field: keyof FormData, value: string | boolean | File | null) => {
+  const handleChange = <K extends keyof FormData>(field: K, value: FormData[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -119,7 +122,7 @@ function UpdateCategoryContentContent() {
           <p className="text-red-400 mb-4">Category not found</p>
           <button
             onClick={() => router.push("/manage-category-content")}
-            className="text-[#ffc032] hover:underline"
+            className="text-[#ffc032] hover:underline cursor-pointer"
           >
             Back to Categories
           </button>
@@ -129,115 +132,70 @@ function UpdateCategoryContentContent() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => router.push("/manage-category-content")}
-          className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-white">Update Category</h1>
-          <p className="text-white/50 text-sm">Edit content category (ID: {categoryId})</p>
+    <form onSubmit={handleSubmit} className="space-y-6 pb-32">
+      <FormHeader
+        title="Update Category"
+        subtitle={`Edit content category (ID: ${categoryId})`}
+        backHref="/manage-category-content"
+        badge="Editing"
+        badgeTone="warning"
+      />
+
+      {error && <FormAlert message={error} onDismiss={() => setError(null)} />}
+
+      <FormSection title="Category Details" icon={FolderTree}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField label="Name" htmlFor="name" required>
+            <TextInput
+              id="name"
+              value={formData.name}
+              onChange={(e) => handleChange('name', e.target.value)}
+              required
+            />
+          </FormField>
+
+          <FormField label="Slug" htmlFor="slug">
+            <TextInput
+              id="slug"
+              value={formData.slug}
+              onChange={(e) => handleChange('slug', e.target.value)}
+            />
+          </FormField>
         </div>
-      </div>
 
-      {error && (
-        <div className="bg-red-400/10 border border-red-400/20 rounded-lg p-4 text-red-400 text-sm">
-          {error}
-        </div>
-      )}
+        <FormField label="Description" htmlFor="description">
+          <TextArea
+            id="description"
+            value={formData.description}
+            onChange={(e) => handleChange('description', e.target.value)}
+            rows={3}
+          />
+        </FormField>
 
-      <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Name */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Name <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleChange('name', e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
-              />
-            </div>
+        <Checkbox
+          id="isActive"
+          checked={formData.isActive}
+          onChange={(e) => handleChange('isActive', e.target.checked)}
+          label="Category is active"
+        />
+      </FormSection>
 
-            {/* Slug */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Slug
-              </label>
-              <input
-                type="text"
-                value={formData.slug}
-                onChange={(e) => handleChange('slug', e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              />
-            </div>
-          </div>
+      <FormSection title="Icon" icon={ImageIcon} iconColor="text-purple-400">
+        <ImageUploader
+          value={formData.iconUrl}
+          onChange={(url) => handleChange('iconUrl', url)}
+          label="Icon"
+        />
+      </FormSection>
 
-          {/* Description */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-white/80">
-              Description
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => handleChange('description', e.target.value)}
-              rows={3}
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors resize-none"
-            />
-          </div>
-
-          {/* Icon */}
-          <div className="space-y-2 rounded-xl border border-white/10 bg-white/5 p-4">
-            <ImageUploader
-              value={formData.iconUrl}
-              onChange={(url) => handleChange('iconUrl', url)}
-              label="Icon"
-            />
-          </div>
-
-          {/* Active */}
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="isActive"
-              checked={formData.isActive}
-              onChange={(e) => handleChange('isActive', e.target.checked)}
-              className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
-            />
-            <label htmlFor="isActive" className="text-sm text-white/70 cursor-pointer">
-              Category is active
-            </label>
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-6 border-t border-white/10">
-            <button
-              type="button"
-              onClick={() => router.push("/manage-category-content")}
-              className="px-4 py-2 text-sm font-medium text-white/70 bg-white/5 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-            >
-              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {submitting ? "Updating..." : "Update Category"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      <FormActions
+        onCancel={() => router.push('/manage-category-content')}
+        submitLabel="Update Category"
+        loadingLabel="Updating..."
+        loading={submitting}
+        submitIcon={Save}
+      />
+    </form>
   );
 }
 

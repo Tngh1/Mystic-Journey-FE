@@ -172,6 +172,9 @@ export interface ItemResponse {
   bonusDef?: number;
   bonusCritRate?: number;
   bonusCritDamage?: number;
+  bonusMoveSpeed?: number;
+  bonusAttackSpeed?: number;
+  bonusDamageBonus?: number;
 }
 
 export interface CreateItemRequest {
@@ -287,22 +290,6 @@ export interface CreateMonsterSpawnRequest {
   respawnSeconds?: number;
   dungeonId?: number;
   isActive?: boolean;
-}
-
-export interface PlayerMonsterCatalogItem {
-  monsterId: number;
-  name: string;
-  type: string;
-  description: string;
-  level: number;
-  maxHp: number;
-  atk: number;
-  def: number;
-  experienceReward: number;
-  goldReward: number;
-  imageUrl?: string;
-  isDiscovered: boolean;
-  timesDefeated: number;
 }
 
 /* ─── Dungeon ────────────────────────────────────────────────────────────── */
@@ -690,23 +677,6 @@ export interface SaleItemResponse {
 }
 
 /* ─── Game Config ────────────────────────────────────────────────────────── */
-
-export interface GameSettingResponse {
-  gameSettingId: number;
-  key: string;
-  value: string | null;
-  description: string | null;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string | null;
-  updatedBy: string | null;
-}
-
-export interface UpdateGameSettingRequest {
-  value?: string;
-  description?: string;
-  isActive: boolean;
-}
 
 export interface DailyLoginRewardResponse {
   dailyLoginRewardId: number;

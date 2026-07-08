@@ -10,6 +10,15 @@ export const getBySlug = async (slug: string): Promise<ContentDetailResponse> =>
   return get<ContentDetailResponse>(`/api/contents/slug/${slug}`);
 };
 
+/**
+ * Lấy danh sách block của một content thông qua detail endpoint
+ * (BE không có endpoint GET list blocks riêng, nên phải gọi /api/contents/{id}).
+ */
+export const getBlocks = async (contentId: number): Promise<BlockResponse[]> => {
+  const detail = await get<ContentDetailResponse>(`/api/contents/${contentId}`);
+  return detail?.blocks ?? [];
+};
+
 export const getAll = async (page = 1, pageSize = 10): Promise<PagedResponse<ContentResponse>> => {
   return get<PagedResponse<ContentResponse>>(
     `/api/contents?page=${page}&pageSize=${pageSize}`

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Gem, Search, ChevronRight, Star, Sparkles, Lock, Unlock, Crown, Sword, Shield } from "lucide-react";
+import PageLoader from "@/components/ui/PageLoader";
 
 interface GachaPool {
   id: number;
@@ -145,32 +146,28 @@ export default function WikiGachaPage() {
   });
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center pt-20">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-[#ffc032]"></div>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-12">
+    <div className="min-h-screen pt-[88px] md:pt-[112px] flex flex-col">
       {/* Hero */}
-      <div className="relative bg-gradient-to-b from-[#ffc032]/10 to-transparent py-16">
-        <div className="container mx-auto px-4 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#ffc032]/20 rounded-full mb-4">
-            <Gem className="w-5 h-5 text-[#ffc032]" />
-            <span className="text-[#ffc032] font-medium">Gacha Guide</span>
+      <div className="relative bg-gradient-to-b from-[#ffc032]/10 to-transparent py-8 md:py-12">
+        <div className="max-w-[1200px] mx-auto px-4 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#ffc032]/20 rounded-full mb-3">
+            <Gem className="w-4 h-4 text-[#ffc032]" />
+            <span className="text-[#ffc032] font-medium text-sm">Gacha Guide</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Gacha</h1>
-          <p className="text-white/70 text-lg max-w-2xl mx-auto">
+          <h1 className="text-2xl md:text-4xl font-bold text-white mb-2">Gacha</h1>
+          <p className="text-white/60 text-sm md:text-base max-w-xl mx-auto">
             Discover gacha pools, rates, and featured items
           </p>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="flex-grow max-w-[1200px] mx-auto w-full px-4 pb-8 md:pb-12">
         {/* Filters */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8">
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
@@ -275,8 +272,13 @@ export default function WikiGachaPage() {
                       key={idx}
                       className={`bg-white/5 border ${rarityColors[item.rarity].border} rounded-xl p-3 text-center hover:bg-white/10 transition-colors`}
                     >
-                      <div className={`w-12 h-12 mx-auto mb-2 rounded-xl ${rarityColors[item.rarity].bg} flex items-center justify-center ${rarityColors[item.rarity].text}`}>
-                        {item.type === "Weapon" ? <Sword className="w-6 h-6" /> : item.type === "Armor" ? <Shield className="w-6 h-6" /> : <Crown className="w-6 h-6" />}
+                      <div className="w-full aspect-square mb-2 overflow-hidden">
+                        <img
+                          src={item.imageUrl || "/images/demo.jpg"}
+                          alt={item.name}
+                          className="w-full h-full object-cover object-center"
+                          onError={(e) => { (e.target as HTMLImageElement).src = "/images/demo.jpg"; }}
+                        />
                       </div>
                       <p className={`text-xs font-medium ${rarityColors[item.rarity].text} line-clamp-1`}>{item.name}</p>
                       <p className="text-[10px] text-white/40">{item.type}</p>

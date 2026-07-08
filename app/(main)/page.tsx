@@ -8,9 +8,11 @@ export default function Home() {
   return (
     <div className="flex flex-col flex-1">
       <HeroSection />
-      <AboutSection />
-      <WorldSection />
-      <ClassSection />
+      <div className="container mx-auto w-full">
+        <AboutSection />
+        <WorldSection />
+        <ClassSection />
+      </div>
     </div>
   );
 }

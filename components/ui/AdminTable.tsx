@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Search, Edit2, Trash2 } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Inbox, AlertCircle, Loader2 } from "lucide-react";
 
 interface Column<T extends object> {
   key: string;
@@ -30,6 +30,10 @@ interface AdminTableProps<T extends object> {
   serverSide?: boolean;
   pagination?: ServerPagination;
   loading?: boolean;
+  error?: string | null;
+  emptyTitle?: string;
+  emptyHint?: string;
+  onRetry?: () => void;
 }
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
@@ -48,6 +52,10 @@ export default function AdminTable<T extends object>({
   serverSide = false,
   pagination,
   loading = false,
+  error = null,
+  emptyTitle = "No data available",
+  emptyHint,
+  onRetry,
 }: AdminTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -82,14 +90,123 @@ export default function AdminTable<T extends object>({
     }
   };
 
+  const columnCount = columns.length + (onUpdate || onDelete ? 1 : 0);
+
+  const renderBody = () => {
+    if (error) {
+      return (
+        <tr>
+          <td colSpan={columnCount} className="px-5 py-16">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-red-400" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">Failed to load data</p>
+                <p className="text-xs text-white/50 mt-1 max-w-md">{error}</p>
+              </div>
+              {onRetry && (
+                <button
+                  onClick={onRetry}
+                  className="mt-1 px-4 h-9 rounded-lg bg-white/5 border border-white/10 text-sm text-white hover:bg-white/10 transition-colors cursor-pointer"
+                >
+                  Try again
+                </button>
+              )}
+            </div>
+          </td>
+        </tr>
+      );
+    }
+
+    if (loading && currentData.length === 0) {
+      return Array.from({ length: 5 }).map((_, rowIdx) => (
+        <tr key={`skeleton-${rowIdx}`} className="border-b border-gray-800/50">
+          {columns.map((col) => (
+            <td key={col.key} className="px-5 py-3.5">
+              <div className="h-4 bg-white/5 rounded animate-pulse" style={{ width: `${50 + ((rowIdx * 17 + col.key.length * 11) % 40)}%` }} />
+            </td>
+          ))}
+          {(onUpdate || onDelete) && (
+            <td className="px-5 py-3.5 text-right">
+              <div className="h-4 w-12 bg-white/5 rounded animate-pulse ml-auto" />
+            </td>
+          )}
+        </tr>
+      ));
+    }
+
+    if (currentData.length === 0) {
+      return (
+        <tr>
+          <td colSpan={columnCount} className="px-5 py-16">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center">
+                <Inbox className="w-7 h-7 text-white/40" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">{emptyTitle}</p>
+                {emptyHint && <p className="text-xs text-white/50 mt-1 max-w-md">{emptyHint}</p>}
+              </div>
+            </div>
+          </td>
+        </tr>
+      );
+    }
+
+    return currentData.map((item, rowIndex) => {
+      const rowId = (item as Record<string, unknown>)[idField];
+      const isSelected = selectedId !== undefined && rowId === selectedId;
+      return (
+        <tr
+          key={String(rowId ?? rowIndex)}
+          onClick={() => onRowClick?.(item)}
+          className={`border-b border-gray-800/50 hover:bg-[#1e1e1e]/70 transition-colors group ${
+            onRowClick ? "cursor-pointer" : ""
+          } ${isSelected ? "bg-[#252525]" : ""}`}
+        >
+          {columns.map((col) => (
+            <td key={col.key} className="px-5 py-3.5 text-sm text-white/80 whitespace-nowrap">
+              {col.render ? col.render((item as Record<string, unknown>)[col.key] as never, item) : String((item as Record<string, unknown>)[col.key] ?? "")}
+            </td>
+          ))}
+          {(onUpdate || onDelete) && (
+            <td className="px-5 py-3.5 text-right whitespace-nowrap">
+              <div className="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                {onUpdate && (
+                  <button
+                    title="Update"
+                    onClick={() => onUpdate(item)}
+                    className="p-1.5 text-gray-500 hover:text-[#ffc032] hover:bg-[#ffc032]/10 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                )}
+                {onDelete && (
+                  <button
+                    title="Delete"
+                    onClick={() => onDelete(item)}
+                    className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </td>
+          )}
+        </tr>
+      );
+    });
+  };
+
   return (
-    <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl overflow-hidden">
+    <div className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden">
       {/* Header */}
       <div className="px-5 py-4 border-b border-gray-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider">
+        <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
           {title}
-          {loading && (
-            <span className="ml-2 inline-block w-3.5 h-3.5 border-2 border-[#ffc032] border-t-transparent rounded-full animate-spin" />
+          {loading && data.length > 0 && (
+            <Loader2 className="w-3.5 h-3.5 text-[#ffc032] animate-spin" />
           )}
         </h2>
         <div className="flex items-center gap-3">
@@ -120,7 +237,7 @@ export default function AdminTable<T extends object>({
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-left">
-          <thead>
+          <thead className="bg-[#161616] sticky top-0 z-10">
             <tr className="border-b border-gray-800">
               {columns.map((col) => (
                 <th
@@ -137,103 +254,54 @@ export default function AdminTable<T extends object>({
               )}
             </tr>
           </thead>
-          <tbody>
-            {loading && currentData.length === 0 ? (
-              <tr>
-                <td colSpan={columns.length + (onUpdate || onDelete ? 1 : 0)} className="px-5 py-12 text-center">
-                  <div className="w-8 h-8 border-2 border-[#ffc032] border-t-transparent rounded-full animate-spin mx-auto" />
-                </td>
-              </tr>
-            ) : currentData.length === 0 ? (
-              <tr>
-                <td colSpan={columns.length + (onUpdate || onDelete ? 1 : 0)} className="px-5 py-12 text-center text-gray-500">
-                  No data available
-                </td>
-              </tr>
-            ) : (
-              currentData.map((item, rowIndex) => {
-                const rowId = (item as Record<string, unknown>)[idField];
-                const isSelected = selectedId !== undefined && rowId === selectedId;
-                return (
-                <tr
-                  key={String(rowId ?? rowIndex)}
-                  onClick={() => onRowClick?.(item)}
-                  className={`border-b border-gray-800/50 hover:bg-[#1e1e1e] transition-colors group ${
-                    onRowClick ? "cursor-pointer" : ""
-                  } ${isSelected ? "bg-[#252525]" : ""}`}
-                >
-                  {columns.map((col) => (
-                    <td key={col.key} className="px-5 py-3.5 text-sm text-white/80 whitespace-nowrap">
-                      {col.render ? col.render((item as Record<string, unknown>)[col.key] as never, item) : String((item as Record<string, unknown>)[col.key] ?? "")}
-                    </td>
-                  ))}
-                  {(onUpdate || onDelete) && (
-                    <td className="px-5 py-3.5 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {onUpdate && (
-                          <button
-                            title="Update"
-                            onClick={() => onUpdate(item)}
-                            className="p-1.5 text-gray-500 hover:text-[#ffc032] hover:bg-[#ffc032]/10 rounded-lg transition-colors cursor-pointer"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                        )}
-                        {onDelete && (
-                          <button
-                            title="Delete"
-                            onClick={() => onDelete(item)}
-                            className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors cursor-pointer"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              );
-            })
-            )}
-          </tbody>
+          <tbody>{renderBody()}</tbody>
         </table>
       </div>
 
       {/* Footer / Pagination */}
-      {totalItems > 0 && (
+      {!error && totalItems > 0 && (
         <div className="px-5 py-3.5 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3">
-          {serverSide && pagination && (
-            <select
-              aria-label="Rows per page"
-              value={currentPageSize}
-              onChange={(e) => pagination.setPageSize(Number(e.target.value))}
-              className="bg-[#111] border border-gray-700 rounded px-2 py-1 text-xs text-white focus:outline-none"
-            >
-              {PAGE_SIZE_OPTIONS.map((size) => (
-                <option key={size} value={size}>{size} / page</option>
-              ))}
-            </select>
-          )}
-          <div className="flex items-center gap-1.5">
-            <button
-              aria-label="Previous page"
-              onClick={() => handlePageChange(safePage - 1)}
-              disabled={safePage === 1}
-              className="p-1.5 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              ←
-            </button>
-            <span className="px-2 py-1 text-xs text-white">
-              {safePage} / {totalPages}
-            </span>
-            <button
-              aria-label="Next page"
-              onClick={() => handlePageChange(safePage + 1)}
-              disabled={safePage >= totalPages}
-              className="p-1.5 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              →
-            </button>
+          <p className="text-xs text-white/40">
+            {serverSide && pagination ? (
+              <>Showing {totalItems === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1}–{Math.min(pagination.page * pagination.pageSize, totalItems)} of {totalItems}</>
+            ) : (
+              <>Showing {startIndex + 1}–{endIndex} of {totalItems}</>
+            )}
+          </p>
+          <div className="flex items-center gap-2">
+            {serverSide && pagination && (
+              <select
+                aria-label="Rows per page"
+                value={currentPageSize}
+                onChange={(e) => pagination.setPageSize(Number(e.target.value))}
+                className="bg-[#111] border border-gray-700 rounded px-2 py-1 text-xs text-white focus:outline-none cursor-pointer"
+              >
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <option key={size} value={size}>{size} / page</option>
+                ))}
+              </select>
+            )}
+            <div className="flex items-center gap-1.5">
+              <button
+                aria-label="Previous page"
+                onClick={() => handlePageChange(safePage - 1)}
+                disabled={safePage === 1}
+                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              >
+                ←
+              </button>
+              <span className="px-2 py-1 text-xs text-white">
+                {safePage} / {totalPages}
+              </span>
+              <button
+                aria-label="Next page"
+                onClick={() => handlePageChange(safePage + 1)}
+                disabled={safePage >= totalPages}
+                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              >
+                →
+              </button>
+            </div>
           </div>
         </div>
       )}

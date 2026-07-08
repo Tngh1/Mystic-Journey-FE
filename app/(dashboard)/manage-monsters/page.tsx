@@ -19,12 +19,12 @@ const columns = [
     label: "Image",
     render: (_: unknown, m: MonsterResponse) => (
       <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/5 flex items-center justify-center border border-white/10">
-        {m.imageUrl ? (
-          <img src={m.imageUrl} alt={m.name} className="w-full h-full object-cover"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-        ) : (
-          <span className="text-white/20 text-lg">👹</span>
-        )}
+        <img
+          src={m.imageUrl || "/images/demo.jpg"}
+          alt={m.name}
+          className="w-full h-full object-cover"
+          onError={(e) => { (e.target as HTMLImageElement).src = "/images/demo.jpg"; }}
+        />
       </div>
     ),
   },
@@ -78,7 +78,7 @@ export default function ManageMonstersPage() {
         </div>
       </div>
 
-      <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-[#111111] border border-gray-800 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="relative w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <input

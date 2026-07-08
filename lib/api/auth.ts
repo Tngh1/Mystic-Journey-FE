@@ -37,11 +37,6 @@ export const logout = async (): Promise<void> => {
   await post("/api/auth/logout");
 };
 
-// ── Làm mới token ─────────────────────────────────────────
-export const refreshToken = async (): Promise<void> => {
-  await post("/api/auth/refresh-token");
-};
-
 // ── Gửi mã xác thực ──────────────────────────────────────
 export const sendVerificationCode = async (email: string): Promise<void> => {
   await post("/api/auth/send-verification-code", { email });

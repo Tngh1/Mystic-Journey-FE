@@ -5,19 +5,16 @@ import Link from "next/link";
 import SocialIcon from "./SocialIcon";
 import Button from "./Button";
 
-const MAIN_NAV = [
-  { label: "Game Features", href: "#game-features", highlight: true },
-  { label: "Classes", href: "#classes" },
-  { label: "Gallery", href: "#gallery" },
-  { label: "Litepaper", href: "#litepaper" },
-  { label: "Whitepaper", href: "#whitepaper" },
-  { label: "Lore", href: "#lore" },
+ const GAME_NAV = [
+  { label: "Download", href: "/download" },
+  { label: "Wiki", href: "/wiki" },
+  { label: "Game Guide", href: "/wiki" },
 ];
 
-const SECONDARY_NAV = [
-  { label: "Marketplace", href: "#marketplace" },
-  { label: "Tokens", href: "#tokens" },
-  { label: "About", href: "#about" },
+const COMPANY_NAV = [
+  { label: "About Us", href: "/wiki" },
+  { label: "Contact", href: "/wiki" },
+  { label: "Careers", href: "/wiki" },
 ];
 
 const SOCIALS = [
@@ -25,7 +22,6 @@ const SOCIALS = [
   { label: "Discord", href: "#" },
   { label: "Facebook", href: "#" },
   { label: "YouTube", href: "#" },
-  { label: "Telegram", href: "#" },
 ];
 
 export default function Footer() {
@@ -43,10 +39,10 @@ export default function Footer() {
 
   return (
     <footer className="w-full bg-black border-t border-white/5">
-      <div className="mx-auto max-w-[1200px] px-5 py-16 md:py-20 lg:py-24">
+      <div className="container mx-auto px-4 py-16 md:py-20 lg:py-24">
         {/* Main Grid */}
         <div className="grid grid-cols-1 gap-12 md:grid-cols-3 lg:grid-cols-12 lg:gap-8">
-          {/* LEFT - Brand + Navigation */}
+          {/* LEFT - Brand + Game Nav */}
           <div className="lg:col-span-4">
             {/* Logo */}
             <div className="mb-8">
@@ -59,19 +55,18 @@ export default function Footer() {
                   Journey
                 </span>
               </Link>
+              <p className="mt-3 text-sm text-white/40">
+                An epic dark-fantasy MMORPG adventure awaits.
+              </p>
             </div>
 
-            {/* Main Nav */}
+            {/* Game Nav */}
             <nav className="flex flex-col gap-3">
-              {MAIN_NAV.map((item) => (
+              {GAME_NAV.map((item) => (
                 <Link
                   key={item.label}
                   href={item.href}
-                  className={`text-sm tracking-wide transition-colors duration-200 ${
-                    item.highlight
-                      ? "text-[#ffc032] hover:text-white"
-                      : "text-white/40 hover:text-[#ffc032]"
-                  }`}
+                  className="text-sm tracking-wide transition-colors duration-200 text-white/40 hover:text-[#ffc032]"
                 >
                   {item.label}
                 </Link>
@@ -79,10 +74,13 @@ export default function Footer() {
             </nav>
           </div>
 
-          {/* MIDDLE - Secondary Links */}
+          {/* MIDDLE - Company Links */}
           <div className="lg:col-span-3">
+            <h3 className="mb-5 text-sm font-black tracking-widest text-white/60 uppercase">
+              Company
+            </h3>
             <nav className="flex flex-col gap-3">
-              {SECONDARY_NAV.map((item) => (
+              {COMPANY_NAV.map((item) => (
                 <Link
                   key={item.label}
                   href={item.href}
@@ -110,7 +108,7 @@ export default function Footer() {
                   placeholder="Enter your email"
                   className="flex-1 rounded-full border border-white/20 bg-white/5 px-5 py-3 text-sm text-white placeholder-white/30 outline-none transition-all duration-200 focus:border-[#ffc032] focus:bg-white/10"
                 />
-                <Button variant="outline" size="md">SUBSCRIBE</Button>
+                <Button variant="outline" size="md">Subscribe</Button>
               </div>
               {subscribed && (
                 <p className="mt-3 text-xs text-[#ffc032]">
@@ -144,17 +142,17 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="mt-8 flex flex-col gap-4 text-center text-xs text-white/30 md:flex-row md:items-center md:justify-between md:text-left">
-          <span>Copyright 2022</span>
+          <span>Copyright 2026 Mystic Journey. All rights reserved.</span>
           <div className="flex items-center justify-center gap-4 md:gap-6">
             <Link
-              href="#"
+              href="/privacy-policy"
               className="transition-colors duration-200 hover:text-[#ffc032]"
             >
               Privacy Policy
             </Link>
             <span>|</span>
             <Link
-              href="#"
+              href="/terms"
               className="transition-colors duration-200 hover:text-[#ffc032]"
             >
               Terms & Conditions

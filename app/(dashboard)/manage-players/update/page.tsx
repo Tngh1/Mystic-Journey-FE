@@ -4,12 +4,17 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
-  ArrowLeft, Loader2, Save, User, Heart, Sword, ShieldCheck, Zap, Skull,
-  Package, RefreshCw, CheckCircle, ChevronRight,
+  Loader2, Save, User, Heart, Sword, ShieldCheck, Zap, Skull,
+  Package, RefreshCw, CheckCircle, ChevronRight, UserCheck, CircleCheck,
 } from 'lucide-react';
 import { getPlayerProfileAdmin, updatePlayerProfileAdmin, PlayerProfileWithStats } from '@/lib/api/player-profiles';
 import { getInventoryByProfileId } from '@/lib/api/inventory';
 import type { PlayerStatsResponse, InventoryItemResponse, InventorySummaryResponse, PlayerSkinSummaryResponse } from '@/lib/types';
+import FormHeader from '@/components/form/FormHeader';
+import FormSection from '@/components/form/FormSection';
+import FormField from '@/components/form/FormField';
+import FormAlert from '@/components/form/FormAlert';
+import { TextInput, SelectInput, Checkbox } from '@/components/form/FormInput';
 
 const classColors: Record<string, string> = {
   Knight: 'bg-red-500/20 text-red-400 border-red-500/30',
@@ -67,7 +72,7 @@ function ItemDetailPanel({
       />
 
       {/* Panel */}
-      <div className="relative w-full max-w-sm h-full bg-[#1a1a1a] border-l border-white/10 shadow-2xl pointer-events-auto flex flex-col overflow-y-auto">
+      <div className="relative w-full max-w-sm h-full bg-[#111111] border-l border-white/10 shadow-2xl pointer-events-auto flex flex-col overflow-y-auto">
         {/* Header */}
         <div className="p-5 border-b border-white/10 flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
@@ -464,7 +469,7 @@ function SkinDetailPanel({
         className="absolute inset-0 bg-black/40 pointer-events-auto"
         onClick={onClose}
       />
-      <div className="relative w-full max-w-sm h-full bg-[#1a1a1a] border-l border-white/10 shadow-2xl pointer-events-auto flex flex-col overflow-y-auto">
+      <div className="relative w-full max-w-sm h-full bg-[#111111] border-l border-white/10 shadow-2xl pointer-events-auto flex flex-col overflow-y-auto">
         <div className="p-5 border-b border-white/10 flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
             <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl border ${colorClass} ${bgClass} flex-shrink-0`}>
@@ -818,24 +823,18 @@ export default function EditPlayerPage() {
     <div className="min-h-screen bg-[#111] text-white p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <Link
-            href="/manage-players"
-            className="inline-flex items-center gap-2 text-gray-400 hover:text-[#ffc032] transition-colors mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Players
-          </Link>
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#ffc032] to-[#ff8c00] flex items-center justify-center">
-              <User className="w-8 h-8 text-[#111]" />
+        <FormHeader
+          title="Update Player"
+          subtitle="Update player profile information"
+          backHref="/manage-players"
+          badge="Editing"
+          badgeTone="warning"
+          actions={
+            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-[#ffc032] to-[#ff8c00] flex items-center justify-center">
+              <UserCheck className="w-5 h-5 text-[#111]" />
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-[#ffc032]">Update Player</h1>
-              <p className="text-gray-400">Update player profile information</p>
-            </div>
-          </div>
-        </div>
+          }
+        />
 
         {/* Tabs */}
         <div className="flex gap-1 bg-white/5 rounded-xl p-1 mb-6">
@@ -869,7 +868,7 @@ export default function EditPlayerPage() {
           </div>
         ) : activeTab === 'inventory' ? (
           /* ────────── INVENTORY TAB ────────── */
-          <div className="bg-[#1a1a1a] rounded-2xl border border-gray-800 p-6">
+          <div className="bg-[#111111] rounded-2xl border border-gray-800 p-6">
             <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
               <Package className="w-5 h-5 text-[#ffc032]" />
               Player Inventory
@@ -880,22 +879,18 @@ export default function EditPlayerPage() {
         ) : (
           /* ────────── PROFILE TAB ────────── */
           <form onSubmit={handleSubmit}>
-            {/* Success Message */}
             {success && (
-              <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 mb-6">
-                <p className="text-green-400">✓ Player profile updated successfully! Redirecting...</p>
+              <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 flex items-center gap-2">
+                <CircleCheck className="w-5 h-5 text-green-400 shrink-0" />
+                <p className="text-green-400 text-sm">Player profile updated successfully! Redirecting...</p>
               </div>
             )}
 
             {/* Error Message */}
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6">
-                <p className="text-red-400">{error}</p>
-              </div>
-            )}
+            {error && <FormAlert type="error" message={error} onDismiss={() => setError(null)} />}
 
             {/* Profile Form */}
-            <div className="bg-[#1a1a1a] rounded-2xl border border-gray-800 p-6 mb-6">
+            <div className="bg-[#111111] rounded-2xl border border-gray-800 p-6 mb-6">
               <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
                 <User className="w-5 h-5 text-[#ffc032]" />
                 Profile Information
@@ -1022,7 +1017,7 @@ export default function EditPlayerPage() {
 
             {/* Stats Display (read-only) */}
             {stats && (
-              <div className="bg-[#1a1a1a] rounded-2xl border border-gray-800 p-6 mb-6">
+              <div className="bg-[#111111] rounded-2xl border border-gray-800 p-6 mb-6">
                 <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
                   <Zap className="w-5 h-5 text-[#ffc032]" />
                   Player Stats (Read-Only)
@@ -1092,7 +1087,7 @@ export default function EditPlayerPage() {
             <div className="flex justify-end gap-4">
               <Link
                 href="/manage-players"
-                className="px-6 py-3 bg-gray-800 text-white rounded-xl hover:bg-gray-700 transition-colors"
+                className="px-6 py-3 bg-gray-800 text-white rounded-xl hover:bg-gray-700 transition-colors cursor-pointer"
               >
                 Cancel
               </Link>

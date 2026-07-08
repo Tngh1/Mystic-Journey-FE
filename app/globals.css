@@ -1,5 +1,10 @@
 @import "tailwindcss";
 @import "../components/css/rendered-html.css";
+@import "../components/css/scrollbar.css";
+@import "../components/css/animated-button.css";
+@import "../components/css/logout-button.css";
+@import "../components/css/face-animation.css";
+@import "../components/css/download-button.css";
 
 html {
   scroll-behavior: smooth;

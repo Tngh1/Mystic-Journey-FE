@@ -1,18 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { get, post } from "@/lib/api/client";
-
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const result = await get("/api/contents/blocks-paged", Object.fromEntries(searchParams));
-    return NextResponse.json(result);
-  } catch (error) {
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : "Failed to get blocks." },
-      { status: 500 },
-    );
-  }
-}
+import { post } from "@/lib/api/client";
 
 export async function POST(request: NextRequest) {
   try {

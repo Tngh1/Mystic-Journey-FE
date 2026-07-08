@@ -34,25 +34,6 @@ export const showErrorAlert = (title: string, message: string) => {
   });
 };
 
-export const showLoadingAlert = (title: string = "Loading...") => {
-  return Swal.fire({
-    title: title,
-    allowOutsideClick: false,
-    background: "#18181b",
-    color: "#ffffff",
-    customClass: {
-      popup: "border border-white/10 rounded-2xl",
-    },
-    didOpen: () => {
-      Swal.showLoading();
-    },
-  });
-};
-
-export const closeAlert = () => {
-  Swal.close();
-};
-
 export const showConfirmAlert = (
   title: string,
   message: string,

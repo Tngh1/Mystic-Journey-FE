@@ -7,9 +7,13 @@ export default function MainLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <>
-    <Header />
-    {children}
-    <Footer />
-  </>;
+  return (
+    <>
+      <Header />
+      <main className="flex flex-col flex-1 w-full">
+        {children}
+      </main>
+      <Footer />
+    </>
+  );
 }

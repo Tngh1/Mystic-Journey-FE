@@ -44,7 +44,7 @@ export default function ManageAdminsPage() {
   const [showFilters, setShowFilters] = useState(false);
 
   const buildParams = () => {
-    const params: Record<string, unknown> = { roleName: "Admin" };
+    const params: Record<string, string | number | boolean | undefined> = { roleName: "Admin" };
     if (searchTerm.trim()) params.search = searchTerm.trim();
     if (statusFilter !== "all") params.isActive = statusFilter === "active";
     return params;
@@ -121,7 +121,7 @@ export default function ManageAdminsPage() {
 
       {/* Stats Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
+        <div className="bg-[#111111] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#ffc032]/15 flex items-center justify-center shrink-0">
             <Inbox className="w-5 h-5 text-[#ffc032]" />
           </div>
@@ -130,7 +130,7 @@ export default function ManageAdminsPage() {
             <p className="text-xs text-gray-500">Total Admins</p>
           </div>
         </div>
-        <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
+        <div className="bg-[#111111] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-green-500/15 flex items-center justify-center shrink-0">
             <Activity className="w-5 h-5 text-green-400" />
           </div>
@@ -139,7 +139,7 @@ export default function ManageAdminsPage() {
             <p className="text-xs text-gray-500">Active</p>
           </div>
         </div>
-        <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-4 flex items-center gap-3 col-span-2 sm:col-span-1">
+        <div className="bg-[#111111] border border-gray-800 rounded-xl p-4 flex items-center gap-3 col-span-2 sm:col-span-1">
           <div className="w-10 h-10 rounded-xl bg-gray-500/15 flex items-center justify-center shrink-0">
             <X className="w-5 h-5 text-gray-400" />
           </div>
@@ -151,7 +151,7 @@ export default function ManageAdminsPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-4">
+      <div className="bg-[#111111] border border-gray-800 rounded-2xl p-4">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -166,7 +166,7 @@ export default function ManageAdminsPage() {
               <button
                 aria-label="Clear search"
                 onClick={() => handleSearch("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -176,7 +176,7 @@ export default function ManageAdminsPage() {
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all cursor-pointer ${
                 showFilters || activeFiltersCount > 0
                   ? "bg-[#ffc032]/10 border-[#ffc032]/40 text-[#ffc032]"
                   : "bg-[#111] border-gray-700 text-gray-400 hover:text-white"
@@ -193,7 +193,7 @@ export default function ManageAdminsPage() {
             {activeFiltersCount > 0 && (
               <button
                 onClick={clearAllFilters}
-                className="px-3 py-2.5 text-gray-500 hover:text-red-400 text-sm transition-colors"
+                className="px-3 py-2.5 text-gray-500 hover:text-red-400 text-sm transition-colors cursor-pointer"
               >
                 Clear all
               </button>
@@ -217,7 +217,7 @@ export default function ManageAdminsPage() {
                   onClick={() =>
                     handleStatusFilter(opt.value as "all" | "active" | "inactive")
                   }
-                  className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${
+                  className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                     statusFilter === opt.value
                       ? "bg-[#ffc032] text-[#111]"
                       : "text-gray-400 hover:text-white"
@@ -237,7 +237,7 @@ export default function ManageAdminsPage() {
           <p className="text-red-400 text-sm flex-1">{error}</p>
           <button
             onClick={refresh}
-            className="text-red-300 text-sm underline hover:text-red-200 transition-colors"
+            className="text-red-300 text-sm underline hover:text-red-200 transition-colors cursor-pointer"
           >
             Retry
           </button>
@@ -245,7 +245,7 @@ export default function ManageAdminsPage() {
       )}
 
       {/* Table */}
-      <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl overflow-hidden">
+      <div className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
@@ -385,7 +385,7 @@ export default function ManageAdminsPage() {
                 aria-label="Page size"
                 value={pageSize}
                 onChange={(e) => setPageSize(Number(e.target.value))}
-                className="px-3 py-1.5 bg-[#111] border border-gray-700 rounded-lg text-xs text-white focus:outline-none focus:border-[#ffc032]"
+                  className="px-3 py-1.5 bg-[#111] border border-gray-700 rounded-lg text-xs text-white focus:outline-none focus:border-[#ffc032] cursor-pointer"
               >
                 {[10, 25, 50].map((s) => (
                   <option key={s} value={s}>
@@ -397,7 +397,7 @@ export default function ManageAdminsPage() {
                 aria-label="Previous page"
                 onClick={() => setPage(page - 1)}
                 disabled={page === 1}
-                className="p-1.5 px-3 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed border border-gray-800"
+                className="p-1.5 px-3 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed border border-gray-800 cursor-pointer"
               >
                 ←
               </button>

@@ -228,7 +228,7 @@ export default function ManageAccountsPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
+        <div className="bg-[#111111] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#ffc032]/15 flex items-center justify-center shrink-0">
             <Inbox className="w-5 h-5 text-[#ffc032]" />
           </div>
@@ -237,7 +237,7 @@ export default function ManageAccountsPage() {
             <p className="text-xs text-gray-500">Total Accounts</p>
           </div>
         </div>
-        <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
+        <div className="bg-[#111111] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-green-500/15 flex items-center justify-center shrink-0">
             <Activity className="w-5 h-5 text-green-400" />
           </div>
@@ -246,7 +246,7 @@ export default function ManageAccountsPage() {
             <p className="text-xs text-gray-500">Active</p>
           </div>
         </div>
-        <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
+        <div className="bg-[#111111] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center shrink-0">
             <Ban className="w-5 h-5 text-red-400" />
           </div>
@@ -255,7 +255,7 @@ export default function ManageAccountsPage() {
             <p className="text-xs text-gray-500">Banned</p>
           </div>
         </div>
-        <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
+        <div className="bg-[#111111] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center shrink-0">
             <Sparkles className="w-5 h-5 text-blue-400" />
           </div>
@@ -267,7 +267,7 @@ export default function ManageAccountsPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-4">
+      <div className="bg-[#111111] border border-gray-800 rounded-2xl p-4">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -287,7 +287,7 @@ export default function ManageAccountsPage() {
                     selectedRole ? { roleName: selectedRole } : {}
                   );
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -297,7 +297,7 @@ export default function ManageAccountsPage() {
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all cursor-pointer ${
                 showFilters || activeFiltersCount > 0
                   ? "bg-[#ffc032]/10 border-[#ffc032]/40 text-[#ffc032]"
                   : "bg-[#111] border-gray-700 text-gray-400 hover:text-white"
@@ -314,7 +314,7 @@ export default function ManageAccountsPage() {
             {activeFiltersCount > 0 && (
               <button
                 onClick={clearAllFilters}
-                className="px-3 py-2.5 text-gray-500 hover:text-red-400 text-sm transition-colors"
+                className="px-3 py-2.5 text-gray-500 hover:text-red-400 text-sm transition-colors cursor-pointer"
               >
                 Clear all
               </button>
@@ -336,7 +336,7 @@ export default function ManageAccountsPage() {
                   <button
                     key={role}
                     onClick={() => handleRoleFilter(role)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border transition-all ${
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border transition-all cursor-pointer ${
                       active
                         ? `${cfg.bg} ${cfg.color} ${cfg.border}`
                         : "bg-[#111] border-gray-700 text-gray-400 hover:text-white hover:border-gray-600"
@@ -363,11 +363,11 @@ export default function ManageAccountsPage() {
 
       {/* Table */}
       {loading && accounts.length === 0 ? (
-        <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-12 flex items-center justify-center">
+        <div className="bg-[#111111] border border-gray-800 rounded-2xl p-12 flex items-center justify-center">
           <Loader2 className="w-8 h-8 text-[#ffc032] animate-spin" />
         </div>
       ) : accounts.length === 0 ? (
-        <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-12 flex flex-col items-center justify-center text-center">
+        <div className="bg-[#111111] border border-gray-800 rounded-2xl p-12 flex flex-col items-center justify-center text-center">
           <div className="w-16 h-16 rounded-2xl bg-[#111] border border-gray-800 flex items-center justify-center mb-4">
             <UserCog className="w-7 h-7 text-gray-700" />
           </div>
@@ -377,7 +377,7 @@ export default function ManageAccountsPage() {
           </p>
         </div>
       ) : (
-        <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl overflow-hidden">
+        <div className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
@@ -481,7 +481,7 @@ export default function ManageAccountsPage() {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => handleViewProfile(account)}
-                            className="p-2 bg-[#ffc032]/10 hover:bg-[#ffc032]/20 text-[#ffc032] border border-[#ffc032]/30 rounded-lg transition-colors"
+                            className="p-2 bg-[#ffc032]/10 hover:bg-[#ffc032]/20 text-[#ffc032] border border-[#ffc032]/30 rounded-lg transition-colors cursor-pointer"
                             aria-label="View profile"
                           >
                             <Eye className="w-4 h-4" />
@@ -490,7 +490,7 @@ export default function ManageAccountsPage() {
                             <button
                               onClick={() => handleBan(account)}
                               disabled={banningId === account.accountId}
-                              className={`p-2 rounded-lg border transition-colors disabled:opacity-50 ${
+                              className={`p-2 rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
                                 account.isActive
                                   ? "bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/30"
                                   : "bg-green-500/10 hover:bg-green-500/20 text-green-400 border-green-500/30"
@@ -529,7 +529,7 @@ export default function ManageAccountsPage() {
                   aria-label="Page size"
                   value={pageSize}
                   onChange={(e) => setPageSize(Number(e.target.value))}
-                  className="px-3 py-1.5 bg-[#111] border border-gray-700 rounded-lg text-xs text-white focus:outline-none focus:border-[#ffc032]"
+                  className="px-3 py-1.5 bg-[#111] border border-gray-700 rounded-lg text-xs text-white focus:outline-none focus:border-[#ffc032] cursor-pointer"
                 >
                   {[10, 25, 50].map((s) => (
                     <option key={s} value={s}>
@@ -541,7 +541,7 @@ export default function ManageAccountsPage() {
                   aria-label="Previous page"
                   onClick={() => setPage(page - 1)}
                   disabled={page === 1}
-                  className="p-1.5 px-3 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed border border-gray-800"
+                  className="p-1.5 px-3 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed border border-gray-800 cursor-pointer"
                 >
                   ←
                 </button>
@@ -552,7 +552,7 @@ export default function ManageAccountsPage() {
                   aria-label="Next page"
                   onClick={() => setPage(page + 1)}
                   disabled={page >= totalPages}
-                  className="p-1.5 px-3 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed border border-gray-800"
+                  className="p-1.5 px-3 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed border border-gray-800 cursor-pointer"
                 >
                   →
                 </button>
@@ -565,9 +565,9 @@ export default function ManageAccountsPage() {
       {/* Player Profile Modal */}
       {viewingAccount && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1a1a1a] rounded-2xl border border-gray-800 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl shadow-black/60">
+          <div className="bg-[#111111] rounded-2xl border border-gray-800 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl shadow-black/60">
             {/* Modal Header */}
-            <div className="sticky top-0 bg-[#1a1a1a] border-b border-gray-800 px-6 py-4 flex items-center justify-between z-10">
+            <div className="sticky top-0 bg-[#111111] border-b border-gray-800 px-6 py-4 flex items-center justify-between z-10">
               <div>
                 <h2 className="text-xl font-bold text-white">Account Profile</h2>
                 <p className="text-sm text-gray-400">
@@ -577,7 +577,7 @@ export default function ManageAccountsPage() {
               <button
                 onClick={closeModal}
                 aria-label="Close modal"
-                className="p-2 text-gray-400 hover:text-white hover:bg-[#333] rounded-lg transition-colors"
+                className="p-2 text-gray-400 hover:text-white hover:bg-[#333] rounded-lg transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -779,7 +779,7 @@ function StatRow({
   value: string | number;
 }) {
   return (
-    <div className="flex items-center gap-2.5 px-3 py-2 bg-[#1a1a1a] rounded-lg">
+    <div className="flex items-center gap-2.5 px-3 py-2 bg-[#111111] rounded-lg">
       <Icon className={`w-4 h-4 ${color} shrink-0`} />
       <span className="text-xs text-gray-400">{label}:</span>
       <span className="text-sm font-semibold text-white ml-auto">{value}</span>
@@ -797,7 +797,7 @@ function TimelineRow({
   value: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 px-3 py-2 bg-[#1a1a1a] rounded-lg">
+    <div className="flex items-center justify-between gap-3 px-3 py-2 bg-[#111111] rounded-lg">
       <span className="text-xs text-gray-400 flex items-center gap-2">
         <Icon className="w-3.5 h-3.5" />
         {label}

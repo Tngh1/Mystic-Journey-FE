@@ -1,18 +1,12 @@
 import Link from "next/link";
+import FaceAnimation from "@/components/ui/FaceAnimation";
 
 export default function NotFound() {
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
       <div className="max-w-md w-full text-center space-y-6">
-        <div className="relative">
-          <div className="text-[120px] font-bold leading-none select-none text-yellow-500/10 font-['PatrickHandSC']">
-            404
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-24 h-24 rounded-full border-4 border-yellow-500 flex items-center justify-center">
-              <span className="text-5xl font-bold text-yellow-500 font-['PatrickHandSC']">?</span>
-            </div>
-          </div>
+        <div className="flex justify-center">
+          <FaceAnimation />
         </div>
 
         <div className="space-y-2">

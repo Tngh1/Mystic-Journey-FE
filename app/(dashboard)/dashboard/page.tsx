@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getStats } from "@/lib/api/dashboard";
-import { Loader2 } from "lucide-react";
+import PageLoader from "@/components/ui/PageLoader";
 
 interface DashboardStats {
   totalPlayers: number;
@@ -29,11 +29,7 @@ export default function DashboardPage() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-[#ffc032]" />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (error || !stats) {

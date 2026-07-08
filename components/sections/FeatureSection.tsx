@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import Button from "@/components/ui/Button";
+import Link from "next/link";
+import AnimatedButton from "@/components/ui/AnimatedButton";
 
 const WORLDS = [
   {
@@ -91,7 +92,7 @@ export default function WorldSection() {
   const active = WORLDS[activeIndex];
 
   return (
-    <section id="game-features" className="w-full bg-[#070708] px-5 py-16 text-white md:px-10 lg:px-12 lg:py-20">
+    <section id="game-features" className="w-full  px-5 py-16 text-white md:px-10 lg:px-12 lg:py-20">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-20 grid gap-6 lg:grid-cols-2 lg:items-end">
@@ -211,9 +212,9 @@ export default function WorldSection() {
               ...
             </h3>
 
-            <Button variant="outline" size="md">
-              EXPLORE LORE
-            </Button>
+            <Link href="/story" className="self-start md:self-auto">
+              <AnimatedButton size="md">EXPLORE LORE</AnimatedButton>
+            </Link>
           </div>
 
           <div className="mt-10 flex items-center gap-4">

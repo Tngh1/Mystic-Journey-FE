@@ -82,7 +82,7 @@ export default function ManageContentPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-[#111111] border border-gray-800 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="relative w-64">
           <input
             type="text"
@@ -108,7 +108,7 @@ export default function ManageContentPage() {
       )}
 
       {/* Table */}
-      <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl overflow-hidden">
+      <div className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
@@ -158,7 +158,7 @@ export default function ManageContentPage() {
                       <button
                         onClick={() => handleTogglePublish(content)}
                         disabled={togglingId === content.contentId}
-                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer ${
                           content.isPublished
                             ? 'bg-green-500/20 text-green-400 hover:bg-red-500/20 hover:text-red-400'
                             : 'bg-[#111] text-gray-400 border border-gray-700 hover:bg-green-500/20 hover:text-green-400'
@@ -179,7 +179,7 @@ export default function ManageContentPage() {
                     <td className="px-5 py-3.5 text-right">
                       <Link
                         href={`/manage-content/update?id=${content.contentId}`}
-                        className="px-3 py-1.5 bg-[#ffc032] text-[#111] rounded-lg hover:bg-[#ffd04c] transition-colors text-xs font-semibold"
+                        className="px-3 py-1.5 bg-[#ffc032] text-[#111] rounded-lg hover:bg-[#ffd04c] transition-colors text-xs font-semibold cursor-pointer"
                       >
                         Update
                       </Link>
@@ -199,7 +199,7 @@ export default function ManageContentPage() {
                 aria-label="Previous page"
                 onClick={() => setPage(page - 1)}
                 disabled={page === 1}
-                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               >
                 ←
               </button>
@@ -210,7 +210,7 @@ export default function ManageContentPage() {
                 aria-label="Next page"
                 onClick={() => setPage(page + 1)}
                 disabled={page >= Math.ceil(totalCount / pageSize)}
-                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               >
                 →
               </button>

@@ -3,9 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { create } from "@/lib/api/achievements";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { Save, Loader2, Trophy, Image as ImageIcon } from "lucide-react";
 import ImageUploader from "@/components/ui/ImageUploader";
 import { uploadImageToCloudinary } from "@/lib/api/cloudinary";
+import FormHeader from "@/components/form/FormHeader";
+import FormSection from "@/components/form/FormSection";
+import FormField from "@/components/form/FormField";
+import FormActions from "@/components/form/FormActions";
+import FormAlert from "@/components/form/FormAlert";
+import { TextInput, TextArea, SelectInput, Checkbox } from "@/components/form/FormInput";
 
 const ACHIEVEMENT_TYPES = [
   { value: "Combat", label: "Combat" },
@@ -32,7 +38,7 @@ export default function CreateAchievementPage() {
     isActive: true,
   });
 
-  const handleChange = (field: string, value: unknown) => {
+  const handleChange = <K extends keyof typeof formData>(field: K, value: (typeof formData)[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -70,172 +76,116 @@ export default function CreateAchievementPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => router.push("/manage-achievements")}
-          className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-white">Create New Achievement</h1>
-          <p className="text-white/50 text-sm">Add a new achievement to the game</p>
+    <form onSubmit={handleSubmit} className="space-y-6 pb-32">
+      <FormHeader
+        title="Create Achievement"
+        subtitle="Add a new achievement to the game"
+        backHref="/manage-achievements"
+        badge="New"
+        badgeTone="primary"
+      />
+
+      {error && <FormAlert message={error} onDismiss={() => setError(null)} />}
+
+      <FormSection title="Achievement Details" icon={Trophy}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField label="Achievement Name" htmlFor="name" required>
+            <TextInput
+              id="name"
+              value={formData.name}
+              onChange={(e) => handleChange("name", e.target.value)}
+              placeholder="Enter achievement name"
+              required
+            />
+          </FormField>
+
+          <FormField label="Achievement Type" htmlFor="type" required>
+            <SelectInput
+              id="type"
+              options={ACHIEVEMENT_TYPES}
+              value={formData.type}
+              onChange={(e) => handleChange("type", e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Required Value" htmlFor="requiredValue">
+            <TextInput
+              id="requiredValue"
+              type="number"
+              value={formData.requiredValue}
+              onChange={(e) => handleChange("requiredValue", Number(e.target.value))}
+              placeholder="1"
+              min="1"
+            />
+          </FormField>
+
+          <FormField label="Reward Gold" htmlFor="rewardGold">
+            <TextInput
+              id="rewardGold"
+              type="number"
+              value={formData.rewardGold}
+              onChange={(e) => handleChange("rewardGold", Number(e.target.value))}
+              placeholder="0"
+              min="0"
+            />
+          </FormField>
+
+          <FormField label="Reward Gems" htmlFor="rewardGem">
+            <TextInput
+              id="rewardGem"
+              type="number"
+              value={formData.rewardGem}
+              onChange={(e) => handleChange("rewardGem", Number(e.target.value))}
+              placeholder="0"
+              min="0"
+            />
+          </FormField>
+
+          <FormField label="Reward Item Quantity" htmlFor="rewardQuantity">
+            <TextInput
+              id="rewardQuantity"
+              type="number"
+              value={formData.rewardQuantity}
+              onChange={(e) => handleChange("rewardQuantity", Number(e.target.value))}
+              placeholder="0"
+              min="0"
+            />
+          </FormField>
         </div>
-      </div>
 
-      {error && (
-        <div className="bg-red-400/10 border border-red-400/20 rounded-lg p-4 text-red-400 text-sm">
-          {error}
-        </div>
-      )}
+        <FormField label="Description" htmlFor="description">
+          <TextArea
+            id="description"
+            value={formData.description}
+            onChange={(e) => handleChange("description", e.target.value)}
+            placeholder="Enter achievement description"
+            rows={3}
+          />
+        </FormField>
 
-      <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Achievement Name <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleChange("name", e.target.value)}
-                placeholder="Enter achievement name"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
-              />
-            </div>
+        <Checkbox
+          id="isActive"
+          checked={formData.isActive}
+          onChange={(e) => handleChange("isActive", e.target.checked)}
+          label="Achievement is active"
+        />
+      </FormSection>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Achievement Type <span className="text-red-400">*</span>
-              </label>
-              <select
-                value={formData.type}
-                onChange={(e) => handleChange("type", e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
-              >
-                <option value="" className="bg-[#1a1a1a]">Select Achievement Type</option>
-                {ACHIEVEMENT_TYPES.map((type) => (
-                  <option key={type.value} value={type.value} className="bg-[#1a1a1a]">
-                    {type.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+      <FormSection title="Achievement Icon" icon={ImageIcon} iconColor="text-purple-400">
+        <ImageUploader
+          value={formData.iconUrl}
+          onChange={(url) => handleChange("iconUrl", url)}
+          label="Achievement Icon"
+        />
+      </FormSection>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Required Value
-              </label>
-              <input
-                type="number"
-                value={formData.requiredValue}
-                onChange={(e) => handleChange("requiredValue", Number(e.target.value))}
-                placeholder="1"
-                min="1"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              />
-            </div>
-
-
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Reward Gold
-              </label>
-              <input
-                type="number"
-                value={formData.rewardGold}
-                onChange={(e) => handleChange("rewardGold", Number(e.target.value))}
-                placeholder="0"
-                min="0"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Reward Gems
-              </label>
-              <input
-                type="number"
-                value={formData.rewardGem}
-                onChange={(e) => handleChange("rewardGem", Number(e.target.value))}
-                placeholder="0"
-                min="0"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Reward Item Quantity
-              </label>
-              <input
-                type="number"
-                value={formData.rewardQuantity}
-                onChange={(e) => handleChange("rewardQuantity", Number(e.target.value))}
-                placeholder="0"
-                min="0"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-white/80">Description</label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => handleChange("description", e.target.value)}
-              placeholder="Enter achievement description"
-              rows={3}
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors resize-none"
-            />
-          </div>
-
-          <div className="space-y-2 rounded-xl border border-white/10 bg-white/5 p-4">
-            <ImageUploader
-              value={formData.iconUrl}
-              onChange={(url) => handleChange("iconUrl", url)}
-              label="Achievement Icon"
-            />
-          </div>
-
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="isActive"
-              checked={formData.isActive}
-              onChange={(e) => handleChange("isActive", e.target.checked)}
-              className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
-            />
-            <label htmlFor="isActive" className="text-sm text-white/70 cursor-pointer">
-              Achievement is active
-            </label>
-          </div>
-
-          <div className="flex items-center justify-end gap-3 pt-6 border-t border-white/10">
-            <button
-              type="button"
-              onClick={() => router.push("/manage-achievements")}
-              className="px-4 py-2 text-sm font-medium text-white/70 bg-white/5 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-            >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {loading ? "Creating..." : "Create Achievement"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      <FormActions
+        onCancel={() => router.push("/manage-achievements")}
+        submitLabel="Create Achievement"
+        loadingLabel="Creating..."
+        loading={loading}
+        submitIcon={Save}
+      />
+    </form>
   );
 }

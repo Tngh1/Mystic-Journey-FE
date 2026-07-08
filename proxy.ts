@@ -8,7 +8,6 @@ const protectedRoutes = [
   "/manage-content",
   "/manage-dungeons",
   "/manage-gacha-pools",
-  "/manage-game-config",
   "/manage-items",
   "/manage-mailbox",
   "/manage-monsters",

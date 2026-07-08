@@ -1,0 +1,154 @@
+/* From Uiverse.io by gharsh11032000 — color adapted to white, BEM naming */
+
+.ab {
+  /* Color tokens */
+  --ab-accent: #ffffff;
+  --ab-ink: #212121;
+  /* Geometry tokens */
+  --ab-ring: 2px;
+  --ab-ring-hover: 12px;
+  --ab-arrow-size: 24px;
+  --ab-pad-y: 16px;
+  --ab-pad-x: 36px;
+  --ab-radius: 100px;
+  --ab-radius-hover: 14px;
+  --ab-font-size: 16px;
+  /* Easing */
+  --ab-ease: cubic-bezier(0.23, 1, 0.32, 1);
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--ab-pad-y) calc(var(--ab-pad-x) + var(--ab-arrow-size) + 8px);
+  background: transparent;
+  border: 0;
+  color: var(--ab-accent);
+  font-size: var(--ab-font-size);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-radius: var(--ab-radius);
+  box-shadow: 0 0 0 var(--ab-ring) var(--ab-accent);
+  cursor: pointer;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    color 0.6s var(--ab-ease),
+    box-shadow 0.6s var(--ab-ease),
+    border-radius 0.6s var(--ab-ease);
+}
+
+.ab__label {
+  position: relative;
+  z-index: 2;
+  display: inline-block;
+  white-space: nowrap;
+  transition: transform 0.6s var(--ab-ease);
+}
+
+.ab__fill {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  background: var(--ab-accent);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 0;
+  z-index: 1;
+  pointer-events: none;
+  transition:
+    width 0.6s var(--ab-ease),
+    height 0.6s var(--ab-ease),
+    opacity 0.6s var(--ab-ease),
+    border-radius 0.6s var(--ab-ease);
+}
+
+.ab__arrow {
+  position: absolute;
+  top: 50%;
+  width: var(--ab-arrow-size);
+  height: var(--ab-arrow-size);
+  fill: var(--ab-accent);
+  z-index: 3;
+  pointer-events: none;
+  transition:
+    transform 0.6s var(--ab-ease),
+    opacity 0.6s var(--ab-ease),
+    fill 0.6s var(--ab-ease);
+}
+
+/* Exit arrow — at right edge by default, slides off to the right on hover */
+.ab__arrow--exit {
+  right: var(--ab-pad-y);
+  transform: translateY(-50%);
+  opacity: 1;
+}
+
+/* Enter arrow — parked off the left edge, slides into left side on hover */
+.ab__arrow--enter {
+  left: 0;
+  transform: translate(-150%, -50%);
+  opacity: 0;
+}
+
+.ab:hover {
+  color: var(--ab-ink);
+  box-shadow: 0 0 0 var(--ab-ring-hover) transparent;
+  border-radius: var(--ab-radius-hover);
+}
+
+.ab:hover .ab__label {
+  transform: translateX(calc(var(--ab-arrow-size) / -2));
+}
+
+.ab:hover .ab__arrow--exit {
+  transform: translate(calc(var(--ab-arrow-size) + var(--ab-pad-y)), -50%);
+  opacity: 0;
+}
+
+.ab:hover .ab__arrow--enter {
+  transform: translate(var(--ab-pad-y), -50%);
+  opacity: 1;
+}
+
+.ab:hover .ab__fill {
+  width: 220%;
+  height: 220%;
+  border-radius: var(--ab-radius-hover);
+  opacity: 1;
+}
+
+.ab:hover .ab__arrow {
+  fill: var(--ab-ink);
+}
+
+.ab:active {
+  transform: scale(0.96);
+  box-shadow: 0 0 0 4px var(--ab-accent);
+}
+
+.ab:focus-visible {
+  outline: 2px solid var(--ab-accent);
+  outline-offset: 4px;
+}
+
+/* Size: small */
+.ab--sm {
+  --ab-pad-y: 10px;
+  --ab-pad-x: 26px;
+  --ab-arrow-size: 18px;
+  --ab-font-size: 13px;
+}
+
+/* Size: medium (default) — values come from .ab */
+
+/* Size: large */
+.ab--lg {
+  --ab-pad-y: 20px;
+  --ab-pad-x: 44px;
+  --ab-arrow-size: 28px;
+  --ab-font-size: 18px;
+  letter-spacing: 0.08em;
+}

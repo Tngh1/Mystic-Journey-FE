@@ -3,9 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { create } from "@/lib/api/items";
-import { ArrowLeft, Save, Loader2, Package, Shield, Image as ImageIcon } from "lucide-react";
+import { Package, Save, Shield, Image as ImageIcon } from "lucide-react";
 import ImageUploader from "@/components/ui/ImageUploader";
 import { uploadImageToCloudinary } from "@/lib/api/cloudinary";
+import FormHeader from "@/components/form/FormHeader";
+import FormSection from "@/components/form/FormSection";
+import FormField from "@/components/form/FormField";
+import FormActions from "@/components/form/FormActions";
+import FormAlert from "@/components/form/FormAlert";
+import { TextInput, TextArea, SelectInput, Checkbox } from "@/components/form/FormInput";
 
 const ITEM_TYPES = [
   { value: "Weapon", label: "Weapon" },
@@ -60,7 +66,7 @@ export default function CreateItemPage() {
     iconUrl: "" as string | File | null,
   });
 
-  const handleChange = (field: string, value: unknown) => {
+  const handleChange = <K extends keyof typeof formData>(field: K, value: (typeof formData)[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -106,288 +112,202 @@ export default function CreateItemPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => router.push("/manage-items")}
-          title="Back to manage items"
-          className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-[#ffc032]">Create Item</h1>
-          <p className="text-white/50 text-sm">Add a new item to the game</p>
-        </div>
-      </div>
+    <form onSubmit={handleSubmit} className="space-y-6 pb-32">
+      <FormHeader
+        title="Create Item"
+        subtitle="Add a new item to the game"
+        backHref="/manage-items"
+        badge="New"
+        badgeTone="primary"
+      />
 
-      {error && (
-        <div className="bg-red-400/10 border border-red-400/20 rounded-lg p-4 text-red-400 text-sm">
-          {error}
-        </div>
-      )}
+      {error && <FormAlert message={error} onDismiss={() => setError(null)} />}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Information Panel */}
-        <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 space-y-6">
-          <div className="flex items-center gap-2 border-b border-gray-800 pb-3">
-            <Package className="w-5 h-5 text-[#ffc032]" />
-            <h2 className="text-lg font-bold text-white">Basic Information</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Item Name <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleChange("name", e.target.value)}
-                placeholder="Enter item name"
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Item Type <span className="text-red-400">*</span>
-              </label>
-              <select
-                value={formData.type}
-                onChange={(e) => handleChange("type", e.target.value)}
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032] transition-colors"
-                required
-              >
-                <option value="" className="bg-[#1a1a1a]">Select Item Type</option>
-                {ITEM_TYPES.map((type) => (
-                  <option key={type.value} value={type.value} className="bg-[#1a1a1a]">
-                    {type.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Rarity <span className="text-red-400">*</span>
-              </label>
-              <select
-                value={formData.rarity}
-                onChange={(e) => handleChange("rarity", e.target.value)}
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032] transition-colors"
-              >
-                {RARITIES.map((r) => (
-                  <option key={r.value} value={r.value} className="bg-[#1a1a1a]">
-                    {r.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Equipment Slot
-              </label>
-              <select
-                value={formData.slot}
-                onChange={(e) => handleChange("slot", e.target.value)}
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032] transition-colors"
-              >
-                {SLOTS.map((s) => (
-                  <option key={s.value} value={s.value} className="bg-[#1a1a1a]">
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Base Value (Gold) <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="number"
-                value={formData.baseValue}
-                onChange={(e) => handleChange("baseValue", Number(e.target.value))}
-                placeholder="0"
-                min="0"
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Max Stack <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="number"
-                value={formData.maxStack}
-                onChange={(e) => handleChange("maxStack", Number(e.target.value))}
-                placeholder="1"
-                min="1"
-                max="9999"
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-white/80">Description</label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => handleChange("description", e.target.value)}
-              placeholder="Enter item description (optional)"
-              rows={3}
-              className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors resize-none"
+      <FormSection title="Basic Information" icon={Package}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField label="Item Name" htmlFor="name" required>
+            <TextInput
+              id="name"
+              value={formData.name}
+              onChange={(e) => handleChange("name", e.target.value)}
+              placeholder="Enter item name"
+              required
             />
-          </div>
+          </FormField>
 
-          <div className="flex items-center gap-3 pt-2">
-            <input
-              type="checkbox"
-              id="isActive"
-              checked={formData.isActive}
-              onChange={(e) => handleChange("isActive", e.target.checked)}
-              className="w-5 h-5 rounded border-gray-700 bg-[#111] text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
+          <FormField label="Item Type" htmlFor="type" required>
+            <SelectInput
+              id="type"
+              options={ITEM_TYPES}
+              value={formData.type}
+              onChange={(e) => handleChange("type", e.target.value)}
+              required
             />
-            <label htmlFor="isActive" className="text-sm text-white/70 cursor-pointer">
-              Item is active and usable in-game
-            </label>
-          </div>
+          </FormField>
+
+          <FormField label="Rarity" htmlFor="rarity" required>
+            <SelectInput
+              id="rarity"
+              options={RARITIES}
+              value={formData.rarity}
+              onChange={(e) => handleChange("rarity", e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Equipment Slot" htmlFor="slot">
+            <SelectInput
+              id="slot"
+              options={SLOTS}
+              value={formData.slot}
+              onChange={(e) => handleChange("slot", e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Base Value" htmlFor="baseValue" hint="Gold" required>
+            <TextInput
+              id="baseValue"
+              type="number"
+              value={formData.baseValue}
+              onChange={(e) => handleChange("baseValue", Number(e.target.value))}
+              placeholder="0"
+              min="0"
+              required
+            />
+          </FormField>
+
+          <FormField label="Max Stack" htmlFor="maxStack" required>
+            <TextInput
+              id="maxStack"
+              type="number"
+              value={formData.maxStack}
+              onChange={(e) => handleChange("maxStack", Number(e.target.value))}
+              placeholder="1"
+              min="1"
+              max="9999"
+              required
+            />
+          </FormField>
         </div>
 
-        {/* Combat Stats Panel */}
-        <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 space-y-6">
-          <div className="flex items-center gap-2 border-b border-gray-800 pb-3">
-            <Shield className="w-5 h-5 text-blue-400" />
-            <h2 className="text-lg font-bold text-white">Combat Stats & Bonuses</h2>
-            <span className="text-xs text-gray-500 ml-2">(Optional)</span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">Base HP</label>
-              <input
-                type="number"
-                value={formData.baseHp}
-                onChange={(e) => handleChange("baseHp", Number(e.target.value))}
-                placeholder="0"
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">Base Attack</label>
-              <input
-                type="number"
-                value={formData.baseAtk}
-                onChange={(e) => handleChange("baseAtk", Number(e.target.value))}
-                placeholder="0"
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">Base Defense</label>
-              <input
-                type="number"
-                value={formData.baseDef}
-                onChange={(e) => handleChange("baseDef", Number(e.target.value))}
-                placeholder="0"
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">Bonus HP (%)</label>
-              <input
-                type="number"
-                value={formData.bonusHp}
-                onChange={(e) => handleChange("bonusHp", Number(e.target.value))}
-                placeholder="0"
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">Bonus Attack (%)</label>
-              <input
-                type="number"
-                value={formData.bonusAtk}
-                onChange={(e) => handleChange("bonusAtk", Number(e.target.value))}
-                placeholder="0"
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">Bonus Defense (%)</label>
-              <input
-                type="number"
-                value={formData.bonusDef}
-                onChange={(e) => handleChange("bonusDef", Number(e.target.value))}
-                placeholder="0"
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">Crit Rate (%)</label>
-              <input
-                type="number"
-                value={formData.bonusCritRate}
-                onChange={(e) => handleChange("bonusCritRate", Number(e.target.value))}
-                placeholder="0"
-                step="0.1"
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">Crit Damage (%)</label>
-              <input
-                type="number"
-                value={formData.bonusCritDamage}
-                onChange={(e) => handleChange("bonusCritDamage", Number(e.target.value))}
-                placeholder="0"
-                step="0.1"
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Image Upload Panel */}
-        <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 space-y-6">
-          <div className="flex items-center gap-2 border-b border-gray-800 pb-3">
-            <ImageIcon className="w-5 h-5 text-purple-400" />
-            <h2 className="text-lg font-bold text-white">Item Icon</h2>
-          </div>
-          
-          <ImageUploader
-            value={formData.iconUrl}
-            onChange={(url) => handleChange("iconUrl", url)}
-            label="Upload Item Icon"
+        <FormField label="Description" htmlFor="description">
+          <TextArea
+            id="description"
+            value={formData.description}
+            onChange={(e) => handleChange("description", e.target.value)}
+            placeholder="Enter item description (optional)"
+            rows={3}
           />
-        </div>
+        </FormField>
 
-        <div className="flex items-center justify-end gap-3 pt-4">
-          <button
-            type="button"
-            onClick={() => router.push("/manage-items")}
-            className="px-6 py-2.5 text-sm font-medium text-white/70 bg-[#1a1a1a] border border-gray-800 hover:bg-[#252525] rounded-xl transition-colors cursor-pointer"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-[#111] bg-[#ffc032] hover:bg-[#ffd04c] rounded-xl transition-colors cursor-pointer disabled:opacity-50"
-          >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {loading ? "Creating..." : "Create Item"}
-          </button>
+        <Checkbox
+          id="isActive"
+          checked={formData.isActive}
+          onChange={(e) => handleChange("isActive", e.target.checked)}
+          label="Item is active and usable in-game"
+        />
+      </FormSection>
+
+      <FormSection
+        title="Combat Stats & Bonuses"
+        subtitle="Optional"
+        icon={Shield}
+        iconColor="text-blue-400"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <FormField label="Base HP" htmlFor="baseHp">
+            <TextInput
+              id="baseHp"
+              type="number"
+              value={formData.baseHp}
+              onChange={(e) => handleChange("baseHp", Number(e.target.value))}
+              placeholder="0"
+            />
+          </FormField>
+          <FormField label="Base Attack" htmlFor="baseAtk">
+            <TextInput
+              id="baseAtk"
+              type="number"
+              value={formData.baseAtk}
+              onChange={(e) => handleChange("baseAtk", Number(e.target.value))}
+              placeholder="0"
+            />
+          </FormField>
+          <FormField label="Base Defense" htmlFor="baseDef">
+            <TextInput
+              id="baseDef"
+              type="number"
+              value={formData.baseDef}
+              onChange={(e) => handleChange("baseDef", Number(e.target.value))}
+              placeholder="0"
+            />
+          </FormField>
+
+          <FormField label="Bonus HP" htmlFor="bonusHp" hint="%">
+            <TextInput
+              id="bonusHp"
+              type="number"
+              value={formData.bonusHp}
+              onChange={(e) => handleChange("bonusHp", Number(e.target.value))}
+              placeholder="0"
+            />
+          </FormField>
+          <FormField label="Bonus Attack" htmlFor="bonusAtk" hint="%">
+            <TextInput
+              id="bonusAtk"
+              type="number"
+              value={formData.bonusAtk}
+              onChange={(e) => handleChange("bonusAtk", Number(e.target.value))}
+              placeholder="0"
+            />
+          </FormField>
+          <FormField label="Bonus Defense" htmlFor="bonusDef" hint="%">
+            <TextInput
+              id="bonusDef"
+              type="number"
+              value={formData.bonusDef}
+              onChange={(e) => handleChange("bonusDef", Number(e.target.value))}
+              placeholder="0"
+            />
+          </FormField>
+
+          <FormField label="Crit Rate" htmlFor="bonusCritRate" hint="%">
+            <TextInput
+              id="bonusCritRate"
+              type="number"
+              value={formData.bonusCritRate}
+              onChange={(e) => handleChange("bonusCritRate", Number(e.target.value))}
+              placeholder="0"
+              step="0.1"
+            />
+          </FormField>
+          <FormField label="Crit Damage" htmlFor="bonusCritDamage" hint="%">
+            <TextInput
+              id="bonusCritDamage"
+              type="number"
+              value={formData.bonusCritDamage}
+              onChange={(e) => handleChange("bonusCritDamage", Number(e.target.value))}
+              placeholder="0"
+              step="0.1"
+            />
+          </FormField>
         </div>
-      </form>
-    </div>
+      </FormSection>
+
+      <FormSection title="Item Icon" icon={ImageIcon} iconColor="text-purple-400">
+        <ImageUploader
+          value={formData.iconUrl}
+          onChange={(url) => handleChange("iconUrl", url)}
+          label="Upload Item Icon"
+        />
+      </FormSection>
+
+      <FormActions
+        onCancel={() => router.push("/manage-items")}
+        submitLabel="Create Item"
+        loadingLabel="Creating..."
+        loading={loading}
+        submitIcon={Save}
+      />
+    </form>
   );
 }

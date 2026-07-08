@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Button from "@/components/ui/Button";
+import AnimatedButton from "@/components/ui/AnimatedButton";
 
 const MysticTitle = () => (
   <div className="relative w-full max-w-[580px] mx-auto select-none">
@@ -131,23 +131,13 @@ export default function HeroSection() {
         <MysticTitle />
 
         {/* Watch Trailer Button */}
-        <Button
-          variant="hero"
+        <AnimatedButton
           size="lg"
-          className="group relative overflow-hidden mt-8"
+          className="mt-8"
           onClick={() => { console.log("Watch Trailer"); }}
         >
-          <span className="relative z-10 flex items-center gap-3">
-            <svg className="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            WATCH TRAILER
-          </span>
-          <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        </Button>
+          WATCH TRAILER
+        </AnimatedButton>
       </div>
 
       {/* Bottom fade */}

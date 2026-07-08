@@ -3,9 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { create } from "@/lib/api/monsters";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { Save, Ghost, Image as ImageIcon } from "lucide-react";
 import ImageUploader from "@/components/ui/ImageUploader";
 import { uploadImageToCloudinary } from "@/lib/api/cloudinary";
+import FormHeader from "@/components/form/FormHeader";
+import FormSection from "@/components/form/FormSection";
+import FormField from "@/components/form/FormField";
+import FormActions from "@/components/form/FormActions";
+import FormAlert from "@/components/form/FormAlert";
+import { TextInput, TextArea, SelectInput } from "@/components/form/FormInput";
 
 const MONSTER_TYPES = [
   { value: "Normal", label: "Normal" },
@@ -30,7 +36,7 @@ export default function CreateMonsterPage() {
     imageUrl: "" as string | File | null,
   });
 
-  const handleChange = (field: string, value: unknown) => {
+  const handleChange = <K extends keyof typeof formData>(field: K, value: (typeof formData)[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -68,199 +74,132 @@ export default function CreateMonsterPage() {
     }
   };
 
-
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => router.push("/manage-monsters")}
-          title="Back to manage monsters"
-          aria-label="Back to manage monsters"
-          className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-white">Create New Monster</h1>
-          <p className="text-white/50 text-sm">Add a new monster to the game</p>
-        </div>
-      </div>
+    <form onSubmit={handleSubmit} className="space-y-6 pb-32">
+      <FormHeader
+        title="Create Monster"
+        subtitle="Add a new monster to the game"
+        backHref="/manage-monsters"
+        badge="New"
+        badgeTone="primary"
+      />
 
-      {error && (
-        <div className="bg-red-400/10 border border-red-400/20 rounded-lg p-4 text-red-400 text-sm">
-          {error}
-        </div>
-      )}
+      {error && <FormAlert message={error} onDismiss={() => setError(null)} />}
 
-      <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Monster Name <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleChange("name", e.target.value)}
-                placeholder="Enter monster name"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
-              />
-            </div>
+      <FormSection title="Monster Details" icon={Ghost}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField label="Monster Name" htmlFor="name" required>
+            <TextInput
+              id="name"
+              value={formData.name}
+              onChange={(e) => handleChange("name", e.target.value)}
+              placeholder="Enter monster name"
+              required
+            />
+          </FormField>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Monster Type <span className="text-red-400">*</span>
-              </label>
-              <select
-                aria-label="Monster type"
-                title="Monster type"
-                value={formData.type}
-                onChange={(e) => handleChange("type", e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              >
-                {MONSTER_TYPES.map((t) => (
-                  <option key={t.value} value={t.value} className="bg-[#1a1a1a]">
-                    {t.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <FormField label="Monster Type" htmlFor="type" required>
+            <SelectInput
+              id="type"
+              options={MONSTER_TYPES}
+              value={formData.type}
+              onChange={(e) => handleChange("type", e.target.value)}
+            />
+          </FormField>
 
-            <div className="space-y-2 md:col-span-2">
-              <label className="block text-sm font-medium text-white/80">Description</label>
-              <textarea
-                aria-label="Monster description"
-                title="Monster description"
+          <div className="md:col-span-2">
+            <FormField label="Description" htmlFor="description">
+              <TextArea
+                id="description"
                 value={formData.description}
                 onChange={(e) => handleChange("description", e.target.value)}
                 placeholder="Enter monster description"
                 rows={3}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors resize-none"
               />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Level <span className="text-red-400">*</span>
-              </label>
-              <input
-                aria-label="Monster level"
-                title="Monster level"
-                type="number"
-                value={formData.level}
-                onChange={(e) => handleChange("level", Number(e.target.value))}
-                min="1"
-                max="100"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Max HP <span className="text-red-400">*</span>
-              </label>
-              <input
-                aria-label="Monster max hp"
-                title="Monster max hp"
-                type="number"
-                value={formData.maxHp}
-                onChange={(e) => handleChange("maxHp", Number(e.target.value))}
-                min="1"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                ATK <span className="text-red-400">*</span>
-              </label>
-              <input
-                aria-label="Monster attack"
-                title="Monster attack"
-                type="number"
-                value={formData.atk}
-                onChange={(e) => handleChange("atk", Number(e.target.value))}
-                min="0"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                DEF <span className="text-red-400">*</span>
-              </label>
-              <input
-                aria-label="Monster defense"
-                title="Monster defense"
-                type="number"
-                value={formData.def}
-                onChange={(e) => handleChange("def", Number(e.target.value))}
-                min="0"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">EXP Reward</label>
-              <input
-                aria-label="Monster experience reward"
-                title="Monster experience reward"
-                type="number"
-                value={formData.expReward}
-                onChange={(e) => handleChange("expReward", Number(e.target.value))}
-                min="0"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">Gold Reward</label>
-              <input
-                aria-label="Monster gold reward"
-                title="Monster gold reward"
-                type="number"
-                value={formData.goldReward}
-                onChange={(e) => handleChange("goldReward", Number(e.target.value))}
-                min="0"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              />
-            </div>
+            </FormField>
           </div>
+        </div>
+      </FormSection>
 
-          <div className="space-y-4 rounded-xl border border-white/10 bg-white/5 p-4">
-            <ImageUploader
-              value={formData.imageUrl}
-              onChange={(url) => handleChange("imageUrl", url)}
-              label="Monster Image"
+      <FormSection title="Stats" subtitle="Combat stats and rewards" icon={Ghost} iconColor="text-blue-400">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <FormField label="Level" htmlFor="level" required>
+            <TextInput
+              id="level"
+              type="number"
+              value={formData.level}
+              onChange={(e) => handleChange("level", Number(e.target.value))}
+              min="1"
+              max="100"
+              required
             />
-          </div>
+          </FormField>
+          <FormField label="Max HP" htmlFor="maxHp" required>
+            <TextInput
+              id="maxHp"
+              type="number"
+              value={formData.maxHp}
+              onChange={(e) => handleChange("maxHp", Number(e.target.value))}
+              min="1"
+              required
+            />
+          </FormField>
+          <FormField label="ATK" htmlFor="atk" required>
+            <TextInput
+              id="atk"
+              type="number"
+              value={formData.atk}
+              onChange={(e) => handleChange("atk", Number(e.target.value))}
+              min="0"
+              required
+            />
+          </FormField>
+          <FormField label="DEF" htmlFor="def" required>
+            <TextInput
+              id="def"
+              type="number"
+              value={formData.def}
+              onChange={(e) => handleChange("def", Number(e.target.value))}
+              min="0"
+              required
+            />
+          </FormField>
+          <FormField label="EXP Reward" htmlFor="expReward">
+            <TextInput
+              id="expReward"
+              type="number"
+              value={formData.expReward}
+              onChange={(e) => handleChange("expReward", Number(e.target.value))}
+              min="0"
+            />
+          </FormField>
+          <FormField label="Gold Reward" htmlFor="goldReward">
+            <TextInput
+              id="goldReward"
+              type="number"
+              value={formData.goldReward}
+              onChange={(e) => handleChange("goldReward", Number(e.target.value))}
+              min="0"
+            />
+          </FormField>
+        </div>
+      </FormSection>
 
-          <div className="flex items-center justify-end gap-3 pt-6 border-t border-white/10">
-            <button
-              type="button"
-              onClick={() => router.push("/manage-monsters")}
-              className="px-4 py-2 text-sm font-medium text-white/70 bg-white/5 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-            >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {loading ? "Creating..." : "Create Monster"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      <FormSection title="Monster Image" icon={ImageIcon} iconColor="text-purple-400">
+        <ImageUploader
+          value={formData.imageUrl}
+          onChange={(url) => handleChange("imageUrl", url)}
+          label="Monster Image"
+        />
+      </FormSection>
+
+      <FormActions
+        onCancel={() => router.push("/manage-monsters")}
+        submitLabel="Create Monster"
+        loadingLabel="Creating..."
+        loading={loading}
+        submitIcon={Save}
+      />
+    </form>
   );
 }

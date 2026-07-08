@@ -314,7 +314,8 @@ export default function PageLoader() {
           width: 50%;
           position: absolute;
           bottom: 0;
-          opacity: 0.4;
+          opacity: 0.95;
+          filter: drop-shadow(0 0 6px rgba(41, 36, 36, 0.05));
         }
 
         .tree .branch {
@@ -334,7 +335,7 @@ export default function PageLoader() {
           margin-left: -600px;
           border-left: 600px solid transparent;
           border-right: 600px solid transparent;
-          border-bottom: 950px solid #000;
+          border-bottom: 950px solid #272626;
         }
 
         .tree .branch.branch-top {

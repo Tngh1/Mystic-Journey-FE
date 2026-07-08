@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { create } from "@/lib/api/dungeons";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { Save, Loader2, Swords } from "lucide-react";
+import FormHeader from "@/components/form/FormHeader";
+import FormSection from "@/components/form/FormSection";
+import FormField from "@/components/form/FormField";
+import FormActions from "@/components/form/FormActions";
+import FormAlert from "@/components/form/FormAlert";
+import { TextInput, TextArea, Checkbox } from "@/components/form/FormInput";
 
 export default function CreateDungeonPage() {
   const router = useRouter();
@@ -19,7 +25,7 @@ export default function CreateDungeonPage() {
     isActive: true,
   });
 
-  const handleChange = (field: string, value: unknown) => {
+  const handleChange = <K extends keyof typeof formData>(field: K, value: (typeof formData)[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -46,145 +52,101 @@ export default function CreateDungeonPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => router.push("/manage-dungeons")}
-          className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-white">Create New Dungeon</h1>
-          <p className="text-white/50 text-sm">Add a new dungeon to the game</p>
-        </div>
-      </div>
+    <form onSubmit={handleSubmit} className="space-y-6 pb-32">
+      <FormHeader
+        title="Create Dungeon"
+        subtitle="Add a new dungeon to the game"
+        backHref="/manage-dungeons"
+        badge="New"
+        badgeTone="primary"
+      />
 
-      {error && (
-        <div className="bg-red-400/10 border border-red-400/20 rounded-lg p-4 text-red-400 text-sm">
-          {error}
-        </div>
-      )}
+      {error && <FormAlert message={error} onDismiss={() => setError(null)} />}
 
-      <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Dungeon Name <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleChange("name", e.target.value)}
-                placeholder="Enter dungeon name"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Required Level <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="number"
-                value={formData.levelRequirement}
-                onChange={(e) => handleChange("levelRequirement", Number(e.target.value))}
-                min="1"
-                max="100"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Max Players <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="number"
-                value={formData.maxMembers}
-                onChange={(e) => handleChange("maxMembers", Number(e.target.value))}
-                min="1"
-                max="100"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Difficulty <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="number"
-                value={formData.difficulty}
-                onChange={(e) => handleChange("difficulty", Number(e.target.value))}
-                min="1"
-                max="10"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Recommended Power
-              </label>
-              <input
-                type="number"
-                value={formData.recommendedPower}
-                onChange={(e) => handleChange("recommendedPower", Number(e.target.value))}
-                min="0"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-white/80">Description</label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => handleChange("description", e.target.value)}
-              placeholder="Enter dungeon description (optional)"
-              rows={3}
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors resize-none"
+      <FormSection title="Dungeon Details" icon={Swords}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField label="Dungeon Name" htmlFor="name" required>
+            <TextInput
+              id="name"
+              value={formData.name}
+              onChange={(e) => handleChange("name", e.target.value)}
+              placeholder="Enter dungeon name"
+              required
             />
-          </div>
+          </FormField>
 
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="isActive"
-              checked={formData.isActive}
-              onChange={(e) => handleChange("isActive", e.target.checked)}
-              className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
+          <FormField label="Required Level" htmlFor="levelRequirement" required>
+            <TextInput
+              id="levelRequirement"
+              type="number"
+              value={formData.levelRequirement}
+              onChange={(e) => handleChange("levelRequirement", Number(e.target.value))}
+              min="1"
+              max="100"
+              required
             />
-            <label htmlFor="isActive" className="text-sm text-white/70 cursor-pointer">
-              Dungeon is active and can be accessed
-            </label>
-          </div>
+          </FormField>
 
-          <div className="flex items-center justify-end gap-3 pt-6 border-t border-white/10">
-            <button
-              type="button"
-              onClick={() => router.push("/manage-dungeons")}
-              className="px-4 py-2 text-sm font-medium text-white/70 bg-white/5 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-            >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {loading ? "Creating..." : "Create Dungeon"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          <FormField label="Max Players" htmlFor="maxMembers" required>
+            <TextInput
+              id="maxMembers"
+              type="number"
+              value={formData.maxMembers}
+              onChange={(e) => handleChange("maxMembers", Number(e.target.value))}
+              min="1"
+              max="100"
+              required
+            />
+          </FormField>
+
+          <FormField label="Difficulty" htmlFor="difficulty" hint="1-10" required>
+            <TextInput
+              id="difficulty"
+              type="number"
+              value={formData.difficulty}
+              onChange={(e) => handleChange("difficulty", Number(e.target.value))}
+              min="1"
+              max="10"
+              required
+            />
+          </FormField>
+
+          <FormField label="Recommended Power" htmlFor="recommendedPower">
+            <TextInput
+              id="recommendedPower"
+              type="number"
+              value={formData.recommendedPower}
+              onChange={(e) => handleChange("recommendedPower", Number(e.target.value))}
+              min="0"
+            />
+          </FormField>
+        </div>
+
+        <FormField label="Description" htmlFor="description">
+          <TextArea
+            id="description"
+            value={formData.description}
+            onChange={(e) => handleChange("description", e.target.value)}
+            placeholder="Enter dungeon description (optional)"
+            rows={3}
+          />
+        </FormField>
+
+        <Checkbox
+          id="isActive"
+          checked={formData.isActive}
+          onChange={(e) => handleChange("isActive", e.target.checked)}
+          label="Dungeon is active and can be accessed"
+        />
+      </FormSection>
+
+      <FormActions
+        onCancel={() => router.push("/manage-dungeons")}
+        submitLabel="Create Dungeon"
+        loadingLabel="Creating..."
+        loading={loading}
+        submitIcon={Save}
+      />
+    </form>
   );
 }

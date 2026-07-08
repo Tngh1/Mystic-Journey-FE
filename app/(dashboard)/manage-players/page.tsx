@@ -87,7 +87,7 @@ export default function ManagePlayersPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-5">
+      <div className="bg-[#111111] border border-gray-800 rounded-2xl p-5">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -103,7 +103,7 @@ export default function ManagePlayersPage() {
             aria-label="Filter by class"
             value={selectedClass}
             onChange={(e) => handleClassFilter(e.target.value)}
-            className="px-4 py-2.5 bg-[#111] border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-[#ffc032] transition-colors"
+            className="px-4 py-2.5 bg-[#111] border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-[#ffc032] transition-colors cursor-pointer"
           >
             <option value="">All Classes</option>
             <option value="Knight">Knight</option>
@@ -121,7 +121,7 @@ export default function ManagePlayersPage() {
       )}
 
       {/* Table */}
-      <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl overflow-hidden">
+      <div className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
@@ -184,7 +184,7 @@ export default function ManagePlayersPage() {
                         <button
                           onClick={() => handleBan(player)}
                           disabled={banningId === player.playerProfileId}
-                          className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 ${
+                          className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
                             player.isBanned
                               ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20'
                               : 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
@@ -201,7 +201,7 @@ export default function ManagePlayersPage() {
                         </button>
                         <Link
                           href={`/manage-players/update?id=${player.playerProfileId ?? ''}`}
-                          className="px-3 py-1.5 bg-[#ffc032] text-[#111] rounded-lg hover:bg-[#ffd04c] transition-colors text-xs font-semibold"
+                          className="px-3 py-1.5 bg-[#ffc032] text-[#111] rounded-lg hover:bg-[#ffd04c] transition-colors text-xs font-semibold cursor-pointer"
                         >
                           Update
                         </Link>
@@ -222,7 +222,7 @@ export default function ManagePlayersPage() {
                 aria-label="Previous page"
                 onClick={() => setPage(page - 1)}
                 disabled={page === 1}
-                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               >
                 ←
               </button>
@@ -233,7 +233,7 @@ export default function ManagePlayersPage() {
                 aria-label="Next page"
                 onClick={() => setPage(page + 1)}
                 disabled={page >= Math.ceil(totalCount / pageSize)}
-                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               >
                 →
               </button>
