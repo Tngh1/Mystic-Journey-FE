@@ -13,6 +13,7 @@ export interface SkillResponse {
   damagePerLevel: number;
   damageGrowthPercent: number;
   unlockLevel: number;
+  corruptionCost: number;
   isActive: boolean;
 }
 

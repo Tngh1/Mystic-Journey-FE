@@ -1,11 +1,13 @@
 'use client';
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { DungeonConfigResponse } from "@/lib/api/dungeons";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import apiClient from "@/lib/api/client";
-import { Castle, Search, Plus } from "lucide-react";
+import { Castle } from "lucide-react";
 import AdminTable from "@/components/ui/AdminTable";
+import FilterSortBar from "@/components/ui/FilterSortBar";
 
 const difficultyColors: Record<string, string> = {
   Easy: "text-green-400",
@@ -15,20 +17,22 @@ const difficultyColors: Record<string, string> = {
 };
 
 const columns = [
-  { key: "dungeonConfigId", label: "ID" },
-  { key: "name", label: "Name" },
-  { key: "levelRequirement", label: "Required Level" },
+  { key: "dungeonConfigId", label: "ID", sortable: true },
+  { key: "name", label: "Name", sortable: true },
+  { key: "levelRequirement", label: "Required Level", sortable: true },
   {
     key: "difficulty",
     label: "Difficulty",
+    sortable: true,
     render: (val: string) => (
       <span className={`font-semibold ${difficultyColors[val] || "text-gray-300"}`}>{val}</span>
     ),
   },
-  { key: "maxMembers", label: "Max Players" },
+  { key: "maxMembers", label: "Max Players", sortable: true },
   {
     key: "isActive",
     label: "Status",
+    sortable: true,
     render: (val: boolean) => (
       <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${val ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
         {val ? "Active" : "Inactive"}
@@ -40,11 +44,48 @@ const columns = [
 export default function ManageDungeonsPage() {
   const router = useRouter();
 
+  const [filterDifficulty, setFilterDifficulty] = useState("");
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("dungeonConfigId");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const buildParams = () => ({
+    ...(search ? { search } : {}),
+    ...(filterDifficulty ? { type: filterDifficulty } : {}),
+    sortBy,
+    sortOrder,
+  });
+
   const { data: dungeons, totalCount, loading, error, page, pageSize, setPage, setPageSize, setParams, refresh } =
     usePagedQuery<DungeonConfigResponse>({
       endpoint: "/api/dungeons",
       pageSize: 10,
+      params: buildParams(),
     });
+
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setPage(1);
+    setParams(buildParams());
+  };
+
+  const handleFilterChange = (value: string) => {
+    setFilterDifficulty(value);
+    setPage(1);
+    setParams(buildParams());
+  };
+
+  const handleSortChange = (value: string) => {
+    setSortBy(value);
+    setPage(1);
+    setParams(buildParams());
+  };
+
+  const handleOrderChange = (order: "asc" | "desc") => {
+    setSortOrder(order);
+    setPage(1);
+    setParams(buildParams());
+  };
 
   const handleDelete = async (d: DungeonConfigResponse) => {
     if (!confirm(`Delete dungeon "${d.name}"?`)) return;
@@ -70,27 +111,23 @@ export default function ManageDungeonsPage() {
         </div>
       </div>
 
-      <div className="bg-[#111111] border border-gray-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="relative w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-          <input
-            type="text"
-            placeholder="Search by name..."
-            onChange={(e) => {
-              setPage(1);
-              setParams({ search: e.target.value || undefined });
-            }}
-            className="w-full pl-9 pr-4 py-2 bg-[#111] border border-gray-700 rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
-          />
-        </div>
-        <button
-          onClick={() => router.push("/manage-dungeons/create")}
-          className="flex items-center justify-center gap-2 bg-[#ffc032] text-[#111] px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#ffd04c] transition-colors cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          Create Dungeon
-        </button>
-      </div>
+      <FilterSortBar
+        search={{ placeholder: "Search by name...", value: search, onChange: handleSearch }}
+        filters={[
+          {
+            key: "difficulty",
+            label: "All Difficulties",
+            value: filterDifficulty,
+            onChange: handleFilterChange,
+            options: [
+              { value: "Easy", label: "Easy" },
+              { value: "Medium", label: "Medium" },
+              { value: "Hard", label: "Hard" },
+              { value: "Nightmare", label: "Nightmare" },
+            ],
+          },
+        ]}
+      />
 
       {error && (
         <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
@@ -100,16 +137,18 @@ export default function ManageDungeonsPage() {
       )}
 
       <AdminTable
-        title={`Total Dungeons: ${totalCount.toLocaleString()}`}
+        title="Dungeons"
         columns={columns}
         data={dungeons}
         loading={loading}
         serverSide
         pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
-
         onUpdate={(d) => router.push(`/manage-dungeons/update?id=${d.dungeonConfigId}`)}
         onDelete={handleDelete}
         idField="dungeonConfigId"
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSortChange}
       />
     </div>
   );

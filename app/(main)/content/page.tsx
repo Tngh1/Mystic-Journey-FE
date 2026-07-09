@@ -3,41 +3,35 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Calendar, Tag, Bell, ArrowRight } from "lucide-react";
-import type { ContentResponse } from "@/lib/api/contents";
+import { getAll, getCategories, type ContentResponse, type CategoryResponse } from "@/lib/api/contents";
 import PageLoader from "@/components/ui/PageLoader";
-
-interface CategoryInfo {
-  categoryContentId: number;
-  name: string;
-  isActive?: boolean;
-}
 
 export default function ContentPage() {
   const [contents, setContents] = useState<ContentResponse[]>([]);
-  const [categories, setCategories] = useState<CategoryInfo[]>([]);
+  const [categories, setCategories] = useState<CategoryResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      // Gọi qua Next.js API routes để tránh browser gặp lỗi SSL/CORS khi BE chạy HTTPS self-signed.
-      const [contentsData, categoriesData] = await Promise.all([
-        fetch("/api/contents?page=1&pageSize=100").then((r) => r.json()),
-        fetch("/api/contents/categories").then((r) => r.json()),
-      ]);
-      setContents((contentsData?.items ?? []).filter((c: ContentResponse) => c.isPublished));
-      setCategories(Array.isArray(categoriesData) ? categoriesData.filter((c: CategoryInfo) => c.isActive) : []);
-    } catch (error) {
-      console.error("Failed to fetch contents:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    void Promise.resolve().then(fetchData);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let mounted = true;
+    async function load() {
+      try {
+        setLoading(true);
+        const [contentsRes, categoriesRes] = await Promise.all([
+          getAll(1, 100, { isPublished: true }),
+          getCategories(),
+        ]);
+        if (!mounted) return;
+        setContents(contentsRes.items ?? []);
+        setCategories(Array.isArray(categoriesRes) ? categoriesRes.filter((c) => c.isActive) : []);
+      } catch (error) {
+        console.error("Failed to fetch contents:", error);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+    load();
+    return () => { mounted = false; };
   }, []);
 
   const filteredContents = selectedCategory

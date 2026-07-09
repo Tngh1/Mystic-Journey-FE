@@ -17,6 +17,8 @@ export default function ManageShopPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCurrency, setFilterCurrency] = useState("");
+  const [sortBy, setSortBy] = useState("shopItemId");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const {
     data: shopItems,
@@ -48,11 +50,28 @@ export default function ManageShopPage() {
     }
   };
 
+  const handleSortChange = (value: string) => {
+    if (sortBy === value) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(value);
+      setSortOrder("asc");
+    }
+    setPage(1);
+    setParams({
+      ...(searchTerm ? { search: searchTerm } : {}),
+      ...(filterCurrency ? { currency: filterCurrency } : {}),
+      sortBy: value,
+      sortOrder: sortOrder === value ? (sortOrder === "asc" ? "desc" : "asc") : "asc",
+    });
+  };
+
   const columns = [
-    { key: "shopItemId", label: "ID" },
+    { key: "shopItemId", label: "ID", sortable: true },
     {
       key: "itemName",
       label: "Item Name",
+      sortable: true,
       render: (val: string, item: ShopItemResponse) => (
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden shrink-0">
@@ -70,26 +89,31 @@ export default function ManageShopPage() {
     {
       key: "price",
       label: "Price",
+      sortable: true,
       render: (val: number) => <span className="text-yellow-400 font-semibold">{val.toLocaleString()}</span>
     },
     {
       key: "currency",
       label: "Currency",
+      sortable: true,
       render: (val: string) => <span className={`font-semibold ${currencyColors[val] || "text-gray-300"}`}>{val}</span>
     },
     {
       key: "stock",
       label: "Stock",
+      sortable: true,
       render: (val: number) => val === -1 ? <span className="text-green-400 font-medium">Unlimited</span> : val.toLocaleString()
     },
     {
       key: "dailyPurchaseLimit",
       label: "Daily Limit",
+      sortable: true,
       render: (val: number) => val === 0 ? <span className="text-gray-400">None</span> : val.toLocaleString()
     },
     {
       key: "isActive",
       label: "Status",
+      sortable: true,
       render: (val: boolean) => (
         <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${val ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
           {val ? "Active" : "Inactive"}
@@ -112,7 +136,7 @@ export default function ManageShopPage() {
         </div>
       </div>
 
-      <div className="bg-[#111111] border border-gray-800 rounded-2xl p-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+      <div className="bg-[#111111] border border-white/10 rounded-2xl p-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -128,7 +152,7 @@ export default function ManageShopPage() {
                   ...(filterCurrency ? { currency: filterCurrency } : {}),
                 });
               }}
-              className="w-full pl-9 pr-4 py-2 bg-[#111] border border-gray-700 rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+              className="w-full pl-9 pr-4 py-2 bg-[#111] border border-white/10 rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
             />
           </div>
           <select
@@ -142,7 +166,7 @@ export default function ManageShopPage() {
                 ...(e.target.value ? { currency: e.target.value } : {}),
               });
             }}
-            className="px-4 py-2 bg-[#111] border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-[#ffc032] transition-colors shrink-0 cursor-pointer"
+            className="px-4 py-2 bg-[#111] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-[#ffc032] transition-colors shrink-0 cursor-pointer"
           >
             <option value="">All Currencies</option>
             <option value="Gold">Gold</option>
@@ -167,7 +191,7 @@ export default function ManageShopPage() {
       )}
 
       <AdminTable
-        title={`Total Shop Items: ${totalCount.toLocaleString()}`}
+        title="Shop Items"
         columns={columns}
         data={shopItems}
         loading={loading}
@@ -176,6 +200,9 @@ export default function ManageShopPage() {
         onUpdate={(item) => router.push(`/manage-shop/update?id=${item.shopItemId}`)}
         onDelete={handleDelete}
         idField="shopItemId"
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSortChange}
       />
     </div>
   );

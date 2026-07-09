@@ -82,14 +82,14 @@ export default function ManageContentPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-[#111111] border border-gray-800 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-[#111111] border border-white/10 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="relative w-64">
           <input
             type="text"
             placeholder="Filter by title..."
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
-            className="w-full pl-4 pr-4 py-2.5 bg-[#111] border border-gray-700 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+            className="w-full pl-4 pr-4 py-2.5 bg-[#111] border border-white/10 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
           />
         </div>
         <Link
@@ -108,11 +108,11 @@ export default function ManageContentPage() {
       )}
 
       {/* Table */}
-      <div className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden">
+      <div className="bg-[#111111] border border-white/10 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-gray-800">
+              <tr className="border-b border-white/10">
                 <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
                 <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Thumbnail</th>
                 <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Title</th>
@@ -136,7 +136,7 @@ export default function ManageContentPage() {
                 </tr>
               ) : (
                 contents.map((content) => (
-                  <tr key={content.contentId} className="border-b border-gray-800/50 hover:bg-[#1e1e1e] transition-colors">
+                  <tr key={content.contentId} className="border-b border-white/10/50 hover:bg-[#1e1e1e] transition-colors">
                     <td className="px-5 py-3.5 text-sm text-gray-400 font-mono">{content.contentId}</td>
                     <td className="px-5 py-3.5">
                       {content.thumbnailUrl ? (
@@ -161,7 +161,7 @@ export default function ManageContentPage() {
                         className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer ${
                           content.isPublished
                             ? 'bg-green-500/20 text-green-400 hover:bg-red-500/20 hover:text-red-400'
-                            : 'bg-[#111] text-gray-400 border border-gray-700 hover:bg-green-500/20 hover:text-green-400'
+                            : 'bg-[#111] text-gray-400 border border-white/10 hover:bg-green-500/20 hover:text-green-400'
                         }`}
                       >
                         {togglingId === content.contentId ? (
@@ -192,7 +192,7 @@ export default function ManageContentPage() {
         </div>
 
         {totalCount > 0 && (
-          <div className="px-5 py-3.5 border-t border-gray-800 flex items-center justify-between">
+          <div className="px-5 py-3.5 border-t border-white/10 flex items-center justify-between">
             <div className="text-xs text-gray-500">Total: {totalCount.toLocaleString()}</div>
             <div className="flex items-center gap-1.5">
               <button

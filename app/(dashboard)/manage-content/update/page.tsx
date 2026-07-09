@@ -729,7 +729,7 @@ function UpdateContentContent() {
 
             {/* Block List */}
             {allBlocks.length === 0 ? (
-              <div className="text-center py-16 text-gray-400 border-2 border-dashed border-gray-700 rounded-lg">
+              <div className="text-center py-16 text-gray-400 border-2 border-dashed border-white/10 rounded-lg">
                 <Quote className="w-12 h-12 mx-auto mb-3 text-gray-600" />
                 <p>No blocks added yet.</p>
                 <p className="text-sm mt-1">Click &quot;Add Text&quot; or &quot;Add Image&quot; to create content blocks.</p>

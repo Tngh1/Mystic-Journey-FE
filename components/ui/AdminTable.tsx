@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Search, Edit2, Trash2, Inbox, AlertCircle, Loader2 } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Inbox, AlertCircle, Loader2, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 
 interface Column<T extends object> {
   key: string;
@@ -34,6 +34,9 @@ interface AdminTableProps<T extends object> {
   emptyTitle?: string;
   emptyHint?: string;
   onRetry?: () => void;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  onSort?: (key: string) => void;
 }
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
@@ -56,6 +59,9 @@ export default function AdminTable<T extends object>({
   emptyTitle = "No data available",
   emptyHint,
   onRetry,
+  sortBy,
+  sortOrder,
+  onSort,
 }: AdminTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -90,6 +96,23 @@ export default function AdminTable<T extends object>({
     }
   };
 
+  const handleSort = (key: string) => {
+    if (onSort) {
+      onSort(key);
+    }
+  };
+
+  const getSortIcon = (key: string) => {
+    if (sortBy !== key) {
+      return <ArrowUpDown className="w-3 h-3 text-gray-600" />;
+    }
+    return sortOrder === "asc" ? (
+      <ArrowUp className="w-3 h-3 text-[#ffc032]" />
+    ) : (
+      <ArrowDown className="w-3 h-3 text-[#ffc032]" />
+    );
+  };
+
   const columnCount = columns.length + (onUpdate || onDelete ? 1 : 0);
 
   const renderBody = () => {
@@ -121,7 +144,7 @@ export default function AdminTable<T extends object>({
 
     if (loading && currentData.length === 0) {
       return Array.from({ length: 5 }).map((_, rowIdx) => (
-        <tr key={`skeleton-${rowIdx}`} className="border-b border-gray-800/50">
+        <tr key={`skeleton-${rowIdx}`} className="border-b border-white/10/50">
           {columns.map((col) => (
             <td key={col.key} className="px-5 py-3.5">
               <div className="h-4 bg-white/5 rounded animate-pulse" style={{ width: `${50 + ((rowIdx * 17 + col.key.length * 11) % 40)}%` }} />
@@ -161,7 +184,7 @@ export default function AdminTable<T extends object>({
         <tr
           key={String(rowId ?? rowIndex)}
           onClick={() => onRowClick?.(item)}
-          className={`border-b border-gray-800/50 hover:bg-[#1e1e1e]/70 transition-colors group ${
+          className={`border-b border-white/10/50 hover:bg-[#1e1e1e]/70 transition-colors group ${
             onRowClick ? "cursor-pointer" : ""
           } ${isSelected ? "bg-[#252525]" : ""}`}
         >
@@ -200,9 +223,9 @@ export default function AdminTable<T extends object>({
   };
 
   return (
-    <div className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden">
+    <div className="bg-[#111111] border border-white/10 rounded-2xl overflow-hidden">
       {/* Header */}
-      <div className="px-5 py-4 border-b border-gray-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="px-5 py-4 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
           {title}
           {loading && data.length > 0 && (
@@ -218,7 +241,7 @@ export default function AdminTable<T extends object>({
                 placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="pl-9 pr-4 py-2 bg-[#111] border border-gray-700 rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors w-48"
+                className="pl-9 pr-4 py-2 bg-[#111] border border-white/10 rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors w-48"
               />
             </div>
           )}
@@ -238,13 +261,19 @@ export default function AdminTable<T extends object>({
       <div className="overflow-x-auto">
         <table className="w-full text-left">
           <thead className="bg-[#161616] sticky top-0 z-10">
-            <tr className="border-b border-gray-800">
+            <tr className="border-b border-white/10">
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                  onClick={() => col.sortable && onSort && handleSort(col.key)}
+                  className={`px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap ${
+                    col.sortable && onSort ? "cursor-pointer hover:text-white transition-colors" : ""
+                  }`}
                 >
-                  {col.label}
+                  <div className="flex items-center gap-1.5">
+                    <span>{col.label}</span>
+                    {col.sortable && onSort && getSortIcon(col.key)}
+                  </div>
                 </th>
               ))}
               {(onUpdate || onDelete) && (
@@ -260,7 +289,7 @@ export default function AdminTable<T extends object>({
 
       {/* Footer / Pagination */}
       {!error && totalItems > 0 && (
-        <div className="px-5 py-3.5 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="px-5 py-3.5 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-white/40">
             {serverSide && pagination ? (
               <>Showing {totalItems === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1}–{Math.min(pagination.page * pagination.pageSize, totalItems)} of {totalItems}</>
@@ -274,7 +303,7 @@ export default function AdminTable<T extends object>({
                 aria-label="Rows per page"
                 value={currentPageSize}
                 onChange={(e) => pagination.setPageSize(Number(e.target.value))}
-                className="bg-[#111] border border-gray-700 rounded px-2 py-1 text-xs text-white focus:outline-none cursor-pointer"
+                className="bg-[#111] border border-white/10 rounded px-2 py-1 text-xs text-white focus:outline-none cursor-pointer"
               >
                 {PAGE_SIZE_OPTIONS.map((size) => (
                   <option key={size} value={size}>{size} / page</option>

@@ -34,6 +34,11 @@ export default function ManagePlayersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClass, setSelectedClass] = useState('');
   const [banningId, setBanningId] = useState<number | null>(null);
+  // Theo dõi accounts bị ban locally (vì PlayerProfileResponse không trả isBanned).
+  const [bannedAccountIds, setBannedAccountIds] = useState<Set<number>>(new Set());
+
+  const isBanned = (player: PlayerProfileResponse) =>
+    player.accountId != null && bannedAccountIds.has(player.accountId);
 
   const handleSearch = (keyword: string) => {
     setSearchTerm(keyword);
@@ -56,11 +61,18 @@ export default function ManagePlayersPage() {
     if (player.playerProfileId == null || player.accountId == null) return;
     try {
       setBanningId(player.playerProfileId);
-      if (player.isBanned) {
+      const banned = isBanned(player);
+      if (banned) {
         await unbanPlayer(player.accountId);
+        setBannedAccountIds((prev) => {
+          const next = new Set(prev);
+          next.delete(player.accountId!);
+          return next;
+        });
         await showSuccessAlert('Unbanned!', `${player.displayName} has been unbanned.`);
       } else {
         await banPlayer(player.accountId);
+        setBannedAccountIds((prev) => new Set(prev).add(player.accountId!));
         await showSuccessAlert('Banned!', `${player.displayName} has been banned.`);
       }
       refresh();
@@ -87,7 +99,7 @@ export default function ManagePlayersPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-[#111111] border border-gray-800 rounded-2xl p-5">
+      <div className="bg-[#111111] border border-white/10 rounded-2xl p-5">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -96,14 +108,14 @@ export default function ManagePlayersPage() {
               placeholder="Search by name..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 bg-[#111] border border-gray-700 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+              className="w-full pl-9 pr-4 py-2.5 bg-[#111] border border-white/10 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
             />
           </div>
           <select
             aria-label="Filter by class"
             value={selectedClass}
             onChange={(e) => handleClassFilter(e.target.value)}
-            className="px-4 py-2.5 bg-[#111] border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-[#ffc032] transition-colors cursor-pointer"
+            className="px-4 py-2.5 bg-[#111] border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-[#ffc032] transition-colors cursor-pointer"
           >
             <option value="">All Classes</option>
             <option value="Knight">Knight</option>
@@ -121,11 +133,11 @@ export default function ManagePlayersPage() {
       )}
 
       {/* Table */}
-      <div className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden">
+      <div className="bg-[#111111] border border-white/10 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-gray-800">
+              <tr className="border-b border-white/10">
                 <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
                 <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Display Name</th>
                 <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Class</th>
@@ -149,7 +161,7 @@ export default function ManagePlayersPage() {
                 </tr>
               ) : (
                 players.map((player, index) => (
-                  <tr key={player.playerProfileId ?? `player-${index}`} className="border-b border-gray-800/50 hover:bg-[#1e1e1e] transition-colors group">
+                  <tr key={player.playerProfileId ?? `player-${index}`} className="border-b border-white/10/50 hover:bg-[#1e1e1e] transition-colors group">
                     <td className="px-5 py-3.5 text-sm text-gray-400 font-mono">{player.playerProfileId ?? 'N/A'}</td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
@@ -175,8 +187,8 @@ export default function ManagePlayersPage() {
                     <td className="px-5 py-3.5 text-sm text-yellow-400">{Number(player.gold).toLocaleString()}</td>
                     <td className="px-5 py-3.5 text-sm text-blue-400">{Number(player.gems).toLocaleString()}</td>
                     <td className="px-5 py-3.5">
-                      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${player.isBanned ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>
-                        {player.isBanned ? 'Banned' : 'Active'}
+                      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${isBanned(player) ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>
+                        {isBanned(player) ? 'Banned' : 'Active'}
                       </span>
                     </td>
                     <td className="px-5 py-3.5 text-right">
@@ -185,15 +197,15 @@ export default function ManagePlayersPage() {
                           onClick={() => handleBan(player)}
                           disabled={banningId === player.playerProfileId}
                           className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
-                            player.isBanned
+                            isBanned(player)
                               ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20'
                               : 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
                           }`}
-                          title={player.isBanned ? 'Unban' : 'Ban'}
+                          title={isBanned(player) ? 'Unban' : 'Ban'}
                         >
                           {banningId === player.playerProfileId ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : player.isBanned ? (
+                          ) : isBanned(player) ? (
                             <CheckCircle className="w-4 h-4" />
                           ) : (
                             <Ban className="w-4 h-4" />
@@ -215,7 +227,7 @@ export default function ManagePlayersPage() {
         </div>
 
         {totalCount > 0 && (
-          <div className="px-5 py-3.5 border-t border-gray-800 flex items-center justify-between">
+          <div className="px-5 py-3.5 border-t border-white/10 flex items-center justify-between">
             <div className="text-xs text-gray-500">Total: {totalCount.toLocaleString()}</div>
             <div className="flex items-center gap-1.5">
               <button

@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Package, Plus } from 'lucide-react';
+import { Package } from 'lucide-react';
 import { ItemResponse } from "@/lib/api/items";
 import { usePagedQuery } from '@/lib/hooks/usePagedQuery';
 import apiClient from "@/lib/api/client";
 import AdminTable from "@/components/ui/AdminTable";
 import PageHeader from "@/components/ui/PageHeader";
+import FilterSortBar from "@/components/ui/FilterSortBar";
 import { showSuccessAlert, showErrorAlert, showConfirmAlert } from "@/lib/utils/swal";
 
 const rarityColors: Record<string, string> = {
@@ -38,6 +39,7 @@ const columns = [
   {
     key: "iconUrl",
     label: "Image",
+    sortable: false,
     render: (_: unknown, item: ItemResponse) => (
       <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/5 flex items-center justify-center border border-white/10">
         <img
@@ -49,26 +51,28 @@ const columns = [
       </div>
     ),
   },
-  { key: "itemId", label: "ID" },
-  { key: "name", label: "Name" },
-  { key: "type", label: "Type" },
+  { key: "itemId", label: "ID", sortable: true },
+  { key: "name", label: "Name", sortable: true },
+  { key: "type", label: "Type", sortable: true },
   {
     key: "rarity",
     label: "Rarity",
+    sortable: true,
     render: (val: string) => (
       <span className={`font-semibold ${rarityColors[val] || "text-white"}`}>{val}</span>
     ),
   },
-  { key: "slot", label: "Slot" },
+  { key: "slot", label: "Slot", sortable: true },
   {
     key: "stats",
     label: "Stats",
+    sortable: false,
     render: (_: unknown, item: ItemResponse) => (
       <span className="text-xs text-gray-400">{formatItemStats(item)}</span>
     ),
   },
-  { key: "baseValue", label: "Base Value" },
-  { key: "maxStack", label: "Max Stack" },
+  { key: "baseValue", label: "Base Value", sortable: true },
+  { key: "maxStack", label: "Max Stack", sortable: true },
 ];
 
 export default function ManageItemsPage() {
@@ -76,16 +80,75 @@ export default function ManageItemsPage() {
 
   const [filterType, setFilterType] = useState("");
   const [filterRarity, setFilterRarity] = useState("");
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("itemId");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const { data: items, totalCount, loading, error, page, pageSize, setPage, setPageSize, setParams, refresh } =
     usePagedQuery<ItemResponse>({
       endpoint: "/api/items",
       pageSize: 10,
       params: {
+        ...(search ? { search } : {}),
         ...(filterType ? { type: filterType } : {}),
         ...(filterRarity ? { rarity: filterRarity } : {}),
+        sortBy,
+        sortOrder,
       },
     });
+
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setPage(1);
+    setParams({
+      ...(value ? { search: value } : {}),
+      ...(filterType ? { type: filterType } : {}),
+      ...(filterRarity ? { rarity: filterRarity } : {}),
+      sortBy,
+      sortOrder,
+    });
+  };
+
+  const handleFilterChange = (key: string, value: string) => {
+    if (key === "type") {
+      setFilterType(value);
+      setPage(1);
+      setParams({
+        ...(search ? { search } : {}),
+        ...(value ? { type: value } : {}),
+        ...(filterRarity ? { rarity: filterRarity } : {}),
+        sortBy,
+        sortOrder,
+      });
+    } else if (key === "rarity") {
+      setFilterRarity(value);
+      setPage(1);
+      setParams({
+        ...(search ? { search } : {}),
+        ...(filterType ? { type: filterType } : {}),
+        ...(value ? { rarity: value } : {}),
+        sortBy,
+        sortOrder,
+      });
+    }
+  };
+
+  const handleSortChange = (value: string) => {
+    if (sortBy === value) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(value);
+      setSortOrder("asc");
+    }
+    setPage(1);
+    setParams({
+      ...(search ? { search } : {}),
+      ...(filterType ? { type: filterType } : {}),
+      ...(filterRarity ? { rarity: filterRarity } : {}),
+      sortBy: value,
+      sortOrder: sortBy === value ? (sortOrder === "asc" ? "desc" : "asc") : "asc",
+    });
+  };
 
   const handleDelete = async (item: ItemResponse) => {
     const result = await showConfirmAlert(
@@ -110,77 +173,40 @@ export default function ManageItemsPage() {
         title="Manage Items"
         subtitle="Create and modify game items"
         icon={Package}
-        stats={[
-          { label: "Total Items", value: totalCount.toLocaleString(), icon: Package, tone: "primary" },
-        ]}
-        actions={[
+      />
+
+      <FilterSortBar
+        search={{ placeholder: "Search by name...", icon: Package, value: search, onChange: handleSearch }}
+        filters={[
           {
-            label: "Create Item",
-            icon: Plus,
-            onClick: () => router.push("/manage-items/create"),
+            key: "type",
+            label: "All Types",
+            value: filterType,
+            onChange: (v) => handleFilterChange("type", v),
+            options: [
+              { value: "Weapon", label: "Weapon" },
+              { value: "Armor", label: "Armor" },
+              { value: "Consumable", label: "Consumable" },
+              { value: "Material", label: "Material" },
+              { value: "QuestItem", label: "Quest Item" },
+            ],
+          },
+          {
+            key: "rarity",
+            label: "All Rarities",
+            value: filterRarity,
+            onChange: (v) => handleFilterChange("rarity", v),
+            options: [
+              { value: "Common", label: "Common" },
+              { value: "Uncommon", label: "Uncommon" },
+              { value: "Rare", label: "Rare" },
+              { value: "Epic", label: "Epic" },
+              { value: "Legendary", label: "Legendary" },
+              { value: "Mythic", label: "Mythic" },
+            ],
           },
         ]}
       />
-
-      {/* Filters */}
-      <div className="bg-[#111111] border border-gray-800 rounded-2xl p-5 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-        <div className="flex flex-col sm:flex-row gap-3 flex-1">
-          <div className="flex-1 relative max-w-md">
-            <Package className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-            <input
-              type="text"
-              placeholder="Search by name..."
-              onChange={(e) => setParams({
-                ...(e.target.value ? { search: e.target.value } : {}),
-                ...(filterType ? { type: filterType } : {}),
-                ...(filterRarity ? { rarity: filterRarity } : {}),
-              })}
-              className="w-full pl-10 pr-4 py-2.5 bg-[#111] border border-gray-700 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
-            />
-          </div>
-          <select
-            aria-label="Filter items by type"
-            value={filterType}
-            onChange={(e) => {
-              setFilterType(e.target.value);
-              setPage(1);
-              setParams({
-                ...(e.target.value ? { type: e.target.value } : {}),
-                ...(filterRarity ? { rarity: filterRarity } : {}),
-              });
-            }}
-            className="px-4 py-2.5 bg-[#111] border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-[#ffc032] transition-colors shrink-0 cursor-pointer"
-          >
-            <option value="">All Types</option>
-            <option value="Weapon">Weapon</option>
-            <option value="Armor">Armor</option>
-            <option value="Consumable">Consumable</option>
-            <option value="Material">Material</option>
-            <option value="QuestItem">Quest Item</option>
-          </select>
-          <select
-            aria-label="Filter items by rarity"
-            value={filterRarity}
-            onChange={(e) => {
-              setFilterRarity(e.target.value);
-              setPage(1);
-              setParams({
-                ...(e.target.value ? { rarity: e.target.value } : {}),
-                ...(filterType ? { type: filterType } : {}),
-              });
-            }}
-            className="px-4 py-2.5 bg-[#111] border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-[#ffc032] transition-colors shrink-0 cursor-pointer"
-          >
-            <option value="">All Rarities</option>
-            <option value="Common">Common</option>
-            <option value="Uncommon">Uncommon</option>
-            <option value="Rare">Rare</option>
-            <option value="Epic">Epic</option>
-            <option value="Legendary">Legendary</option>
-            <option value="Mythic">Mythic</option>
-          </select>
-        </div>
-      </div>
 
       <AdminTable
         title="Items List"
@@ -196,6 +222,9 @@ export default function ManageItemsPage() {
         onUpdate={(item) => router.push(`/manage-items/update?id=${item.itemId}`)}
         onDelete={handleDelete}
         idField="itemId"
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSortChange}
       />
     </div>
   );

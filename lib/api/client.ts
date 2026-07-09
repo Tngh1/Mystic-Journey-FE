@@ -9,17 +9,48 @@ const apiClient = axios.create({
   timeout: 15000,
 });
 
+let isRefreshing = false;
+let refreshQueue: Array<{
+  resolve: (token: string) => void;
+  reject: (err: unknown) => void;
+}> = [];
+
+function processRefreshQueue(token: string) {
+  refreshQueue.forEach((cb) => cb.resolve(token));
+  refreshQueue = [];
+}
+
+function processRefreshError(err: unknown) {
+  refreshQueue.forEach((cb) => cb.reject(err));
+  refreshQueue = [];
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as (AxiosRequestConfig & { _retry?: boolean }) | undefined;
 
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          refreshQueue.push({
+            resolve: () => apiClient(originalRequest).then(resolve).catch(reject),
+            reject,
+          });
+        });
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
+
       try {
         await apiClient.post("/api/auth/refresh-token");
+        processRefreshQueue("");
+        isRefreshing = false;
         return apiClient(originalRequest);
-      } catch {
+      } catch (refreshErr) {
+        processRefreshError(refreshErr);
+        isRefreshing = false;
         return Promise.reject(new ApiError("Session expired. Please log in again."));
       }
     }

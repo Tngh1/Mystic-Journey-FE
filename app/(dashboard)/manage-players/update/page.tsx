@@ -9,7 +9,8 @@ import {
 } from 'lucide-react';
 import { getPlayerProfileAdmin, updatePlayerProfileAdmin, PlayerProfileWithStats } from '@/lib/api/player-profiles';
 import { getInventoryByProfileId } from '@/lib/api/inventory';
-import type { PlayerStatsResponse, InventoryItemResponse, InventorySummaryResponse, PlayerSkinSummaryResponse } from '@/lib/types';
+import { getById as getItemById } from '@/lib/api/items';
+import type { PlayerStatsResponse, InventoryItemResponse, InventorySummaryResponse, PlayerSkinSummaryResponse, ItemResponse } from '@/lib/types';
 import FormHeader from '@/components/form/FormHeader';
 import FormSection from '@/components/form/FormSection';
 import FormField from '@/components/form/FormField';
@@ -50,6 +51,16 @@ function ItemDetailPanel({
   item: InventoryItemResponse;
   onClose: () => void;
 }) {
+  // Lấy chi tiết item (kèm stats) từ /api/items/{id} vì InventoryItemResponse
+  // không nhúng các chỉ số thiết bị (BaseHp/Atk/Def, BonusHp/Atk/Def, v.v.).
+  const [itemDetail, setItemDetail] = useState<ItemResponse | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    getItemById(item.itemId)
+      .then((d) => { if (!cancelled) setItemDetail(d); })
+      .catch(() => { if (!cancelled) setItemDetail(null); });
+    return () => { cancelled = true; };
+  }, [item.itemId]);
   const isEquipment =
     item.itemType === 'Weapon' ||
     item.itemType === 'Armor' ||
@@ -150,69 +161,69 @@ function ItemDetailPanel({
               <p className="text-xs text-white/40 uppercase tracking-wider">Stats</p>
 
               {/* Base Stats */}
-              {(item.baseHp > 0 || item.baseAtk > 0 || item.baseDef > 0) && (
+              {(itemDetail?.baseHp && itemDetail.baseHp > 0 || itemDetail?.baseAtk && itemDetail.baseAtk > 0 || itemDetail?.baseDef && itemDetail.baseDef > 0) && (
                 <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-2">
                   <p className="text-xs text-white/40 mb-2">Base Stats</p>
-                  {item.baseHp > 0 && (
+                  {itemDetail?.baseHp != null && itemDetail.baseHp > 0 && (
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-red-400 flex items-center gap-1.5">
                         <Heart className="w-3.5 h-3.5" /> HP
                       </span>
-                      <span className="text-sm font-semibold text-white">+{item.baseHp}</span>
+                      <span className="text-sm font-semibold text-white">+{itemDetail.baseHp}</span>
                     </div>
                   )}
-                  {item.baseAtk > 0 && (
+                  {itemDetail?.baseAtk != null && itemDetail.baseAtk > 0 && (
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-orange-400 flex items-center gap-1.5">
                         <Sword className="w-3.5 h-3.5" /> ATK
                       </span>
-                      <span className="text-sm font-semibold text-white">+{item.baseAtk}</span>
+                      <span className="text-sm font-semibold text-white">+{itemDetail.baseAtk}</span>
                     </div>
                   )}
-                  {item.baseDef > 0 && (
+                  {itemDetail?.baseDef != null && itemDetail.baseDef > 0 && (
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-blue-400 flex items-center gap-1.5">
                         <ShieldCheck className="w-3.5 h-3.5" /> DEF
                       </span>
-                      <span className="text-sm font-semibold text-white">+{item.baseDef}</span>
+                      <span className="text-sm font-semibold text-white">+{itemDetail.baseDef}</span>
                     </div>
                   )}
                 </div>
               )}
 
               {/* Bonus Stats */}
-              {(item.bonusHp > 0 || item.bonusAtk > 0 || item.bonusDef > 0 ||
-                item.bonusCritRate > 0 || item.bonusCritDamage > 0) && (
+              {(itemDetail?.bonusHp && itemDetail.bonusHp > 0 || itemDetail?.bonusAtk && itemDetail.bonusAtk > 0 || itemDetail?.bonusDef && itemDetail.bonusDef > 0 ||
+                itemDetail?.bonusCritRate && itemDetail.bonusCritRate > 0 || itemDetail?.bonusCritDamage && itemDetail.bonusCritDamage > 0) && (
                 <div className="bg-[#ffc032]/5 rounded-xl p-4 border border-[#ffc032]/20 space-y-2">
                   <p className="text-xs text-[#ffc032]/60 mb-2">Bonus Stats</p>
-                  {item.bonusHp > 0 && (
+                  {itemDetail?.bonusHp != null && itemDetail.bonusHp > 0 && (
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-red-400">❤ HP</span>
-                      <span className="text-sm font-semibold text-[#ffc032]">+{item.bonusHp}</span>
+                      <span className="text-sm font-semibold text-[#ffc032]">+{itemDetail.bonusHp}</span>
                     </div>
                   )}
-                  {item.bonusAtk > 0 && (
+                  {itemDetail?.bonusAtk != null && itemDetail.bonusAtk > 0 && (
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-orange-400">⚔ ATK</span>
-                      <span className="text-sm font-semibold text-[#ffc032]">+{item.bonusAtk}</span>
+                      <span className="text-sm font-semibold text-[#ffc032]">+{itemDetail.bonusAtk}</span>
                     </div>
                   )}
-                  {item.bonusDef > 0 && (
+                  {itemDetail?.bonusDef != null && itemDetail.bonusDef > 0 && (
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-blue-400">🛡 DEF</span>
-                      <span className="text-sm font-semibold text-[#ffc032]">+{item.bonusDef}</span>
+                      <span className="text-sm font-semibold text-[#ffc032]">+{itemDetail.bonusDef}</span>
                     </div>
                   )}
-                  {item.bonusCritRate > 0 && (
+                  {itemDetail?.bonusCritRate != null && itemDetail.bonusCritRate > 0 && (
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-yellow-400">⚡ Crit Rate</span>
-                      <span className="text-sm font-semibold text-[#ffc032]">+{item.bonusCritRate.toFixed(1)}%</span>
+                      <span className="text-sm font-semibold text-[#ffc032]">+{itemDetail.bonusCritRate.toFixed(1)}%</span>
                     </div>
                   )}
-                  {item.bonusCritDamage > 0 && (
+                  {itemDetail?.bonusCritDamage != null && itemDetail.bonusCritDamage > 0 && (
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-pink-400">💥 Crit DMG</span>
-                      <span className="text-sm font-semibold text-[#ffc032]">+{item.bonusCritDamage.toFixed(1)}%</span>
+                      <span className="text-sm font-semibold text-[#ffc032]">+{itemDetail.bonusCritDamage.toFixed(1)}%</span>
                     </div>
                   )}
                 </div>
@@ -868,7 +879,7 @@ export default function EditPlayerPage() {
           </div>
         ) : activeTab === 'inventory' ? (
           /* ────────── INVENTORY TAB ────────── */
-          <div className="bg-[#111111] rounded-2xl border border-gray-800 p-6">
+          <div className="bg-[#111111] rounded-2xl border border-white/10 p-6">
             <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
               <Package className="w-5 h-5 text-[#ffc032]" />
               Player Inventory
@@ -890,7 +901,7 @@ export default function EditPlayerPage() {
             {error && <FormAlert type="error" message={error} onDismiss={() => setError(null)} />}
 
             {/* Profile Form */}
-            <div className="bg-[#111111] rounded-2xl border border-gray-800 p-6 mb-6">
+            <div className="bg-[#111111] rounded-2xl border border-white/10 p-6 mb-6">
               <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
                 <User className="w-5 h-5 text-[#ffc032]" />
                 Profile Information
@@ -904,7 +915,7 @@ export default function EditPlayerPage() {
                     name="displayName"
                     value={formData.displayName}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-[#0d0d0d] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-[#ffc032] transition-colors"
+                    className="w-full px-4 py-3 bg-[#0d0d0d] border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#ffc032] transition-colors"
                     required
                   />
                 </div>
@@ -916,7 +927,7 @@ export default function EditPlayerPage() {
                     name="avatarUrl"
                     value={formData.avatarUrl}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-[#0d0d0d] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-[#ffc032] transition-colors"
+                    className="w-full px-4 py-3 bg-[#0d0d0d] border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#ffc032] transition-colors"
                   />
                 </div>
 
@@ -926,7 +937,7 @@ export default function EditPlayerPage() {
                     name="playerClass"
                     value={formData.playerClass}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-[#0d0d0d] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-[#ffc032] transition-colors"
+                    className="w-full px-4 py-3 bg-[#0d0d0d] border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#ffc032] transition-colors"
                   >
                     <option value="Knight">Knight</option>
                     <option value="Mage">Mage</option>
@@ -942,7 +953,7 @@ export default function EditPlayerPage() {
                     value={formData.level}
                     onChange={handleChange}
                     min="1"
-                    className="w-full px-4 py-3 bg-[#0d0d0d] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-[#ffc032] transition-colors"
+                    className="w-full px-4 py-3 bg-[#0d0d0d] border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#ffc032] transition-colors"
                     required
                   />
                 </div>
@@ -955,7 +966,7 @@ export default function EditPlayerPage() {
                     value={formData.experiencePoints}
                     onChange={handleChange}
                     min="0"
-                    className="w-full px-4 py-3 bg-[#0d0d0d] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-[#ffc032] transition-colors"
+                    className="w-full px-4 py-3 bg-[#0d0d0d] border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#ffc032] transition-colors"
                     required
                   />
                 </div>
@@ -968,7 +979,7 @@ export default function EditPlayerPage() {
                     value={formData.gold}
                     onChange={handleChange}
                     min="0"
-                    className="w-full px-4 py-3 bg-[#0d0d0d] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-[#ffc032] transition-colors"
+                    className="w-full px-4 py-3 bg-[#0d0d0d] border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#ffc032] transition-colors"
                     required
                   />
                 </div>
@@ -981,7 +992,7 @@ export default function EditPlayerPage() {
                     value={formData.gems}
                     onChange={handleChange}
                     min="0"
-                    className="w-full px-4 py-3 bg-[#0d0d0d] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-[#ffc032] transition-colors"
+                    className="w-full px-4 py-3 bg-[#0d0d0d] border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#ffc032] transition-colors"
                     required
                   />
                 </div>
@@ -994,7 +1005,7 @@ export default function EditPlayerPage() {
                     value={formData.energy}
                     onChange={handleChange}
                     min="0"
-                    className="w-full px-4 py-3 bg-[#0d0d0d] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-[#ffc032] transition-colors"
+                    className="w-full px-4 py-3 bg-[#0d0d0d] border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#ffc032] transition-colors"
                     required
                   />
                 </div>
@@ -1006,7 +1017,7 @@ export default function EditPlayerPage() {
                     id="isBanned"
                     checked={formData.isBanned}
                     onChange={handleChange}
-                    className="w-5 h-5 rounded border-gray-700 bg-[#0d0d0d] text-red-500 focus:ring-[#ffc032] focus:ring-offset-0"
+                    className="w-5 h-5 rounded border-white/10 bg-[#0d0d0d] text-red-500 focus:ring-[#ffc032] focus:ring-offset-0"
                   />
                   <label htmlFor="isBanned" className="text-sm font-medium text-gray-300">
                     Banned
@@ -1017,14 +1028,14 @@ export default function EditPlayerPage() {
 
             {/* Stats Display (read-only) */}
             {stats && (
-              <div className="bg-[#111111] rounded-2xl border border-gray-800 p-6 mb-6">
+              <div className="bg-[#111111] rounded-2xl border border-white/10 p-6 mb-6">
                 <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
                   <Zap className="w-5 h-5 text-[#ffc032]" />
                   Player Stats (Read-Only)
                 </h2>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-[#0d0d0d] rounded-xl p-4 border border-gray-800">
+                  <div className="bg-[#0d0d0d] rounded-xl p-4 border border-white/10">
                     <div className="flex items-center gap-2 text-red-400 mb-2">
                       <Heart className="w-4 h-4" />
                       <span className="text-sm text-gray-400">Max HP</span>
@@ -1032,7 +1043,7 @@ export default function EditPlayerPage() {
                     <p className="text-2xl font-bold">{stats.maxHp}</p>
                   </div>
 
-                  <div className="bg-[#0d0d0d] rounded-xl p-4 border border-gray-800">
+                  <div className="bg-[#0d0d0d] rounded-xl p-4 border border-white/10">
                     <div className="flex items-center gap-2 text-orange-400 mb-2">
                       <Sword className="w-4 h-4" />
                       <span className="text-sm text-gray-400">Attack</span>
@@ -1040,7 +1051,7 @@ export default function EditPlayerPage() {
                     <p className="text-2xl font-bold">{stats.atk}</p>
                   </div>
 
-                  <div className="bg-[#0d0d0d] rounded-xl p-4 border border-gray-800">
+                  <div className="bg-[#0d0d0d] rounded-xl p-4 border border-white/10">
                     <div className="flex items-center gap-2 text-blue-400 mb-2">
                       <ShieldCheck className="w-4 h-4" />
                       <span className="text-sm text-gray-400">Defense</span>
@@ -1048,7 +1059,7 @@ export default function EditPlayerPage() {
                     <p className="text-2xl font-bold">{stats.def}</p>
                   </div>
 
-                  <div className="bg-[#0d0d0d] rounded-xl p-4 border border-gray-800">
+                  <div className="bg-[#0d0d0d] rounded-xl p-4 border border-white/10">
                     <div className="flex items-center gap-2 text-yellow-400 mb-2">
                       <Zap className="w-4 h-4" />
                       <span className="text-sm text-gray-400">Crit Rate</span>
@@ -1056,7 +1067,7 @@ export default function EditPlayerPage() {
                     <p className="text-2xl font-bold">{stats.critRate}%</p>
                   </div>
 
-                  <div className="bg-[#0d0d0d] rounded-xl p-4 border border-gray-800">
+                  <div className="bg-[#0d0d0d] rounded-xl p-4 border border-white/10">
                     <div className="flex items-center gap-2 text-pink-400 mb-2">
                       <Zap className="w-4 h-4" />
                       <span className="text-sm text-gray-400">Crit Damage</span>
@@ -1064,7 +1075,7 @@ export default function EditPlayerPage() {
                     <p className="text-2xl font-bold">{stats.critDamage}%</p>
                   </div>
 
-                  <div className="bg-[#0d0d0d] rounded-xl p-4 border border-gray-800">
+                  <div className="bg-[#0d0d0d] rounded-xl p-4 border border-white/10">
                     <div className="flex items-center gap-2 text-green-400 mb-2">
                       <Zap className="w-4 h-4" />
                       <span className="text-sm text-gray-400">Wins</span>
@@ -1072,7 +1083,7 @@ export default function EditPlayerPage() {
                     <p className="text-2xl font-bold text-green-400">{stats.totalWins}</p>
                   </div>
 
-                  <div className="bg-[#0d0d0d] rounded-xl p-4 border border-gray-800">
+                  <div className="bg-[#0d0d0d] rounded-xl p-4 border border-white/10">
                     <div className="flex items-center gap-2 text-red-400 mb-2">
                       <Skull className="w-4 h-4" />
                       <span className="text-sm text-gray-400">Losses</span>

@@ -1,23 +1,26 @@
 'use client';
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { GachaBannerResponse } from "@/lib/api/gacha-banners";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import apiClient from "@/lib/api/client";
-import { Gem, Search, Plus } from "lucide-react";
+import { Gem } from "lucide-react";
 import AdminTable from "@/components/ui/AdminTable";
+import FilterSortBar from "@/components/ui/FilterSortBar";
 
 const columns = [
-  { key: "gachaBannerId", label: "ID" },
-  { key: "name", label: "Name" },
-  { key: "type", label: "Type" },
-  { key: "pullCost", label: "Pull Cost" },
-  { key: "pityLimit", label: "Pity Limit" },
-  { key: "startAt", label: "Start Date" },
-  { key: "endAt", label: "End Date" },
+  { key: "gachaBannerId", label: "ID", sortable: true },
+  { key: "name", label: "Name", sortable: true },
+  { key: "type", label: "Type", sortable: true },
+  { key: "pullCost", label: "Pull Cost", sortable: true },
+  { key: "pityLimit", label: "Pity Limit", sortable: true },
+  { key: "startAt", label: "Start Date", sortable: true },
+  { key: "endAt", label: "End Date", sortable: true },
   {
     key: "isActive",
     label: "Status",
+    sortable: true,
     render: (val: boolean) => (
       <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${val ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
         {val ? "Active" : "Inactive"}
@@ -33,11 +36,53 @@ function formatDate(dateStr: string) {
 export default function ManageGachaPoolsPage() {
   const router = useRouter();
 
+  const [filterType, setFilterType] = useState("");
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("gachaBannerId");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const buildParams = () => ({
+    ...(search ? { search } : {}),
+    ...(filterType ? { type: filterType } : {}),
+    sortBy,
+    sortOrder,
+  });
+
   const { data: banners, totalCount, loading, error, page, pageSize, setPage, setPageSize, setParams, refresh } =
     usePagedQuery<GachaBannerResponse>({
       endpoint: '/api/gachabanners',
       pageSize: 10,
+      params: buildParams(),
     });
+
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setPage(1);
+    setParams(buildParams());
+  };
+
+  const handleFilterChange = (value: string) => {
+    setFilterType(value);
+    setPage(1);
+    setParams(buildParams());
+  };
+
+  const handleSortChange = (value: string) => {
+    if (sortBy === value) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(value);
+      setSortOrder("asc");
+    }
+    setPage(1);
+    setParams(buildParams());
+  };
+
+  const handleOrderChange = (order: "asc" | "desc") => {
+    setSortOrder(order);
+    setPage(1);
+    setParams(buildParams());
+  };
 
   const handleDelete = async (b: GachaBannerResponse) => {
     if (!confirm(`Delete gacha banner "${b.name}"?`)) return;
@@ -69,27 +114,22 @@ export default function ManageGachaPoolsPage() {
         </div>
       </div>
 
-      <div className="bg-[#111111] border border-gray-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="relative w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-          <input
-            type="text"
-            placeholder="Search by name..."
-            onChange={(e) => {
-              setPage(1);
-              setParams({ search: e.target.value || undefined });
-            }}
-            className="w-full pl-9 pr-4 py-2 bg-[#111] border border-gray-700 rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
-          />
-        </div>
-        <button
-          onClick={() => router.push("/manage-gacha-pools/create")}
-          className="flex items-center justify-center gap-2 bg-[#ffc032] text-[#111] px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#ffd04c] transition-colors cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          Create Banner
-        </button>
-      </div>
+      <FilterSortBar
+        search={{ placeholder: "Search by name...", value: search, onChange: handleSearch }}
+        filters={[
+          {
+            key: "type",
+            label: "All Types",
+            value: filterType,
+            onChange: handleFilterChange,
+            options: [
+              { value: "Standard", label: "Standard" },
+              { value: "Limited", label: "Limited" },
+              { value: "Event", label: "Event" },
+            ],
+          },
+        ]}
+      />
 
       {error && (
         <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
@@ -99,16 +139,18 @@ export default function ManageGachaPoolsPage() {
       )}
 
       <AdminTable
-        title={`Total Banners: ${totalCount.toLocaleString()}`}
+        title="Gacha Banners"
         columns={columnsWithDate}
         data={banners}
         loading={loading}
         serverSide
         pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
-
         onUpdate={(b) => router.push(`/manage-gacha-pools/update?id=${b.gachaBannerId}`)}
         onDelete={handleDelete}
         idField="gachaBannerId"
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSortChange}
       />
     </div>
   );

@@ -28,7 +28,7 @@ import FormHeader from "@/components/form/FormHeader";
 import FormAlert from "@/components/form/FormAlert";
 import { sendByList, sendBroadcast } from "@/lib/api/mails";
 import type { SendMailByListIdRequest, SendMailToAllRequest } from "@/lib/api/mails";
-import { getAllSimple } from "@/lib/api/items";
+import { getAll as getAllSimple } from "@/lib/api/items";
 import type { ItemResponse } from "@/lib/types";
 
 const MAIL_TYPES = [
@@ -86,7 +86,7 @@ export default function SendMailPage() {
 
   useEffect(() => {
     getAllSimple()
-      .then(setAllItems)
+      .then((res) => setAllItems(res.items))
       .catch(() => {})
       .finally(() => setLoadingItems(false));
   }, []);
@@ -282,7 +282,7 @@ export default function SendMailPage() {
         badge="Composer"
         badgeTone="warning"
         actions={
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#111111] border border-gray-800">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#111111] border border-white/10">
             <Users className="w-3.5 h-3.5 text-gray-500" />
             <span className="text-xs text-gray-400">Recipients:</span>
             <span className="text-xs font-semibold text-[#ffc032]">{recipientCount}</span>
@@ -291,7 +291,7 @@ export default function SendMailPage() {
       />
 
       {/* Stepper */}
-      <div className="bg-[#111111] border border-gray-800 rounded-2xl p-4">
+      <div className="bg-[#111111] border border-white/10 rounded-2xl p-4">
         <div className="flex items-center justify-between max-w-3xl mx-auto">
           {STEPS.map((step, idx) => {
             const StepIcon = step.icon;
@@ -311,7 +311,7 @@ export default function SendMailPage() {
                         ? "bg-[#ffc032] text-[#111] border-[#ffc032] scale-110"
                         : isCompleted
                           ? "bg-green-500/20 text-green-400 border-green-500/40"
-                          : "bg-[#111] text-gray-500 border-gray-700"
+                          : "bg-[#111] text-gray-500 border-white/10"
                     }`}
                   >
                     {isCompleted ? <Check className="w-5 h-5" /> : <StepIcon className="w-5 h-5" />}
@@ -356,8 +356,8 @@ export default function SendMailPage() {
         <div className="space-y-5 min-w-0">
           {/* STEP 1 - Recipients */}
           {activeStep === 1 && (
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-800 flex items-center gap-2">
+            <div className="bg-[#111111] border border-white/10 rounded-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-white/10 flex items-center gap-2">
                 <Users className="w-4 h-4 text-[#ffc032]" />
                 <h2 className="text-sm font-bold text-gray-300 uppercase tracking-wider">
                   Step 1 · Choose Recipients
@@ -368,7 +368,7 @@ export default function SendMailPage() {
                   className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer select-none ${
                     sendToAll
                       ? "bg-purple-500/10 border-purple-500/50"
-                      : "bg-[#111] border-gray-700 hover:border-gray-600"
+                      : "bg-[#111] border-white/10 hover:border-gray-600"
                   }`}
                   onClick={() => setSendToAll(!sendToAll)}
                 >
@@ -402,7 +402,7 @@ export default function SendMailPage() {
 
                 {!sendToAll && (
                   <div className="space-y-4">
-                    <div className="flex rounded-xl bg-[#111] p-1 gap-1 border border-gray-800">
+                    <div className="flex rounded-xl bg-[#111] p-1 gap-1 border border-white/10">
                       <button
                         type="button"
                         onClick={() => setPlayerSelection("single")}
@@ -443,7 +443,7 @@ export default function SendMailPage() {
                           onChange={(e) => setSingleId(e.target.value)}
                           placeholder="e.g. 1"
                           min="1"
-                          className="w-full px-4 py-3 bg-[#111] border border-gray-700 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+                          className="w-full px-4 py-3 bg-[#111] border border-white/10 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
                         />
                       </div>
                     ) : (
@@ -461,7 +461,7 @@ export default function SendMailPage() {
                           onChange={(e) => setMultipleIds(e.target.value)}
                           placeholder={"One per line, or separated by commas:\n1, 2, 3, 4, 5"}
                           rows={4}
-                          className="w-full px-4 py-3 bg-[#111] border border-gray-700 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors resize-none font-mono text-sm"
+                          className="w-full px-4 py-3 bg-[#111] border border-white/10 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors resize-none font-mono text-sm"
                         />
                       </div>
                     )}
@@ -473,8 +473,8 @@ export default function SendMailPage() {
 
           {/* STEP 2 - Message */}
           {activeStep === 2 && (
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-800 flex items-center gap-2">
+            <div className="bg-[#111111] border border-white/10 rounded-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-white/10 flex items-center gap-2">
                 <MailIcon className="w-4 h-4 text-[#ffc032]" />
                 <h2 className="text-sm font-bold text-gray-300 uppercase tracking-wider">
                   Step 2 · Compose Message
@@ -496,7 +496,7 @@ export default function SendMailPage() {
                     required
                     maxLength={200}
                     placeholder="e.g. Compensation for maintenance downtime"
-                    className="w-full px-4 py-3 bg-[#111] border border-gray-700 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+                    className="w-full px-4 py-3 bg-[#111] border border-white/10 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
                   />
                 </div>
 
@@ -516,7 +516,7 @@ export default function SendMailPage() {
                     required
                     rows={6}
                     placeholder="Write the message players will see in their mailbox..."
-                    className="w-full px-4 py-3 bg-[#111] border border-gray-700 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors resize-none leading-relaxed"
+                    className="w-full px-4 py-3 bg-[#111] border border-white/10 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors resize-none leading-relaxed"
                   />
                 </div>
 
@@ -536,7 +536,7 @@ export default function SendMailPage() {
                           className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
                             selected
                               ? `${t.bg} ${t.border}`
-                              : "bg-[#111] border-gray-700 hover:border-gray-600"
+                              : "bg-[#111] border-white/10 hover:border-gray-600"
                           }`}
                         >
                           <Icon className={`w-5 h-5 shrink-0 ${selected ? t.color : "text-gray-500"}`} />
@@ -557,8 +557,8 @@ export default function SendMailPage() {
 
           {/* STEP 3 - Rewards */}
           {activeStep === 3 && (
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl overflow-visible">
-              <div className="px-6 py-4 border-b border-gray-800 flex items-center gap-2">
+            <div className="bg-[#111111] border border-white/10 rounded-2xl overflow-visible">
+              <div className="px-6 py-4 border-b border-white/10 flex items-center gap-2">
                 <Package className="w-4 h-4 text-[#ffc032]" />
                 <h2 className="text-sm font-bold text-gray-300 uppercase tracking-wider">
                   Step 3 · Attach Rewards (Optional)
@@ -578,7 +578,7 @@ export default function SendMailPage() {
                       onChange={handleChange}
                       min="0"
                       placeholder="0"
-                      className="w-full px-4 py-3 bg-[#111] border border-gray-700 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+                      className="w-full px-4 py-3 bg-[#111] border border-white/10 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
                     />
                   </div>
                   <div>
@@ -593,7 +593,7 @@ export default function SendMailPage() {
                       onChange={handleChange}
                       min="0"
                       placeholder="0"
-                      className="w-full px-4 py-3 bg-[#111] border border-gray-700 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+                      className="w-full px-4 py-3 bg-[#111] border border-white/10 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
                     />
                   </div>
                 </div>
@@ -663,7 +663,7 @@ export default function SendMailPage() {
                           loadingItems ? "Loading items..." : "Search items by name or ID..."
                         }
                         disabled={loadingItems}
-                        className="w-full pl-10 pr-10 py-3 bg-[#111] border border-gray-700 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors disabled:opacity-50"
+                        className="w-full pl-10 pr-10 py-3 bg-[#111] border border-white/10 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors disabled:opacity-50"
                       />
                       <button
                         type="button"
@@ -680,7 +680,7 @@ export default function SendMailPage() {
                     </div>
 
                     {showItemDropdown && (
-                      <div className="absolute z-50 mt-2 w-full bg-[#111111] border border-gray-700 rounded-xl shadow-2xl shadow-black/60 max-h-72 overflow-y-auto">
+                      <div className="absolute z-50 mt-2 w-full bg-[#111111] border border-white/10 rounded-xl shadow-2xl shadow-black/60 max-h-72 overflow-y-auto">
                         {loadingItems ? (
                           <div className="flex items-center justify-center py-8 gap-2">
                             <Loader2 className="w-4 h-4 text-[#ffc032] animate-spin" />
@@ -765,7 +765,7 @@ export default function SendMailPage() {
                       min="1"
                       max={selectedItems[0]?.maxStack || 9999}
                       placeholder="1"
-                      className="w-full px-4 py-3 bg-[#111] border border-gray-700 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+                      className="w-full px-4 py-3 bg-[#111] border border-white/10 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
                     />
                   </div>
                 )}
@@ -780,7 +780,7 @@ export default function SendMailPage() {
                     aria-label="Expiry date"
                     value={form.expiredAt}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-[#111] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-[#ffc032] transition-colors"
+                    className="w-full px-4 py-3 bg-[#111] border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#ffc032] transition-colors"
                   />
                   <p className="text-xs text-gray-500 mt-1.5">
                     Leave empty for no expiry. Time is interpreted in your local timezone.
@@ -793,8 +793,8 @@ export default function SendMailPage() {
           {/* STEP 4 - Review */}
           {activeStep === 4 && (
             <div className="space-y-5">
-              <div className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-800 flex items-center gap-2">
+              <div className="bg-[#111111] border border-white/10 rounded-2xl overflow-hidden">
+                <div className="px-6 py-4 border-b border-white/10 flex items-center gap-2">
                   <Eye className="w-4 h-4 text-[#ffc032]" />
                   <h2 className="text-sm font-bold text-gray-300 uppercase tracking-wider">
                     Step 4 · Review &amp; Send
@@ -802,7 +802,7 @@ export default function SendMailPage() {
                 </div>
                 <div className="p-6 space-y-5">
                   {/* Live preview card */}
-                  <div className="bg-[#111] border border-gray-800 rounded-xl p-5 space-y-3">
+                  <div className="bg-[#111] border border-white/10 rounded-xl p-5 space-y-3">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${currentType.bg} ${currentType.color} ${currentType.border}`}
@@ -834,7 +834,7 @@ export default function SendMailPage() {
                       )}
                     </p>
                     {hasRewards && (
-                      <div className="pt-3 border-t border-gray-800 flex flex-wrap gap-2">
+                      <div className="pt-3 border-t border-white/10 flex flex-wrap gap-2">
                         {Number(form.attachedGold || 0) > 0 && (
                           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium bg-yellow-500/15 text-yellow-400 border border-yellow-500/30">
                             <Coins className="w-3 h-3" />
@@ -928,7 +928,7 @@ export default function SendMailPage() {
                   type="button"
                   onClick={goPrev}
                   disabled={submitting || success}
-                  className="px-5 py-2.5 bg-[#111111] hover:bg-[#222] text-gray-400 hover:text-white border border-gray-700 hover:border-gray-600 rounded-xl font-medium transition-all disabled:opacity-50"
+                  className="px-5 py-2.5 bg-[#111111] hover:bg-[#222] text-gray-400 hover:text-white border border-white/10 hover:border-gray-600 rounded-xl font-medium transition-all disabled:opacity-50"
                 >
                   Back
                 </button>
@@ -983,8 +983,8 @@ export default function SendMailPage() {
 
         {/* Live Side Panel */}
         <div className="space-y-3 lg:sticky lg:top-6">
-          <div className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-gray-800 flex items-center gap-2">
+          <div className="bg-[#111111] border border-white/10 rounded-2xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-white/10 flex items-center gap-2">
               <Eye className="w-3.5 h-3.5 text-[#ffc032]" />
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Quick Summary
@@ -1023,7 +1023,7 @@ export default function SendMailPage() {
                   )
                 }
               />
-              <div className="pt-3 border-t border-gray-800 space-y-2">
+              <div className="pt-3 border-t border-white/10 space-y-2">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                   Rewards
                 </p>
@@ -1071,7 +1071,7 @@ export default function SendMailPage() {
 
 function SummaryRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-4 py-2 border-b border-gray-800 last:border-0">
+    <div className="flex items-start justify-between gap-4 py-2 border-b border-white/10 last:border-0">
       <span className="text-xs text-gray-500 uppercase tracking-wide shrink-0">{label}</span>
       <span className="text-sm text-white text-right break-words">{value}</span>
     </div>

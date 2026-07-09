@@ -133,9 +133,6 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                       >
                         {item.label}
                       </span>
-                      {item.hasNotification && (
-                        <span className="ml-auto w-2 h-2 rounded-full bg-[#3EA6FF] shrink-0" />
-                      )}
                     </Link>
                   </li>
                 );

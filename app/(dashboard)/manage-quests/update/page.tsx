@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getById, update, QuestResponse } from "@/lib/api/quests";
-import { getAllSimple as getItems } from "@/lib/api/items";
+import { getAll as getItems } from "@/lib/api/items";
 import type { ItemResponse } from "@/lib/types";
 import { Save, Loader2, BookOpen, Target, Shield, Gift } from "lucide-react";
 import FormHeader from "@/components/form/FormHeader";
@@ -91,7 +91,7 @@ export default function EditQuestPage() {
 
   useEffect(() => {
     getItems()
-      .then(setItemOptions)
+      .then((res) => setItemOptions(res.items))
       .catch(() => setItemOptions([]));
   }, []);
 

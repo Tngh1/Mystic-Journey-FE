@@ -24,7 +24,7 @@ export default function WikiPage() {
         {/* Featured banner */}
         <div className="relative overflow-hidden py-10 md:py-16 border-b border-gray-800 bg-black">
           <div className="container mx-auto px-4 md:px-6">
-            <div className="relative z-10 max-w-3xl">
+            <div className="relative z-10 max-w-7xl">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#ffc032]/15 border border-[#ffc032]/30 rounded-full mb-4">
                 <Sparkles className="w-3.5 h-3.5 text-[#ffc032]" />
                 <span className="text-[#ffc032] text-xs font-bold uppercase tracking-widest">Mystic Journey</span>
@@ -37,29 +37,29 @@ export default function WikiPage() {
               </p>
 
               {/* Chapter badges */}
-              <div className="flex flex-wrap gap-2">
-                <Link href="/wiki/maps" className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-gray-800 rounded-xl hover:border-[#ffc032]/40 transition-all cursor-pointer group">
+              <div className="flex gap-3 overflow-x-auto pb-1 nice-scrollbar">
+                <Link href="/wiki/maps" className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-gray-800 rounded-xl hover:border-[#ffc032]/40 transition-all cursor-pointer group shrink-0">
                   <span className="text-green-400"><Leaf className="w-5 h-5" /></span>
                   <div>
                     <p className="text-xs font-semibold text-white group-hover:text-[#ffc032] transition-colors leading-none mb-0.5">Elf Forest</p>
                     <p className="text-[10px] text-gray-500 leading-none">Chapter I — Prologue of the Green Realm</p>
                   </div>
                 </Link>
-                <Link href="/wiki/maps" className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-gray-800 rounded-xl hover:border-[#ffc032]/40 transition-all cursor-pointer group">
+                <Link href="/wiki/maps" className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-gray-800 rounded-xl hover:border-[#ffc032]/40 transition-all cursor-pointer group shrink-0">
                   <span className="text-orange-400"><Flame className="w-5 h-5" /></span>
                   <div>
                     <p className="text-xs font-semibold text-white group-hover:text-[#ffc032] transition-colors leading-none mb-0.5">Autumn Pumpkin</p>
                     <p className="text-[10px] text-gray-500 leading-none">Chapter II — Harvest of the Burning Fields</p>
                   </div>
                 </Link>
-                <Link href="/wiki/maps" className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-gray-800 rounded-xl hover:border-[#ffc032]/40 transition-all cursor-pointer group">
+                <Link href="/wiki/maps" className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-gray-800 rounded-xl hover:border-[#ffc032]/40 transition-all cursor-pointer group shrink-0">
                   <span className="text-sky-400"><Snowflake className="w-5 h-5" /></span>
                   <div>
                     <p className="text-xs font-semibold text-white group-hover:text-[#ffc032] transition-colors leading-none mb-0.5">Frozen Mountains</p>
                     <p className="text-[10px] text-gray-500 leading-none">Chapter III — The Eternal Blizzard</p>
                   </div>
                 </Link>
-                <Link href="/wiki/maps" className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-gray-800 rounded-xl hover:border-[#ffc032]/40 transition-all cursor-pointer group">
+                <Link href="/wiki/maps" className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-gray-800 rounded-xl hover:border-[#ffc032]/40 transition-all cursor-pointer group shrink-0">
                   <span className="text-purple-400"><Zap className="w-5 h-5" /></span>
                   <div>
                     <p className="text-xs font-semibold text-white group-hover:text-[#ffc032] transition-colors leading-none mb-0.5">Vestige of an Era</p>

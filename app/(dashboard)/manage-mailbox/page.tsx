@@ -17,8 +17,6 @@ import {
   Gift,
   Crown,
   Zap,
-  Inbox,
-  Bell,
   Filter,
 } from "lucide-react";
 import { MailResponse, markAsRead, claimReward, remove } from "@/lib/api/mails";
@@ -46,10 +44,11 @@ function formatDate(dateString: string): string {
 }
 
 const columns = [
-  { key: "mailId", label: "#" },
+  { key: "mailId", label: "#", sortable: true },
   {
     key: "title",
     label: "Title",
+    sortable: true,
     render: (val: string, row: MailResponse) => {
       const typeConfig = MAIL_TYPE_CONFIG[row.type] ?? MAIL_TYPE_CONFIG["System"];
       const TypeIcon = typeConfig.icon;
@@ -81,6 +80,7 @@ const columns = [
   {
     key: "type",
     label: "Type",
+    sortable: true,
     render: (val: string) => {
       const typeConfig = MAIL_TYPE_CONFIG[val] ?? MAIL_TYPE_CONFIG["System"];
       const TypeIcon = typeConfig.icon;
@@ -97,6 +97,7 @@ const columns = [
   {
     key: "sentAt",
     label: "Sent",
+    sortable: true,
     render: (val: string) => (
       <span className="text-xs text-gray-500">{formatDate(val)}</span>
     ),
@@ -110,6 +111,8 @@ export default function ManageMailboxPage() {
   const [filterRead, setFilterRead] = useState<string>("all");
   const [filterClaimed, setFilterClaimed] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [sortBy, setSortBy] = useState("mailId");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const { data: mails, totalCount, loading, error, setParams, refresh } =
     usePagedQuery<MailResponse>({
@@ -126,11 +129,9 @@ export default function ManageMailboxPage() {
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [toastMsg, setToastMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const activeFiltersCount = [search, filterRead, filterClaimed].filter(
     (v) => v !== "" && v !== "all"
   ).length;
-  const unreadCount = mails?.filter((m) => !m.isRead).length ?? 0;
 
   const showToast = (type: "success" | "error", text: string) => {
     setToastMsg({ type, text });
@@ -195,6 +196,15 @@ export default function ManageMailboxPage() {
     ...overrides,
   });
 
+  const handleSortChange = (value: string) => {
+    if (sortBy === value) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(value);
+      setSortOrder("asc");
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-5">
       {/* Header */}
@@ -217,41 +227,8 @@ export default function ManageMailboxPage() {
         </Link>
       </div>
 
-      {/* Stats Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <div className="bg-[#111111] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#ffc032]/15 flex items-center justify-center shrink-0">
-            <Inbox className="w-5 h-5 text-[#ffc032]" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-white">{totalCount.toLocaleString()}</p>
-            <p className="text-xs text-gray-500">Total Mails</p>
-          </div>
-        </div>
-        <div className="bg-[#111111] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center shrink-0">
-            <Bell className="w-5 h-5 text-blue-400" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-white">{unreadCount}</p>
-            <p className="text-xs text-gray-500">Unread</p>
-          </div>
-        </div>
-        <div className="bg-[#111111] border border-gray-800 rounded-xl p-4 flex items-center gap-3 col-span-2 sm:col-span-1">
-          <div className="w-10 h-10 rounded-xl bg-green-500/15 flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-5 h-5 text-green-400" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-white">
-              {totalCount - unreadCount}
-            </p>
-            <p className="text-xs text-gray-500">Read</p>
-          </div>
-        </div>
-      </div>
-
       {/* Filters Row */}
-      <div className="bg-[#111111] border border-gray-800 rounded-2xl p-4">
+      <div className="bg-[#111111] border border-white/10 rounded-2xl p-4">
         {/* Top row: search + toggle + send */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
@@ -267,7 +244,7 @@ export default function ManageMailboxPage() {
                   e.target.value.trim() ? { search: e.target.value.trim() } : {}
                 ));
               }}
-              className="w-full pl-10 pr-10 py-2.5 bg-[#111] border border-gray-700 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+              className="w-full pl-10 pr-10 py-2.5 bg-[#111] border border-white/10 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
             />
             {search && (
               <button
@@ -290,7 +267,7 @@ export default function ManageMailboxPage() {
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all cursor-pointer ${
                 showFilters || activeFiltersCount > 0
                   ? "bg-[#ffc032]/10 border-[#ffc032]/40 text-[#ffc032]"
-                  : "bg-[#111] border-gray-700 text-gray-400 hover:text-white"
+                  : "bg-[#111] border-white/10 text-gray-400 hover:text-white"
               }`}
             >
               <Filter className="w-4 h-4" />
@@ -315,12 +292,12 @@ export default function ManageMailboxPage() {
 
         {/* Expandable filters */}
         {showFilters && (
-          <div className="mt-4 pt-4 border-t border-gray-800 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="mt-4 pt-4 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">
                 Read Status
               </label>
-              <div className="flex rounded-xl bg-[#111] p-1 gap-1 border border-gray-800">
+              <div className="flex rounded-xl bg-[#111] p-1 gap-1 border border-white/10">
                 {[
                   { value: "all", label: "All" },
                   { value: "unread", label: "Unread" },
@@ -351,7 +328,7 @@ export default function ManageMailboxPage() {
               <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">
                 Claim Status
               </label>
-              <div className="flex rounded-xl bg-[#111] p-1 gap-1 border border-gray-800">
+              <div className="flex rounded-xl bg-[#111] p-1 gap-1 border border-white/10">
                 {[
                   { value: "all", label: "All" },
                   { value: "unclaimed", label: "Unclaimed" },
@@ -425,7 +402,7 @@ export default function ManageMailboxPage() {
         {/* Mail List */}
         <div className="min-w-0">
           <AdminTable
-            title={`${totalCount.toLocaleString()} mail${totalCount !== 1 ? "s" : ""}`}
+            title="Mails"
             columns={columns}
             data={mails}
             loading={loading}
@@ -435,12 +412,15 @@ export default function ManageMailboxPage() {
             onRowClick={handleSelectMail}
             selectedId={selectedMail?.mailId}
             idField="mailId"
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSort={handleSortChange}
           />
         </div>
 
         {/* Mail Detail Panel */}
-        <div className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden h-fit xl:sticky xl:top-6">
-          <div className="px-5 py-3.5 border-b border-gray-800 flex items-center justify-between">
+        <div className="bg-[#111111] border border-white/10 rounded-2xl overflow-hidden h-fit xl:sticky xl:top-6">
+          <div className="px-5 py-3.5 border-b border-white/10 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
               Mail Detail
             </h2>
@@ -495,13 +475,13 @@ export default function ManageMailboxPage() {
 
                 {/* Meta grid */}
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-[#111] border border-gray-800 rounded-xl p-3 space-y-1">
+                  <div className="bg-[#111] border border-white/10 rounded-xl p-3 space-y-1">
                     <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Recipient</p>
                     <p className="text-sm text-white truncate" title={selectedMail.playerName || "All Players"}>
                       {selectedMail.playerName || "All Players"}
                     </p>
                   </div>
-                  <div className="bg-[#111] border border-gray-800 rounded-xl p-3 space-y-1">
+                  <div className="bg-[#111] border border-white/10 rounded-xl p-3 space-y-1">
                     <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Sent</p>
                     <p className="text-sm text-white leading-tight">{formatDate(selectedMail.sentAt)}</p>
                   </div>
@@ -518,7 +498,7 @@ export default function ManageMailboxPage() {
                 )}
 
                 {/* Content */}
-                <div className="bg-[#111] border border-gray-800 rounded-xl p-4 space-y-2">
+                <div className="bg-[#111] border border-white/10 rounded-xl p-4 space-y-2">
                   <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
                     <Mail className="w-3 h-3" />
                     Message
@@ -532,7 +512,7 @@ export default function ManageMailboxPage() {
 
                 {/* Rewards */}
                 {hasReward && (
-                  <div className="bg-[#111] border border-gray-800 rounded-xl p-4 space-y-3">
+                  <div className="bg-[#111] border border-white/10 rounded-xl p-4 space-y-3">
                     <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
                       <Package className="w-3.5 h-3.5" />
                       Attached Rewards
@@ -604,7 +584,7 @@ export default function ManageMailboxPage() {
             );
           })() : (
             <div className="flex flex-col items-center justify-center py-14 px-5 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-[#111] border border-gray-800 flex items-center justify-center mb-4">
+              <div className="w-16 h-16 rounded-2xl bg-[#111] border border-white/10 flex items-center justify-center mb-4">
                 <Eye className="w-7 h-7 text-gray-700" />
               </div>
               <p className="text-sm font-medium text-gray-500 mb-1">No mail selected</p>

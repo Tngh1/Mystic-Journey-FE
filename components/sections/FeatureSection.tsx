@@ -204,12 +204,9 @@ export default function WorldSection() {
           </div>
 
           <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
-            <h3 className="text-3xl font-black leading-tight md:text-4xl lg:text-5xl">
-              Your legend begins in the{" "}
-              <span className="transition-colors duration-500" style={{ color: active.accent }}>
-                {active.title}
-              </span>
-              ...
+            <h3 className="text-3xl font-black leading-tight md:text-4xl lg:text-5xl text-white">
+              Step Into the World of{" "}
+              <span className="text-[#ffc032]">Mystic Journey</span>
             </h3>
 
             <Link href="/story" className="self-start md:self-auto">
@@ -218,9 +215,9 @@ export default function WorldSection() {
           </div>
 
           <div className="mt-10 flex items-center gap-4">
-            <div className="h-px flex-[2.4]" style={{ backgroundColor: active.accent, opacity: 0.5 }} />
-            <div className="h-2 w-2 rounded-full transition-colors duration-500" style={{ backgroundColor: active.accent }} />
-            <div className="h-px flex-1" style={{ backgroundColor: active.accent, opacity: 0.5 }} />
+            <div className="h-px flex-[2.4] bg-[#ffc032]" style={{ opacity: 0.5 }} />
+            <div className="h-2 w-2 rounded-full bg-[#ffc032]" />
+            <div className="h-px flex-1 bg-[#ffc032]" style={{ opacity: 0.5 }} />
           </div>
         </div>
       </div>

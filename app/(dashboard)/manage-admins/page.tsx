@@ -119,39 +119,8 @@ export default function ManageAdminsPage() {
         </Link>
       </div>
 
-      {/* Stats Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <div className="bg-[#111111] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#ffc032]/15 flex items-center justify-center shrink-0">
-            <Inbox className="w-5 h-5 text-[#ffc032]" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-white">{stats.total.toLocaleString()}</p>
-            <p className="text-xs text-gray-500">Total Admins</p>
-          </div>
-        </div>
-        <div className="bg-[#111111] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-green-500/15 flex items-center justify-center shrink-0">
-            <Activity className="w-5 h-5 text-green-400" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-white">{stats.active.toLocaleString()}</p>
-            <p className="text-xs text-gray-500">Active</p>
-          </div>
-        </div>
-        <div className="bg-[#111111] border border-gray-800 rounded-xl p-4 flex items-center gap-3 col-span-2 sm:col-span-1">
-          <div className="w-10 h-10 rounded-xl bg-gray-500/15 flex items-center justify-center shrink-0">
-            <X className="w-5 h-5 text-gray-400" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-white">{stats.inactive.toLocaleString()}</p>
-            <p className="text-xs text-gray-500">Inactive</p>
-          </div>
-        </div>
-      </div>
-
       {/* Filters */}
-      <div className="bg-[#111111] border border-gray-800 rounded-2xl p-4">
+      <div className="bg-[#111111] border border-white/10 rounded-2xl p-4">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -160,7 +129,7 @@ export default function ManageAdminsPage() {
               placeholder="Search by username..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 bg-[#111] border border-gray-700 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+              className="w-full pl-10 pr-10 py-2.5 bg-[#111] border border-white/10 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
             />
             {searchTerm && (
               <button
@@ -179,7 +148,7 @@ export default function ManageAdminsPage() {
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all cursor-pointer ${
                 showFilters || activeFiltersCount > 0
                   ? "bg-[#ffc032]/10 border-[#ffc032]/40 text-[#ffc032]"
-                  : "bg-[#111] border-gray-700 text-gray-400 hover:text-white"
+                  : "bg-[#111] border-white/10 text-gray-400 hover:text-white"
               }`}
             >
               <Filter className="w-4 h-4" />
@@ -202,11 +171,11 @@ export default function ManageAdminsPage() {
         </div>
 
         {showFilters && (
-          <div className="mt-4 pt-4 border-t border-gray-800">
+          <div className="mt-4 pt-4 border-t border-white/10">
             <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
               Status
             </label>
-            <div className="flex rounded-xl bg-[#111] p-1 gap-1 border border-gray-800 max-w-md">
+            <div className="flex rounded-xl bg-[#111] p-1 gap-1 border border-white/10 max-w-md">
               {[
                 { value: "all", label: "All" },
                 { value: "active", label: "Active" },
@@ -245,11 +214,11 @@ export default function ManageAdminsPage() {
       )}
 
       {/* Table */}
-      <div className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden">
+      <div className="bg-[#111111] border border-white/10 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-gray-800 bg-[#161616]">
+              <tr className="border-b border-white/10 bg-[#161616]">
                 <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   Admin
                 </th>
@@ -284,7 +253,7 @@ export default function ManageAdminsPage() {
                 <tr>
                   <td colSpan={6} className="px-5 py-16 text-center">
                     <div className="flex flex-col items-center justify-center gap-3">
-                      <div className="w-16 h-16 rounded-2xl bg-[#111] border border-gray-800 flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-2xl bg-[#111] border border-white/10 flex items-center justify-center">
                         <Shield className="w-7 h-7 text-gray-700" />
                       </div>
                       <p className="text-sm font-medium text-gray-500">No admins found</p>
@@ -300,7 +269,7 @@ export default function ManageAdminsPage() {
                   return (
                     <tr
                       key={admin.accountId}
-                      className="border-b border-gray-800/50 hover:bg-[#1e1e1e] transition-colors"
+                      className="border-b border-white/10/50 hover:bg-[#1e1e1e] transition-colors"
                     >
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
@@ -373,19 +342,17 @@ export default function ManageAdminsPage() {
         </div>
 
         {totalCount > 0 && (
-          <div className="px-5 py-3.5 border-t border-gray-800 flex items-center justify-between">
+          <div className="px-5 py-3.5 border-t border-white/10 flex items-center justify-between">
             <div className="text-xs text-gray-500">
               Page <span className="text-white">{page}</span> of{" "}
-              <span className="text-white">{totalPages}</span> ·{" "}
-              <span className="text-white">{totalCount.toLocaleString()}</span>{" "}
-              total
+              <span className="text-white">{totalPages}</span>
             </div>
             <div className="flex items-center gap-2">
               <select
                 aria-label="Page size"
                 value={pageSize}
                 onChange={(e) => setPageSize(Number(e.target.value))}
-                  className="px-3 py-1.5 bg-[#111] border border-gray-700 rounded-lg text-xs text-white focus:outline-none focus:border-[#ffc032] cursor-pointer"
+                  className="px-3 py-1.5 bg-[#111] border border-white/10 rounded-lg text-xs text-white focus:outline-none focus:border-[#ffc032] cursor-pointer"
               >
                 {[10, 25, 50].map((s) => (
                   <option key={s} value={s}>
@@ -397,18 +364,18 @@ export default function ManageAdminsPage() {
                 aria-label="Previous page"
                 onClick={() => setPage(page - 1)}
                 disabled={page === 1}
-                className="p-1.5 px-3 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed border border-gray-800 cursor-pointer"
+                className="p-1.5 px-3 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed border border-white/10 cursor-pointer"
               >
                 ←
               </button>
-              <span className="px-2 py-1 text-xs text-white bg-[#111] border border-gray-800 rounded-lg min-w-12.5 text-center">
+              <span className="px-2 py-1 text-xs text-white bg-[#111] border border-white/10 rounded-lg min-w-12.5 text-center">
                 {page} / {totalPages}
               </span>
               <button
                 aria-label="Next page"
                 onClick={() => setPage(page + 1)}
                 disabled={page >= totalPages}
-                className="p-1.5 px-3 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed border border-gray-800"
+                className="p-1.5 px-3 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed border border-white/10"
               >
                 →
               </button>

@@ -1,186 +1,171 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Scroll, Search, Star, MapPin, Clock, Gift, Map, Gem } from "lucide-react";
-import { getAll, type QuestResponse } from "@/lib/api/quests";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import Image from "next/image";
+import { Scroll, Search, Star, MapPin, Clock, Gift, Gem, ChevronLeft, Trees, Leaf, Snowflake, Skull, Lock, Zap } from "lucide-react";
+import { getAll } from "@/lib/api/quests";
+import type { QuestResponse } from "@/lib/types";
 import PageLoader from "@/components/ui/PageLoader";
 
-type QuestType = "main" | "side" | "daily" | "event";
-type QuestFilterType = "all" | QuestType;
-
-const questTypeKeys: QuestType[] = ["main", "side", "daily", "event"];
-const questFilterTypes: QuestFilterType[] = ["all", ...questTypeKeys];
-
-interface Quest {
-  id: number;
-  title: string;
-  type: QuestType;
-  difficulty: string;
-  level: number;
-  description: string;
-  objectives: string[];
-  rewards: {
-    exp: number;
-    gold: number;
-    gems: number;
-    items: string[];
-  };
-  location: string;
-  duration: string;
-}
-
-const questTypeColors = {
-  main: { bg: "bg-amber-500/20", text: "text-amber-400", border: "border-amber-500/30", label: "Main Story" },
-  side: { bg: "bg-blue-500/20", text: "text-blue-400", border: "border-blue-500/30", label: "Side Quest" },
-  daily: { bg: "bg-green-500/20", text: "text-green-400", border: "border-green-500/30", label: "Daily" },
-  event: { bg: "bg-purple-500/20", text: "text-purple-400", border: "border-purple-500/30", label: "Event" },
+const CHAPTER_THEMES = {
+  "Elf Forest": {
+    chapter: 1,
+    icon: <Trees className="w-6 h-6" />,
+    accent: "text-emerald-400",
+    border: "border-emerald-500/40",
+    badgeBg: "bg-emerald-900/60",
+    badgeText: "text-emerald-300",
+    barColor: "bg-emerald-500",
+    levelRange: "Lv. 1–20",
+  },
+  "Autumn Pumpkin": {
+    chapter: 2,
+    icon: <Leaf className="w-6 h-6" />,
+    accent: "text-orange-400",
+    border: "border-orange-500/40",
+    badgeBg: "bg-orange-950/60",
+    badgeText: "text-orange-300",
+    barColor: "bg-orange-500",
+    levelRange: "Lv. 20–40",
+  },
+  "Frozen Mountains": {
+    chapter: 3,
+    icon: <Snowflake className="w-6 h-6" />,
+    accent: "text-sky-400",
+    border: "border-sky-500/40",
+    badgeBg: "bg-sky-950/60",
+    badgeText: "text-sky-300",
+    barColor: "bg-sky-500",
+    levelRange: "Lv. 40–60",
+  },
+  "Vestige of an Era": {
+    chapter: 4,
+    icon: <Skull className="w-6 h-6" />,
+    accent: "text-violet-400",
+    border: "border-violet-500/40",
+    badgeBg: "bg-violet-950/60",
+    badgeText: "text-violet-300",
+    barColor: "bg-violet-500",
+    levelRange: "Lv. 60–80",
+  },
 };
 
-function normalizeQuestType(type?: string | null): QuestType {
-  const normalized = type?.trim().toLowerCase();
-  return questTypeKeys.includes(normalized as QuestType) ? (normalized as QuestType) : "main";
-}
+type QuestType = "Main" | "Side" | "Daily" | "Event";
+const questTypeColors: Record<string, { bg: string; text: string; border: string; label: string }> = {
+  Main: { bg: "bg-amber-500/20", text: "text-amber-400", border: "border-amber-500/30", label: "Main Story" },
+  Side: { bg: "bg-blue-500/20", text: "text-blue-400", border: "border-blue-500/30", label: "Side Quest" },
+  Daily: { bg: "bg-green-500/20", text: "text-green-400", border: "border-green-500/30", label: "Daily" },
+  Event: { bg: "bg-purple-500/20", text: "text-purple-400", border: "border-purple-500/30", label: "Event" },
+};
 
-function compact(values: Array<string | null | undefined>) {
-  return values.filter((value): value is string => Boolean(value && value.trim()));
-}
+const objectiveIcons: Record<string, string> = {
+  Talk: "💬",
+  Collect: "📦",
+  Defeat: "⚔️",
+  Explore: "🗺️",
+  OpenChest: "🎁",
+  Interact: "👆",
+  EquipSkill: "⚡",
+};
 
-function objectiveLabel(quest: QuestResponse) {
-  const type = quest.objectiveType.toLowerCase();
-  const target = quest.objectiveTarget?.trim();
+function objectiveLabel(quest: QuestResponse): string {
+  const type = quest.objectiveType;
+  const target = quest.objectiveTarget?.trim() || "";
   const amount = Math.max(1, quest.targetAmount || 1);
-
-  if (type === "talk") return `Talk to ${target || quest.questGiverName || "quest giver"}`;
-  if (type === "collect") return `Collect ${amount} ${target || "quest item"}`;
-  if (type === "defeat") return `Defeat ${amount} ${target || "enemy"}`;
-  if (type === "equipskill") return `Equip ${target || "a skill"}`;
-  if (type === "openchest") return `Open ${target || "a chest"}`;
-  if (type === "interact") return `Interact with ${target || "the objective"}`;
-  if (type === "explore") return `Explore ${target || quest.objectiveLocation || quest.regionName || quest.mapName}`;
-
-  return target ? `${quest.objectiveType}: ${target}` : quest.objectiveType;
-}
-
-function buildObjectives(quest: QuestResponse) {
-  const type = quest.objectiveType.toLowerCase();
-  const location = quest.objectiveLocation?.trim();
-  const giver = quest.questGiverName?.trim();
-  const objectives = compact([
-    location && type !== "talk" ? `Go to ${location}` : null,
-    objectiveLabel(quest),
-    giver && type !== "talk" ? `Report to ${giver}` : null,
-  ]);
-
-  return [...new Set(objectives)].length > 0 ? [...new Set(objectives)] : ["Complete the quest objective"];
-}
-
-function getDifficulty(quest: QuestResponse) {
-  const title = quest.title.toLowerCase();
-  const objectiveType = quest.objectiveType.toLowerCase();
-  if (title.includes("boss") || title.includes("king") || quest.requiredLevel >= 5) return "Hard";
-  if (objectiveType === "defeat" || quest.requiredLevel >= 3) return "Normal";
-  return "Easy";
-}
-
-function getDuration(quest: QuestResponse) {
-  const objectiveType = quest.objectiveType.toLowerCase();
-  const title = quest.title.toLowerCase();
-  if (normalizeQuestType(quest.type) === "daily") return "Daily";
-  if (objectiveType === "defeat" && (title.includes("boss") || title.includes("king"))) return "Boss";
-  if (objectiveType === "defeat") return "Combat";
-  if (objectiveType === "collect") return "Explore";
-  if (objectiveType === "talk") return "Story";
-  return "Adventure";
-}
-
-function mapApiQuest(quest: QuestResponse): Quest {
-  return {
-    id: quest.questId,
-    title: quest.title,
-    type: normalizeQuestType(quest.type),
-    difficulty: getDifficulty(quest),
-    level: quest.requiredLevel,
-    description: quest.description || "No quest description available.",
-    objectives: buildObjectives(quest),
-    rewards: {
-      exp: quest.rewardExperience,
-      gold: quest.rewardGold,
-      gems: quest.rewardGems,
-      items: compact([quest.rewardItemName, quest.rewardSkillName]),
-    },
-    location: quest.objectiveLocation || quest.regionName || quest.mapName,
-    duration: getDuration(quest),
-  };
-}
-
-function filterButtonClass(type: QuestFilterType, selectedType: QuestFilterType) {
-  if (selectedType !== type) {
-    return "bg-white/5 text-white/70 hover:bg-white/10 border border-white/10";
+  switch (type.toLowerCase()) {
+    case "talk": return `Talk to ${target || quest.questGiverName || "NPC"}`;
+    case "collect": return `Collect ${amount}x ${target || "item"}`;
+    case "defeat": return `Defeat ${amount}x ${target || "enemy"}`;
+    case "equipskill": return `Equip ${target || "skill"}`;
+    case "openchest": return `Open ${amount}x ${target || "chest"}`;
+    case "interact": return `Interact with ${target || "object"}`;
+    case "explore": return `Explore ${target || quest.objectiveLocation || quest.regionName || quest.mapName}`;
+    default: return target ? `${type}: ${target}` : type;
   }
-
-  if (type === "all") {
-    return "bg-white/20 text-white";
-  }
-
-  return `${questTypeColors[type].bg} ${questTypeColors[type].text}`;
 }
+
+const PAGE_SIZE = 100;
 
 export default function WikiQuestsPage() {
-  const [quests, setQuests] = useState<Quest[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [allQuests, setAllQuests] = useState<QuestResponse[]>([]);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedType, setSelectedType] = useState<QuestFilterType>("all");
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [selectedType, setSelectedType] = useState("All");
+  const [view, setView] = useState<"list" | "chapters">("chapters");
+  const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   useEffect(() => {
     let mounted = true;
-
-    async function loadQuests() {
+    async function load() {
+      setInitialLoading(true);
+      setError(null);
       try {
-        const response = await getAll(1, 1000);
+        const res = await getAll(1, 1000, { isActive: true });
         if (!mounted) return;
-        const apiQuests = response.items
-          .filter((quest) => quest.isActive)
-          .sort((a, b) => a.requiredLevel - b.requiredLevel || a.questId - b.questId)
-          .map(mapApiQuest);
-        setQuests(apiQuests);
-      } catch (err) {
+        setAllQuests(res.items);
+      } catch {
         if (!mounted) return;
-        setError(err instanceof Error ? err.message : "Failed to load quests.");
+        setError("Failed to load quests. Please try again.");
       } finally {
-        if (mounted) setLoading(false);
+        if (!mounted) return;
+        setInitialLoading(false);
       }
     }
-
-    loadQuests();
-    return () => {
-      mounted = false;
-    };
+    load();
+    return () => { mounted = false; };
   }, []);
 
-  const filteredQuests = quests.filter((quest) => {
-    const matchesSearch = quest.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      quest.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = selectedType === "all" || quest.type === selectedType;
-    return matchesSearch && matchesType;
-  });
+  const loadQuests = useCallback(async () => {
+    setInitialLoading(true);
+    setError(null);
+    try {
+      const res = await getAll(1, 1000, { isActive: true });
+      setAllQuests(res.items);
+    } catch {
+      setError("Failed to load quests. Please try again.");
+    } finally {
+      setInitialLoading(false);
+    }
+  }, []);
 
-  if (loading) {
-    return <PageLoader />;
+  // Get unique map names (chapters)
+  const chapterNames = [...new Set(allQuests.map((q) => q.mapName))].sort();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const currentTheme = selectedChapter ? ((CHAPTER_THEMES as any)[selectedChapter] ?? null) : null;
+
+  // Client-side filter
+  const filtered = useMemo(() => {
+    return allQuests.filter((q) => {
+      if (debouncedSearch && !q.title.toLowerCase().includes(debouncedSearch.toLowerCase())) return false;
+      if (selectedType !== "All" && q.type !== selectedType) return false;
+      if (selectedChapter && q.mapName !== selectedChapter) return false;
+      return true;
+    });
+  }, [allQuests, debouncedSearch, selectedType, selectedChapter]);
+
+  // Group quests by map/chapter
+  const questsByChapter: Record<string, QuestResponse[]> = {};
+  for (const quest of filtered) {
+    if (!questsByChapter[quest.mapName]) questsByChapter[quest.mapName] = [];
+    questsByChapter[quest.mapName].push(quest);
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 pt-20 px-4 text-center">
-        <Scroll className="w-16 h-16 text-white/20" />
-        <h1 className="text-2xl font-bold text-white">Unable to load quests</h1>
-        <p className="max-w-xl text-white/50">{error}</p>
-      </div>
-    );
-  }
+  // Type options
+  const questTypes = ["All", "Main", "Side", "Daily", "Event"].filter((t) =>
+    t === "All" || allQuests.some((q) => q.type === t)
+  );
+
+  if (initialLoading) return <PageLoader />;
 
   return (
-    <div className="min-h-screen pt-[88px] md:pt-[112px] flex flex-col">
+    <div className="min-h-screen pt-[88px] md:pt-[112px]">
       {/* Hero */}
       <div className="relative bg-gradient-to-b from-green-500/10 to-transparent py-8 md:py-12">
         <div className="max-w-[1200px] mx-auto px-4 text-center">
@@ -190,13 +175,13 @@ export default function WikiQuestsPage() {
           </div>
           <h1 className="text-2xl md:text-4xl font-bold text-white mb-2">Quests</h1>
           <p className="text-white/60 text-sm md:text-base max-w-xl mx-auto">
-            Browse all available quests and their rewards
+            {filtered.length} quests across {chapterNames.length} maps
           </p>
         </div>
       </div>
 
-      <div className="flex-grow max-w-[1200px] mx-auto w-full px-4 pb-8 md:pb-12">
-        {/* Filters */}
+      <div className="max-w-[1200px] mx-auto w-full px-4 pb-8 md:pb-12">
+        {/* Filters + View Toggle */}
         <div className="bg-white/5 border border-white/10 rounded-2xl p-4 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
@@ -204,120 +189,247 @@ export default function WikiQuestsPage() {
               <input
                 type="text"
                 placeholder="Search quests..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
               />
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              {questFilterTypes.map((type) => (
+              {/* View toggle */}
+              <div className="flex bg-white/5 rounded-xl p-1">
+                <button
+                  onClick={() => { setView("chapters"); setSelectedChapter(null); }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${view === "chapters" ? "bg-white/20 text-white" : "text-white/50 hover:text-white"}`}
+                >
+                  By Map
+                </button>
+                <button
+                  onClick={() => { setView("list"); setSelectedChapter(null); }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${view === "list" ? "bg-white/20 text-white" : "text-white/50 hover:text-white"}`}
+                >
+                  List
+                </button>
+              </div>
+              {view === "list" && questTypes.map((type) => (
                 <button
                   key={type}
                   onClick={() => setSelectedType(type)}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer capitalize ${filterButtonClass(type, selectedType)}`}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer ${
+                    selectedType === type
+                      ? type === "All" ? "bg-white/20 text-white" : `${questTypeColors[type]?.bg ?? "bg-white/20"} ${questTypeColors[type]?.text ?? "text-white"}`
+                      : "bg-white/5 text-white/70 hover:bg-white/10 border border-white/10"
+                  }`}
                 >
-                  {type === "all" ? "All" : questTypeColors[type].label}
+                  {type === "All" ? "All" : questTypeColors[type]?.label ?? type}
                 </button>
               ))}
+              {view === "chapters" && selectedChapter && (
+                <button
+                  onClick={() => setSelectedChapter(null)}
+                  className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 hover:text-white text-xs transition-all cursor-pointer flex items-center gap-1"
+                >
+                  <ChevronLeft className="w-3 h-3" /> All Maps
+                </button>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Quests List */}
-        <div className="space-y-4">
-          {filteredQuests.map((quest) => (
-            <div
-              key={quest.id}
-              className={`bg-white/5 border ${questTypeColors[quest.type].border} rounded-2xl p-6 hover:bg-white/[0.07] transition-all duration-300 cursor-pointer group`}
-            >
-              <div className="flex flex-col md:flex-row gap-6">
-                {/* Type Badge */}
-                <div className="flex-shrink-0">
-                  <div className={`w-16 h-16 rounded-2xl ${questTypeColors[quest.type].bg} flex items-center justify-center ${questTypeColors[quest.type].text}`}>
-                    <Scroll className="w-8 h-8" />
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-3 mb-2">
-                    <h3 className="text-xl font-bold text-white group-hover:text-green-400 transition-colors">{quest.title}</h3>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${questTypeColors[quest.type].bg} ${questTypeColors[quest.type].text}`}>
-                      {questTypeColors[quest.type].label}
-                    </span>
-                    <span className="px-2 py-1 bg-white/5 rounded text-xs text-white/50">Lv. {quest.level}+</span>
-                    <span className="px-2 py-1 bg-white/5 rounded text-xs text-white/50">{quest.difficulty}</span>
-                  </div>
-
-                  <p className="text-white/60 text-sm mb-4">{quest.description}</p>
-
-                  {/* Objectives */}
-                  <div className="mb-4">
-                    <p className="text-white/40 text-xs mb-2 flex items-center gap-1">
-                      <Map className="w-3 h-3" /> Objectives:
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {quest.objectives.map((obj, idx) => (
-                        <span key={idx} className="px-3 py-1 bg-white/5 rounded-lg text-xs text-white/70 flex items-center gap-1">
-                          <span className="w-4 h-4 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-[10px]">{idx + 1}</span>
-                          {obj}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Meta */}
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-white/50">
-                    <div className="flex items-center gap-1.5">
-                      <MapPin className="w-4 h-4" />
-                      <span>{quest.location}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="w-4 h-4" />
-                      <span>{quest.duration}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Rewards */}
-                <div className="flex-shrink-0 md:w-48">
-                  <p className="text-white/40 text-xs mb-3">Rewards:</p>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4 text-amber-400" />
-                      <span className="text-sm text-white/70">{quest.rewards.exp.toLocaleString()} EXP</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Gift className="w-4 h-4 text-[#ffc032]" />
-                      <span className="text-sm text-white/70">{quest.rewards.gold.toLocaleString()} Gold</span>
-                    </div>
-                    {quest.rewards.gems > 0 && (
-                      <div className="flex items-center gap-2">
-                        <Gem className="w-4 h-4 text-cyan-300" />
-                        <span className="text-sm text-white/70">{quest.rewards.gems.toLocaleString()} Gems</span>
-                      </div>
-                    )}
-                    {quest.rewards.items.map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded bg-[#ffc032]/20 flex items-center justify-center">
-                          <Gift className="w-2.5 h-2.5 text-[#ffc032]" />
-                        </div>
-                        <span className="text-sm text-white/70 truncate">{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {filteredQuests.length === 0 && (
+        {error ? (
           <div className="text-center py-20">
             <Scroll className="w-20 h-20 text-white/20 mx-auto mb-4" />
-            <p className="text-white/50 text-lg">No quests found</p>
+            <p className="text-white/50 text-lg mb-3">{error}</p>
+            <button onClick={loadQuests} className="px-4 py-2 bg-white/10 rounded-xl text-white text-sm hover:bg-white/20 transition-colors cursor-pointer">
+              Retry
+            </button>
           </div>
+        ) : (
+          <>
+            {/* ══ CHAPTERS VIEW ══════════════════════════════════════════ */}
+            {view === "chapters" && !selectedChapter && (
+              <div className="space-y-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                  {chapterNames.map((mapName) => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const theme = (CHAPTER_THEMES as any)[mapName];
+                    const chapterQuests = questsByChapter[mapName] ?? [];
+                    return (
+                      <button
+                        key={mapName}
+                        onClick={() => setSelectedChapter(mapName)}
+                        className={`group relative text-left rounded-2xl overflow-hidden border transition-all duration-300 cursor-pointer hover:-translate-y-1 hover:shadow-2xl ${theme ? theme.border : "border-white/10"} bg-black/40`}
+                      >
+                        <div className="relative w-full aspect-[4/3] bg-gradient-to-br from-black/60 to-white/5">
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className={`${theme?.accent} opacity-40`}>
+                              {theme?.icon ?? <MapPin className="w-12 h-12" />}
+                            </div>
+                          </div>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                          {theme && (
+                            <div className="absolute top-3 left-3">
+                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-widest border backdrop-blur-sm ${theme.badgeBg} ${theme.badgeText} ${theme.border}`}>
+                                Ch. {theme.chapter}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-4">
+                          <div className={`flex items-center gap-2 mb-1 ${theme?.accent ?? "text-white"}`}>
+                            {theme?.icon}
+                            <h3 className="text-base font-black text-white">{mapName}</h3>
+                          </div>
+                          <p className="text-white/50 text-xs">
+                            {chapterQuests.length} quest{chapterQuests.length !== 1 ? "s" : ""}
+                          </p>
+                          {theme && (
+                            <p className="text-white/30 text-xs mt-1">{theme.levelRange}</p>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {chapterNames.length === 0 && (
+                  <div className="text-center py-20">
+                    <Scroll className="w-20 h-20 text-white/20 mx-auto mb-4" />
+                    <p className="text-white/50 text-lg">No maps found</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ══ CHAPTER DETAIL ═══════════════════════════════════════ */}
+            {view === "chapters" && selectedChapter && (
+              <div className="space-y-4">
+                {filtered.length === 0 ? (
+                  <div className="text-center py-20">
+                    <Scroll className="w-20 h-20 text-white/20 mx-auto mb-4" />
+                    <p className="text-white/50 text-lg">No quests found</p>
+                  </div>
+                ) : (
+                  filtered.map((quest) => (
+                    <QuestCard key={quest.questId} quest={quest} />
+                  ))
+                )}
+              </div>
+            )}
+
+            {/* ══ LIST VIEW ══════════════════════════════════════════════ */}
+            {view === "list" && (
+              <div className="space-y-4">
+                {filtered.length === 0 ? (
+                  <div className="text-center py-20">
+                    <Scroll className="w-20 h-20 text-white/20 mx-auto mb-4" />
+                    <p className="text-white/50 text-lg">No quests found</p>
+                  </div>
+                ) : (
+                  filtered.map((quest) => (
+                    <QuestCard key={quest.questId} quest={quest} />
+                  ))
+                )}
+              </div>
+            )}
+          </>
         )}
+      </div>
+    </div>
+  );
+}
+
+function QuestCard({ quest }: { quest: QuestResponse }) {
+  const typeColor = questTypeColors[quest.type] ?? { bg: "bg-white/10", text: "text-white/70", border: "border-white/10", label: quest.type };
+  const objective = objectiveLabel(quest);
+  const objIcon = objectiveIcons[quest.objectiveType] ?? "📋";
+
+  return (
+    <div className={`bg-white/5 border ${typeColor.border} rounded-2xl p-6 hover:bg-white/[0.07] transition-all duration-300 group`}>
+      <div className="flex flex-col md:flex-row gap-5">
+        {/* Type Badge */}
+        <div className="flex-shrink-0">
+          <div className={`w-14 h-14 rounded-2xl ${typeColor.bg} flex items-center justify-center ${typeColor.text}`}>
+            <Scroll className="w-7 h-7" />
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <h3 className="text-lg font-bold text-white group-hover:text-green-400 transition-colors">
+              {quest.title}
+            </h3>
+            <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${typeColor.bg} ${typeColor.text}`}>
+              {typeColor.label}
+            </span>
+            <span className="px-2 py-0.5 bg-white/5 rounded text-xs text-white/50">Lv. {quest.requiredLevel}+</span>
+          </div>
+
+          <p className="text-white/55 text-sm mb-4 line-clamp-2">
+            {quest.description ?? "No description available."}
+          </p>
+
+          {/* Objective */}
+          <div className="flex flex-wrap items-center gap-3 mb-3">
+            <span className="text-white/40 text-xs flex items-center gap-1">
+              <Zap className="w-3 h-3" /> Objective:
+            </span>
+            <span className="px-3 py-1 bg-white/5 rounded-lg text-xs text-white/70 flex items-center gap-1.5">
+              <span>{objIcon}</span>
+              {objective}
+            </span>
+          </div>
+
+          {/* Meta */}
+          <div className="flex flex-wrap items-center gap-4 text-xs text-white/50">
+            {quest.mapName && (
+              <div className="flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5" />
+                <span>{quest.mapName}</span>
+              </div>
+            )}
+            {quest.regionName && (
+              <span>{quest.regionName}</span>
+            )}
+            {quest.questGiverName && (
+              <div className="flex items-center gap-1">
+                <span>👤</span>
+                <span>{quest.questGiverName}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Rewards */}
+        <div className="flex-shrink-0 md:w-48 space-y-2">
+          <p className="text-white/40 text-xs mb-1">Rewards</p>
+          <div className="flex items-center gap-2">
+            <Star className="w-4 h-4 text-amber-400" />
+            <span className="text-sm text-white/70">{quest.rewardExperience.toLocaleString()} EXP</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Gift className="w-4 h-4 text-[#ffc032]" />
+            <span className="text-sm text-white/70">{quest.rewardGold.toLocaleString()} Gold</span>
+          </div>
+          {quest.rewardGems > 0 && (
+            <div className="flex items-center gap-2">
+              <Gem className="w-4 h-4 text-cyan-300" />
+              <span className="text-sm text-white/70">{quest.rewardGems.toLocaleString()} Gems</span>
+            </div>
+          )}
+          {quest.rewardItemName && (
+            <div className="flex items-center gap-2">
+              <Gift className="w-4 h-4 text-purple-400" />
+              <span className="text-sm text-white/70 truncate">{quest.rewardItemName}</span>
+            </div>
+          )}
+          {quest.rewardSkillName && (
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-blue-400" />
+              <span className="text-sm text-white/70 truncate">{quest.rewardSkillName}</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -4,8 +4,12 @@ import { PurchaseHistoryResponse } from "@/lib/api/purchase-histories";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import { CreditCard, Search } from "lucide-react";
 import AdminTable from "@/components/ui/AdminTable";
+import { useState } from "react";
 
 export default function ManageTransactionsPage() {
+  const [sortBy, setSortBy] = useState("purchaseHistoryId");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
   const {
     data: transactions,
     totalCount,
@@ -54,13 +58,14 @@ export default function ManageTransactionsPage() {
   };
 
   const columns = [
-    { key: "purchaseHistoryId", label: "ID" },
-    { key: "playerName", label: "Player Name" },
-    { key: "itemName", label: "Item Name" },
-    { key: "quantity", label: "Quantity" },
+    { key: "purchaseHistoryId", label: "ID", sortable: true },
+    { key: "playerName", label: "Player Name", sortable: true },
+    { key: "itemName", label: "Item Name", sortable: true },
+    { key: "quantity", label: "Quantity", sortable: true },
     {
       key: "totalPrice",
       label: "Total Price",
+      sortable: true,
       render: (val: number, item: PurchaseHistoryResponse) => (
         <span className="text-[#ffc032] font-semibold">{formatPrice(val, item.currency)}</span>
       ),
@@ -68,14 +73,25 @@ export default function ManageTransactionsPage() {
     {
       key: "currency",
       label: "Currency",
+      sortable: true,
       render: (val: string) => getCurrencyBadge(val),
     },
     {
       key: "purchasedAt",
       label: "Purchased At",
+      sortable: true,
       render: (val: string) => <span className="text-gray-400">{formatDate(val)}</span>,
     },
   ];
+
+  const handleSortChange = (value: string) => {
+    if (sortBy === value) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(value);
+      setSortOrder("asc");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -93,14 +109,14 @@ export default function ManageTransactionsPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-[#111111] border border-gray-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+      <div className="bg-[#111111] border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-4">
         <div className="relative w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <input
             type="text"
             placeholder="Filter by player name..."
             onChange={(e) => setParams({ search: e.target.value || undefined })}
-            className="w-full pl-9 pr-4 py-2 bg-[#111] border border-gray-700 rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+            className="w-full pl-9 pr-4 py-2 bg-[#111] border border-white/10 rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
           />
         </div>
       </div>
@@ -114,13 +130,16 @@ export default function ManageTransactionsPage() {
 
       {/* Table */}
       <AdminTable
-        title={`Total Transactions: ${totalCount.toLocaleString()}`}
+        title="Transactions"
         columns={columns}
         data={transactions}
         loading={loading}
         serverSide
         pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
         idField="purchaseHistoryId"
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSortChange}
       />
     </div>
   );

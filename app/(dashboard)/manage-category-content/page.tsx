@@ -47,14 +47,14 @@ export default function ManageCategoryContentPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-[#111111] border border-gray-800 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-[#111111] border border-white/10 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="relative w-64">
           <input
             type="text"
             placeholder="Search categories..."
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
-            className="w-full pl-4 pr-4 py-2.5 bg-[#111] border border-gray-700 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+            className="w-full pl-4 pr-4 py-2.5 bg-[#111] border border-white/10 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
           />
         </div>
         <Link
@@ -74,11 +74,11 @@ export default function ManageCategoryContentPage() {
       )}
 
       {/* Table */}
-      <div className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden">
+      <div className="bg-[#111111] border border-white/10 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-gray-800">
+              <tr className="border-b border-white/10">
                 <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
                 <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
                 <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Slug</th>
@@ -101,7 +101,7 @@ export default function ManageCategoryContentPage() {
                 </tr>
               ) : (
                 categories.map((cat) => (
-                  <tr key={cat.categoryContentId} className="border-b border-gray-800/50 hover:bg-[#1e1e1e] transition-colors group">
+                  <tr key={cat.categoryContentId} className="border-b border-white/10/50 hover:bg-[#1e1e1e] transition-colors group">
                     <td className="px-5 py-3.5 text-sm text-gray-400 font-mono">{cat.categoryContentId}</td>
                     <td className="px-5 py-3.5 text-sm font-medium text-white">{cat.name}</td>
                     <td className="px-5 py-3.5 text-sm text-gray-400">{cat.slug}</td>
@@ -130,7 +130,7 @@ export default function ManageCategoryContentPage() {
         </div>
 
         {totalCount > 0 && (
-          <div className="px-5 py-3.5 border-t border-gray-800 flex items-center justify-between">
+          <div className="px-5 py-3.5 border-t border-white/10 flex items-center justify-between">
             <div className="text-xs text-gray-500">Total: {totalCount.toLocaleString()}</div>
             <div className="flex items-center gap-1.5">
               <button
