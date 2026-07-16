@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { getById, update, getNpcOptions } from "@/lib/api/quests";
-import type { QuestResponse } from "@/lib/api/quests";
+import { useRouter } from "next/navigation";
+import { create, getNpcOptions } from "@/lib/api/quests";
 import { getAll as getItems } from "@/lib/api/items";
 import { getAll as getMonsters } from "@/lib/api/monsters";
 import { getSkills, type SkillResponse } from "@/lib/api/skills";
@@ -13,7 +12,6 @@ import {
   Coins,
   Gift,
   ListChecks,
-  Loader2,
   MapPin,
   MessageSquare,
   Package,
@@ -191,15 +189,11 @@ function getObjectiveText(formData: FormData) {
   const amount = formData.targetAmount > 1 ? ` x${formData.targetAmount}` : "";
   return `${formData.objectiveType}${amount} - ${target}`;
 }
-export default function EditQuestPage() {
+export default function CreateQuestPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const questId = searchParams.get("id");
-  const hasQuestId = Boolean(questId);
 
   const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(hasQuestId);
-  const [error, setError] = useState<string | null>(hasQuestId ? null : "Quest id is missing.");
+  const [error, setError] = useState<string | null>(null);
   const [itemOptions, setItemOptions] = useState<ItemResponse[]>([]);
   const [skillOptions, setSkillOptions] = useState<SkillResponse[]>([]);
   const [monsterOptions, setMonsterOptions] = useState<MonsterResponse[]>([]);
@@ -246,55 +240,6 @@ export default function EditQuestPage() {
     };
   }, [formData.mapName]);
 
-  useEffect(() => {
-    if (!questId) return;
-
-    getById(Number(questId))
-      .then((quest: QuestResponse) => {
-        const rewardItems = quest.rewardItems?.length
-          ? quest.rewardItems.map((item) => ({
-              itemId: item.itemId,
-              quantity: Math.max(1, item.quantity || 1),
-            }))
-          : quest.rewardItemId
-            ? [{ itemId: quest.rewardItemId, quantity: 1 }]
-            : [];
-        const rewardSkills = quest.rewardSkills?.length
-          ? quest.rewardSkills.map((skill) => ({ skillId: skill.skillId }))
-          : quest.rewardSkillId
-            ? [{ skillId: quest.rewardSkillId }]
-            : [];
-        const objectiveType = OBJECTIVE_TYPES.some((objective) => objective.value === quest.objectiveType)
-          ? quest.objectiveType
-          : "Explore";
-
-        setFormData({
-          title: quest.title,
-          description: quest.description || "",
-          dialogueContent: quest.dialogueContent || quest.description || "",
-          type: quest.type,
-          defaultStatus: DEFAULT_STATUSES.some((status) => status.value === quest.defaultStatus)
-            ? quest.defaultStatus
-            : "NotStarted",
-          mapName: quest.mapName || "ElfForest",
-          regionName: quest.regionName || "",
-          objectiveType,
-          objectiveTarget: quest.objectiveTarget || "",
-          objectiveLocation: quest.objectiveLocation || "",
-          questGiverName: quest.questGiverName || "",
-          requiredLevel: quest.requiredLevel,
-          targetAmount: SINGLE_AMOUNT_OBJECTIVES.has(objectiveType) ? 1 : Math.max(1, quest.targetAmount || 1),
-          rewardExperience: quest.rewardExperience,
-          rewardGold: quest.rewardGold,
-          rewardGems: quest.rewardGems,
-          rewardItems,
-          rewardSkills,
-          isActive: quest.isActive,
-        });
-      })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load quest"))
-      .finally(() => setFetching(false));
-  }, [questId]);
 
   const rewardItemOptions = useMemo(
     () => itemOptions.map((item) => ({ value: String(item.itemId), label: `${item.name} #${item.itemId}` })),
@@ -472,8 +417,6 @@ export default function EditQuestPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!questId) return;
-
     if (!formData.title.trim()) {
       setError("Quest title is required.");
       return;
@@ -495,7 +438,7 @@ export default function EditQuestPage() {
     try {
       setLoading(true);
       setError(null);
-      await update(Number(questId), {
+      await create({
         title: formData.title.trim(),
         description: formData.description.trim() || null,
         type: formData.type,
@@ -523,28 +466,20 @@ export default function EditQuestPage() {
       });
       router.push("/manage-quests");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to update quest");
+      setError(err instanceof Error ? err.message : "Failed to create quest");
     } finally {
       setLoading(false);
     }
   };
 
-  if (fetching) {
-    return (
-      <div className="flex flex-col items-center justify-center space-y-4 py-32">
-        <Loader2 className="h-10 w-10 animate-spin text-[#ffc032]" />
-        <p className="text-gray-400">Loading quest data...</p>
-      </div>
-    );
-  }
   return (
     <form onSubmit={handleSubmit} className="space-y-6 pb-32">
       <FormHeader
-        title="Update Quest"
-        subtitle={`Update quest details (ID: ${questId})`}
+        title="Create Quest"
+        subtitle="Create a new quest with objective, rewards, and NPC dialogue"
         backHref="/manage-quests"
-        badge={formData.isActive ? "Active" : "Inactive"}
-        badgeTone={formData.isActive ? "success" : "danger"}
+        badge="New"
+        badgeTone="primary"
       />
 
       {error && <FormAlert message={error} onDismiss={() => setError(null)} />}
@@ -621,7 +556,7 @@ export default function EditQuestPage() {
 
               <FormField label="Linked Quest ID">
                 <div className="flex h-11 items-center rounded-lg border border-purple-500/20 bg-purple-500/10 px-4 text-sm font-semibold text-purple-200">
-                  {questId ? `LinkedQuestId #${questId}` : "No quest id"}
+                  Generated after save
                 </div>
               </FormField>
             </div>
@@ -953,7 +888,7 @@ export default function EditQuestPage() {
               </div>
               <div className="rounded-lg bg-black/20 p-2">
                 <p className="text-white/35">LinkedQuestId</p>
-                <p className="mt-1 font-semibold text-purple-200">#{questId}</p>
+                <p className="mt-1 font-semibold text-purple-200">New</p>
               </div>
             </div>
           </div>
@@ -993,8 +928,8 @@ export default function EditQuestPage() {
 
       <FormActions
         onCancel={() => router.push("/manage-quests")}
-        submitLabel="Update Quest"
-        loadingLabel="Updating..."
+        submitLabel="Create Quest"
+        loadingLabel="Creating..."
         loading={loading}
         submitIcon={Save}
       />
