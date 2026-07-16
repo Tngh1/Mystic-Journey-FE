@@ -105,7 +105,7 @@ export default function WikiMonstersPage() {
         />
       )}
 
-      <div className="container mx-auto flex">
+      <div className="max-w-[1200px] mx-auto flex">
         <aside className={`fixed lg:sticky top-[88px] md:top-[112px] z-40 w-60 h-[calc(100vh-88px)] md:shrink-0 self-start bg-[#0F0F0F] overflow-y-auto nice-scrollbar transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
           <div className="px-2 py-4 space-y-4">
             <div>
@@ -123,7 +123,7 @@ export default function WikiMonstersPage() {
                       onClick={() => setSort(s.key)}
                       className={[
                         "w-full h-10 px-3 rounded-[10px] flex items-center text-left transition-colors duration-200 cursor-pointer",
-                        isActive ? "bg-[#3A3A3A] text-white" : "bg-transparent text-white hover:bg-[#272727]",
+                        isActive ? "bg-[#ffc032]/15 text-[#ffc032]" : "bg-transparent text-white hover:bg-[#272727]",
                       ].join(" ")}
                     >
                       <span className={["text-sm", isActive ? "font-semibold" : "font-normal"].join(" ")}>
@@ -148,6 +148,14 @@ export default function WikiMonstersPage() {
 
         <main className="flex-1 min-w-0">
           <div className="px-6 pt-6 pb-2">
+            <div className="mb-4 flex items-center gap-3">
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">
+                <Ghost className="w-3.5 h-3.5" />
+                Bestiary
+              </span>
+              <span className="h-px flex-1 bg-linear-to-r from-[#ffc032]/40 to-transparent" />
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">Monsters</h1>
             <div className="flex items-center gap-2">
               {typeOptions.map((t) => {
                 const isActive = selectedType === t;
@@ -157,7 +165,7 @@ export default function WikiMonstersPage() {
                     onClick={() => setSelectedType(t)}
                     className={[
                       "h-9 px-4 rounded-xl flex items-center gap-2 transition-colors duration-200 cursor-pointer text-sm font-medium",
-                      isActive ? "bg-[#3A3A3A] text-white" : "bg-[#1a1a1a] text-white/60 hover:bg-[#252525] hover:text-white border border-white/10",
+                      isActive ? "bg-[#ffc032] text-[#111]" : "bg-[#1a1a1a] text-white/60 hover:bg-[#252525] hover:text-white border border-white/10",
                     ].join(" ")}
                   >
                     {t !== "All" && <TypeIcon type={t} size={14} />}

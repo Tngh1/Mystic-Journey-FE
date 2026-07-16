@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ShopItemResponse, remove } from "@/lib/api/shop-items";
+import { ShopItemResponse } from "@/lib/api/shop-items";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import { Search, ShoppingBag, Plus } from "lucide-react";
 import { useState } from "react";
@@ -39,16 +39,6 @@ export default function ManageShopPage() {
       ...(filterCurrency ? { currency: filterCurrency } : {}),
     },
   });
-
-  const handleDelete = async (item: ShopItemResponse) => {
-    if (!confirm(`Are you sure you want to delete "${item.itemName}" from the shop?`)) return;
-    try {
-      await remove(item.shopItemId);
-      refresh();
-    } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to delete shop item");
-    }
-  };
 
   const handleSortChange = (value: string) => {
     if (sortBy === value) {
@@ -198,7 +188,6 @@ export default function ManageShopPage() {
         serverSide
         pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
         onUpdate={(item) => router.push(`/manage-shop/update?id=${item.shopItemId}`)}
-        onDelete={handleDelete}
         idField="shopItemId"
         sortBy={sortBy}
         sortOrder={sortOrder}

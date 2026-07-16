@@ -45,19 +45,25 @@ export default function ContentPage() {
   return (
     <div className="min-h-screen pt-[88px] md:pt-[112px] flex flex-col">
       {/* Hero Section */}
-      <div className="relative overflow-hidden py-8 md:py-12">
-        <div className="absolute inset-0 bg-[url('/images/patterns/grid.svg')] opacity-5"></div>
+      <div className="relative overflow-hidden border-b border-white/10 py-10 md:py-14">
+        {/* Ambient gold glow */}
+        <div className="pointer-events-none absolute -top-24 left-1/2 h-64 w-[min(85%,680px)] -translate-x-1/2 rounded-full bg-[#ffc032]/10 blur-[130px]" />
+
         <div className="max-w-[1200px] mx-auto px-4 relative z-10">
           <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 md:py-2 bg-[#ffc032]/20 rounded-full mb-3 md:mb-4">
-              <Bell className="w-4 h-4 text-[#ffc032]" />
-              <span className="text-[#ffc032] font-medium text-sm">Latest Contents</span>
+            <div className="mb-5 flex items-center justify-center gap-3">
+              <span className="h-px w-10 bg-linear-to-r from-transparent to-[#ffc032]/60" />
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">
+                <Bell className="w-3.5 h-3.5" />
+                Latest Contents
+              </span>
+              <span className="h-px w-10 bg-linear-to-l from-transparent to-[#ffc032]/60" />
             </div>
-            <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-2 md:mb-3">
+            <h1 className="text-3xl md:text-5xl font-bold text-white mb-3">
               Contents
             </h1>
             <p className="text-white/60 text-sm md:text-base">
-              Stay updated with the latest news and events
+              Stay updated with the latest news and events.
             </p>
           </div>
         </div>
@@ -70,8 +76,8 @@ export default function ContentPage() {
             onClick={() => setSelectedCategory(null)}
             className={`px-5 py-2.5 rounded-xl font-medium transition-all duration-300 cursor-pointer ${
               selectedCategory === null
-                ? "bg-[#ffc032] text-black shadow-lg shadow-[#ffc032]/20"
-                : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white border border-white/10"
+                ? "bg-[#ffc032] text-[#111] shadow-lg shadow-[#ffc032]/20"
+                : "bg-[#0d0d0d] text-white/70 hover:bg-white/5 hover:text-white border border-white/10"
             }`}
           >
             All
@@ -82,8 +88,8 @@ export default function ContentPage() {
               onClick={() => setSelectedCategory(cat.categoryContentId)}
               className={`px-5 py-2.5 rounded-xl font-medium transition-all duration-300 cursor-pointer ${
                 selectedCategory === cat.categoryContentId
-                  ? "bg-[#ffc032] text-black shadow-lg shadow-[#ffc032]/20"
-                  : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white border border-white/10"
+                  ? "bg-[#ffc032] text-[#111] shadow-lg shadow-[#ffc032]/20"
+                  : "bg-[#0d0d0d] text-white/70 hover:bg-white/5 hover:text-white border border-white/10"
               }`}
             >
               {cat.name}
@@ -122,7 +128,7 @@ function ContentCard({ content }: { content: ContentResponse }) {
   return (
     <Link
       href={`/content/${content.slug || content.contentId}`}
-      className="group relative flex flex-col md:flex-row bg-[#111111]/80 border border-white/10 rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#ffc032]/30 hover:shadow-xl hover:shadow-[#ffc032]/5"
+      className="group relative flex flex-col md:flex-row bg-[#111111] border border-white/10 rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#ffc032]/40 hover:shadow-xl hover:shadow-[#ffc032]/5"
     >
       {/* Image Section */}
       <div className="relative w-full md:w-[320px] lg:w-[380px] h-48 md:h-auto shrink-0 overflow-hidden">
@@ -133,7 +139,7 @@ function ContentCard({ content }: { content: ContentResponse }) {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-[#ffc032]/20 to-[#ff8c00]/20 flex items-center justify-center">
+          <div className="w-full h-full bg-linear-to-br from-[#ffc032]/20 to-[#ff8c00]/20 flex items-center justify-center">
             <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
               <Bell className="w-8 h-8 text-[#ffc032]" />
             </div>
@@ -173,7 +179,7 @@ function ContentCard({ content }: { content: ContentResponse }) {
 
           {/* Read More Link */}
           <div className="flex items-center gap-1.5 text-[#ffc032] font-medium group-hover:translate-x-1 transition-transform">
-            Xem thêm <ArrowRight className="w-4 h-4" />
+            Read more <ArrowRight className="w-4 h-4" />
           </div>
         </div>
       </div>

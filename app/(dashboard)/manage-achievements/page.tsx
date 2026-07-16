@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AchievementResponse } from "@/lib/api/achievements";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
-import apiClient from "@/lib/api/client";
 import { Trophy } from "lucide-react";
 import AdminTable from "@/components/ui/AdminTable";
 import FilterSortBar from "@/components/ui/FilterSortBar";
@@ -93,16 +92,6 @@ export default function ManageAchievementsPage() {
     setParams(buildParams());
   };
 
-  const handleDelete = async (a: AchievementResponse) => {
-    if (!confirm(`Delete achievement "${a.name}"?`)) return;
-    try {
-      await apiClient.delete(`/api/achievements/${a.achievementId}`);
-      refresh();
-    } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to delete");
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -151,7 +140,6 @@ export default function ManageAchievementsPage() {
         serverSide
         pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
         onUpdate={(a) => router.push(`/manage-achievements/update?id=${a.achievementId}`)}
-        onDelete={handleDelete}
         idField="achievementId"
         sortBy={sortBy}
         sortOrder={sortOrder}

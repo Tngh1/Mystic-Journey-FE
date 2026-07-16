@@ -79,15 +79,22 @@ export default function WikiGachaPage() {
   return (
     <div className="min-h-screen pt-[88px] md:pt-[112px]">
       {/* Hero */}
-      <div className="relative bg-gradient-to-b from-[#ffc032]/10 to-transparent py-8 md:py-12">
-        <div className="max-w-[1200px] mx-auto px-4 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#ffc032]/20 rounded-full mb-3">
-            <Gem className="w-4 h-4 text-[#ffc032]" />
-            <span className="text-[#ffc032] font-medium text-sm">Gacha Guide</span>
+      <div className="relative overflow-hidden border-b border-white/10 py-10 md:py-14">
+        {/* Ambient gold glow */}
+        <div className="pointer-events-none absolute -top-24 left-1/2 h-64 w-[min(85%,680px)] -translate-x-1/2 rounded-full bg-[#ffc032]/10 blur-[130px]" />
+
+        <div className="relative z-10 max-w-[1200px] mx-auto px-4 text-center">
+          <div className="mb-5 flex items-center justify-center gap-3">
+            <span className="h-px w-10 bg-linear-to-r from-transparent to-[#ffc032]/60" />
+            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">
+              <Gem className="w-3.5 h-3.5" />
+              Gacha Guide
+            </span>
+            <span className="h-px w-10 bg-linear-to-l from-transparent to-[#ffc032]/60" />
           </div>
-          <h1 className="text-2xl md:text-4xl font-bold text-white mb-2">Gacha</h1>
+          <h1 className="text-3xl md:text-5xl font-bold text-white mb-3">Gacha</h1>
           <p className="text-white/60 text-sm md:text-base max-w-xl mx-auto">
-            {banners.length > 0 ? `${banners.length} active banner${banners.length !== 1 ? "s" : ""}` : "No active banners right now"}
+            {banners.length > 0 ? `${banners.length} active banner${banners.length !== 1 ? "s" : ""} available to summon from.` : "No active banners right now."}
           </p>
         </div>
       </div>
@@ -98,7 +105,7 @@ export default function WikiGachaPage() {
           <div className="text-center py-20">
             <Gem className="w-20 h-20 text-white/20 mx-auto mb-4" />
             <p className="text-white/50 text-lg mb-3">{error}</p>
-            <button onClick={fetchBanners} className="px-4 py-2 bg-white/10 rounded-xl text-white text-sm hover:bg-white/20 transition-colors cursor-pointer">
+            <button onClick={fetchBanners} className="px-4 py-2 bg-[#ffc032] text-[#111] font-semibold rounded-xl text-sm hover:bg-[#ffd04c] transition-colors cursor-pointer">
               Retry
             </button>
           </div>
@@ -159,9 +166,9 @@ function FeaturedBanner({
   const rarities = ["common", "uncommon", "rare", "epic", "legendary"] as const;
 
   return (
-    <div className="bg-white/5 border border-[#ffc032]/30 rounded-2xl overflow-hidden">
+    <div className="bg-[#111111] border border-[#ffc032]/30 rounded-2xl overflow-hidden">
       {/* Header */}
-      <div className="relative bg-gradient-to-br from-[#ffc032]/15 via-transparent to-transparent p-8">
+      <div className="relative bg-linear-to-br from-[#ffc032]/15 via-transparent to-transparent p-8">
         {/* Featured badge */}
         <div className="absolute top-4 right-4">
           <span className="flex items-center gap-1.5 px-4 py-1.5 bg-[#ffc032] text-black rounded-full text-xs font-bold uppercase tracking-wider">
@@ -243,7 +250,7 @@ function FeaturedBanner({
                   return (
                     <div
                       key={item.gachaBannerItemId}
-                      className={`relative bg-white/5 border ${colors.border} rounded-xl p-3 text-center hover:bg-white/10 transition-colors`}
+                      className={`relative bg-[#0d0d0d] border ${colors.border} rounded-xl p-3 text-center hover:bg-white/5 transition-colors`}
                     >
                       {item.isFeatured && (
                         <span className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-[#ffc032] text-black rounded text-[10px] font-bold whitespace-nowrap">
@@ -304,7 +311,7 @@ function OtherBannerCard({
       className={`w-full text-left rounded-xl border p-5 transition-all cursor-pointer ${
         isSelected
           ? "bg-[#ffc032]/10 border-[#ffc032]/40"
-          : "bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/8"
+          : "bg-[#111111] border-white/10 hover:border-white/20 hover:bg-white/5"
       }`}
     >
       <div className="flex items-center gap-4">

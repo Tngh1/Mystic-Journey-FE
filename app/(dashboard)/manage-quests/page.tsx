@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { QuestResponse } from "@/lib/api/quests";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
-import apiClient from "@/lib/api/client";
 import { Scroll } from "lucide-react";
 import AdminTable from "@/components/ui/AdminTable";
 import FilterSortBar from "@/components/ui/FilterSortBar";
@@ -146,16 +145,6 @@ export default function ManageQuestsPage() {
     setParams(buildParams());
   };
 
-  const handleDelete = async (q: QuestResponse) => {
-    if (!confirm(`Delete quest "${q.title}"?`)) return;
-    try {
-      await apiClient.delete(`/api/quests/${q.questId}`);
-      refresh();
-    } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to delete");
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -203,7 +192,6 @@ export default function ManageQuestsPage() {
         serverSide
         pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
         onUpdate={(q) => router.push(`/manage-quests/update?id=${q.questId}`)}
-        onDelete={handleDelete}
         idField="questId"
         sortBy={sortBy}
         sortOrder={sortOrder}

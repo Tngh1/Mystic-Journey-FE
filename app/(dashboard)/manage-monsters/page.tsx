@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MonsterResponse } from "@/lib/api/monsters";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
-import apiClient from "@/lib/api/client";
 import { Skull } from "lucide-react";
 import AdminTable from "@/components/ui/AdminTable";
 import FilterSortBar from "@/components/ui/FilterSortBar";
@@ -100,16 +99,6 @@ export default function ManageMonstersPage() {
     setParams(buildParams());
   };
 
-  const handleDelete = async (m: MonsterResponse) => {
-    if (!confirm(`Delete monster "${m.name}"?`)) return;
-    try {
-      await apiClient.delete(`/api/monsters/${m.monsterId}`);
-      refresh();
-    } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to delete");
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -156,7 +145,6 @@ export default function ManageMonstersPage() {
         serverSide
         pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
         onUpdate={(m) => router.push(`/manage-monsters/update?id=${m.monsterId}`)}
-        onDelete={handleDelete}
         idField="monsterId"
         sortBy={sortBy}
         sortOrder={sortOrder}

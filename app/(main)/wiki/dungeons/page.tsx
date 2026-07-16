@@ -101,22 +101,29 @@ export default function WikiDungeonsPage() {
   return (
     <div className="min-h-screen pt-[88px] md:pt-[112px]">
       {/* Hero */}
-      <div className="relative bg-gradient-to-b from-purple-500/10 to-transparent py-8 md:py-12">
-        <div className="max-w-[1200px] mx-auto px-4 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-500/20 rounded-full mb-3">
-            <Castle className="w-4 h-4 text-purple-400" />
-            <span className="text-purple-400 font-medium text-sm">Dungeon Guide</span>
+      <div className="relative overflow-hidden border-b border-white/10 py-10 md:py-14">
+        {/* Ambient gold glow */}
+        <div className="pointer-events-none absolute -top-24 left-1/2 h-64 w-[min(85%,680px)] -translate-x-1/2 rounded-full bg-[#ffc032]/10 blur-[130px]" />
+
+        <div className="relative z-10 max-w-[1200px] mx-auto px-4 text-center">
+          <div className="mb-5 flex items-center justify-center gap-3">
+            <span className="h-px w-10 bg-linear-to-r from-transparent to-[#ffc032]/60" />
+            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">
+              <Castle className="w-3.5 h-3.5" />
+              Dungeon Guide
+            </span>
+            <span className="h-px w-10 bg-linear-to-l from-transparent to-[#ffc032]/60" />
           </div>
-          <h1 className="text-2xl md:text-4xl font-bold text-white mb-2">Dungeons</h1>
+          <h1 className="text-3xl md:text-5xl font-bold text-white mb-3">Dungeons</h1>
           <p className="text-white/60 text-sm md:text-base max-w-xl mx-auto">
             {filtered.length} dungeons across {dungeonTypes.length - 1} types
           </p>
         </div>
       </div>
 
-      <div className="max-w-[1200px] mx-auto w-full px-4 pb-8 md:pb-12">
+      <div className="max-w-[1200px] mx-auto w-full px-4 pb-8 md:pb-12 pt-8 md:pt-10">
         {/* Filters */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 mb-6">
+        <div className="bg-[#111111] border border-white/10 rounded-2xl p-4 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
@@ -125,7 +132,7 @@ export default function WikiDungeonsPage() {
                 placeholder="Search dungeons..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
+                className="w-full bg-[#0d0d0d] border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032] transition-colors"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -136,8 +143,8 @@ export default function WikiDungeonsPage() {
                     onClick={() => setSelectedType(t)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                       selectedType === t
-                        ? t === "All" ? "bg-white/20 text-white" : `${typeColors[t]?.bg ?? "bg-white/20"} ${typeColors[t]?.text ?? "text-white"}`
-                        : "bg-white/5 text-white/70 hover:bg-white/10 border border-white/10"
+                        ? t === "All" ? "bg-[#ffc032] text-[#111]" : `${typeColors[t]?.bg ?? "bg-white/20"} ${typeColors[t]?.text ?? "text-white"}`
+                        : "bg-[#0d0d0d] text-white/70 hover:bg-white/10 border border-white/10"
                     }`}
                   >
                     {t}
@@ -145,12 +152,12 @@ export default function WikiDungeonsPage() {
                 ))}
               </div>
               <div className="flex items-center gap-1.5 flex-wrap">
-                <button onClick={() => setSelectedDifficulty(0)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${selectedDifficulty === 0 ? "bg-purple-500 text-white" : "bg-white/5 text-white/70 hover:bg-white/10 border border-white/10"}`}>All</button>
+                <button onClick={() => setSelectedDifficulty(0)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${selectedDifficulty === 0 ? "bg-[#ffc032] text-[#111]" : "bg-[#0d0d0d] text-white/70 hover:bg-white/10 border border-white/10"}`}>All</button>
                 {[1, 2, 3, 4, 5].map((diff) => (
                   <button
                     key={diff}
                     onClick={() => setSelectedDifficulty(diff)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${selectedDifficulty === diff ? `${difficultyColors[diff].bg} ${difficultyColors[diff].text}` : "bg-white/5 text-white/70 hover:bg-white/10 border border-white/10"}`}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${selectedDifficulty === diff ? `${difficultyColors[diff].bg} ${difficultyColors[diff].text}` : "bg-[#0d0d0d] text-white/70 hover:bg-white/10 border border-white/10"}`}
                   >
                     {difficultyColors[diff].label}
                   </button>
@@ -164,7 +171,7 @@ export default function WikiDungeonsPage() {
           <div className="text-center py-20">
             <Castle className="w-20 h-20 text-white/20 mx-auto mb-4" />
             <p className="text-white/50 text-lg mb-3">{error}</p>
-            <button onClick={fetchDungeons} className="px-4 py-2 bg-white/10 rounded-xl text-white text-sm hover:bg-white/20 transition-colors cursor-pointer">
+            <button onClick={fetchDungeons} className="px-4 py-2 bg-[#ffc032] text-[#111] rounded-xl text-sm font-semibold hover:bg-[#ffd04c] transition-colors cursor-pointer">
               Retry
             </button>
           </div>
@@ -183,10 +190,10 @@ export default function WikiDungeonsPage() {
               return (
                 <div
                   key={dungeon.dungeonConfigId}
-                  className={`bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-purple-500/30 transition-all duration-300 ${!dungeon.isActive ? "opacity-50" : ""}`}
+                  className={`bg-[#111111] border border-white/10 rounded-2xl overflow-hidden hover:border-[#ffc032]/30 transition-all duration-300 ${!dungeon.isActive ? "opacity-50" : ""}`}
                 >
                   {/* Image / Banner */}
-                  <div className={`relative h-44 bg-gradient-to-br ${gradient}`}>
+                  <div className={`relative h-44 bg-linear-to-br ${gradient}`}>
                     {dungeon.imageUrl ? (
                       <Image
                         src={dungeon.imageUrl}
@@ -200,7 +207,7 @@ export default function WikiDungeonsPage() {
                         <Castle className="w-16 h-16 text-white/25" />
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent" />
 
                     {/* Badges */}
                     <div className="absolute top-4 left-4 flex gap-2">
@@ -224,7 +231,7 @@ export default function WikiDungeonsPage() {
                   {/* Content */}
                   <div className="p-6">
                     <div className="flex items-start justify-between gap-3 mb-3">
-                      <h3 className="text-xl font-bold text-white hover:text-purple-400 transition-colors">{dungeon.name}</h3>
+                      <h3 className="text-xl font-bold text-white hover:text-[#ffc032] transition-colors">{dungeon.name}</h3>
                       <span className="text-white/50 text-sm shrink-0">Lv. {dungeon.levelRequirement}+</span>
                     </div>
 
@@ -234,17 +241,17 @@ export default function WikiDungeonsPage() {
 
                     {/* Stats grid */}
                     <div className="grid grid-cols-3 gap-3 mb-4">
-                      <div className="bg-white/5 rounded-xl p-3 text-center">
+                      <div className="bg-[#0d0d0d] rounded-xl p-3 text-center">
                         <Users className="w-4 h-4 text-white/40 mx-auto mb-1" />
                         <p className="text-white font-semibold text-sm">{dungeon.maxMembers}</p>
                         <p className="text-white/40 text-[10px]">Players</p>
                       </div>
-                      <div className="bg-white/5 rounded-xl p-3 text-center">
+                      <div className="bg-[#0d0d0d] rounded-xl p-3 text-center">
                         <Zap className="w-4 h-4 text-white/40 mx-auto mb-1" />
                         <p className="text-white font-semibold text-sm">{difficulty}</p>
                         <p className="text-white/40 text-[10px]">Difficulty</p>
                       </div>
-                      <div className="bg-white/5 rounded-xl p-3 text-center">
+                      <div className="bg-[#0d0d0d] rounded-xl p-3 text-center">
                         <Shield className="w-4 h-4 text-white/40 mx-auto mb-1" />
                         <p className="text-white font-semibold text-sm">{dungeon.recommendedPower.toLocaleString()}</p>
                         <p className="text-white/40 text-[10px]">Power</p>

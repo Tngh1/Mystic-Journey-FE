@@ -14,7 +14,7 @@ interface RarityCardProps {
 export function RarityCard({ name, tag, image, accent, href, onClick, fallbackIcon }: RarityCardProps) {
   const content = (
     <div
-      className="group relative bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30 cursor-pointer hover:border-[#ffc032]/40"
+      className="group relative bg-[#111111] border border-white/10 rounded-2xl overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30 cursor-pointer hover:border-[#ffc032]/40"
       onClick={onClick}
     >
       {/* Top accent bar */}
@@ -38,13 +38,13 @@ export function RarityCard({ name, tag, image, accent, href, onClick, fallbackIc
         <div className="absolute inset-0 bg-gradient-to-t from-[#111111] via-transparent to-transparent" />
 
         {/* Tag badge */}
-        <div className="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-black/60 text-gray-200 border border-gray-700">
+        <div className="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-black/60 text-gray-200 border border-white/15">
           {tag}
         </div>
       </div>
 
       {/* Name */}
-      <div className="p-3 border-t border-gray-800">
+      <div className="p-3 border-t border-white/10">
         <p className="text-sm font-semibold text-white text-center group-hover:text-[#ffc032] transition-colors line-clamp-1">
           {name}
         </p>

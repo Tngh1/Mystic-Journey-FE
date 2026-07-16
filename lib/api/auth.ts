@@ -14,7 +14,7 @@ import type {
 
 // ── Đăng nhập ──────────────────────────────────────────────
 export const login = async (emailOrUsername: string, password: string): Promise<LoginResponse> => {
-  return post<LoginResponse>("/api/auth/login", { emailOrUsername, password });
+  return post<LoginResponse>("/api/auth/login", { emailOrUsername, password, clientType: "Web" });
 };
 
 // ── Đăng ký ───────────────────────────────────────────────

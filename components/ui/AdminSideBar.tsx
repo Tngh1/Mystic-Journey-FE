@@ -151,7 +151,7 @@ export default function AdminSideBar() {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-60 min-h-screen bg-[#0F0F0F] flex-col fixed left-0 top-0 h-full">
+      <aside className="hidden lg:flex w-60 min-h-screen bg-[#0F0F0F] border-r border-white/10 flex-col fixed left-0 top-0 h-full">
         <SidebarContent />
       </aside>
 
@@ -163,7 +163,7 @@ export default function AdminSideBar() {
             onClick={close}
             aria-hidden="true"
           />
-          <aside className="absolute left-0 top-0 h-full w-60 max-w-[85vw] bg-[#0F0F0F] flex flex-col animate-in slide-in-from-left">
+          <aside className="absolute left-0 top-0 h-full w-60 max-w-[85vw] bg-[#0F0F0F] border-r border-white/10 flex flex-col animate-in slide-in-from-left">
             <SidebarContent onNavigate={close} />
           </aside>
         </div>

@@ -69,7 +69,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email or username"
               required
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
             />
           </div>
 
@@ -86,7 +86,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 required
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
               />
               <button
                 type="button"
@@ -109,7 +109,7 @@ export default function LoginPage() {
 
           {/* Forgot Password */}
           <div className="flex justify-end">
-            <Link href="/forgot-password" className="text-sm text-[#ffc032] hover:text-[#ffc032] transition-colors">
+            <Link href="/forgot-password" className="text-sm text-[#ffc032] hover:text-[#ffd04c] transition-colors">
               Forgot Password?
             </Link>
           </div>
@@ -124,7 +124,7 @@ export default function LoginPage() {
       {/* Register Link */}
       <p className="text-center text-white/60 mt-6">
         Don&apos;t have an account?{" "}
-        <Link href="/register" className="text-[#ffc032] hover:text-[#ffc032] font-semibold transition-colors">
+        <Link href="/register" className="text-[#ffc032] hover:text-[#ffd04c] font-semibold transition-colors">
           Register
         </Link>
       </p>

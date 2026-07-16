@@ -585,7 +585,7 @@ function UpdateContentContent() {
             <button
               onClick={handlePublish}
               disabled={publishing}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
                 content.isPublished
                   ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                   : 'bg-green-600 text-white hover:bg-green-500'

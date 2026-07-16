@@ -5,11 +5,9 @@ import { useRouter } from 'next/navigation';
 import { Package } from 'lucide-react';
 import { ItemResponse } from "@/lib/api/items";
 import { usePagedQuery } from '@/lib/hooks/usePagedQuery';
-import apiClient from "@/lib/api/client";
 import AdminTable from "@/components/ui/AdminTable";
 import PageHeader from "@/components/ui/PageHeader";
 import FilterSortBar from "@/components/ui/FilterSortBar";
-import { showSuccessAlert, showErrorAlert, showConfirmAlert } from "@/lib/utils/swal";
 
 const rarityColors: Record<string, string> = {
   Common: "text-gray-400",
@@ -150,23 +148,6 @@ export default function ManageItemsPage() {
     });
   };
 
-  const handleDelete = async (item: ItemResponse) => {
-    const result = await showConfirmAlert(
-      "Delete Item",
-      `Are you sure you want to delete "${item.name}"? This action cannot be undone.`,
-      "Delete",
-      "Cancel",
-    );
-    if (!result.isConfirmed) return;
-    try {
-      await apiClient.delete(`/api/items/${item.itemId}`);
-      await showSuccessAlert("Deleted", `"${item.name}" has been deleted successfully.`);
-      refresh();
-    } catch (err: unknown) {
-      await showErrorAlert("Delete Failed", err instanceof Error ? err.message : "Failed to delete");
-    }
-  };
-
   return (
     <div className="space-y-6">
       <PageHeader
@@ -220,7 +201,6 @@ export default function ManageItemsPage() {
         serverSide
         pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
         onUpdate={(item) => router.push(`/manage-items/update?id=${item.itemId}`)}
-        onDelete={handleDelete}
         idField="itemId"
         sortBy={sortBy}
         sortOrder={sortOrder}

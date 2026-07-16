@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import {
-  Map, MapPin, Lock, Trees, Mountain, Skull,
+  Map, MapPin, Trees, Mountain, Skull,
   ChevronLeft, Flame, Snowflake, Leaf, Star, TreesIcon,
   Shield, Users, Gem, Sword, Map as MapIcon,
 } from "lucide-react";
@@ -164,12 +164,11 @@ export default function MapsPage() {
 
   useEffect(() => { fetchQuests(); }, [fetchQuests]);
 
-  // Enrich chapters with quest counts
+  // Enrich chapters with quest + location counts (wiki: everything visible)
   const chaptersWithCounts = CHAPTERS.map((ch) => {
     const count = quests.filter((q) => q.mapName === ch.mapName).length;
     const locations = CHAPTER_LOCATIONS[ch.mapName] ?? [];
-    const discovered = locations.filter((l) => l.isDiscovered).length;
-    return { ...ch, questCount: count, discovered, total: locations.length };
+    return { ...ch, questCount: count, total: locations.length };
   });
 
   const currentChapter = chaptersWithCounts.find((c) => c.mapName === selectedChapter);
@@ -186,7 +185,7 @@ export default function MapsPage() {
       {/* Header */}
       <div className="relative overflow-hidden py-12 md:py-16">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,192,50,0.06),transparent_70%)]" />
-        <div className="container mx-auto px-4 relative z-10 text-center max-w-3xl">
+        <div className="mx-auto px-4 relative z-10 text-center max-w-3xl">
           {selectedChapter && currentChapter ? (
             <div className="flex flex-col items-center">
               <button
@@ -202,26 +201,30 @@ export default function MapsPage() {
               <h1 className={`text-4xl md:text-5xl font-black mb-2 ${currentChapter.accentColor}`}>
                 {currentChapter.name}
               </h1>
-              <p className="text-white/50">{currentChapter.subtitle} · {currentChapter.level}</p>
+              <p className="text-white/50">{currentChapter.subtitle}</p>
             </div>
           ) : (
             <>
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#ffc032]/20 rounded-full mb-5">
-                <MapIcon className="w-5 h-5 text-[#ffc032]" />
-                <span className="text-[#ffc032] font-medium text-sm">World Map</span>
+              <div className="mb-5 flex items-center justify-center gap-3">
+                <span className="h-px w-10 bg-linear-to-r from-transparent to-[#ffc032]/60" />
+                <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">
+                  <MapIcon className="w-3.5 h-3.5" />
+                  World Map
+                </span>
+                <span className="h-px w-10 bg-linear-to-l from-transparent to-[#ffc032]/60" />
               </div>
               <h1 className="text-4xl md:text-5xl font-black text-white mb-3 tracking-tight">
                 Explore the World
               </h1>
               <p className="text-white/55 text-base">
-                {chaptersWithCounts.length} realms, {quests.length} quests total
+                {chaptersWithCounts.length} realms · {quests.length} quests to uncover
               </p>
             </>
           )}
         </div>
       </div>
 
-      <div className="container mx-auto px-4 pb-12">
+      <div className="max-w-[1200px] mx-auto px-4 pb-12">
 
         {/* ══ WORLD MAP ══════════════════════════════════════════════════ */}
         {!selectedChapter && (
@@ -247,11 +250,6 @@ export default function MapsPage() {
                       Ch. {ch.chapter}
                     </span>
                   </div>
-                  <div className="absolute top-3 right-3">
-                    <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-black/60 text-white/70 backdrop-blur-sm">
-                      {ch.level}
-                    </span>
-                  </div>
                 </div>
                 {/* Info */}
                 <div className="p-4">
@@ -260,21 +258,16 @@ export default function MapsPage() {
                     <h3 className="text-base font-black text-white">{ch.name}</h3>
                   </div>
                   <p className="text-white/50 text-xs leading-relaxed mb-3 line-clamp-2">{ch.description}</p>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-white/40">Quests</span>
-                    <span className={`font-bold ${ch.accentColor}`}>{ch.questCount}</span>
+                  <div className="flex items-center gap-4 text-xs">
+                    <span className="flex items-center gap-1 text-white/40">
+                      Locations
+                      <span className={`font-bold ${ch.accentColor}`}>{ch.total}</span>
+                    </span>
+                    <span className="flex items-center gap-1 text-white/40">
+                      Quests
+                      <span className={`font-bold ${ch.accentColor}`}>{ch.questCount}</span>
+                    </span>
                   </div>
-                  {ch.total > 0 && (
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs">
-                        <span className="text-white/40">Locations</span>
-                        <span className={`font-bold ${ch.accentColor}`}>{ch.discovered}/{ch.total}</span>
-                      </div>
-                      <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full transition-all ${ch.barColor}`} style={{ width: `${(ch.discovered / ch.total) * 100}%` }} />
-                      </div>
-                    </div>
-                  )}
                 </div>
               </button>
             ))}
@@ -283,7 +276,7 @@ export default function MapsPage() {
 
         {/* ══ CHAPTER DETAIL ══════════════════════════════════════════ */}
         {selectedChapter && currentChapter && (
-          <div className="max-w-5xl mx-auto space-y-6">
+          <div className="max-w-[1200px] mx-auto space-y-6">
 
             {/* Hero image */}
             <div className={`relative rounded-2xl overflow-hidden border ${currentChapter.borderColor}`}>
@@ -303,10 +296,9 @@ export default function MapsPage() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               {[
-                { label: "Locations", value: `${currentChapter.discovered}/${currentChapter.total}` },
-                { label: "Level Range", value: currentChapter.level },
+                { label: "Locations", value: currentChapter.total },
                 { label: "Quests", value: currentChapter.questCount },
               ].map((stat) => (
                 <div key={stat.label} className={`rounded-xl border p-4 text-center bg-white/[0.03] ${currentChapter.borderColor}`}>
@@ -323,7 +315,7 @@ export default function MapsPage() {
                   key={t}
                   onClick={() => setTypeFilter(t)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide transition-all cursor-pointer ${
-                    typeFilter === t ? "bg-[#ffc032] text-black" : "bg-white/5 text-white/60 hover:bg-white/10 border border-white/10"
+                    typeFilter === t ? "bg-[#ffc032] text-[#111]" : "bg-[#0d0d0d] text-white/60 hover:bg-white/10 border border-white/10"
                   }`}
                 >
                   {t !== "all" && TYPE_ICONS[t]}
@@ -339,29 +331,21 @@ export default function MapsPage() {
                 return (
                   <div
                     key={loc.id}
-                    className={`flex items-start gap-3 p-4 rounded-xl border transition-colors ${
-                      loc.isDiscovered
-                        ? "bg-white/[0.04] border-white/10 hover:bg-white/[0.07]"
-                        : "bg-black/30 border-white/5 opacity-60"
-                    }`}
+                    className="flex items-start gap-3 p-4 rounded-xl border bg-[#111111] border-white/10 hover:border-[#ffc032]/40 transition-colors"
                   >
                     <div className={`mt-0.5 w-9 h-9 rounded-lg flex-shrink-0 flex items-center justify-center border ${style.color}`}>
-                      {loc.isDiscovered ? TYPE_ICONS[loc.type] : <Lock className="w-3.5 h-3.5" />}
+                      {TYPE_ICONS[loc.type]}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                        <h4 className={`font-bold text-sm ${loc.isDiscovered ? "text-white" : "text-white/40"}`}>
-                          {loc.isDiscovered ? loc.name : "???"}
-                        </h4>
+                        <h4 className="font-bold text-sm text-white">{loc.name}</h4>
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase border ${style.color}`}>
                           {TYPE_STYLES[loc.type]?.label}
                         </span>
                       </div>
-                      <p className="text-white/45 text-xs leading-relaxed">
-                        {loc.isDiscovered ? loc.description : "Not yet discovered"}
-                      </p>
-                      {loc.requirements && !loc.isDiscovered && (
-                        <p className="text-red-400 text-xs mt-1 font-medium">Requires: {loc.requirements}</p>
+                      <p className="text-white/45 text-xs leading-relaxed">{loc.description}</p>
+                      {loc.requirements && (
+                        <p className="text-white/40 text-xs mt-1 font-medium">Recommended: {loc.requirements}</p>
                       )}
                     </div>
                   </div>

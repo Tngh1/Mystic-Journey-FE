@@ -198,9 +198,9 @@ export default function WorldSection() {
         {/* Bottom CTA */}
         <div className="mt-24 md:mt-28">
           <div className="mb-10 flex items-center gap-4">
-            <div className="h-px flex-1" style={{ backgroundColor: active.accent, opacity: 0.5 }} />
-            <div className="h-2 w-2 rounded-full transition-colors duration-500" style={{ backgroundColor: active.accent }} />
-            <div className="h-px flex-[2.4] transition-colors duration-500" style={{ backgroundColor: active.accent, opacity: 0.5 }} />
+            <div className="h-px flex-1 bg-[#ffc032]" style={{ opacity: 0.5 }} />
+            <div className="h-2 w-2 rounded-full bg-[#ffc032]" />
+            <div className="h-px flex-[2.4] bg-[#ffc032]" style={{ opacity: 0.5 }} />
           </div>
 
           <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">

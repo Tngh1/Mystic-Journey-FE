@@ -26,6 +26,7 @@ export default function EditDungeonPage() {
     maxMembers: 4,
     difficulty: 1,
     recommendedPower: 0,
+    energyCost: 10,
     isActive: true,
   });
 
@@ -40,6 +41,7 @@ export default function EditDungeonPage() {
           maxMembers: d.maxMembers,
           difficulty: d.difficulty,
           recommendedPower: d.recommendedPower,
+          energyCost: d.energyCost,
           isActive: d.isActive,
         });
       })
@@ -66,6 +68,7 @@ export default function EditDungeonPage() {
         maxMembers: formData.maxMembers,
         difficulty: formData.difficulty,
         recommendedPower: formData.recommendedPower,
+        energyCost: formData.energyCost,
         isActive: formData.isActive,
       });
       router.push("/manage-dungeons");
@@ -146,6 +149,16 @@ export default function EditDungeonPage() {
               type="number"
               value={formData.recommendedPower}
               onChange={(e) => handleChange("recommendedPower", Number(e.target.value))}
+              min="0"
+            />
+          </FormField>
+
+          <FormField label="Energy Cost" htmlFor="energyCost" hint="Energy spent to open the reward chest">
+            <TextInput
+              id="energyCost"
+              type="number"
+              value={formData.energyCost}
+              onChange={(e) => handleChange("energyCost", Number(e.target.value))}
               min="0"
             />
           </FormField>

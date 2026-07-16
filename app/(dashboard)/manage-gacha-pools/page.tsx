@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { GachaBannerResponse } from "@/lib/api/gacha-banners";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
-import apiClient from "@/lib/api/client";
 import { Gem } from "lucide-react";
 import AdminTable from "@/components/ui/AdminTable";
 import FilterSortBar from "@/components/ui/FilterSortBar";
@@ -84,16 +83,6 @@ export default function ManageGachaPoolsPage() {
     setParams(buildParams());
   };
 
-  const handleDelete = async (b: GachaBannerResponse) => {
-    if (!confirm(`Delete gacha banner "${b.name}"?`)) return;
-    try {
-      await apiClient.delete(`/api/gachabanners/${b.gachaBannerId}`);
-      refresh();
-    } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to delete");
-    }
-  };
-
   const columnsWithDate = columns.map(col =>
     col.key === "startAt" || col.key === "endAt"
       ? { ...col, render: (val: string) => formatDate(val) }
@@ -146,7 +135,6 @@ export default function ManageGachaPoolsPage() {
         serverSide
         pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
         onUpdate={(b) => router.push(`/manage-gacha-pools/update?id=${b.gachaBannerId}`)}
-        onDelete={handleDelete}
         idField="gachaBannerId"
         sortBy={sortBy}
         sortOrder={sortOrder}

@@ -3,7 +3,7 @@
 import React from "react";
 
 const BASE_INPUT =
-  "w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] focus:ring-1 focus:ring-[#ffc032]/30 transition-colors";
+  "w-full bg-[#0d0d0d] border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-500 focus:outline-none focus:border-[#ffc032] focus:ring-1 focus:ring-[#ffc032]/30 transition-colors";
 
 interface TextInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
   inputClassName?: string;
@@ -71,7 +71,7 @@ export function Checkbox({ label, className = "", ...rest }: CheckboxProps) {
       <input
         type="checkbox"
         {...rest}
-        className={`w-5 h-5 rounded border-gray-700 bg-[#111] text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer ${className}`}
+        className={`w-5 h-5 rounded border-white/10 bg-[#0d0d0d] text-accent focus:ring-accent focus:ring-offset-0 cursor-pointer ${className}`}
       />
       {label && <span className="text-sm text-white/80">{label}</span>}
     </label>

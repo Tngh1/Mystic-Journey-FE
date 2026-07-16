@@ -1,36 +1,18 @@
 "use client";
 
-import React, { useState, useCallback, useMemo } from "react";
+import { useState, useCallback } from "react";
 import {
-  Search,
-  Loader2,
-  UserCog,
-  Eye,
-  Ban,
-  CheckCircle,
-  AlertCircle,
-  X,
-  Sword,
-  Shield,
-  Target,
-  Heart,
-  Zap,
-  Trophy,
-  Mail,
-  Calendar,
-  Activity,
-  Filter,
-  Crown,
-  Sparkles,
-  Inbox,
-  Coins,
-  Gem,
-  Users,
+  Loader2, UserCog, Eye, Ban, CheckCircle, AlertCircle, X,
+  Sword, Shield, Target, Heart, Zap, Trophy, Calendar, Activity,
+  Crown, Coins, Gem, Users,
 } from "lucide-react";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import { showSuccessAlert, showErrorAlert } from "@/lib/utils/swal";
 import apiClient from "@/lib/api/client";
 import type { PlayerProfileResponse, PlayerStatsResponse } from "@/lib/types";
+import AdminTable from "@/components/ui/AdminTable";
+import PageHeader from "@/components/ui/PageHeader";
+import FilterSortBar from "@/components/ui/FilterSortBar";
 
 interface AccountWithPlayer {
   accountId: number;
@@ -43,8 +25,6 @@ interface AccountWithPlayer {
   playerProfileId: number | null;
   playerDisplayName: string | null;
 }
-
-const ROLES = ["Super Admin", "Admin", "Player", "Guest"];
 
 const ROLE_CONFIG: Record<
   string,
@@ -77,6 +57,26 @@ function formatDate(dateString: string | null) {
 }
 
 export default function ManageAccountsPage() {
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [selectedRole, setSelectedRole] = useState("");
+  const [sortBy, setSortBy] = useState("accountId");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [banningId, setBanningId] = useState<number | null>(null);
+
+  const [viewingAccount, setViewingAccount] = useState<AccountWithPlayer | null>(null);
+  const [playerProfile, setPlayerProfile] = useState<PlayerProfileResponse | null>(null);
+  const [playerStats, setPlayerStats] = useState<PlayerStatsResponse | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+
+  const buildParams = (overrides: Record<string, string | number | boolean | undefined> = {}) => ({
+    ...(searchKeyword.trim() ? { search: searchKeyword.trim() } : {}),
+    ...(selectedRole ? { roleName: selectedRole } : {}),
+    sortBy,
+    sortOrder,
+    ...overrides,
+  });
+
   const {
     data: accounts,
     totalCount,
@@ -91,56 +91,27 @@ export default function ManageAccountsPage() {
   } = usePagedQuery<AccountWithPlayer>({
     endpoint: "/api/adminaccounts",
     pageSize: 10,
+    params: buildParams(),
   });
 
-  const [searchKeyword, setSearchKeyword] = useState("");
-  const [selectedRole, setSelectedRole] = useState("");
-  const [banningId, setBanningId] = useState<number | null>(null);
-  const [showFilters, setShowFilters] = useState(false);
-
-  const [viewingAccount, setViewingAccount] = useState<AccountWithPlayer | null>(null);
-  const [playerProfile, setPlayerProfile] = useState<PlayerProfileResponse | null>(null);
-  const [playerStats, setPlayerStats] = useState<PlayerStatsResponse | null>(null);
-  const [loadingProfile, setLoadingProfile] = useState(false);
-  const [profileError, setProfileError] = useState<string | null>(null);
-
-  const stats = useMemo(() => {
-    const total = totalCount;
-    const active = accounts.filter((a) => a.isActive).length;
-    const banned = accounts.filter((a) => !a.isActive).length;
-    const withProfile = accounts.filter((a) => a.playerProfileId).length;
-    return { total, active, banned, withProfile };
-  }, [accounts, totalCount]);
-
-  const activeFiltersCount =
-    (searchKeyword ? 1 : 0) + (selectedRole ? 1 : 0);
-
-  const buildParams = (overrides: Record<string, unknown> = {}) => ({
-    ...(searchKeyword.trim() ? { search: searchKeyword.trim() } : {}),
-    ...(selectedRole ? { roleName: selectedRole } : {}),
-    ...overrides,
-  });
-
-  const handleSearch = (keyword: string) => {
-    setSearchKeyword(keyword);
-    setParams(buildParams({}));
-  };
-
-  const handleRoleFilter = (role: string) => {
-    const next = selectedRole === role ? "" : role;
-    setSelectedRole(next);
-    setParams(
-      next
-        ? { ...(searchKeyword.trim() ? { search: searchKeyword.trim() } : {}), roleName: next }
-        : { ...(searchKeyword.trim() ? { search: searchKeyword.trim() } : {}) }
-    );
-  };
-
-  const clearAllFilters = () => {
-    setSearchKeyword("");
-    setSelectedRole("");
-    setParams({});
+  const handleSearch = (value: string) => {
+    setSearchKeyword(value);
     setPage(1);
+    setParams(buildParams({ search: value.trim() || undefined }));
+  };
+
+  const handleFilterChange = (_key: string, value: string) => {
+    setSelectedRole(value);
+    setPage(1);
+    setParams(buildParams({ roleName: value || undefined }));
+  };
+
+  const handleSortChange = (value: string) => {
+    const nextOrder = sortBy === value ? (sortOrder === "asc" ? "desc" : "asc") : "asc";
+    setSortBy(value);
+    setSortOrder(nextOrder);
+    setPage(1);
+    setParams(buildParams({ sortBy: value, sortOrder: nextOrder }));
   };
 
   const handleBan = async (account: AccountWithPlayer) => {
@@ -149,23 +120,14 @@ export default function ManageAccountsPage() {
       setBanningId(account.accountId);
       if (account.isActive) {
         await apiClient.post(`/api/adminaccounts/${account.accountId}/ban`);
-        await showSuccessAlert(
-          "Banned!",
-          `Account "${account.userName}" has been banned.`
-        );
+        await showSuccessAlert("Banned!", `Account "${account.userName}" has been banned.`);
       } else {
         await apiClient.post(`/api/adminaccounts/${account.accountId}/unban`);
-        await showSuccessAlert(
-          "Unbanned!",
-          `Account "${account.userName}" has been unbanned.`
-        );
+        await showSuccessAlert("Unbanned!", `Account "${account.userName}" has been unbanned.`);
       }
       refresh();
     } catch (err) {
-      await showErrorAlert(
-        "Error",
-        err instanceof Error ? err.message : "Action failed."
-      );
+      await showErrorAlert("Error", err instanceof Error ? err.message : "Action failed.");
     } finally {
       setBanningId(null);
     }
@@ -182,21 +144,15 @@ export default function ManageAccountsPage() {
     setLoadingProfile(true);
     try {
       const [profileRes, statsRes] = await Promise.all([
-        apiClient.get<PlayerProfileResponse>(
-          `/api/playerprofiles/${account.playerProfileId}`
-        ),
+        apiClient.get<PlayerProfileResponse>(`/api/playerprofiles/${account.playerProfileId}`),
         apiClient
-          .get<PlayerStatsResponse>(
-            `/api/playerprofiles/${account.playerProfileId}/stats`
-          )
+          .get<PlayerStatsResponse>(`/api/playerprofiles/${account.playerProfileId}/stats`)
           .catch(() => null),
       ]);
       setPlayerProfile(profileRes.data);
       setPlayerStats(statsRes?.data ?? null);
     } catch (err) {
-      setProfileError(
-        err instanceof Error ? err.message : "Failed to load player profile."
-      );
+      setProfileError(err instanceof Error ? err.message : "Failed to load player profile.");
     } finally {
       setLoadingProfile(false);
     }
@@ -209,316 +165,171 @@ export default function ManageAccountsPage() {
     setProfileError(null);
   };
 
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-
-  return (
-    <div className="max-w-7xl mx-auto space-y-5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-[#ffc032] to-[#ff8c00] flex items-center justify-center shrink-0 shadow-lg shadow-[#ffc032]/20">
-            <UserCog className="w-7 h-7 text-[#111]" />
+  const columns = [
+    {
+      key: "userName",
+      label: "User",
+      sortable: true,
+      render: (_: unknown, account: AccountWithPlayer) => {
+        const roleCfg = ROLE_CONFIG[account.roleName] ?? ROLE_CONFIG["Player"];
+        const RoleIcon = roleCfg.icon;
+        return (
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-[#222] flex items-center justify-center shrink-0 border border-white/10">
+              <RoleIcon className={`w-4 h-4 ${roleCfg.color}`} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-white truncate">{account.userName}</p>
+              <p className="text-xs text-gray-600 font-mono">#{account.accountId}</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white">Manage Accounts</h1>
-            <p className="text-sm text-gray-500">View and manage all user accounts</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-[#111111] border border-white/10 rounded-2xl p-4">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-            <input
-              type="text"
-              placeholder="Search by username or email..."
-              value={searchKeyword}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 bg-[#111] border border-white/10 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
-            />
-            {searchKeyword && (
-              <button
-                aria-label="Clear search"
-                onClick={() => {
-                  setSearchKeyword("");
-                  setParams(
-                    selectedRole ? { roleName: selectedRole } : {}
-                  );
-                }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
+        );
+      },
+    },
+    {
+      key: "email",
+      label: "Email",
+      sortable: true,
+      render: (val: string) => (
+        <p className="text-sm text-gray-400 truncate max-w-[200px]">{val}</p>
+      ),
+    },
+    {
+      key: "roleName",
+      label: "Role",
+      sortable: true,
+      render: (val: string) => {
+        const roleCfg = ROLE_CONFIG[val] ?? ROLE_CONFIG["Player"];
+        const RoleIcon = roleCfg.icon;
+        return (
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${roleCfg.bg} ${roleCfg.color} ${roleCfg.border}`}>
+            <RoleIcon className="w-3 h-3" />
+            {val}
+          </span>
+        );
+      },
+    },
+    {
+      key: "playerProfileId",
+      label: "Profile",
+      sortable: false,
+      render: (_: unknown, account: AccountWithPlayer) =>
+        account.playerProfileId ? (
+          <span className="inline-flex items-center gap-1.5 text-xs text-green-400 font-semibold">
+            <CheckCircle className="w-3 h-3" />
+            {account.playerDisplayName || "Active"}
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 text-xs text-yellow-400 font-semibold">
+            <AlertCircle className="w-3 h-3" />
+            No Profile
+          </span>
+        ),
+    },
+    {
+      key: "isActive",
+      label: "Status",
+      sortable: true,
+      render: (val: boolean) => (
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
+          val ? "bg-green-500/15 text-green-400 border-green-500/30" : "bg-red-500/15 text-red-400 border-red-500/30"
+        }`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${val ? "bg-green-400" : "bg-red-400"}`} />
+          {val ? "Active" : "Banned"}
+        </span>
+      ),
+    },
+    {
+      key: "lastLogin",
+      label: "Last Login",
+      sortable: true,
+      render: (val: string | null) => (
+        <p className="text-xs text-gray-500">{formatDate(val)}</p>
+      ),
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      sortable: false,
+      render: (_: unknown, account: AccountWithPlayer) => (
+        <div className="flex items-center justify-end gap-1.5">
+          <button
+            type="button"
+            onClick={() => handleViewProfile(account)}
+            className="p-2 bg-[#ffc032]/10 hover:bg-[#ffc032]/20 text-[#ffc032] border border-[#ffc032]/30 rounded-lg transition-colors cursor-pointer"
+            aria-label="View profile"
+          >
+            <Eye className="w-4 h-4" />
+          </button>
+          {account.roleName === "Player" && (
             <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all cursor-pointer ${
-                showFilters || activeFiltersCount > 0
-                  ? "bg-[#ffc032]/10 border-[#ffc032]/40 text-[#ffc032]"
-                  : "bg-[#111] border-white/10 text-gray-400 hover:text-white"
+              type="button"
+              onClick={() => handleBan(account)}
+              disabled={banningId === account.accountId}
+              className={`p-2 rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
+                account.isActive
+                  ? "bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/30"
+                  : "bg-green-500/10 hover:bg-green-500/20 text-green-400 border-green-500/30"
               }`}
+              aria-label={account.isActive ? "Ban account" : "Unban account"}
+              title={account.isActive ? "Ban" : "Unban"}
             >
-              <Filter className="w-4 h-4" />
-              Filters
-              {activeFiltersCount > 0 && (
-                <span className="w-5 h-5 rounded-full bg-[#ffc032] text-[#111] text-xs font-bold flex items-center justify-center">
-                  {activeFiltersCount}
-                </span>
+              {banningId === account.accountId ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : account.isActive ? (
+                <Ban className="w-4 h-4" />
+              ) : (
+                <CheckCircle className="w-4 h-4" />
               )}
             </button>
-            {activeFiltersCount > 0 && (
-              <button
-                onClick={clearAllFilters}
-                className="px-3 py-2.5 text-gray-500 hover:text-red-400 text-sm transition-colors cursor-pointer"
-              >
-                Clear all
-              </button>
-            )}
-          </div>
-        </div>
-
-        {showFilters && (
-          <div className="mt-4 pt-4 border-t border-white/10">
-            <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
-              Role
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {ROLES.map((role) => {
-                const cfg = ROLE_CONFIG[role];
-                const RoleIcon = cfg.icon;
-                const active = selectedRole === role;
-                return (
-                  <button
-                    key={role}
-                    onClick={() => handleRoleFilter(role)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border transition-all cursor-pointer ${
-                      active
-                        ? `${cfg.bg} ${cfg.color} ${cfg.border}`
-                        : "bg-[#111] border-white/10 text-gray-400 hover:text-white hover:border-gray-600"
-                    }`}
-                  >
-                    <RoleIcon className="w-4 h-4" />
-                    {role}
-                    {active && <CheckCircle className="w-3.5 h-3.5" />}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Error */}
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
-          <p className="text-red-400 text-sm flex-1">{error}</p>
-        </div>
-      )}
-
-      {/* Table */}
-      {loading && accounts.length === 0 ? (
-        <div className="bg-[#111111] border border-white/10 rounded-2xl p-12 flex items-center justify-center">
-          <Loader2 className="w-8 h-8 text-[#ffc032] animate-spin" />
-        </div>
-      ) : accounts.length === 0 ? (
-        <div className="bg-[#111111] border border-white/10 rounded-2xl p-12 flex flex-col items-center justify-center text-center">
-          <div className="w-16 h-16 rounded-2xl bg-[#111] border border-white/10 flex items-center justify-center mb-4">
-            <UserCog className="w-7 h-7 text-gray-700" />
-          </div>
-          <p className="text-sm font-medium text-gray-500 mb-1">No accounts found</p>
-          <p className="text-xs text-gray-600">
-            Try a different search keyword or role filter
-          </p>
-        </div>
-      ) : (
-        <div className="bg-[#111111] border border-white/10 rounded-2xl overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-white/10 bg-[#161616]">
-                  <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    User
-                  </th>
-                  <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Profile
-                  </th>
-                  <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Last Login
-                  </th>
-                  <th className="px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {accounts.map((account) => {
-                  const roleCfg =
-                    ROLE_CONFIG[account.roleName] ?? ROLE_CONFIG["Player"];
-                  const RoleIcon = roleCfg.icon;
-                  return (
-                    <tr
-                      key={account.accountId}
-                      className="border-b border-white/10/50 hover:bg-[#1e1e1e] transition-colors"
-                    >
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-[#222] flex items-center justify-center shrink-0 border border-white/10">
-                            <RoleIcon className={`w-4 h-4 ${roleCfg.color}`} />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-white truncate">
-                              {account.userName}
-                            </p>
-                            <p className="text-xs text-gray-600 font-mono">
-                              #{account.accountId}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <p className="text-sm text-gray-400 truncate max-w-[200px]">
-                          {account.email}
-                        </p>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${roleCfg.bg} ${roleCfg.color} ${roleCfg.border}`}
-                        >
-                          <RoleIcon className="w-3 h-3" />
-                          {account.roleName}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        {account.playerProfileId ? (
-                          <span className="inline-flex items-center gap-1.5 text-xs text-green-400 font-semibold">
-                            <CheckCircle className="w-3 h-3" />
-                            {account.playerDisplayName || "Active"}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 text-xs text-yellow-400 font-semibold">
-                            <AlertCircle className="w-3 h-3" />
-                            No Profile
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
-                            account.isActive
-                              ? "bg-green-500/15 text-green-400 border-green-500/30"
-                              : "bg-red-500/15 text-red-400 border-red-500/30"
-                          }`}
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              account.isActive ? "bg-green-400" : "bg-red-400"
-                            }`}
-                          />
-                          {account.isActive ? "Active" : "Banned"}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <p className="text-xs text-gray-500">
-                          {formatDate(account.lastLogin)}
-                        </p>
-                      </td>
-                      <td className="px-5 py-3.5 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => handleViewProfile(account)}
-                            className="p-2 bg-[#ffc032]/10 hover:bg-[#ffc032]/20 text-[#ffc032] border border-[#ffc032]/30 rounded-lg transition-colors cursor-pointer"
-                            aria-label="View profile"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          {account.roleName === "Player" && (
-                            <button
-                              onClick={() => handleBan(account)}
-                              disabled={banningId === account.accountId}
-                              className={`p-2 rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
-                                account.isActive
-                                  ? "bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/30"
-                                  : "bg-green-500/10 hover:bg-green-500/20 text-green-400 border-green-500/30"
-                              }`}
-                              aria-label={account.isActive ? "Ban account" : "Unban account"}
-                              title={account.isActive ? "Ban" : "Unban"}
-                            >
-                              {banningId === account.accountId ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : account.isActive ? (
-                                <Ban className="w-4 h-4" />
-                              ) : (
-                                <CheckCircle className="w-4 h-4" />
-                              )}
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {totalCount > 0 && (
-            <div className="px-5 py-3.5 border-t border-white/10 flex items-center justify-between">
-              <div className="text-xs text-gray-500">
-                Page <span className="text-white">{page}</span> of{" "}
-                <span className="text-white">{totalPages}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <select
-                  aria-label="Page size"
-                  value={pageSize}
-                  onChange={(e) => setPageSize(Number(e.target.value))}
-                  className="px-3 py-1.5 bg-[#111] border border-white/10 rounded-lg text-xs text-white focus:outline-none focus:border-[#ffc032] cursor-pointer"
-                >
-                  {[10, 25, 50].map((s) => (
-                    <option key={s} value={s}>
-                      {s} / page
-                    </option>
-                  ))}
-                </select>
-                <button
-                  aria-label="Previous page"
-                  onClick={() => setPage(page - 1)}
-                  disabled={page === 1}
-                  className="p-1.5 px-3 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed border border-white/10 cursor-pointer"
-                >
-                  ←
-                </button>
-                <span className="px-2 py-1 text-xs text-white bg-[#111] border border-white/10 rounded-lg min-w-12.5 text-center">
-                  {page} / {totalPages}
-                </span>
-                <button
-                  aria-label="Next page"
-                  onClick={() => setPage(page + 1)}
-                  disabled={page >= totalPages}
-                  className="p-1.5 px-3 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed border border-white/10 cursor-pointer"
-                >
-                  →
-                </button>
-              </div>
-            </div>
           )}
         </div>
-      )}
+      ),
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Manage Accounts"
+        subtitle="View and manage all user accounts"
+        icon={UserCog}
+      />
+
+      <FilterSortBar
+        search={{ placeholder: "Search by username or email...", icon: UserCog, value: searchKeyword, onChange: handleSearch }}
+        filters={[
+          {
+            key: "role",
+            label: "All Roles",
+            value: selectedRole,
+            onChange: (v) => handleFilterChange("role", v),
+            options: [
+              { value: "Super Admin", label: "Super Admin" },
+              { value: "Admin", label: "Admin" },
+              { value: "Player", label: "Player" },
+              { value: "Guest", label: "Guest" },
+            ],
+          },
+        ]}
+      />
+
+      <AdminTable
+        title="Accounts List"
+        columns={columns}
+        data={accounts}
+        loading={loading}
+        error={error}
+        onRetry={refresh}
+        emptyTitle="No accounts found"
+        emptyHint="Try a different search keyword or role filter."
+        serverSide
+        pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
+        idField="accountId"
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSortChange}
+      />
 
       {/* Player Profile Modal */}
       {viewingAccount && (
@@ -557,9 +368,7 @@ export default function ManageAccountsPage() {
                   <div className="w-20 h-20 rounded-full bg-yellow-500/15 flex items-center justify-center mx-auto mb-4 border border-yellow-500/30">
                     <AlertCircle className="w-10 h-10 text-yellow-400" />
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-2">
-                    No Character Created
-                  </h3>
+                  <h3 className="text-xl font-bold text-white mb-2">No Character Created</h3>
                   <p className="text-gray-400 mb-1">
                     This account does not have a Player Profile yet.
                   </p>
@@ -591,19 +400,14 @@ export default function ManageAccountsPage() {
                       <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                         <span
                           className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
-                            CLASS_CONFIG[playerProfile.playerClass]?.color ??
-                            "text-gray-300"
+                            CLASS_CONFIG[playerProfile.playerClass]?.color ?? "text-gray-300"
                           } ${
-                            CLASS_CONFIG[playerProfile.playerClass]?.bg ??
-                            "bg-gray-500/15"
+                            CLASS_CONFIG[playerProfile.playerClass]?.bg ?? "bg-gray-500/15"
                           } ${
-                            CLASS_CONFIG[playerProfile.playerClass]?.border ??
-                            "border-gray-500/30"
+                            CLASS_CONFIG[playerProfile.playerClass]?.border ?? "border-gray-500/30"
                           }`}
                         >
-                          <span>
-                            {CLASS_CONFIG[playerProfile.playerClass]?.emoji}
-                          </span>
+                          <span>{CLASS_CONFIG[playerProfile.playerClass]?.emoji}</span>
                           {playerProfile.playerClass}
                         </span>
                         <span className="text-[#ffc032] font-semibold text-sm">
@@ -657,42 +461,12 @@ export default function ManageAccountsPage() {
                         Combat Stats
                       </h4>
                       <div className="grid grid-cols-2 gap-2">
-                        <StatRow
-                          icon={Heart}
-                          color="text-red-400"
-                          label="HP"
-                          value={`${playerStats.currentHp} / ${playerStats.maxHp}`}
-                        />
-                        <StatRow
-                          icon={Sword}
-                          color="text-orange-400"
-                          label="Attack"
-                          value={playerStats.atk}
-                        />
-                        <StatRow
-                          icon={Shield}
-                          color="text-blue-400"
-                          label="Defense"
-                          value={playerStats.def}
-                        />
-                        <StatRow
-                          icon={Target}
-                          color="text-pink-400"
-                          label="Crit Rate"
-                          value={`${playerStats.critRate}%`}
-                        />
-                        <StatRow
-                          icon={Zap}
-                          color="text-yellow-400"
-                          label="Crit DMG"
-                          value={`${playerStats.critDamage}%`}
-                        />
-                        <StatRow
-                          icon={Trophy}
-                          color="text-purple-400"
-                          label="Wins / Losses"
-                          value={`${playerStats.totalWins} / ${playerStats.totalLosses}`}
-                        />
+                        <StatRow icon={Heart} color="text-red-400" label="HP" value={`${playerStats.currentHp} / ${playerStats.maxHp}`} />
+                        <StatRow icon={Sword} color="text-orange-400" label="Attack" value={playerStats.atk} />
+                        <StatRow icon={Shield} color="text-blue-400" label="Defense" value={playerStats.def} />
+                        <StatRow icon={Target} color="text-pink-400" label="Crit Rate" value={`${playerStats.critRate}%`} />
+                        <StatRow icon={Zap} color="text-yellow-400" label="Crit DMG" value={`${playerStats.critDamage}%`} />
+                        <StatRow icon={Trophy} color="text-purple-400" label="Wins / Losses" value={`${playerStats.totalWins} / ${playerStats.totalLosses}`} />
                       </div>
                     </div>
                   )}
@@ -703,16 +477,8 @@ export default function ManageAccountsPage() {
                       Timeline
                     </h4>
                     <div className="space-y-2">
-                      <TimelineRow
-                        icon={Calendar}
-                        label="Created"
-                        value={formatDate(playerProfile.createdAt)}
-                      />
-                      <TimelineRow
-                        icon={Activity}
-                        label="Last Updated"
-                        value={formatDate(playerProfile.updatedAt)}
-                      />
+                      <TimelineRow icon={Calendar} label="Created" value={formatDate(playerProfile.createdAt)} />
+                      <TimelineRow icon={Activity} label="Last Updated" value={formatDate(playerProfile.updatedAt)} />
                     </div>
                   </div>
                 </div>

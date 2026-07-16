@@ -163,7 +163,7 @@ export default function WikiItemsPage() {
         />
       )}
 
-      <div className="container mx-auto flex">
+      <div className="max-w-[1200px] mx-auto flex">
         <aside className={`fixed lg:sticky lg:top-[88px] md:lg:top-[112px] top-[88px] md:top-[112px] z-40 w-60 h-[calc(100vh-88px)] md:shrink-0 self-start bg-[#0F0F0F] overflow-y-auto nice-scrollbar transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
           <div className="px-2 py-4 space-y-4">
             <div>
@@ -174,7 +174,7 @@ export default function WikiItemsPage() {
                   className={[
                     "w-full h-10 px-3 rounded-[10px] flex items-center justify-between transition-colors duration-200 cursor-pointer",
                     rarity === "all"
-                      ? "bg-[#3A3A3A] text-white"
+                      ? "bg-[#ffc032]/15 text-[#ffc032]"
                       : "bg-transparent text-white hover:bg-[#272727]",
                   ].join(" ")}
                 >
@@ -191,7 +191,7 @@ export default function WikiItemsPage() {
                       className={[
                         "w-full h-10 px-3 rounded-[10px] flex items-center justify-between transition-colors duration-200 cursor-pointer",
                         isActive
-                          ? "bg-[#3A3A3A] text-white"
+                          ? "bg-[#ffc032]/15 text-[#ffc032]"
                           : "bg-transparent text-white hover:bg-[#272727]",
                       ].join(" ")}
                     >
@@ -219,7 +219,7 @@ export default function WikiItemsPage() {
                       className={[
                         "px-2.5 py-1 rounded-md text-xs transition-colors duration-200 cursor-pointer",
                         slot === s
-                          ? "bg-[#3A3A3A] text-white font-semibold"
+                          ? "bg-[#ffc032]/15 text-[#ffc032] font-semibold"
                           : "bg-transparent text-[#AAAAAA] hover:bg-[#272727] hover:text-white",
                       ].join(" ")}
                     >
@@ -246,7 +246,7 @@ export default function WikiItemsPage() {
                       className={[
                         "w-full h-10 px-3 rounded-[10px] flex items-center text-left transition-colors duration-200 cursor-pointer",
                         isActive
-                          ? "bg-[#3A3A3A] text-white"
+                          ? "bg-[#ffc032]/15 text-[#ffc032]"
                           : "bg-transparent text-white hover:bg-[#272727]",
                       ].join(" ")}
                     >
@@ -273,6 +273,14 @@ export default function WikiItemsPage() {
 
         <main className="flex-1 min-w-0">
           <div className="px-4 md:px-6 pt-6 pb-2">
+            <div className="mb-4 flex items-center gap-3">
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">
+                <Package className="w-3.5 h-3.5" />
+                Item Codex
+              </span>
+              <span className="h-px flex-1 bg-linear-to-r from-[#ffc032]/40 to-transparent" />
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">Items</h1>
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-2">
                 {TYPE_OPTIONS.map((t) => {
@@ -284,7 +292,7 @@ export default function WikiItemsPage() {
                       className={[
                         "h-9 px-4 rounded-xl flex items-center gap-2 transition-colors duration-200 cursor-pointer text-sm font-medium",
                         isActive
-                          ? "bg-[#3A3A3A] text-white"
+                          ? "bg-[#ffc032] text-[#111]"
                           : "bg-[#1a1a1a] text-white/60 hover:bg-[#252525] hover:text-white border border-white/10",
                       ].join(" ")}
                     >

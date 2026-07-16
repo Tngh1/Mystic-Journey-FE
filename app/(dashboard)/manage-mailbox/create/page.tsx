@@ -303,7 +303,7 @@ export default function SendMailPage() {
                   type="button"
                   onClick={() => isCompleted && setActiveStep(step.id)}
                   disabled={!isCompleted && !isActive}
-                  className="flex flex-col items-center gap-1.5 shrink-0 group"
+                  className="flex flex-col items-center gap-1.5 shrink-0 group cursor-pointer"
                 >
                   <div
                     className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all ${
@@ -406,7 +406,7 @@ export default function SendMailPage() {
                       <button
                         type="button"
                         onClick={() => setPlayerSelection("single")}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                           playerSelection === "single"
                             ? "bg-[#ffc032] text-[#111]"
                             : "text-gray-400 hover:text-white"
@@ -418,7 +418,7 @@ export default function SendMailPage() {
                       <button
                         type="button"
                         onClick={() => setPlayerSelection("multiple")}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                           playerSelection === "multiple"
                             ? "bg-[#ffc032] text-[#111]"
                             : "text-gray-400 hover:text-white"
@@ -533,7 +533,7 @@ export default function SendMailPage() {
                           key={t.value}
                           type="button"
                           onClick={() => setForm((p) => ({ ...p, type: t.value }))}
-                          className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
+                          className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer ${
                             selected
                               ? `${t.bg} ${t.border}`
                               : "bg-[#111] border-white/10 hover:border-gray-600"
@@ -702,7 +702,7 @@ export default function SendMailPage() {
                                   key={item.itemId}
                                   type="button"
                                   onClick={() => handleSelectItem(item)}
-                                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#252525] transition-colors text-left ${
+                                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#252525] transition-colors text-left cursor-pointer ${
                                     isSelected ? "bg-purple-500/10" : ""
                                   }`}
                                 >
@@ -928,7 +928,7 @@ export default function SendMailPage() {
                   type="button"
                   onClick={goPrev}
                   disabled={submitting || success}
-                  className="px-5 py-2.5 bg-[#111111] hover:bg-[#222] text-gray-400 hover:text-white border border-white/10 hover:border-gray-600 rounded-xl font-medium transition-all disabled:opacity-50"
+                  className="px-5 py-2.5 bg-[#111111] hover:bg-[#222] text-gray-400 hover:text-white border border-white/10 hover:border-gray-600 rounded-xl font-medium transition-all disabled:opacity-50 cursor-pointer"
                 >
                   Back
                 </button>
@@ -937,7 +937,7 @@ export default function SendMailPage() {
                 type="button"
                 onClick={resetForm}
                 disabled={submitting || success}
-                className="px-4 py-2.5 text-gray-500 hover:text-red-400 transition-all disabled:opacity-50 flex items-center gap-1.5"
+                className="px-4 py-2.5 text-gray-500 hover:text-red-400 transition-all disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
               >
                 <Trash2 className="w-4 h-4" />
                 Reset
@@ -949,7 +949,7 @@ export default function SendMailPage() {
                 type="button"
                 onClick={goNext}
                 disabled={submitting || success}
-                className="px-6 py-2.5 bg-[#ffc032] hover:bg-[#ffd04c] text-[#111] font-bold rounded-xl transition-all disabled:opacity-50"
+                className="px-6 py-2.5 bg-[#ffc032] hover:bg-[#ffd04c] text-[#111] font-bold rounded-xl transition-all disabled:opacity-50 cursor-pointer"
               >
                 Continue
               </button>
@@ -958,7 +958,7 @@ export default function SendMailPage() {
                 type="button"
                 onClick={handleSubmit}
                 disabled={submitting || success}
-                className="flex items-center gap-2 px-8 py-3 bg-[#ffc032] hover:bg-[#ffd04c] text-[#111] font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-8 py-3 bg-[#ffc032] hover:bg-[#ffd04c] text-[#111] font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {submitting ? (
                   <>

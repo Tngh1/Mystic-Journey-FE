@@ -144,7 +144,7 @@ export default function AdminTable<T extends object>({
 
     if (loading && currentData.length === 0) {
       return Array.from({ length: 5 }).map((_, rowIdx) => (
-        <tr key={`skeleton-${rowIdx}`} className="border-b border-white/10/50">
+        <tr key={`skeleton-${rowIdx}`} className="border-b border-white/5">
           {columns.map((col) => (
             <td key={col.key} className="px-5 py-3.5">
               <div className="h-4 bg-white/5 rounded animate-pulse" style={{ width: `${50 + ((rowIdx * 17 + col.key.length * 11) % 40)}%` }} />
@@ -184,7 +184,7 @@ export default function AdminTable<T extends object>({
         <tr
           key={String(rowId ?? rowIndex)}
           onClick={() => onRowClick?.(item)}
-          className={`border-b border-white/10/50 hover:bg-[#1e1e1e]/70 transition-colors group ${
+          className={`border-b border-white/5 hover:bg-[#1e1e1e]/70 transition-colors group ${
             onRowClick ? "cursor-pointer" : ""
           } ${isSelected ? "bg-[#252525]" : ""}`}
         >

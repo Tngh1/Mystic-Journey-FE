@@ -299,6 +299,7 @@ export interface DungeonConfigResponse {
   maxMembers: number;
   difficulty: number;
   recommendedPower: number;
+  energyCost: number;
   chestId: number | null;
   isActive: boolean;
 }
@@ -312,6 +313,7 @@ export interface UpdateDungeonConfigRequest {
   maxMembers?: number;
   difficulty?: number;
   recommendedPower?: number;
+  energyCost?: number;
   chestId?: number;
   isActive?: boolean;
 }
@@ -646,25 +648,6 @@ export interface PurchaseHistoryResponse {
   totalPrice: number;
   currency: string;
   purchasedAt: string;
-}
-
-export interface SaleResponse {
-  id: number;
-  playerProfileId: number;
-  playerName: string | null;
-  saleDate: string;
-  totalAmount: number;
-  saleItems: SaleItemResponse[];
-}
-
-export interface SaleItemResponse {
-  id: number;
-  saleId: number;
-  itemId: number;
-  itemName: string;
-  quantity: number;
-  pricePerUnit: number;
-  totalPrice: number;
 }
 
 /* ─── Game Config ────────────────────────────────────────────────────────── */

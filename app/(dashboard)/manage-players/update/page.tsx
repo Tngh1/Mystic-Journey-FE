@@ -735,7 +735,8 @@ export default function EditPlayerPage() {
     gold: number;
     gems: number;
     energy: number;
-    isBanned: boolean;
+    maxEnergy: number;
+    corruptionLevel: number;
   }>({
     displayName: '',
     avatarUrl: '',
@@ -745,7 +746,8 @@ export default function EditPlayerPage() {
     gold: 0,
     gems: 0,
     energy: 100,
-    isBanned: false,
+    maxEnergy: 100,
+    corruptionLevel: 0,
   });
 
   const [stats, setStats] = useState<PlayerStatsResponse | null>(null);
@@ -767,7 +769,8 @@ export default function EditPlayerPage() {
         gold: data.gold,
         gems: data.gems,
         energy: data.energy,
-        isBanned: data.isBanned,
+        maxEnergy: data.maxEnergy,
+        corruptionLevel: data.corruptionLevel,
       });
 
       setStats(data.stats);
@@ -1010,18 +1013,32 @@ export default function EditPlayerPage() {
                   />
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div>
+                  <label htmlFor="maxEnergy" className="block text-sm font-medium text-gray-400 mb-2">Max Energy</label>
                   <input
-                    type="checkbox"
-                    name="isBanned"
-                    id="isBanned"
-                    checked={formData.isBanned}
+                    type="number"
+                    name="maxEnergy"
+                    id="maxEnergy"
+                    value={formData.maxEnergy}
                     onChange={handleChange}
-                    className="w-5 h-5 rounded border-white/10 bg-[#0d0d0d] text-red-500 focus:ring-[#ffc032] focus:ring-offset-0"
+                    min="0"
+                    className="w-full px-4 py-3 bg-[#0d0d0d] border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#ffc032] transition-colors"
+                    required
                   />
-                  <label htmlFor="isBanned" className="text-sm font-medium text-gray-300">
-                    Banned
-                  </label>
+                </div>
+
+                <div>
+                  <label htmlFor="corruptionLevel" className="block text-sm font-medium text-gray-400 mb-2">Corruption Level</label>
+                  <input
+                    type="number"
+                    name="corruptionLevel"
+                    id="corruptionLevel"
+                    value={formData.corruptionLevel}
+                    onChange={handleChange}
+                    min="0"
+                    step="0.01"
+                    className="w-full px-4 py-3 bg-[#0d0d0d] border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#ffc032] transition-colors"
+                  />
                 </div>
               </div>
             </div>

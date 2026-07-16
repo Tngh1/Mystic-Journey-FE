@@ -69,19 +69,23 @@ export default function StoryPage() {
   return (
     <div className="min-h-screen pt-[88px] md:pt-[112px] pb-12">
       {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#ffc032]/10 via-transparent to-transparent"></div>
+      <div className="relative overflow-hidden border-b border-white/10">
+        <div className="pointer-events-none absolute -top-24 left-1/2 h-64 w-[min(85%,680px)] -translate-x-1/2 rounded-full bg-[#ffc032]/10 blur-[130px]" />
 
-        <div className="container mx-auto px-4 py-20 relative z-10">
+        <div className="max-w-[1200px] mx-auto px-4 py-20 relative z-10">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#ffc032]/20 rounded-full mb-6">
-              <BookOpen className="w-5 h-5 text-[#ffc032]" />
-              <span className="text-[#ffc032] font-medium">The Chronicle</span>
+            <div className="mb-5 flex items-center justify-center gap-3">
+              <span className="h-px w-10 bg-linear-to-r from-transparent to-[#ffc032]/60" />
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">
+                <BookOpen className="w-3.5 h-3.5" />
+                The Chronicle
+              </span>
+              <span className="h-px w-10 bg-linear-to-l from-transparent to-[#ffc032]/60" />
             </div>
 
             <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
               The Tale of{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ffc032] to-[#ca831f]">
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-[#ffc032] to-[#ca831f]">
                 Mystic Journey
               </span>
             </h1>
@@ -94,7 +98,7 @@ export default function StoryPage() {
             <div className="flex flex-wrap justify-center gap-4">
               <button
                 onClick={() => setActiveChapter(0)}
-                className="flex items-center gap-2 px-6 py-3 bg-[#ffc032] text-black font-semibold rounded-xl hover:bg-[#ffc032]/90 transition-all duration-300 shadow-lg shadow-[#ffc032]/20 cursor-pointer"
+                className="flex items-center gap-2 px-6 py-3 bg-[#ffc032] text-[#111] font-semibold rounded-xl hover:bg-[#ffd04c] transition-all duration-300 shadow-lg shadow-[#ffc032]/20 cursor-pointer"
               >
                 <BookOpen className="w-5 h-5" />
                 Begin the Journey
@@ -104,7 +108,7 @@ export default function StoryPage() {
                   const el = document.getElementById("chapters");
                   el?.scrollIntoView({ behavior: "smooth" });
                 }}
-                className="flex items-center gap-2 px-6 py-3 bg-white/5 text-white font-medium rounded-xl hover:bg-white/10 transition-all duration-300 border border-white/10 cursor-pointer"
+                className="flex items-center gap-2 px-6 py-3 bg-[#111111] text-white font-medium rounded-xl hover:bg-white/10 transition-all duration-300 border border-white/10 cursor-pointer"
               >
                 <MapPin className="w-5 h-5" />
                 Read Chapters
@@ -115,7 +119,7 @@ export default function StoryPage() {
       </div>
 
       {/* Chapter Navigation */}
-      <div id="chapters" className="container mx-auto px-4 py-8">
+      <div id="chapters" className="max-w-[1200px] mx-auto px-4 py-8">
         {/* Chapter Pills */}
         <div className="flex flex-wrap justify-center gap-3 mb-12">
           {chapters.map((chapter, index) => (
@@ -124,8 +128,8 @@ export default function StoryPage() {
               onClick={() => setActiveChapter(index)}
               className={`group flex items-center gap-2 px-5 py-3 rounded-xl font-medium transition-all duration-300 cursor-pointer ${
                 activeChapter === index
-                  ? "bg-[#ffc032] text-black shadow-lg shadow-[#ffc032]/20"
-                  : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white border border-white/10"
+                  ? "bg-[#ffc032] text-[#111] shadow-lg shadow-[#ffc032]/20"
+                  : "bg-[#111111] text-white/70 hover:bg-white/10 hover:text-white border border-white/10"
               }`}
             >
               <span className={`${activeChapter === index ? "" : "text-[#ffc032]"}`}>
@@ -141,10 +145,10 @@ export default function StoryPage() {
         <div className="max-w-4xl mx-auto">
           <div className="relative">
             {/* Background Decoration */}
-            <div className="absolute -inset-4 bg-gradient-to-r from-transparent via-[#ffc032]/5 to-transparent blur-2xl"></div>
+            <div className="absolute -inset-4 bg-linear-to-r from-transparent via-[#ffc032]/5 to-transparent blur-2xl"></div>
 
             {/* Chapter Card */}
-            <div className={`relative bg-gradient-to-br ${chapters[activeChapter].bgGradient} border border-white/10 rounded-3xl p-8 md:p-12 backdrop-blur-sm transition-all duration-500`}>
+            <div className={`relative bg-linear-to-br ${chapters[activeChapter].bgGradient} border border-white/10 rounded-3xl p-8 md:p-12 backdrop-blur-sm transition-all duration-500`}>
               {/* Chapter Number */}
               <div className="absolute -top-6 left-8">
                 <div className="bg-[#111111] border border-white/10 rounded-2xl px-6 py-3 flex items-center gap-3 shadow-xl">
@@ -158,8 +162,6 @@ export default function StoryPage() {
                 <div className="bg-[#111111] border border-white/10 rounded-2xl px-4 py-3 flex items-center gap-2 shadow-xl">
                   <MapPin className="w-4 h-4 text-[#ffc032]" />
                   <span className="text-sm font-semibold text-white">{chapters[activeChapter].location}</span>
-                  <span className="text-white/40 text-xs">·</span>
-                  <span className="text-white/50 text-xs">{chapters[activeChapter].level}</span>
                 </div>
               </div>
 
@@ -198,7 +200,7 @@ export default function StoryPage() {
                 <button
                   onClick={() => setActiveChapter(Math.max(0, activeChapter - 1))}
                   disabled={activeChapter === 0}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-xl transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-[#111111] hover:bg-white/10 text-white/70 hover:text-white rounded-xl transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer border border-white/10"
                 >
                   <ChevronRight className="w-4 h-4 rotate-180" />
                   Previous Chapter
@@ -223,7 +225,7 @@ export default function StoryPage() {
                 <button
                   onClick={() => setActiveChapter(Math.min(chapters.length - 1, activeChapter + 1))}
                   disabled={activeChapter === chapters.length - 1}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-[#ffc032] hover:bg-[#ffc032]/90 text-black font-medium rounded-xl transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-[#ffc032] hover:bg-[#ffd04c] text-[#111] font-medium rounded-xl transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                 >
                   Next Chapter
                   <ChevronRight className="w-4 h-4" />
@@ -235,8 +237,8 @@ export default function StoryPage() {
       </div>
 
       {/* Closing Section */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="max-w-4xl mx-auto bg-gradient-to-r from-[#ffc032]/20 via-[#ffc032]/10 to-[#ffc032]/20 border border-[#ffc032]/30 rounded-3xl p-12 text-center relative overflow-hidden">
+      <div className="max-w-[1200px] mx-auto px-4 py-16">
+        <div className="max-w-4xl mx-auto bg-linear-to-r from-[#ffc032]/20 via-[#ffc032]/10 to-[#ffc032]/20 border border-[#ffc032]/30 rounded-3xl p-12 text-center relative overflow-hidden">
           <div className="relative z-10">
             <Crown className="w-16 h-16 text-[#ffc032] mx-auto mb-6" />
             <h3 className="text-3xl font-bold text-white mb-4">Every Map Tells a Story</h3>
@@ -246,7 +248,7 @@ export default function StoryPage() {
             </p>
             <a
               href="/wiki/maps"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-[#ffc032] text-black font-bold text-lg rounded-xl hover:bg-[#ffc032]/90 transition-all duration-300 shadow-lg shadow-[#ffc032]/20 cursor-pointer"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-[#ffc032] text-[#111] font-bold text-lg rounded-xl hover:bg-[#ffd04c] transition-all duration-300 shadow-lg shadow-[#ffc032]/20 cursor-pointer"
             >
               <MapPin className="w-5 h-5" />
               Explore the Maps

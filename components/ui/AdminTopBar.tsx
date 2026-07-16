@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, Menu, LogOut, X } from "lucide-react";
+import { Menu, LogOut, X } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/contexts/AuthContext";
@@ -35,18 +35,6 @@ export default function AdminTopBar() {
         >
           <Menu className="w-6 h-6" />
         </button>
-        <div className="relative hidden sm:block">
-          <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
-          <input
-            type="text"
-            placeholder="Search or type command..."
-            className="w-72 lg:w-80 bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-          />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden lg:flex gap-1">
-            <span className="text-[10px] text-white/40 bg-white/5 px-1.5 py-0.5 rounded border border-white/10">⌘</span>
-            <span className="text-[10px] text-white/40 bg-white/5 px-1.5 py-0.5 rounded border border-white/10">K</span>
-          </div>
-        </div>
       </div>
 
       <div className="flex items-center gap-3 sm:gap-4">

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { DungeonConfigResponse } from "@/lib/api/dungeons";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
-import apiClient from "@/lib/api/client";
 import { Castle } from "lucide-react";
 import AdminTable from "@/components/ui/AdminTable";
 import FilterSortBar from "@/components/ui/FilterSortBar";
@@ -87,16 +86,6 @@ export default function ManageDungeonsPage() {
     setParams(buildParams());
   };
 
-  const handleDelete = async (d: DungeonConfigResponse) => {
-    if (!confirm(`Delete dungeon "${d.name}"?`)) return;
-    try {
-      await apiClient.delete(`/api/dungeons/${d.dungeonConfigId}`);
-      refresh();
-    } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to delete");
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -144,7 +133,6 @@ export default function ManageDungeonsPage() {
         serverSide
         pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
         onUpdate={(d) => router.push(`/manage-dungeons/update?id=${d.dungeonConfigId}`)}
-        onDelete={handleDelete}
         idField="dungeonConfigId"
         sortBy={sortBy}
         sortOrder={sortOrder}

@@ -294,65 +294,49 @@ export default function ManageMailboxPage() {
         {showFilters && (
           <div className="mt-4 pt-4 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">
+              <label htmlFor="filter-read" className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">
                 Read Status
               </label>
-              <div className="flex rounded-xl bg-[#111] p-1 gap-1 border border-white/10">
-                {[
-                  { value: "all", label: "All" },
-                  { value: "unread", label: "Unread" },
-                  { value: "read", label: "Read" },
-                ].map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => {
-                      setFilterRead(opt.value);
-                      setPage(1);
-                      setParams(buildParams(
-                        opt.value !== "all" ? { isRead: opt.value === "read" } : {}
-                      ));
-                    }}
-                    className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                      filterRead === opt.value
-                        ? "bg-[#ffc032] text-[#111]"
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
+              <select
+                id="filter-read"
+                value={filterRead}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFilterRead(value);
+                  setPage(1);
+                  setParams(buildParams(
+                    value !== "all" ? { isRead: value === "read" } : {}
+                  ));
+                }}
+                className="w-full px-4 py-2.5 bg-[#111] border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-[#ffc032] transition-colors cursor-pointer"
+              >
+                <option value="all">All</option>
+                <option value="unread">Unread</option>
+                <option value="read">Read</option>
+              </select>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">
+              <label htmlFor="filter-claim" className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">
                 Claim Status
               </label>
-              <div className="flex rounded-xl bg-[#111] p-1 gap-1 border border-white/10">
-                {[
-                  { value: "all", label: "All" },
-                  { value: "unclaimed", label: "Unclaimed" },
-                  { value: "claimed", label: "Claimed" },
-                ].map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => {
-                      setFilterClaimed(opt.value);
-                      setPage(1);
-                      setParams(buildParams(
-                        opt.value !== "all" ? { isClaimed: opt.value === "claimed" } : {}
-                      ));
-                    }}
-                    className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                      filterClaimed === opt.value
-                        ? "bg-[#ffc032] text-[#111]"
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
+              <select
+                id="filter-claim"
+                value={filterClaimed}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFilterClaimed(value);
+                  setPage(1);
+                  setParams(buildParams(
+                    value !== "all" ? { isClaimed: value === "claimed" } : {}
+                  ));
+                }}
+                className="w-full px-4 py-2.5 bg-[#111] border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-[#ffc032] transition-colors cursor-pointer"
+              >
+                <option value="all">All</option>
+                <option value="unclaimed">Unclaimed</option>
+                <option value="claimed">Claimed</option>
+              </select>
             </div>
           </div>
         )}
@@ -408,7 +392,6 @@ export default function ManageMailboxPage() {
             loading={loading}
             serverSide
             pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
-            onDelete={handleDelete}
             onRowClick={handleSelectMail}
             selectedId={selectedMail?.mailId}
             idField="mailId"

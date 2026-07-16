@@ -120,7 +120,7 @@ export default function WikiSkillsPage() {
         <p className="text-white/50 text-sm max-w-md text-center">{error}</p>
         <button
           onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-[#ffc032] text-black font-semibold rounded-xl cursor-pointer"
+          className="px-4 py-2 bg-[#ffc032] text-[#111] font-semibold rounded-xl hover:bg-[#ffd04c] transition-colors cursor-pointer"
         >
           Retry
         </button>
@@ -138,7 +138,7 @@ export default function WikiSkillsPage() {
         />
       )}
 
-      <div className="container mx-auto flex">
+      <div className="max-w-[1200px] mx-auto flex">
         {/* ── Sidebar ─────────────────────────────────────── */}
         <aside className={`fixed lg:sticky top-[88px] md:top-[112px] z-40 w-60 h-[calc(100vh-88px)] md:shrink-0 self-start bg-[#0F0F0F] overflow-y-auto nice-scrollbar transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
           <div className="px-2 py-4 space-y-4">
@@ -157,7 +157,7 @@ export default function WikiSkillsPage() {
                       className={[
                         "w-full h-10 px-3 rounded-[10px] flex items-center justify-between transition-colors duration-200 cursor-pointer",
                         isActive
-                          ? "bg-[#3A3A3A] text-white"
+                          ? "bg-[#ffc032]/15 text-[#ffc032]"
                           : "bg-transparent text-white hover:bg-[#272727]",
                       ].join(" ")}
                     >
@@ -190,7 +190,7 @@ export default function WikiSkillsPage() {
                       className={[
                         "w-full h-10 px-3 rounded-[10px] flex items-center text-left transition-colors duration-200 cursor-pointer",
                         isActive
-                          ? "bg-[#3A3A3A] text-white"
+                          ? "bg-[#ffc032]/15 text-[#ffc032]"
                           : "bg-transparent text-white hover:bg-[#272727]",
                       ].join(" ")}
                     >
@@ -220,7 +220,7 @@ export default function WikiSkillsPage() {
                       className={[
                         "w-full h-10 px-3 rounded-[10px] flex items-center text-left transition-colors duration-200 cursor-pointer",
                         isActive
-                          ? "bg-[#3A3A3A] text-white"
+                          ? "bg-[#ffc032]/15 text-[#ffc032]"
                           : "bg-transparent text-white hover:bg-[#272727]",
                       ].join(" ")}
                     >
@@ -248,6 +248,19 @@ export default function WikiSkillsPage() {
 
         {/* ── Main Content ─────────────────────────────────── */}
         <main className="flex-1 min-w-0">
+          {/* Page Header */}
+          <div className="px-4 md:px-6 pt-6">
+            <div className="mb-2 flex items-center gap-3">
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">
+                <Zap className="w-3.5 h-3.5" />
+                Skill Codex
+              </span>
+              <span className="h-px flex-1 bg-linear-to-r from-[#ffc032]/40 to-transparent" />
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold text-white">Skills</h1>
+            <p className="text-white/60 text-sm mt-1">{counts.All} skills to master across every class.</p>
+          </div>
+
           {/* Class Filter Bar */}
           <div className="px-4 md:px-6 pt-6 pb-2">
             <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -262,8 +275,8 @@ export default function WikiSkillsPage() {
                       className={[
                         "h-9 px-4 rounded-xl flex items-center gap-2 transition-colors duration-200 cursor-pointer text-sm font-medium",
                         isActive
-                          ? "bg-[#3A3A3A] text-white"
-                          : "bg-[#1a1a1a] text-white/60 hover:bg-[#252525] hover:text-white border border-white/10",
+                          ? "bg-[#ffc032] text-[#111]"
+                          : "bg-[#0d0d0d] text-white/60 hover:bg-white/10 hover:text-white border border-white/10",
                       ].join(" ")}
                     >
                       {c !== "All" && (
@@ -292,7 +305,7 @@ export default function WikiSkillsPage() {
                   <div className="flex flex-wrap items-center gap-2 mb-5">
                     <span className="text-xs text-white/30">Active filters:</span>
                     {search && (
-                      <span className="flex items-center gap-1 px-2.5 py-1 bg-white/8 border border-white/12 rounded-lg text-xs text-white/70">
+                      <span className="flex items-center gap-1 px-2.5 py-1 bg-[#111111] border border-white/10 rounded-lg text-xs text-white/70">
                         Search: {search}
                         <button onClick={() => setSearch("")} aria-label="Clear search" className="text-white/40 hover:text-white cursor-pointer ml-1">
                           <X className="w-3 h-3" />
@@ -300,7 +313,7 @@ export default function WikiSkillsPage() {
                       </span>
                     )}
                     {type !== "All" && (
-                      <span className="flex items-center gap-1 px-2.5 py-1 bg-white/8 border border-white/12 rounded-lg text-xs" style={{ color: typeColors[type]?.hex }}>
+                      <span className="flex items-center gap-1 px-2.5 py-1 bg-[#111111] border border-white/10 rounded-lg text-xs" style={{ color: typeColors[type]?.hex }}>
                         {type}
                         <button onClick={() => setType("All")} aria-label="Clear type filter" className="text-white/40 hover:text-white cursor-pointer ml-1">
                           <X className="w-3 h-3" />
@@ -308,7 +321,7 @@ export default function WikiSkillsPage() {
                       </span>
                     )}
                     {damageType !== "All" && (
-                      <span className="flex items-center gap-1 px-2.5 py-1 bg-white/8 border border-white/12 rounded-lg text-xs" style={{ color: "#9ca3af" }}>
+                      <span className="flex items-center gap-1 px-2.5 py-1 bg-[#111111] border border-white/10 rounded-lg text-xs" style={{ color: "#9ca3af" }}>
                         {damageType}
                         <button onClick={() => setDamageType("All")} aria-label="Clear damage filter" className="text-white/40 hover:text-white cursor-pointer ml-1">
                           <X className="w-3 h-3" />
@@ -316,7 +329,7 @@ export default function WikiSkillsPage() {
                       </span>
                     )}
                     {cls !== "All" && (
-                      <span className="flex items-center gap-1 px-2.5 py-1 bg-white/8 border border-white/12 rounded-lg text-xs" style={{ color: classColors[cls]?.hex }}>
+                      <span className="flex items-center gap-1 px-2.5 py-1 bg-[#111111] border border-white/10 rounded-lg text-xs" style={{ color: classColors[cls]?.hex }}>
                         {cls}
                         <button onClick={() => setCls("All")} aria-label="Clear class filter" className="text-white/40 hover:text-white cursor-pointer ml-1">
                           <X className="w-3 h-3" />
@@ -335,14 +348,14 @@ export default function WikiSkillsPage() {
                     return (
                       <div
                         key={skill.skillId}
-                        className={`group bg-[#111] border border-white/10 rounded-2xl overflow-hidden hover:border-red-500/30 transition-all duration-300 cursor-pointer`}
+                        className={`group bg-[#111] border border-white/10 rounded-2xl overflow-hidden hover:border-[#ffc032]/30 transition-all duration-300 cursor-pointer`}
                         onClick={() => router.push(`/wiki/skills/${skill.skillId}`)}
                       >
                         <div className="p-4">
                           {/* Header */}
                           <div className="flex items-start justify-between gap-3 mb-3">
                             <div className="flex-1 min-w-0">
-                              <h3 className="text-lg font-bold text-white group-hover:text-red-400 transition-colors truncate">
+                              <h3 className="text-lg font-bold text-white group-hover:text-[#ffc032] transition-colors truncate">
                                 {skill.name}
                               </h3>
                               <p className="text-white/50 text-xs mt-0.5">
