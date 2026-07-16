@@ -320,6 +320,45 @@ export interface UpdateDungeonConfigRequest {
 
 /* ─── Quest ──────────────────────────────────────────────────────────────── */
 
+/* NPC */
+
+export interface NPCResponse {
+  npcId: number;
+  name: string;
+  description: string | null;
+  type: string;
+  mapName: string;
+  positionX: number;
+  positionY: number;
+  interactionRadius: number;
+  iconUrl: string | null;
+  isActive: boolean;
+}
+export interface QuestRewardItemResponse {
+  questRewardItemId: number;
+  itemId: number;
+  itemName: string | null;
+  iconUrl: string | null;
+  quantity: number;
+}
+
+export interface UpdateQuestRewardItemRequest {
+  itemId: number;
+  quantity: number;
+}
+export interface QuestRewardSkillResponse {
+  questRewardSkillId: number;
+  skillId: number;
+  skillName: string | null;
+  classRequirement: string | null;
+  type: string | null;
+  damageType: string | null;
+}
+
+export interface UpdateQuestRewardSkillRequest {
+  skillId: number;
+}
+
 export interface QuestResponse {
   questId: number;
   title: string;
@@ -339,8 +378,16 @@ export interface QuestResponse {
   rewardGems: number;
   rewardItemId: number | null;
   rewardItemName: string | null;
+  rewardItems: QuestRewardItemResponse[];
   rewardSkillId: number | null;
   rewardSkillName: string | null;
+  rewardSkills: QuestRewardSkillResponse[];
+  dialogueId: number | null;
+  dialogueNpcId: number | null;
+  dialogueNpcName: string | null;
+  dialogueContent: string | null;
+  dialogueDisplayOrder: number | null;
+  dialogueIsActive: boolean | null;
   isActive: boolean;
 }
 
@@ -361,7 +408,13 @@ export interface UpdateQuestRequest {
   rewardGold?: number;
   rewardGems?: number;
   rewardItemId?: number | null;
+  rewardItems?: UpdateQuestRewardItemRequest[];
   rewardSkillId?: number | null;
+  rewardSkills?: UpdateQuestRewardSkillRequest[];
+  syncDialogue?: boolean;
+  dialogueContent?: string | null;
+  dialogueDisplayOrder?: number | null;
+  dialogueIsActive?: boolean | null;
   isActive?: boolean;
 }
 
