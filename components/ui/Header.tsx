@@ -4,13 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Button from "./Button";
+import AnimatedButton from "./AnimatedButton";
 import { useAuth } from "@/lib/contexts/AuthContext";
 
 const NAV_ITEMS = [
   { label: "Story", href: "/story" },
-  { label: "Wiki", href: "/wiki" },
   { label: "Content", href: "/content" },
+  { label: "Download", href: "/download" },
 ];
 
 const ROLE_NAMES: Record<string, string> = {
@@ -42,7 +42,11 @@ export default function Header() {
   };
 
   return (
-    <header className={`fixed top-0 left-0 w-full z-50 transition-colors duration-300 ${isScrolled ? 'bg-black' : 'bg-transparent'}`}>
+    <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+      isScrolled
+        ? 'bg-black/80 backdrop-blur-md border-b border-white/10 shadow-lg shadow-black/20'
+        : 'bg-transparent'
+    }`}>
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="relative w-24 h-12 md:w-32 md:h-16">
@@ -67,6 +71,15 @@ export default function Header() {
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-yellow-400 transition-all duration-300 group-hover:w-full" />
             </Link>
           ))}
+
+          {/* Wiki Link (no dropdown) */}
+          <Link
+            href="/wiki"
+            className="relative text-white font-semibold text-sm md:text-base tracking-wide hover:text-yellow-400 transition-colors duration-300 group"
+          >
+            Wiki
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-yellow-400 transition-all duration-300 group-hover:w-full" />
+          </Link>
         </nav>
 
         {/* Right Side - User Menu or Login Button */}
@@ -104,8 +117,9 @@ export default function Header() {
                       Profile
                     </Link>
                     <button
+                      type="button"
                       onClick={handleLogout}
-                      className="w-full px-4 py-2.5 text-left text-red-400 hover:bg-white/10 transition-colors text-sm flex items-center gap-2 cursor-pointer"
+                      className="w-full px-4 py-2.5 text-left text-white/80 hover:text-white hover:bg-red-500/15 transition-colors text-sm flex items-center gap-2 cursor-pointer"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -118,7 +132,7 @@ export default function Header() {
             </div>
           ) : (
             <Link href="/login">
-              <Button variant="outline" size="md">Login</Button>
+              <AnimatedButton size="sm">Login</AnimatedButton>
             </Link>
           )}
         </div>
@@ -162,12 +176,19 @@ export default function Header() {
               <Link
                 key={item.label}
                 href={item.href}
-                className="text-white font-semibold text-base hover:text-yellow-400 transition-colors"
+                className="text-white font-semibold text-base hover:text-yellow-400 transition-colors cursor-pointer"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {item.label}
               </Link>
             ))}
+            <Link
+              href="/wiki"
+              className="text-white font-semibold text-base hover:text-yellow-400 transition-colors cursor-pointer"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Wiki
+            </Link>
             <div className="pt-4 border-t border-white/10">
               {user ? (
                 <div className="space-y-3">
@@ -191,8 +212,9 @@ export default function Header() {
                     Profile
                   </Link>
                   <button
+                    type="button"
                     onClick={handleLogout}
-                    className="w-full px-4 py-2.5 text-left text-red-400 hover:bg-white/10 transition-colors text-sm flex items-center gap-2 rounded-lg cursor-pointer"
+                    className="w-full px-4 py-2.5 text-left text-white/80 hover:text-white hover:bg-red-500/15 transition-colors text-sm flex items-center gap-2 rounded-lg cursor-pointer"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -202,7 +224,7 @@ export default function Header() {
                 </div>
               ) : (
                 <Link href="/login" onClick={() => setIsMenuOpen(false)}>
-                  <Button variant="outline" size="md" fullWidth>Login</Button>
+                  <AnimatedButton>Login</AnimatedButton>
                 </Link>
               )}
             </div>

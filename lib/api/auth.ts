@@ -14,7 +14,7 @@ import type {
 
 // ── Đăng nhập ──────────────────────────────────────────────
 export const login = async (emailOrUsername: string, password: string): Promise<LoginResponse> => {
-  return post<LoginResponse>("/api/auth/login", { emailOrUsername, password });
+  return post<LoginResponse>("/api/auth/login", { emailOrUsername, password, clientType: "Web" });
 };
 
 // ── Đăng ký ───────────────────────────────────────────────
@@ -35,11 +35,6 @@ export const changePassword = async (data: ChangePasswordRequest): Promise<void>
 // ── Đăng xuất ─────────────────────────────────────────────
 export const logout = async (): Promise<void> => {
   await post("/api/auth/logout");
-};
-
-// ── Làm mới token ─────────────────────────────────────────
-export const refreshToken = async (): Promise<void> => {
-  await post("/api/auth/refresh-token");
 };
 
 // ── Gửi mã xác thực ──────────────────────────────────────

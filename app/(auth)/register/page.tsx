@@ -142,7 +142,7 @@ export default function RegisterPage() {
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Choose a username"
               required
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
             />
           </div>
 
@@ -163,7 +163,7 @@ export default function RegisterPage() {
                 placeholder="Enter your email"
                 required
                 disabled={isEmailVerified}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200 disabled:opacity-60"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200 disabled:opacity-60"
               />
               {isEmailVerified && (
                 <span className="absolute right-3 text-green-400">
@@ -192,7 +192,7 @@ export default function RegisterPage() {
                 placeholder="Enter 6-digit code"
                 maxLength={6}
                 disabled={isEmailVerified}
-                className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200 disabled:opacity-60"
+                className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200 disabled:opacity-60"
               />
               {isEmailVerified ? (
                 <span className="px-3 py-2 bg-green-500/20 border border-green-500/30 rounded-xl text-green-400 text-sm font-medium whitespace-nowrap">
@@ -204,7 +204,7 @@ export default function RegisterPage() {
                     type="button"
                     onClick={handleSendOTP}
                     disabled={isSendingOTP || otpCountdown > 0}
-                    className="w-8 h-8 flex items-center justify-center text-[#ffc032] hover:text-white transition-colors disabled:opacity-50"
+                    className="w-8 h-8 flex items-center justify-center text-[#ffc032] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {isSendingOTP ? (
                       <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none">
@@ -251,7 +251,7 @@ export default function RegisterPage() {
                 placeholder="Create a password"
                 required
                 minLength={6}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
               />
               <button
                 type="button"
@@ -287,7 +287,7 @@ export default function RegisterPage() {
                 placeholder="Confirm your password"
                 required
                 minLength={8}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
               />
               <button
                 type="button"
@@ -319,11 +319,11 @@ export default function RegisterPage() {
             />
             <label htmlFor="terms" className="text-sm text-white/60 cursor-pointer">
               I agree to the{" "}
-              <Link href="/terms" className="text-[#ffc032] hover:text-[#ffc032]">
+              <Link href="/terms" className="text-[#ffc032] hover:text-[#ffd04c]">
                 Terms of Service
               </Link>{" "}
               and{" "}
-              <Link href="/privacy" className="text-[#ffc032] hover:text-[#ffc032]">
+              <Link href="/privacy-policy" className="text-[#ffc032] hover:text-[#ffd04c]">
                 Privacy Policy
               </Link>
             </label>
@@ -339,7 +339,7 @@ export default function RegisterPage() {
       {/* Login Link */}
       <p className="text-center text-white/60 mt-6">
         Already have an account?{" "}
-        <Link href="/login" className="text-[#ffc032] hover:text-[#ffc032] font-semibold transition-colors">
+        <Link href="/login" className="text-[#ffc032] hover:text-[#ffd04c] font-semibold transition-colors">
           Login
         </Link>
       </p>

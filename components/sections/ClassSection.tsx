@@ -50,6 +50,13 @@ export default function ClassSection() {
       <div className="relative mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-16 text-center">
+          <div className="mb-5 flex items-center justify-center gap-3">
+            <span className="h-px w-10 bg-linear-to-r from-transparent to-[#ffc032]/60" />
+            <span className="text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">
+              Pick Your Path
+            </span>
+            <span className="h-px w-10 bg-linear-to-l from-transparent to-[#ffc032]/60" />
+          </div>
           <h2 className="text-4xl font-black tracking-tight md:text-5xl lg:text-6xl">
             Choose Your Class
           </h2>

@@ -4,7 +4,13 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getAll as getAllItems, ItemResponse } from "@/lib/api/items";
 import { create } from "@/lib/api/shop-items";
-import { ArrowLeft, Save, Loader2, ShoppingBag } from "lucide-react";
+import { Save, Loader2, ShoppingBag, Coins } from "lucide-react";
+import FormHeader from "@/components/form/FormHeader";
+import FormSection from "@/components/form/FormSection";
+import FormField from "@/components/form/FormField";
+import FormActions from "@/components/form/FormActions";
+import FormAlert from "@/components/form/FormAlert";
+import { TextInput, SelectInput, Checkbox } from "@/components/form/FormInput";
 
 const CURRENCY_TYPES = [
   { value: "Gold", label: "Gold" },
@@ -36,7 +42,7 @@ export default function CreateShopItemPage() {
       .finally(() => setLoadingItems(false));
   }, []);
 
-  const handleChange = (field: string, value: unknown) => {
+  const handleChange = <K extends keyof typeof formData>(field: K, value: (typeof formData)[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -63,181 +69,117 @@ export default function CreateShopItemPage() {
     }
   };
 
+  const itemOptions = items.map((item) => ({
+    value: item.itemId,
+    label: `${item.name} (${item.type} - ${item.rarity})`,
+  }));
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <button
-          type="button"
-          title="Back to manage shop"
-          onClick={() => router.push("/manage-shop")}
-          className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-[#ffc032]">Create Shop Item</h1>
-          <p className="text-white/50 text-sm">Add a new item to the shop</p>
-        </div>
-      </div>
+    <form onSubmit={handleSubmit} className="space-y-6 pb-32">
+      <FormHeader
+        title="Create Shop Item"
+        subtitle="Add a new item to the shop"
+        backHref="/manage-shop"
+        badge="New"
+        badgeTone="primary"
+      />
 
-      {error && (
-        <div className="bg-red-400/10 border border-red-400/20 rounded-lg p-4 text-red-400 text-sm">
-          {error}
-        </div>
-      )}
+      {error && <FormAlert message={error} onDismiss={() => setError(null)} />}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 space-y-6">
-          <div className="flex items-center gap-2 border-b border-gray-800 pb-3">
-            <ShoppingBag className="w-5 h-5 text-[#ffc032]" />
-            <h2 className="text-lg font-bold text-white">Pricing & Availability</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Select Item <span className="text-red-400">*</span>
-              </label>
-              {loadingItems ? (
-                <div className="flex items-center gap-2 text-white/50">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">Loading items...</span>
-                </div>
-              ) : (
-                <select
-                  aria-label="Select item for shop"
-                  value={formData.itemId}
-                  onChange={(e) => handleChange("itemId", Number(e.target.value))}
-                  className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032] transition-colors"
-                  required
-                >
-                  <option value={0} className="bg-[#1a1a1a]">Select an item</option>
-                  {items.map((item) => (
-                    <option key={item.itemId} value={item.itemId} className="bg-[#1a1a1a]">
-                      {item.name} ({item.type} - {item.rarity})
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Currency Type <span className="text-red-400">*</span>
-              </label>
-              <select
-                aria-label="Select currency type"
-                value={formData.currency}
-                onChange={(e) => handleChange("currency", e.target.value)}
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032] transition-colors"
-              >
-                {CURRENCY_TYPES.map((type) => (
-                  <option key={type.value} value={type.value} className="bg-[#1a1a1a]">
-                    {type.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Price <span className="text-red-400">*</span>
-              </label>
-              <input
-                aria-label="Enter item price"
-                type="number"
-                value={formData.price}
-                onChange={(e) => handleChange("price", Number(e.target.value))}
-                min="0"
-                step="0.01"
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
+      <FormSection title="Pricing & Availability" icon={ShoppingBag}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField label="Select Item" htmlFor="itemId" required>
+            {loadingItems ? (
+              <div className="flex items-center gap-2 text-white/50 h-[42px]">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-sm">Loading items...</span>
+              </div>
+            ) : (
+              <SelectInput
+                id="itemId"
+                options={[{ value: 0, label: "Select an item" }, ...itemOptions]}
+                value={formData.itemId}
+                onChange={(e) => handleChange("itemId", Number(e.target.value))}
                 required
               />
-            </div>
+            )}
+          </FormField>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Stock (-1 = Unlimited)
-              </label>
-              <input
-                aria-label="Enter stock quantity"
-                type="number"
-                value={formData.stock}
-                onChange={(e) => handleChange("stock", Number(e.target.value))}
-                min="-1"
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Daily Purchase Limit
-              </label>
-              <input
-                aria-label="Enter daily purchase limit"
-                type="number"
-                value={formData.dailyPurchaseLimit}
-                onChange={(e) => handleChange("dailyPurchaseLimit", Number(e.target.value))}
-                min="0"
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">Available From</label>
-              <input
-                aria-label="Enter available from date"
-                type="datetime-local"
-                value={formData.availableFrom}
-                onChange={(e) => handleChange("availableFrom", e.target.value)}
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">Available To</label>
-              <input
-                aria-label="Enter available to date"
-                type="datetime-local"
-                value={formData.availableTo}
-                onChange={(e) => handleChange("availableTo", e.target.value)}
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 pt-2">
-            <input
-              type="checkbox"
-              id="isActive"
-              checked={formData.isActive}
-              onChange={(e) => handleChange("isActive", e.target.checked)}
-              className="w-5 h-5 rounded border-gray-700 bg-[#111] text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
+          <FormField label="Currency Type" htmlFor="currency" required>
+            <SelectInput
+              id="currency"
+              options={CURRENCY_TYPES}
+              value={formData.currency}
+              onChange={(e) => handleChange("currency", e.target.value)}
             />
-            <label htmlFor="isActive" className="text-sm text-white/70 cursor-pointer">
-              Item is available for purchase in shop
-            </label>
-          </div>
+          </FormField>
+
+          <FormField label="Price" htmlFor="price" required>
+            <TextInput
+              id="price"
+              type="number"
+              value={formData.price}
+              onChange={(e) => handleChange("price", Number(e.target.value))}
+              min="0"
+              step="0.01"
+              required
+            />
+          </FormField>
+
+          <FormField label="Stock" htmlFor="stock" hint="-1 = Unlimited">
+            <TextInput
+              id="stock"
+              type="number"
+              value={formData.stock}
+              onChange={(e) => handleChange("stock", Number(e.target.value))}
+              min="-1"
+            />
+          </FormField>
+
+          <FormField label="Daily Purchase Limit" htmlFor="dailyPurchaseLimit" hint="0 = None">
+            <TextInput
+              id="dailyPurchaseLimit"
+              type="number"
+              value={formData.dailyPurchaseLimit}
+              onChange={(e) => handleChange("dailyPurchaseLimit", Number(e.target.value))}
+              min="0"
+            />
+          </FormField>
+
+          <FormField label="Available From" htmlFor="availableFrom" hint="Optional">
+            <TextInput
+              id="availableFrom"
+              type="datetime-local"
+              value={formData.availableFrom}
+              onChange={(e) => handleChange("availableFrom", e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Available To" htmlFor="availableTo" hint="Optional">
+            <TextInput
+              id="availableTo"
+              type="datetime-local"
+              value={formData.availableTo}
+              onChange={(e) => handleChange("availableTo", e.target.value)}
+            />
+          </FormField>
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-4">
-          <button
-            type="button"
-            onClick={() => router.push("/manage-shop")}
-            className="px-6 py-2.5 text-sm font-medium text-white/70 bg-[#1a1a1a] border border-gray-800 hover:bg-[#252525] rounded-xl transition-colors cursor-pointer"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-[#111] bg-[#ffc032] hover:bg-[#ffd04c] rounded-xl transition-colors cursor-pointer disabled:opacity-50"
-          >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {loading ? "Creating..." : "Create Shop Item"}
-          </button>
-        </div>
-      </form>
-    </div>
+        <Checkbox
+          id="isActive"
+          checked={formData.isActive}
+          onChange={(e) => handleChange("isActive", e.target.checked)}
+          label="Item is available for purchase in shop"
+        />
+      </FormSection>
+
+      <FormActions
+        onCancel={() => router.push("/manage-shop")}
+        submitLabel="Create Shop Item"
+        loadingLabel="Creating..."
+        loading={loading}
+        submitIcon={Save}
+      />
+    </form>
   );
 }

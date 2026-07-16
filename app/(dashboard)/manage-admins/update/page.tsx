@@ -2,8 +2,20 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Loader2, Save, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Save, Eye, EyeOff, UserCheck, ShieldCheck, CircleCheck } from 'lucide-react';
 import { getById, update, AccountAdminResponse } from '@/lib/api/admin-accounts';
+import FormHeader from '@/components/form/FormHeader';
+import FormSection from '@/components/form/FormSection';
+import FormField from '@/components/form/FormField';
+import FormActions from '@/components/form/FormActions';
+import FormAlert from '@/components/form/FormAlert';
+import { TextInput, SelectInput, Checkbox } from '@/components/form/FormInput';
+
+const ROLE_OPTIONS = [
+  { value: '1', label: 'Player' },
+  { value: '2', label: 'Admin' },
+  { value: '3', label: 'Super Admin' },
+];
 
 function EditAdminContent() {
   const router = useRouter();
@@ -46,32 +58,24 @@ function EditAdminContent() {
     }
   };
 
+  function getRoleIdFromName(roleName: string): number {
+    switch (roleName) {
+      case 'Player': return 1;
+      case 'Admin': return 2;
+      case 'Super Admin': return 3;
+      default: return 2;
+    }
+  }
+
   useEffect(() => {
     if (accountId) {
-      void Promise.resolve().then(fetchAccount);
+      void fetchAccount();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accountId]);
 
-  const getRoleIdFromName = (roleName: string): number => {
-    switch (roleName) {
-      case 'Player':
-        return 1;
-      case 'Admin':
-        return 2;
-      case 'Super Admin':
-        return 3;
-      default:
-        return 2;
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
-    }));
+  const handleChange = <K extends keyof typeof formData>(field: K, value: (typeof formData)[K]) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -115,149 +119,99 @@ function EditAdminContent() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => router.push("/manage-admins")}
-          className="p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-white">Update Account</h1>
-          <p className="text-white/50 text-sm">Update account details (ID: {accountId})</p>
-        </div>
-      </div>
+    <form onSubmit={handleSubmit} className="space-y-6 pb-32">
+      <FormHeader
+        title="Update Account"
+        subtitle={`Update account details (ID: ${accountId})`}
+        backHref="/manage-admins"
+        badge="Editing"
+        badgeTone="warning"
+      />
 
-      {/* Success Message */}
       {success && (
-        <div className="bg-green-400/10 border border-green-400/20 rounded-lg p-4 text-green-400 text-sm">
+        <div className="bg-green-400/10 border border-green-400/20 rounded-lg p-4 text-green-400 text-sm flex items-center gap-2">
+          <CircleCheck className="w-5 h-5" />
           Account updated successfully! Redirecting...
         </div>
       )}
 
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-400/10 border border-red-400/20 rounded-lg p-4 text-red-400 text-sm">
-          {error}
-        </div>
-      )}
+      {error && <FormAlert message={error} onDismiss={() => setError(null)} />}
 
-      <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Username (Read-only) */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Username
-              </label>
-              <input
-                type="text"
-                value={userName}
-                disabled
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white/50 cursor-not-allowed"
-              />
-              <p className="text-xs text-white/30">Username cannot be changed</p>
-            </div>
-
-            {/* Email */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Email <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Enter email address"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
-              />
-            </div>
-
-            {/* Role */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                Role <span className="text-red-400">*</span>
-              </label>
-              <select
-                name="roleId"
-                value={formData.roleId}
-                onChange={handleChange}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                required
-              >
-                <option value={2} className="bg-[#1a1a1a]">Admin</option>
-                <option value={3} className="bg-[#1a1a1a]">Super Admin</option>
-                <option value={1} className="bg-[#1a1a1a]">Player</option>
-              </select>
-            </div>
-
-            {/* New Password */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-white/80">
-                New Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  name="newPassword"
-                  value={formData.newPassword}
-                  onChange={handleChange}
-                  placeholder="Leave blank to keep current"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 pr-12 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
-                  minLength={6}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors cursor-pointer"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              <p className="text-xs text-white/30">Only fill this if you want to change the password</p>
-            </div>
-          </div>
-
-          {/* Active Status */}
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              name="isActive"
-              id="isActive"
-              checked={formData.isActive}
-              onChange={handleChange}
-              className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
+      <FormSection title="Account Information" icon={UserCheck}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField label="Username" htmlFor="userName">
+            <TextInput
+              id="userName"
+              value={userName}
+              disabled
+              className="opacity-50 cursor-not-allowed"
             />
-            <label htmlFor="isActive" className="text-sm text-white/70 cursor-pointer">
-              Account is active
-            </label>
-          </div>
+            <p className="text-xs text-white/30 mt-1">Username cannot be changed</p>
+          </FormField>
 
-          {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-6 border-t border-white/10">
-            <button
-              type="button"
-              onClick={() => router.push("/manage-admins")}
-              className="px-4 py-2 text-sm font-medium text-white/70 bg-white/5 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-black bg-[#ffc032] hover:bg-[#ffc032]/90 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-            >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {saving ? "Updating..." : "Update Account"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          <FormField label="Email" htmlFor="email" required>
+            <TextInput
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => handleChange('email', e.target.value)}
+              placeholder="Enter email address"
+              required
+            />
+          </FormField>
+
+          <FormField label="Role" htmlFor="roleId" required>
+            <SelectInput
+              id="roleId"
+              name="roleId"
+              options={ROLE_OPTIONS}
+              value={String(formData.roleId)}
+              onChange={(e) => handleChange('roleId', Number(e.target.value))}
+            />
+          </FormField>
+
+          <FormField label="New Password" htmlFor="newPassword">
+            <div className="relative">
+              <TextInput
+                id="newPassword"
+                name="newPassword"
+                type={showPassword ? 'text' : 'password'}
+                value={formData.newPassword}
+                onChange={(e) => handleChange('newPassword', e.target.value)}
+                placeholder="Leave blank to keep current"
+                minLength={6}
+                className="pr-12"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors cursor-pointer"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            <p className="text-xs text-white/30 mt-1">Only fill this if you want to change the password</p>
+          </FormField>
+        </div>
+
+        <Checkbox
+          id="isActive"
+          checked={formData.isActive}
+          onChange={(e) => handleChange('isActive', e.target.checked)}
+          label="Account is active"
+        />
+      </FormSection>
+
+      <FormActions
+        onCancel={() => router.push('/manage-admins')}
+        submitLabel="Update Account"
+        loadingLabel="Updating..."
+        loading={saving}
+        submitIcon={Save}
+      />
+    </form>
   );
 }
 

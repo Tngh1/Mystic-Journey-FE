@@ -1,11 +1,12 @@
 'use client';
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { QuestResponse } from "@/lib/api/quests";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
-import apiClient from "@/lib/api/client";
-import { Scroll, Search, Plus } from "lucide-react";
+import { Scroll } from "lucide-react";
 import AdminTable from "@/components/ui/AdminTable";
+import FilterSortBar from "@/components/ui/FilterSortBar";
 
 const typeColors: Record<string, string> = {
   Main: "text-blue-400",
@@ -32,11 +33,12 @@ const objectiveColors: Record<string, string> = {
 };
 
 const columns = [
-  { key: "questId", label: "ID" },
-  { key: "title", label: "Title" },
+  { key: "questId", label: "ID", sortable: true },
+  { key: "title", label: "Title", sortable: true },
   {
     key: "type",
     label: "Type",
+    sortable: true,
     render: (val: string) => (
       <span className={`font-semibold ${typeColors[val] || "text-gray-300"}`}>{val}</span>
     ),
@@ -44,26 +46,29 @@ const columns = [
   {
     key: "defaultStatus",
     label: "Default Status",
+    sortable: true,
     render: (val: string) => (
       <span className={`text-xs font-medium ${statusColors[val] || "text-gray-400"}`}>{val}</span>
     ),
   },
-  { key: "mapName", label: "Map" },
+  { key: "mapName", label: "Map", sortable: true },
   {
     key: "objectiveType",
     label: "Objective",
+    sortable: true,
     render: (val: string) => (
       <span className={`text-xs font-semibold ${objectiveColors[val] || "text-gray-300"}`}>{val}</span>
     ),
   },
-  { key: "requiredLevel", label: "Lv.Req" },
-  { key: "targetAmount", label: "Target" },
-  { key: "rewardExperience", label: "EXP" },
-  { key: "rewardGold", label: "Gold" },
-  { key: "rewardGems", label: "Gems" },
+  { key: "requiredLevel", label: "Lv.Req", sortable: true },
+  { key: "targetAmount", label: "Target", sortable: true },
+  { key: "rewardExperience", label: "EXP", sortable: true },
+  { key: "rewardGold", label: "Gold", sortable: true },
+  { key: "rewardGems", label: "Gems", sortable: true },
   {
     key: "rewardItemName",
     label: "Reward Item",
+    sortable: true,
     render: (val: string | null) => (
       <span className="text-xs text-gray-400">{val ?? "—"}</span>
     ),
@@ -71,6 +76,7 @@ const columns = [
   {
     key: "rewardSkillName",
     label: "Reward Skill",
+    sortable: true,
     render: (_val: string | null, row: QuestResponse) => (
       <span className="text-xs text-gray-400">
         {row.rewardSkillName ?? (row.rewardSkillId ? `#${row.rewardSkillId}` : "-")}
@@ -91,20 +97,52 @@ const columns = [
 export default function ManageQuestsPage() {
   const router = useRouter();
 
+  const [filterType, setFilterType] = useState("");
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("questId");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const buildParams = () => ({
+    ...(search ? { search } : {}),
+    ...(filterType ? { type: filterType } : {}),
+    sortBy,
+    sortOrder,
+  });
+
   const { data: quests, totalCount, loading, error, page, pageSize, setPage, setPageSize, setParams, refresh } =
     usePagedQuery<QuestResponse>({
       endpoint: "/api/quests",
       pageSize: 10,
+      params: buildParams(),
     });
 
-  const handleDelete = async (q: QuestResponse) => {
-    if (!confirm(`Delete quest "${q.title}"?`)) return;
-    try {
-      await apiClient.delete(`/api/quests/${q.questId}`);
-      refresh();
-    } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to delete");
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setPage(1);
+    setParams(buildParams());
+  };
+
+  const handleFilterChange = (value: string) => {
+    setFilterType(value);
+    setPage(1);
+    setParams(buildParams());
+  };
+
+  const handleSortChange = (value: string) => {
+    if (sortBy === value) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(value);
+      setSortOrder("asc");
     }
+    setPage(1);
+    setParams(buildParams());
+  };
+
+  const handleOrderChange = (order: "asc" | "desc") => {
+    setSortOrder(order);
+    setPage(1);
+    setParams(buildParams());
   };
 
   return (
@@ -121,24 +159,23 @@ export default function ManageQuestsPage() {
         </div>
       </div>
 
-      <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="relative w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-          <input
-            type="text"
-            placeholder="Search by title..."
-            onChange={(e) => setParams({ search: e.target.value || undefined })}
-            className="w-full pl-9 pr-4 py-2 bg-[#111] border border-gray-700 rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
-          />
-        </div>
-        <button
-          onClick={() => router.push("/manage-quests/create")}
-          className="flex items-center justify-center gap-2 bg-[#ffc032] text-[#111] px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#ffd04c] transition-colors cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          Create Quest
-        </button>
-      </div>
+      <FilterSortBar
+        search={{ placeholder: "Search by title...", value: search, onChange: handleSearch }}
+        filters={[
+          {
+            key: "type",
+            label: "All Types",
+            value: filterType,
+            onChange: handleFilterChange,
+            options: [
+              { value: "Main", label: "Main" },
+              { value: "Side", label: "Side" },
+              { value: "Daily", label: "Daily" },
+              { value: "Event", label: "Event" },
+            ],
+          },
+        ]}
+      />
 
       {error && (
         <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
@@ -148,16 +185,17 @@ export default function ManageQuestsPage() {
       )}
 
       <AdminTable
-        title={`Total Quests: ${totalCount.toLocaleString()}`}
+        title="Quests"
         columns={columns}
         data={quests}
         loading={loading}
         serverSide
         pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
-
         onUpdate={(q) => router.push(`/manage-quests/update?id=${q.questId}`)}
-        onDelete={handleDelete}
         idField="questId"
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSort={handleSortChange}
       />
     </div>
   );

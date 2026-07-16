@@ -361,7 +361,7 @@ export default function EditableTextBlock({
   };
 
   // Helper classes
-  const btnBase = 'p-1.5 rounded transition-colors';
+  const btnBase = 'p-1.5 rounded transition-colors cursor-pointer';
   const btnIdle = 'text-gray-400 hover:text-white hover:bg-[#333]';
   const btnActive = 'text-white bg-blue-500/30 hover:bg-blue-500/40';
 
@@ -386,7 +386,7 @@ export default function EditableTextBlock({
         <div
           {...attributes}
           {...listeners}
-          className="flex items-center px-2 bg-[#1a1a1a] border-r border-blue-500/30 cursor-grab active:cursor-grabbing hover:bg-[#252525]"
+          className="flex items-center px-2 bg-[#111111] border-r border-blue-500/30 cursor-grab active:cursor-grabbing hover:bg-[#252525]"
         >
           <GripVertical className="w-4 h-4 text-blue-400/50" />
         </div>
@@ -417,7 +417,7 @@ export default function EditableTextBlock({
                   onDelete(id);
                 }
               }}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-red-400 hover:text-white bg-red-500/10 hover:bg-red-500 border border-red-500/30 rounded transition-colors"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-red-400 hover:text-white bg-red-500/10 hover:bg-red-500 border border-red-500/30 rounded transition-colors cursor-pointer"
               title="Delete this block"
             >
               <X className="w-3.5 h-3.5" />
@@ -426,7 +426,7 @@ export default function EditableTextBlock({
           </div>
 
           {/* Inline Toolbar */}
-          <div className="flex flex-wrap items-center gap-1 p-2 border border-[#333] rounded-lg bg-[#1a1a1a]">
+          <div className="flex flex-wrap items-center gap-1 p-2 border border-[#333] rounded-lg bg-[#111111]">
             <button
               type="button"
               onMouseDown={(e) => e.preventDefault()}
@@ -537,7 +537,7 @@ export default function EditableTextBlock({
                 <Type className="w-4 h-4" />
               </button>
               {showFontSize && (
-                <div className="absolute top-full left-0 mt-1 bg-[#1a1a1a] border border-[#333] rounded-lg shadow-lg z-50 py-1 min-w-[60px]">
+                <div className="absolute top-full left-0 mt-1 bg-[#111111] border border-[#333] rounded-lg shadow-lg z-50 py-1 min-w-[60px]">
                   {FONT_SIZES.map((size) => (
                     <button
                       key={size.value}
@@ -572,7 +572,7 @@ export default function EditableTextBlock({
                 />
               </button>
               {showColorPicker && (
-                <div className="absolute top-full left-0 mt-1 bg-[#1a1a1a] border border-[#333] rounded-lg shadow-lg z-50 p-2 grid grid-cols-4 gap-1">
+                <div className="absolute top-full left-0 mt-1 bg-[#111111] border border-[#333] rounded-lg shadow-lg z-50 p-2 grid grid-cols-4 gap-1">
                   {COLOR_PRESETS.map((color) => (
                     <button
                       key={color}
@@ -655,7 +655,7 @@ export default function EditableTextBlock({
             contentEditable
             suppressContentEditableWarning
             style={{ direction: 'ltr', textAlign: 'left' }}
-            className="rendered-html min-h-[100px] p-4 bg-[#1a1a1a] border border-[#333] rounded-lg text-white outline-none focus:border-blue-500 empty:before:content-[attr(data-placeholder)] empty:before:text-gray-500 [&_h1]:!border-0 [&_h1]:!border-none [&_h1]:!border-l-0 [&_h2]:!border-0 [&_h2]:!border-none [&_h2]:!border-l-0 [&_h3]:!border-0 [&_h3]:!border-none [&_h3]:!border-l-0 [&_h4]:!border-0 [&_h4]:!border-none [&_h4]:!border-l-0 [&_h5]:!border-0 [&_h5]:!border-none [&_h5]:!border-l-0 [&_h6]:!border-0 [&_h6]:!border-none [&_h6]:!border-l-0 [&_h1]:!pl-0 [&_h2]:!pl-0 [&_h3]:!pl-0 [&_p]:!border-0 [&_p]:!border-none [&_p]:!border-l-0 [&_p]:!pl-0"
+            className="rendered-html min-h-[100px] p-4 bg-[#111111] border border-[#333] rounded-lg text-white outline-none focus:border-blue-500 empty:before:content-[attr(data-placeholder)] empty:before:text-gray-500 [&_h1]:!border-0 [&_h1]:!border-none [&_h1]:!border-l-0 [&_h2]:!border-0 [&_h2]:!border-none [&_h2]:!border-l-0 [&_h3]:!border-0 [&_h3]:!border-none [&_h3]:!border-l-0 [&_h4]:!border-0 [&_h4]:!border-none [&_h4]:!border-l-0 [&_h5]:!border-0 [&_h5]:!border-none [&_h5]:!border-l-0 [&_h6]:!border-0 [&_h6]:!border-none [&_h6]:!border-l-0 [&_h1]:!pl-0 [&_h2]:!pl-0 [&_h3]:!pl-0 [&_p]:!border-0 [&_p]:!border-none [&_p]:!border-l-0 [&_p]:!pl-0"
             data-placeholder="Nhập nội dung đoạn văn..."
           />
         </div>

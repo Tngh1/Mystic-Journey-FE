@@ -1,0 +1,172 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Custom Scrollbar Styles
+   - Applies to vertical & horizontal scrollbars across the entire app.
+   - Design matches the Mystic Journey theme:
+       · track:    transparent / very dark
+       · thumb:    white-tinted, hover = brand gold (#ffc032)
+       · corner:   matches track
+   - Supports:  WebKit (Chrome / Edge / Safari)  +  Firefox (scrollbar-color).
+   - Usage:
+       · Global (default): applied via globals.css on `html, body`.
+       · Optional wrappers: add `.nice-scrollbar` to any container to force
+         the styled scrollbar on inner scrollable regions.
+───────────────────────────────────────────────────────────────────────────── */
+
+/* ─── Global: page scrollbars ─────────────────────────────────────────────── */
+
+html,
+body {
+  scrollbar-width: thin;                              /* Firefox */
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.18);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 192, 50, 0.55);
+  background-clip: padding-box;
+}
+
+html::-webkit-scrollbar-corner,
+body::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ─── Optional wrapper: `.nice-scrollbar` ────────────────────────────────── */
+
+.nice-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.nice-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.nice-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.nice-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
+}
+
+.nice-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 192, 50, 0.6);
+  background-clip: padding-box;
+}
+
+.nice-scrollbar::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ─── Compact variant: `.scrollbar-thin` ─────────────────────────────────── */
+/*   Use for dense UI areas (tables, modals, side panels).                    */
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 192, 50, 0.5);
+  background-clip: padding-box;
+}
+
+.scrollbar-thin::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ─── Accent variant: `.scrollbar-gold` ───────────────────────────────────── */
+/*   Permanent gold thumb for primary action areas (chat, logs, etc).        */
+
+.scrollbar-gold {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 192, 50, 0.6) transparent;
+}
+
+.scrollbar-gold::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-gold::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-gold::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 192, 50, 0.6);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
+}
+
+.scrollbar-gold::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 192, 50, 0.9);
+  background-clip: padding-box;
+}
+
+.scrollbar-gold::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ─── Horizontal-only emphasis: `.scrollbar-x` / `.scrollbar-y` ──────────── */
+
+.scrollbar-x::-webkit-scrollbar:vertical { width: 0; }
+.scrollbar-x::-webkit-scrollbar:horizontal { height: 8px; }
+
+.scrollbar-y::-webkit-scrollbar:vertical { width: 8px; }
+.scrollbar-y::-webkit-scrollbar:horizontal { height: 0; }
+
+/* ─── Hide scrollbar but keep scrollability ──────────────────────────────── */
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

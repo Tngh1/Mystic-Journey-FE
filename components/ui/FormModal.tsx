@@ -62,7 +62,7 @@ export default function FormModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-[#1a1a1a] border border-white/10 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-[#111111] border border-white/10 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <h2 className="text-xl font-bold text-white">{title}</h2>
@@ -116,11 +116,11 @@ export default function FormModal({
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors"
                     required={field.required}
                   >
-                    <option value="" className="bg-[#1a1a1a]">
+                    <option value="" className="bg-[#111111]">
                       Select {field.label}
                     </option>
                     {field.options?.map((opt) => (
-                      <option key={opt.value} value={opt.value} className="bg-[#1a1a1a]">
+                      <option key={opt.value} value={opt.value} className="bg-[#111111]">
                         {opt.label}
                       </option>
                     ))}

@@ -1,11 +1,12 @@
 import { get } from "./client";
-import type { SaleResponse } from "@/lib/types";
-export type { SaleResponse } from "@/lib/types";
+import type { PurchaseHistoryResponse } from "@/lib/types";
+export type { PurchaseHistoryResponse } from "@/lib/types";
 
 // ═══════════════════════════════════════════════════════════════
 // SALES API - Lịch sử bán
+// BE GET /api/sales/player/{id} trả về List<PurchaseHistoryResponseDto>
 // ═══════════════════════════════════════════════════════════════
 
-export const getByPlayerId = async (playerProfileId: number): Promise<SaleResponse[]> => {
-  return get<SaleResponse[]>(`/api/sales/player/${playerProfileId}`);
+export const getByPlayerId = async (playerProfileId: number): Promise<PurchaseHistoryResponse[]> => {
+  return get<PurchaseHistoryResponse[]>(`/api/sales/player/${playerProfileId}`);
 };

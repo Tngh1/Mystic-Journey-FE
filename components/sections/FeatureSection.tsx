@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import Button from "@/components/ui/Button";
+import Link from "next/link";
+import AnimatedButton from "@/components/ui/AnimatedButton";
 
 const WORLDS = [
   {
@@ -91,7 +92,7 @@ export default function WorldSection() {
   const active = WORLDS[activeIndex];
 
   return (
-    <section id="game-features" className="w-full bg-[#070708] px-5 py-16 text-white md:px-10 lg:px-12 lg:py-20">
+    <section id="game-features" className="w-full  px-5 py-16 text-white md:px-10 lg:px-12 lg:py-20">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-20 grid gap-6 lg:grid-cols-2 lg:items-end">
@@ -197,29 +198,26 @@ export default function WorldSection() {
         {/* Bottom CTA */}
         <div className="mt-24 md:mt-28">
           <div className="mb-10 flex items-center gap-4">
-            <div className="h-px flex-1" style={{ backgroundColor: active.accent, opacity: 0.5 }} />
-            <div className="h-2 w-2 rounded-full transition-colors duration-500" style={{ backgroundColor: active.accent }} />
-            <div className="h-px flex-[2.4] transition-colors duration-500" style={{ backgroundColor: active.accent, opacity: 0.5 }} />
+            <div className="h-px flex-1 bg-[#ffc032]" style={{ opacity: 0.5 }} />
+            <div className="h-2 w-2 rounded-full bg-[#ffc032]" />
+            <div className="h-px flex-[2.4] bg-[#ffc032]" style={{ opacity: 0.5 }} />
           </div>
 
           <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
-            <h3 className="text-3xl font-black leading-tight md:text-4xl lg:text-5xl">
-              Your legend begins in the{" "}
-              <span className="transition-colors duration-500" style={{ color: active.accent }}>
-                {active.title}
-              </span>
-              ...
+            <h3 className="text-3xl font-black leading-tight md:text-4xl lg:text-5xl text-white">
+              Step Into the World of{" "}
+              <span className="text-[#ffc032]">Mystic Journey</span>
             </h3>
 
-            <Button variant="outline" size="md">
-              EXPLORE LORE
-            </Button>
+            <Link href="/story" className="self-start md:self-auto">
+              <AnimatedButton size="md">EXPLORE LORE</AnimatedButton>
+            </Link>
           </div>
 
           <div className="mt-10 flex items-center gap-4">
-            <div className="h-px flex-[2.4]" style={{ backgroundColor: active.accent, opacity: 0.5 }} />
-            <div className="h-2 w-2 rounded-full transition-colors duration-500" style={{ backgroundColor: active.accent }} />
-            <div className="h-px flex-1" style={{ backgroundColor: active.accent, opacity: 0.5 }} />
+            <div className="h-px flex-[2.4] bg-[#ffc032]" style={{ opacity: 0.5 }} />
+            <div className="h-2 w-2 rounded-full bg-[#ffc032]" />
+            <div className="h-px flex-1 bg-[#ffc032]" style={{ opacity: 0.5 }} />
           </div>
         </div>
       </div>

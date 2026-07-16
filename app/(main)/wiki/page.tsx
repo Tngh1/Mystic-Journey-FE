@@ -1,148 +1,108 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { BookOpen, Package, Ghost, Castle, Gem, Scroll, Trophy, ChevronRight, Sparkles, Swords, Shield, Star, Map } from "lucide-react";
+import Link from "next/link";
+import {
+  Sparkles, Leaf, Flame, Snowflake, Zap,
+  Package, Users, Ghost, Castle, Scroll, Trophy, Gem, Map, ArrowRight, Wand2,
+} from "lucide-react";
 
-interface WikiCategory {
-  id: string;
-  name: string;
-  description: string;
-  icon: React.ReactNode;
-  href: string;
-  color: string;
-  gradient: string;
-  count: number;
-}
+const WIKI_SHORTCUTS = [
+  { name: "Items",        href: "/wiki/items",        icon: <Package className="w-6 h-6" />, accent: "#60a5fa", description: "Weapons, armor and consumables." },
+  { name: "Classes",      href: "/wiki/classes",      icon: <Users   className="w-6 h-6" />, accent: "#f97316", description: "Playable classes and roles." },
+  { name: "Skills",       href: "/wiki/skills",       icon: <Wand2   className="w-6 h-6" />, accent: "#818cf8", description: "Active and passive abilities." },
+  { name: "Monsters",     href: "/wiki/monsters",     icon: <Ghost   className="w-6 h-6" />, accent: "#f87171", description: "Enemies and bosses." },
+  { name: "Dungeons",     href: "/wiki/dungeons",     icon: <Castle  className="w-6 h-6" />, accent: "#c084fc", description: "Challenging dungeons." },
+  { name: "Quests",       href: "/wiki/quests",       icon: <Scroll  className="w-6 h-6" />, accent: "#4ade80", description: "Story and side quests." },
+  { name: "Achievements", href: "/wiki/achievements", icon: <Trophy  className="w-6 h-6" />, accent: "#fbbf24", description: "Trophies and milestones." },
+  { name: "Gacha",        href: "/wiki/gacha",        icon: <Gem     className="w-6 h-6" />, accent: "#ffc032", description: "Banners and drop rates." },
+  { name: "Maps",         href: "/wiki/maps",         icon: <Map     className="w-6 h-6" />, accent: "#2dd4bf", description: "Regions and secrets." },
+];
+
+const CHAPTERS = [
+  { title: "Elf Forest",       sub: "Chapter I — Prologue of the Green Realm",   icon: <Leaf className="w-5 h-5" />,      tone: "text-green-400" },
+  { title: "Autumn Pumpkin",   sub: "Chapter II — Harvest of the Burning Fields", icon: <Flame className="w-5 h-5" />,     tone: "text-orange-400" },
+  { title: "Frozen Mountains", sub: "Chapter III — The Eternal Blizzard",         icon: <Snowflake className="w-5 h-5" />, tone: "text-sky-400" },
+  { title: "Vestige of an Era", sub: "Chapter IV — Echoes of the Fallen Kingdom", icon: <Zap className="w-5 h-5" />,       tone: "text-purple-400" },
+];
 
 export default function WikiPage() {
-  const router = useRouter();
-  const categories: WikiCategory[] = [
-    { id: "maps", name: "Maps", description: "Explore the Enchanted Forest and discover hidden locations, dungeons, and scenic regions across Mystic Journey", icon: <Map className="w-10 h-10" />, href: "/wiki/maps", color: "text-teal-400", gradient: "from-teal-500/20 to-cyan-500/20", count: 6 },
-    { id: "items", name: "Items", description: "Weapons, armor, accessories, consumables, and crafting materials found in Mystic Journey", icon: <Package className="w-10 h-10" />, href: "/wiki/items", color: "text-blue-400", gradient: "from-blue-500/20 to-cyan-500/20", count: 8 },
-    { id: "monsters", name: "Monsters", description: "Enemies, minibosses, and creatures lurking in the Enchanted Forest and beyond", icon: <Ghost className="w-10 h-10" />, href: "/wiki/monsters", color: "text-red-400", gradient: "from-red-500/20 to-orange-500/20", count: 12 },
-    { id: "dungeons", name: "Dungeons", description: "Challenging dungeons and boss encounters — including the Shadow-infested Forest Core", icon: <Castle className="w-10 h-10" />, href: "/wiki/dungeons", color: "text-purple-400", gradient: "from-purple-500/20 to-pink-500/20", count: 4 },
-    { id: "gacha", name: "Gacha", description: "Gacha pools, drop rates, and featured items available in Mystic Journey", icon: <Gem className="w-10 h-10" />, href: "/wiki/gacha", color: "text-[#ffc032]", gradient: "from-[#ffc032]/20 to-amber-500/20", count: 12 },
-    { id: "quests", name: "Quests", description: "The Chapter 1 main story chain, daily quests, and all adventure tasks in Mystic Journey", icon: <Scroll className="w-10 h-10" />, href: "/wiki/quests", color: "text-green-400", gradient: "from-green-500/20 to-emerald-500/20", count: 8 },
-    { id: "achievements", name: "Achievements", description: "Trophies, milestones, and rewards for your heroic deeds", icon: <Trophy className="w-10 h-10" />, href: "/wiki/achievements", color: "text-amber-400", gradient: "from-amber-500/20 to-yellow-500/20", count: 48 },
-  ];
-
   return (
-    <div className="min-h-screen pt-20 pb-12">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden py-20">
-        <div className="absolute inset-0 bg-[url('/images/patterns/grid.svg')] opacity-5"></div>
-        
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#ffc032]/20 rounded-full mb-6">
-              <BookOpen className="w-5 h-5 text-[#ffc032]" />
-              <span className="text-[#ffc032] font-medium">Knowledge Base</span>
-            </div>
-            
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
-              Wiki
-            </h1>
-            
-            <p className="text-white/70 text-xl mb-8 max-w-2xl mx-auto leading-relaxed">
-              Your complete guide to the world of Mystic Journey. Browse items, monsters, dungeons, and more.
-            </p>
+    <div className="min-h-screen pt-[88px] md:pt-[112px]">
+      <main className="flex-1 min-w-0">
+        {/* Featured banner */}
+        <div className="relative overflow-hidden py-10 md:py-16 border-b border-white/10 bg-black">
+          {/* Ambient gold glow */}
+          <div className="pointer-events-none absolute -top-24 left-1/4 h-72 w-[min(80%,640px)] rounded-full bg-[#ffc032]/10 blur-[130px]" />
 
-            <div className="flex flex-wrap justify-center gap-4">
-              <button
-                onClick={() => router.push("/wiki/items")}
-                className="flex items-center gap-2 px-6 py-3 bg-[#ffc032] text-black font-semibold rounded-xl hover:bg-[#ffc032]/90 transition-all duration-300 shadow-lg shadow-[#ffc032]/20 cursor-pointer"
-              >
-                <Sparkles className="w-5 h-5" />
-                Start Exploring
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Categories Grid */}
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categories.map((category) => (
-            <button
-              key={category.id}
-              onClick={() => router.push(category.href)}
-              className={`group text-left bg-gradient-to-br ${category.gradient} border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer`}
-            >
-              {/* Icon */}
-              <div className={`w-20 h-20 rounded-2xl bg-white/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform ${category.color}`}>
-                {category.icon}
+          <div className="max-w-[1200px] mx-auto px-4 md:px-6">
+            <div className="relative z-10 max-w-[1200px]">
+              <div className="mb-5 flex items-center gap-3">
+                <Sparkles className="w-3.5 h-3.5 text-[#ffc032]" />
+                <span className="text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">Mystic Journey</span>
+                <span className="h-px w-12 bg-linear-to-r from-[#ffc032]/60 to-transparent" />
               </div>
-
-              {/* Content */}
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-2xl font-bold text-white group-hover:text-[#ffc032] transition-colors">
-                  {category.name}
-                </h3>
-                <span className="px-3 py-1 bg-white/10 rounded-full text-sm text-white/60">
-                  {category.count}
-                </span>
-              </div>
-
-              <p className="text-white/60 text-sm mb-4 leading-relaxed">
-                {category.description}
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 leading-tight">
+                Mystic Journey Wiki
+              </h1>
+              <p className="text-white/60 text-base mb-6 max-w-xl leading-relaxed">
+                Your comprehensive guide to the world of Mystic Journey. Discover weapons, monsters, dungeons, quests, achievements, maps and the gacha system across every chapter of the adventure.
               </p>
 
-              <div className="flex items-center gap-2 text-[#ffc032] font-medium text-sm group-hover:gap-3 transition-all">
-                Browse {category.name}
-                <ChevronRight className="w-4 h-4" />
+              {/* Chapter badges */}
+              <div className="flex gap-3 overflow-x-auto pb-1 nice-scrollbar">
+                {CHAPTERS.map((ch) => (
+                  <Link
+                    key={ch.title}
+                    href="/wiki/maps"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-white/10 rounded-xl hover:border-[#ffc032]/40 transition-all cursor-pointer group shrink-0"
+                  >
+                    <span className={ch.tone}>{ch.icon}</span>
+                    <div>
+                      <p className="text-xs font-semibold text-white group-hover:text-[#ffc032] transition-colors leading-none mb-0.5">{ch.title}</p>
+                      <p className="text-[10px] text-white/45 leading-none">{ch.sub}</p>
+                    </div>
+                  </Link>
+                ))}
               </div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Quick Links */}
-      <div className="container mx-auto px-4 py-12">
-        <div className="bg-white/5 border border-white/10 rounded-3xl p-8">
-          <h2 className="text-2xl font-bold text-white mb-6 text-center">Popular Guides</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button
-              onClick={() => router.push("/wiki/items")}
-              className="flex items-center gap-4 p-4 bg-white/5 hover:bg-white/10 rounded-xl transition-colors cursor-pointer group"
-            >
-              <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
-                <Swords className="w-6 h-6" />
-              </div>
-              <div className="text-left">
-                <h4 className="font-semibold text-white group-hover:text-blue-400 transition-colors">Best Weapons Guide</h4>
-                <p className="text-white/50 text-sm">Top weapons for each class</p>
-              </div>
-            </button>
-
-            <button
-              onClick={() => router.push("/wiki/dungeons")}
-              className="flex items-center gap-4 p-4 bg-white/5 hover:bg-white/10 rounded-xl transition-colors cursor-pointer group"
-            >
-              <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
-                <Castle className="w-6 h-6" />
-              </div>
-              <div className="text-left">
-                <h4 className="font-semibold text-white group-hover:text-purple-400 transition-colors">Dungeon Tier List</h4>
-                <p className="text-white/50 text-sm">Best dungeons for rewards</p>
-              </div>
-            </button>
-
-            <button
-              onClick={() => router.push("/wiki/gacha")}
-              className="flex items-center gap-4 p-4 bg-white/5 hover:bg-white/10 rounded-xl transition-colors cursor-pointer group"
-            >
-              <div className="w-12 h-12 rounded-xl bg-[#ffc032]/20 flex items-center justify-center text-[#ffc032] group-hover:scale-110 transition-transform">
-                <Gem className="w-6 h-6" />
-              </div>
-              <div className="text-left">
-                <h4 className="font-semibold text-white group-hover:text-[#ffc032] transition-colors">Gacha Strategy</h4>
-                <p className="text-white/50 text-sm">Maximize your pulls</p>
-              </div>
-            </button>
+            </div>
           </div>
         </div>
-      </div>
+
+        {/* Quick Shortcuts */}
+        <section className="border-b border-white/10">
+          <div className="max-w-[1200px] mx-auto px-4 md:px-6 py-10 md:py-12">
+            <div className="flex items-end justify-between mb-6 gap-4 flex-wrap">
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold text-white">Quick Shortcuts</h2>
+                <p className="text-white/50 text-sm mt-1">Jump straight to any section of the wiki.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+              {WIKI_SHORTCUTS.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="group relative bg-[#111111] border border-white/10 rounded-2xl p-4 hover:border-[#ffc032]/40 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30 cursor-pointer"
+                >
+                  <div
+                    className="w-11 h-11 rounded-xl flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110"
+                    style={{ backgroundColor: `${item.accent}20`, color: item.accent }}
+                  >
+                    {item.icon}
+                  </div>
+                  <h3 className="text-sm font-semibold text-white mb-1 group-hover:text-[#ffc032] transition-colors">
+                    {item.name}
+                  </h3>
+                  <p className="text-xs text-white/50 leading-relaxed line-clamp-2">{item.description}</p>
+                  <ArrowRight className="w-4 h-4 text-white/30 group-hover:text-[#ffc032] group-hover:translate-x-1 transition-all absolute top-4 right-4" />
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+      </main>
     </div>
   );
 }
