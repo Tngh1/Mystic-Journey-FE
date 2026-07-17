@@ -459,6 +459,7 @@ export interface ShopItemResponse {
   itemName: string | null;
   itemIconUrl: string | null;
   itemType: string | null;
+  shopSection: string;
   currency: string;
   price: number;
   stock: number;
@@ -471,18 +472,18 @@ export interface ShopItemResponse {
 
 export interface CreateShopItemRequest {
   itemId: number;
+  shopSection?: string;
   currency?: string;
   price?: number;
   stock?: number;
   dailyPurchaseLimit?: number;
   weeklyPurchaseLimit?: number;
   isActive?: boolean;
-  availableFrom?: string;
-  availableTo?: string;
+  availableFrom?: string | null;
+  availableTo?: string | null;
 }
 
 export type UpdateShopItemRequest = Partial<CreateShopItemRequest>;
-
 /* ─── Gacha ──────────────────────────────────────────────────────────────── */
 
 export interface GachaBannerResponse {
