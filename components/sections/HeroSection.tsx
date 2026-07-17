@@ -1,7 +1,8 @@
 "use client";
 
-import Image from "next/image";
-import Button from "@/components/ui/Button";
+import Link from "next/link";
+import { Play, ChevronDown } from "lucide-react";
+import AnimatedButton from "@/components/ui/AnimatedButton";
 
 const MysticTitle = () => (
   <div className="relative w-full max-w-[580px] mx-auto select-none">
@@ -121,37 +122,62 @@ export default function HeroSection() {
         >
           <source src="/videos/Banner.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-black/30" />
+        {/* Layered scrims for text legibility (skill: dark bg for focus) */}
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-linear-to-b from-black/50 via-transparent to-black/70" />
       </div>
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center space-y-12 max-w-5xl mx-auto w-full pt-16">
+      <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center max-w-5xl mx-auto w-full pt-16">
+
+        {/* Eyebrow */}
+        <div className="mb-6 flex items-center gap-3">
+          <span className="h-px w-8 bg-linear-to-r from-transparent to-[#ffc032]/60" />
+          <span className="text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">
+            Dark Fantasy MMORPG
+          </span>
+          <span className="h-px w-8 bg-linear-to-l from-transparent to-[#ffc032]/60" />
+        </div>
 
         {/* ── Artistic Bouncy Title ── */}
         <MysticTitle />
 
-        {/* Watch Trailer Button */}
-        <Button
-          variant="hero"
-          size="lg"
-          className="group relative overflow-hidden mt-8"
-          onClick={() => { console.log("Watch Trailer"); }}
-        >
-          <span className="relative z-10 flex items-center gap-3">
-            <svg className="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+        {/* Tagline */}
+        <p className="mt-6 max-w-xl text-base md:text-lg text-white/75 leading-relaxed">
+          Rise as a hero against the shadow. Master your class, explore four
+          legendary realms, and uncover the corruption spreading through the world.
+        </p>
+
+        {/* CTAs — primary action + secondary trailer */}
+        <div className="mt-9 flex flex-col sm:flex-row items-center gap-4">
+          <Link
+            href="/download"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[#ffc032] text-[#111] font-black tracking-widest uppercase text-sm transition-all hover:bg-[#ffd04c] hover:scale-105 shadow-lg shadow-[#ffc032]/25 cursor-pointer"
+          >
+            <Play className="w-4 h-4 fill-current" />
+            Play Now
+          </Link>
+          <AnimatedButton
+            size="lg"
+            onClick={() => { console.log("Watch Trailer"); }}
+          >
             WATCH TRAILER
-          </span>
-          <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        </Button>
+          </AnimatedButton>
+        </div>
       </div>
 
+      {/* Scroll cue */}
+      <a
+        href="#about"
+        aria-label="Scroll to learn more"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-white/50 hover:text-[#ffc032] transition-colors cursor-pointer motion-safe:animate-bounce"
+      >
+        <span className="text-[10px] uppercase tracking-[0.3em]">Scroll</span>
+        <ChevronDown className="w-5 h-5" />
+      </a>
+
       {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-black to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-full h-40 bg-linear-to-t from-black to-transparent pointer-events-none" />
     </section>
   );
 }

@@ -21,7 +21,6 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
-  ArrowLeft,
   Loader2,
   GripVertical,
   Image as ImageIcon,
@@ -30,12 +29,18 @@ import {
   X,
   Quote,
   Plus,
+  Save,
 } from 'lucide-react';
 import { createWithBlocks, getCategories, CategoryResponse } from '@/lib/api/contents';
 import { uploadImageToCloudinary } from '@/lib/api/cloudinary';
 import EditableTextBlock from '@/components/ui/EditableTextBlock';
 import { showConfirmAlert } from '@/lib/utils/swal';
 import ImageUploader from '@/components/ui/ImageUploader';
+import FormHeader from '@/components/form/FormHeader';
+import FormSection from '@/components/form/FormSection';
+import FormField from '@/components/form/FormField';
+import FormAlert from '@/components/form/FormAlert';
+import { TextInput, TextArea, Checkbox } from '@/components/form/FormInput';
 
 interface FormData {
   title: string;
@@ -110,17 +115,15 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
       className="bg-[#222] border border-purple-500/50 rounded-lg overflow-hidden"
     >
       <div className="flex items-stretch">
-        {/* Drag Handle */}
         <div
           {...attributes}
           {...listeners}
-          className="flex items-center px-2 bg-[#1a1a1a] border-r border-purple-500/30 cursor-grab active:cursor-grabbing hover:bg-[#252525]"
+          className="flex items-center px-2 bg-[#111111] border-r border-purple-500/30 cursor-grab active:cursor-grabbing hover:bg-[#252525]"
         >
           <GripVertical className="w-4 h-4 text-purple-400/50" />
         </div>
 
         <div className="flex-1 p-4 space-y-3">
-          {/* Header with delete button */}
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded text-xs font-medium">
               <ImageIcon className="w-3 h-3 inline mr-1" />
@@ -142,7 +145,7 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
                   onDelete(block.tempId);
                 }
               }}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-red-400 hover:text-white bg-red-500/10 hover:bg-red-500 border border-red-500/30 rounded transition-colors"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-red-400 hover:text-white bg-red-500/10 hover:bg-red-500 border border-red-500/30 rounded transition-colors cursor-pointer"
               title="Delete this block"
             >
               <X className="w-3.5 h-3.5" />
@@ -156,7 +159,6 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
             </div>
           )}
 
-          {/* Image Upload Area */}
           {!block.mediaUrl ? (
             <div
               onDrop={handleDrop}
@@ -184,20 +186,19 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
               <button
                 type="button"
                 onClick={() => onUpdate(block.tempId, { mediaUrl: '', mediaFile: null })}
-                className="absolute top-2 right-2 p-1.5 bg-red-500/80 text-white rounded-lg hover:bg-red-600 transition-colors"
+                className="absolute top-2 right-2 p-1.5 bg-red-500/80 text-white rounded-lg hover:bg-red-600 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
           )}
 
-          {/* Caption */}
           <input
             type="text"
             value={block.caption}
             onChange={handleCaptionChange}
             placeholder="Image caption (optional)"
-            className="w-full px-3 py-1.5 bg-[#1a1a1a] border border-[#333] rounded text-white text-sm placeholder-gray-500 focus:outline-none focus:border-purple-500"
+            className="w-full px-3 py-1.5 bg-[#111111] border border-[#333] rounded text-white text-sm placeholder-gray-500 focus:outline-none focus:border-purple-500"
           />
         </div>
       </div>
@@ -205,9 +206,6 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
   );
 }
 
-
-// ── InsertZone ─────────────────────────────────────────────────────────────
-// Thin separator between blocks that reveals Text / Image insert buttons on hover.
 function InsertZone({
   onAddText,
   onAddImage,
@@ -219,7 +217,7 @@ function InsertZone({
   return (
     <div className="relative flex items-center py-2">
       <div className="flex-1 h-px bg-gray-700/20" />
-      <div 
+      <div
         className="flex items-center gap-1.5 px-3 h-8"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
@@ -229,14 +227,14 @@ function InsertZone({
             <button
               type="button"
               onClick={onAddText}
-              className="flex items-center gap-1 px-2.5 py-0.5 text-xs bg-blue-500/20 text-blue-400 border border-blue-500/40 rounded-full hover:bg-blue-500/30 transition-colors font-medium whitespace-nowrap"
+              className="flex items-center gap-1 px-2.5 py-0.5 text-xs bg-blue-500/20 text-blue-400 border border-blue-500/40 rounded-full hover:bg-blue-500/30 transition-colors font-medium whitespace-nowrap cursor-pointer"
             >
               <Type className="w-3 h-3" /> Text
             </button>
             <button
               type="button"
               onClick={onAddImage}
-              className="flex items-center gap-1 px-2.5 py-0.5 text-xs bg-purple-500/20 text-purple-400 border border-purple-500/40 rounded-full hover:bg-purple-500/30 transition-colors font-medium whitespace-nowrap"
+              className="flex items-center gap-1 px-2.5 py-0.5 text-xs bg-purple-500/20 text-purple-400 border border-purple-500/40 rounded-full hover:bg-purple-500/30 transition-colors font-medium whitespace-nowrap cursor-pointer"
             >
               <ImageIcon className="w-3 h-3" /> Image
             </button>
@@ -258,11 +256,8 @@ export default function CreateContentPage() {
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
   const [blocks, setBlocks] = useState<LocalBlock[]>([]);
 
-  // Map to store getContent functions from editor children
   const editorContentGetters = useRef<Map<string, () => string>>(new Map());
 
-  // Stable random id generator that won't collide on rapid clicks.
-  // crypto.randomUUID() is available in modern browsers and Next.js client.
   const generateId = () =>
     typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
       ? crypto.randomUUID()
@@ -317,7 +312,6 @@ export default function CreateContentPage() {
       return;
     }
 
-    // 1. Collect latest text content from all editors
     const updatedBlocks = blocks.map((b) => {
       const getContent = editorContentGetters.current.get(b.tempId);
       if (getContent) {
@@ -326,7 +320,6 @@ export default function CreateContentPage() {
       return b;
     });
 
-    // 2. Validation: image blocks must have a mediaUrl or mediaFile
     const invalidImageBlock = updatedBlocks.find(
       (b) => b.blockType === 'image' && !b.mediaUrl?.trim() && !b.mediaFile
     );
@@ -335,7 +328,6 @@ export default function CreateContentPage() {
       return;
     }
 
-    // 3. Validation: text blocks must have non-empty visible content
     const emptyTextBlock = updatedBlocks.find((b) => {
       if (b.blockType !== 'text') return false;
       const text = (b.contentData || '').replace(/<[^>]*>/g, '').trim();
@@ -388,7 +380,7 @@ export default function CreateContentPage() {
     }
   };
 
-  const handleChange = (field: keyof FormData, value: string | number | boolean | File | null) => {
+  const handleChange = <K extends keyof FormData>(field: K, value: FormData[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -416,7 +408,6 @@ export default function CreateContentPage() {
     ]);
   };
 
-  // Top-level buttons always append to the end
   const handleAddText = () => handleInsertBlock('text', blocks.length);
   const handleAddImage = () => handleInsertBlock('image', blocks.length);
 
@@ -446,116 +437,85 @@ export default function CreateContentPage() {
   return (
     <div className="min-h-screen bg-[#111] p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <Link
-            href="/manage-content"
-            className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-4"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Back to Content
-          </Link>
-          <h1 className="text-2xl font-bold text-white">Create New Content</h1>
-          <p className="text-gray-400 mt-1">Add content info and blocks</p>
-        </div>
+        <FormHeader
+          title="Create Content"
+          subtitle="Add content info and blocks"
+          backHref="/manage-content"
+          badge="New"
+          badgeTone="primary"
+        />
 
-        {/* 2-Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
           {/* Left: Content Info */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="bg-[#1a1a1a] rounded-lg p-6">
-              {error && (
-                <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg mb-6">
-                  {error}
-                </div>
-              )}
+            {error && <FormAlert message={error} onDismiss={() => setError(null)} />}
 
-              <h2 className="text-lg font-semibold text-white mb-4">Content Info</h2>
-
-              {/* Title */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Title <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
+            <FormSection title="Content Info" icon={Type}>
+              <FormField label="Title" htmlFor="title" required>
+                <TextInput
+                  id="title"
                   value={formData.title}
                   onChange={(e) => handleChange('title', e.target.value)}
                   placeholder="Enter content title"
-                  className="w-full px-4 py-2 bg-[#222] border border-[#333] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#ffc032]"
+                  required
                 />
-              </div>
+              </FormField>
 
-              {/* Summary */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Summary
-                </label>
-                <textarea
+              <FormField label="Summary" htmlFor="summary">
+                <TextArea
+                  id="summary"
                   value={formData.summary}
                   onChange={(e) => handleChange('summary', e.target.value)}
                   placeholder="Brief description of the content"
                   rows={3}
-                  className="w-full px-4 py-2 bg-[#222] border border-[#333] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#ffc032] resize-none"
                 />
-              </div>
+              </FormField>
 
-              {/* Thumbnail */}
-              <div className="mb-4">
+              <FormField label="Thumbnail" htmlFor="thumbnail">
                 <ImageUploader
                   value={formData.thumbnailUrl}
                   onChange={(url) => handleChange('thumbnailUrl', url)}
                   label="Thumbnail"
                 />
-              </div>
+              </FormField>
 
-              {/* Category */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Category <span className="text-red-500">*</span>
-                </label>
+              <FormField label="Category" htmlFor="categoryId" required>
                 {fetchingCategories ? (
-                  <div className="flex items-center gap-2 text-gray-400">
+                  <div className="flex items-center gap-2 text-gray-400 px-4 py-2">
                     <Loader2 className="w-4 h-4 animate-spin" />
                     Loading categories...
                   </div>
                 ) : (
                   <select
+                    id="categoryId"
                     value={formData.categoryId}
                     onChange={(e) => handleChange('categoryId', Number(e.target.value))}
-                    className="w-full px-4 py-2 bg-[#222] border border-[#333] rounded-lg text-white focus:outline-none focus:border-[#ffc032]"
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors cursor-pointer"
                   >
                     {categories.length === 0 && <option value={0}>No categories available</option>}
                     {categories.map((cat) => (
-                      <option key={cat.categoryContentId} value={cat.categoryContentId}>
+                      <option key={cat.categoryContentId} value={cat.categoryContentId} className="bg-[#111111]">
                         {cat.name}
                       </option>
                     ))}
                   </select>
                 )}
-              </div>
+              </FormField>
 
-              {/* Checkboxes */}
-              <div className="mb-6 space-y-3">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.isPublished}
-                    onChange={(e) => handleChange('isPublished', e.target.checked)}
-                    className="w-5 h-5 rounded border-[#333] bg-[#222] text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0"
-                  />
-                  <span className="text-sm text-gray-300">Publish immediately</span>
-                </label>
-              </div>
-            </div>
+              <Checkbox
+                id="isPublished"
+                checked={formData.isPublished}
+                onChange={(e) => handleChange('isPublished', e.target.checked)}
+                label="Publish immediately"
+              />
+            </FormSection>
 
-            {/* Actions */}
-            <div className="bg-[#1a1a1a] rounded-lg p-6">
+            <FormSection title="Actions">
               <div className="flex items-center gap-4">
                 <button
                   type="submit"
                   disabled={loading || fetchingCategories}
-                  className="flex items-center gap-2 px-6 py-2 bg-[#ffc032] text-[#111] rounded-lg font-semibold hover:bg-[#e6ae2c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-6 py-2 bg-[#ffc032] text-[#111] rounded-lg font-semibold hover:bg-[#e6ae2c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {loading ? (
                     <>
@@ -563,7 +523,10 @@ export default function CreateContentPage() {
                       Creating...
                     </>
                   ) : (
-                    'Create Content'
+                    <>
+                      <Save className="w-4 h-4" />
+                      Create Content
+                    </>
                   )}
                 </button>
                 <Link
@@ -573,24 +536,26 @@ export default function CreateContentPage() {
                   Cancel
                 </Link>
               </div>
-            </div>
+            </FormSection>
           </form>
 
           {/* Right: Block Content */}
-          <div className="bg-[#1a1a1a] rounded-lg p-6">
+          <div className="bg-[#111111] rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-white">Block Contents</h2>
               <div className="flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={handleAddText}
-                  className="flex items-center gap-2 px-3 py-2 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg font-medium hover:bg-blue-500/30 transition-colors text-sm"
+                  className="flex items-center gap-2 px-3 py-2 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg font-medium hover:bg-blue-500/30 transition-colors text-sm cursor-pointer"
                 >
                   <Type className="w-4 h-4" />
                   Add Text
                 </button>
                 <button
+                  type="button"
                   onClick={handleAddImage}
-                  className="flex items-center gap-2 px-3 py-2 bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded-lg font-medium hover:bg-purple-500/30 transition-colors text-sm"
+                  className="flex items-center gap-2 px-3 py-2 bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded-lg font-medium hover:bg-purple-500/30 transition-colors text-sm cursor-pointer"
                 >
                   <ImageIcon className="w-4 h-4" />
                   Add Image
@@ -598,9 +563,8 @@ export default function CreateContentPage() {
               </div>
             </div>
 
-            {/* Block List */}
             {blocks.length === 0 ? (
-              <div className="text-center py-16 text-gray-400 border-2 border-dashed border-gray-700 rounded-lg">
+              <div className="text-center py-16 text-gray-400 border-2 border-dashed border-white/10 rounded-lg">
                 <Quote className="w-12 h-12 mx-auto mb-3 text-gray-600" />
                 <p>No blocks added yet.</p>
                 <p className="text-sm mt-1">Click &quot;Add Text&quot; or &quot;Add Image&quot; to create content blocks.</p>
@@ -609,7 +573,6 @@ export default function CreateContentPage() {
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <SortableContext items={blocks.map((b) => b.tempId)} strategy={verticalListSortingStrategy}>
                   <div>
-                    {/* Insert zone before the first block */}
                     <InsertZone
                       onAddText={() => handleInsertBlock('text', 0)}
                       onAddImage={() => handleInsertBlock('image', 0)}
@@ -631,7 +594,6 @@ export default function CreateContentPage() {
                             onDelete={handleDeleteBlock}
                           />
                         )}
-                        {/* Insert zone after each block */}
                         <InsertZone
                           onAddText={() => handleInsertBlock('text', index + 1)}
                           onAddImage={() => handleInsertBlock('image', index + 1)}

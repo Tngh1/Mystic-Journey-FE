@@ -102,7 +102,7 @@ export default function ImageUploader({ value, onChange, label, className = "" }
               setError(null);
               onChange(null);
             }}
-            className="absolute top-2 right-2 p-1.5 bg-red-500/80 text-white rounded-lg hover:bg-red-600 transition-colors"
+            className="absolute top-2 right-2 p-1.5 bg-red-500/80 text-white rounded-lg hover:bg-red-600 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>

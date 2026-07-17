@@ -191,7 +191,7 @@ function ResetPasswordForm() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Enter new password"
                 required
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200 pr-12"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200 pr-12"
               />
               <button
                 type="button"
@@ -225,7 +225,7 @@ function ResetPasswordForm() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm new password"
                 required
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200 pr-12"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200 pr-12"
               />
               <button
                 type="button"
@@ -256,7 +256,7 @@ function ResetPasswordForm() {
       {/* Back to Login */}
       <p className="text-center text-white/60 mt-6">
         Remember your password?{" "}
-        <Link href="/login" className="text-[#ffc032] hover:text-[#ffc032] font-semibold transition-colors">
+        <Link href="/login" className="text-[#ffc032] hover:text-[#ffd04c] font-semibold transition-colors">
           Login
         </Link>
       </p>

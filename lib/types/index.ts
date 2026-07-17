@@ -55,6 +55,15 @@ export interface LoginResponse {
   userName: string;
   emailAddress: string;
   role: string;
+  roleId?: number;
+  hasCharacter?: boolean;
+  playerProfileId?: number;
+  playerDisplayName?: string | null;
+  playerClass?: string | null;
+  level?: number;
+  lastMapName?: string | null;
+  positionX?: number;
+  positionY?: number;
   accessToken?: string;
   accessTokenExpiresAt?: string;
   refreshToken?: string;
@@ -80,7 +89,6 @@ export interface CreateAdminAccountRequest {
   roleId: number;
   displayName?: string;
   playerClass?: string;
-  isActive?: boolean;
 }
 
 export interface UpdateAdminAccountRequest {
@@ -105,9 +113,11 @@ export interface PlayerProfileResponse {
   gold: number;
   gems: number;
   energy: number;
+  maxEnergy: number;
+  lastEnergyUpdateTime: string | null;
+  corruptionLevel: number;
   createdAt: string;
   updatedAt: string | null;
-  isBanned: boolean;
 }
 
 export interface PlayerStatsResponse {
@@ -147,7 +157,8 @@ export interface UpdatePlayerProfileRequest {
   gold: number;
   gems: number;
   energy: number;
-  isBanned: boolean;
+  maxEnergy: number;
+  corruptionLevel: number;
 }
 
 /* ─── Item ───────────────────────────────────────────────────────────────── */
@@ -160,6 +171,7 @@ export interface ItemResponse {
   rarity: string;
   slot: string;
   baseValue: number;
+  corruptionReduction: number;
   maxStack: number;
   isActive: boolean;
   iconUrl: string | null;
@@ -174,13 +186,14 @@ export interface ItemResponse {
   bonusCritDamage?: number;
 }
 
-export interface CreateItemRequest {
-  name: string;
+export interface UpdateItemRequest {
+  name?: string;
   description?: string;
   type?: string;
   rarity?: string;
   slot?: string;
   baseValue?: number;
+  corruptionReduction?: number;
   maxStack?: number;
   isActive?: boolean;
   iconUrl?: string;
@@ -193,8 +206,6 @@ export interface CreateItemRequest {
   bonusCritRate?: number;
   bonusCritDamage?: number;
 }
-
-export type UpdateItemRequest = Partial<CreateItemRequest>;
 
 /* ─── Monster ────────────────────────────────────────────────────────────── */
 
@@ -233,8 +244,8 @@ export interface MonsterDetailResponse extends MonsterResponse {
   monsterDrops: MonsterDropResponse[];
 }
 
-export interface CreateMonsterRequest {
-  name: string;
+export interface UpdateMonsterRequest {
+  name?: string;
   type?: string;
   description?: string;
   level?: number;
@@ -250,8 +261,6 @@ export interface CreateMonsterRequest {
   imageUrl?: string;
   isActive?: boolean;
 }
-
-export type UpdateMonsterRequest = Partial<CreateMonsterRequest>;
 
 export interface AddMonsterDropRequest {
   itemId: number;
@@ -278,33 +287,6 @@ export interface MonsterSpawnResponse {
   isActive: boolean;
 }
 
-export interface CreateMonsterSpawnRequest {
-  monsterId: number;
-  mapName: string;
-  regionName?: string;
-  location?: string;
-  spawnCount?: number;
-  respawnSeconds?: number;
-  dungeonId?: number;
-  isActive?: boolean;
-}
-
-export interface PlayerMonsterCatalogItem {
-  monsterId: number;
-  name: string;
-  type: string;
-  description: string;
-  level: number;
-  maxHp: number;
-  atk: number;
-  def: number;
-  experienceReward: number;
-  goldReward: number;
-  imageUrl?: string;
-  isDiscovered: boolean;
-  timesDefeated: number;
-}
-
 /* ─── Dungeon ────────────────────────────────────────────────────────────── */
 
 export interface DungeonConfigResponse {
@@ -317,12 +299,13 @@ export interface DungeonConfigResponse {
   maxMembers: number;
   difficulty: number;
   recommendedPower: number;
+  energyCost: number;
   chestId: number | null;
   isActive: boolean;
 }
 
-export interface CreateDungeonConfigRequest {
-  name: string;
+export interface UpdateDungeonConfigRequest {
+  name?: string;
   description?: string;
   imageUrl?: string;
   type?: string;
@@ -330,13 +313,51 @@ export interface CreateDungeonConfigRequest {
   maxMembers?: number;
   difficulty?: number;
   recommendedPower?: number;
+  energyCost?: number;
   chestId?: number;
   isActive?: boolean;
 }
 
-export type UpdateDungeonConfigRequest = CreateDungeonConfigRequest;
-
 /* ─── Quest ──────────────────────────────────────────────────────────────── */
+
+/* NPC */
+
+export interface NPCResponse {
+  npcId: number;
+  name: string;
+  description: string | null;
+  type: string;
+  mapName: string;
+  positionX: number;
+  positionY: number;
+  interactionRadius: number;
+  iconUrl: string | null;
+  isActive: boolean;
+}
+export interface QuestRewardItemResponse {
+  questRewardItemId: number;
+  itemId: number;
+  itemName: string | null;
+  iconUrl: string | null;
+  quantity: number;
+}
+
+export interface UpdateQuestRewardItemRequest {
+  itemId: number;
+  quantity: number;
+}
+export interface QuestRewardSkillResponse {
+  questRewardSkillId: number;
+  skillId: number;
+  skillName: string | null;
+  classRequirement: string | null;
+  type: string | null;
+  damageType: string | null;
+}
+
+export interface UpdateQuestRewardSkillRequest {
+  skillId: number;
+}
 
 export interface QuestResponse {
   questId: number;
@@ -357,13 +378,21 @@ export interface QuestResponse {
   rewardGems: number;
   rewardItemId: number | null;
   rewardItemName: string | null;
+  rewardItems: QuestRewardItemResponse[];
   rewardSkillId: number | null;
   rewardSkillName: string | null;
+  rewardSkills: QuestRewardSkillResponse[];
+  dialogueId: number | null;
+  dialogueNpcId: number | null;
+  dialogueNpcName: string | null;
+  dialogueContent: string | null;
+  dialogueDisplayOrder: number | null;
+  dialogueIsActive: boolean | null;
   isActive: boolean;
 }
 
-export interface CreateQuestRequest {
-  title: string;
+export interface UpdateQuestRequest {
+  title?: string;
   description?: string | null;
   type?: string;
   defaultStatus?: string;
@@ -379,11 +408,15 @@ export interface CreateQuestRequest {
   rewardGold?: number;
   rewardGems?: number;
   rewardItemId?: number | null;
+  rewardItems?: UpdateQuestRewardItemRequest[];
   rewardSkillId?: number | null;
+  rewardSkills?: UpdateQuestRewardSkillRequest[];
+  syncDialogue?: boolean;
+  dialogueContent?: string | null;
+  dialogueDisplayOrder?: number | null;
+  dialogueIsActive?: boolean | null;
   isActive?: boolean;
 }
-
-export type UpdateQuestRequest = CreateQuestRequest;
 
 /* ─── Achievement ───────────────────────────────────────────────────────── */
 
@@ -401,10 +434,11 @@ export interface AchievementResponse {
   rewardQuantity: number;
   rewardGold: number;
   rewardGem: number;
+  point: number;
 }
 
-export interface CreateAchievementRequest {
-  name: string;
+export interface UpdateAchievementRequest {
+  name?: string;
   description?: string;
   type?: string;
   iconUrl?: string | null;
@@ -414,9 +448,8 @@ export interface CreateAchievementRequest {
   rewardQuantity?: number;
   rewardGold?: number;
   rewardGem?: number;
+  point?: number;
 }
-
-export type UpdateAchievementRequest = CreateAchievementRequest;
 
 /* ─── Shop ───────────────────────────────────────────────────────────────── */
 
@@ -426,10 +459,12 @@ export interface ShopItemResponse {
   itemName: string | null;
   itemIconUrl: string | null;
   itemType: string | null;
+  shopSection: string;
   currency: string;
   price: number;
   stock: number;
   dailyPurchaseLimit: number;
+  weeklyPurchaseLimit: number;
   isActive: boolean;
   availableFrom: string | null;
   availableTo: string | null;
@@ -437,17 +472,18 @@ export interface ShopItemResponse {
 
 export interface CreateShopItemRequest {
   itemId: number;
+  shopSection?: string;
   currency?: string;
   price?: number;
   stock?: number;
   dailyPurchaseLimit?: number;
+  weeklyPurchaseLimit?: number;
   isActive?: boolean;
-  availableFrom?: string;
-  availableTo?: string;
+  availableFrom?: string | null;
+  availableTo?: string | null;
 }
 
 export type UpdateShopItemRequest = Partial<CreateShopItemRequest>;
-
 /* ─── Gacha ──────────────────────────────────────────────────────────────── */
 
 export interface GachaBannerResponse {
@@ -475,17 +511,15 @@ export interface GachaBannerDetailResponse extends GachaBannerResponse {
   bannerItems: GachaBannerItemResponse[];
 }
 
-export interface CreateGachaBannerRequest {
-  name: string;
+export interface UpdateGachaBannerRequest {
+  name?: string;
   type?: string;
   pullCost?: number;
   pityLimit?: number;
   isActive?: boolean;
-  startAt: string;
-  endAt: string;
+  startAt?: string;
+  endAt?: string;
 }
-
-export type UpdateGachaBannerRequest = CreateGachaBannerRequest;
 
 export interface AddGachaBannerItemRequest {
   itemId: number;
@@ -494,6 +528,13 @@ export interface AddGachaBannerItemRequest {
 }
 
 /* ─── Mail ───────────────────────────────────────────────────────────────── */
+
+export interface MailRewardItemResponse {
+  itemId: number;
+  itemName: string | null;
+  iconUrl: string | null;
+  quantity: number;
+}
 
 export interface MailResponse {
   mailId: number;
@@ -504,15 +545,18 @@ export interface MailResponse {
   type: string;
   attachedGold: number;
   attachedGems: number;
-  attachedItemId: number | null;
-  attachedItemName: string | null;
-  attachedItemQuantity: number;
+  attachedItems: MailRewardItemResponse[];
   isRead: boolean;
   isClaimed: boolean;
   isDeleted: boolean;
   deletedAt: string | null;
   sentAt: string;
   expiredAt: string | null;
+}
+
+export interface SendMailRewardItem {
+  itemId: number;
+  quantity: number;
 }
 
 export interface SendMailByListIdRequest {
@@ -522,8 +566,7 @@ export interface SendMailByListIdRequest {
   type?: string;
   attachedGold?: number;
   attachedGems?: number;
-  attachedItemId?: number;
-  attachedItemQuantity?: number;
+  attachedItems?: SendMailRewardItem[];
   expiredAt?: string;
 }
 
@@ -533,8 +576,7 @@ export interface SendMailToAllRequest {
   type?: string;
   attachedGold?: number;
   attachedGems?: number;
-  attachedItemId?: number;
-  attachedItemQuantity?: number;
+  attachedItems?: SendMailRewardItem[];
   expiredAt?: string;
 }
 
@@ -662,43 +704,7 @@ export interface PurchaseHistoryResponse {
   purchasedAt: string;
 }
 
-export interface SaleResponse {
-  id: number;
-  playerProfileId: number;
-  playerName: string | null;
-  saleDate: string;
-  totalAmount: number;
-  saleItems: SaleItemResponse[];
-}
-
-export interface SaleItemResponse {
-  id: number;
-  saleId: number;
-  itemId: number;
-  itemName: string;
-  quantity: number;
-  pricePerUnit: number;
-  totalPrice: number;
-}
-
 /* ─── Game Config ────────────────────────────────────────────────────────── */
-
-export interface GameSettingResponse {
-  gameSettingId: number;
-  key: string;
-  value: string | null;
-  description: string | null;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string | null;
-  updatedBy: string | null;
-}
-
-export interface UpdateGameSettingRequest {
-  value?: string;
-  description?: string;
-  isActive: boolean;
-}
 
 export interface DailyLoginRewardResponse {
   dailyLoginRewardId: number;
@@ -738,21 +744,15 @@ export interface InventoryItemResponse {
   itemDescription: string | null;
   itemType: string;
   itemRarity: string;
+  itemSlot: string | null;
   iconUrl: string | null;
+  corruptionReduction: number;
   quantity: number;
   isEquipped: boolean;
   isSkin: boolean;
   equippedSlot: string | null;
   enhancementLevel: number;
   createdAt: string;
-  baseHp: number;
-  baseAtk: number;
-  baseDef: number;
-  bonusHp: number;
-  bonusAtk: number;
-  bonusDef: number;
-  bonusCritRate: number;
-  bonusCritDamage: number;
 }
 
 export interface PlayerSkinSummaryResponse {

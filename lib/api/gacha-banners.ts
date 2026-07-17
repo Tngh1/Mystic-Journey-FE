@@ -1,15 +1,21 @@
-import { get, post, put } from "./client";
-import type { GachaBannerResponse, GachaBannerDetailResponse, GachaBannerItemResponse, CreateGachaBannerRequest, UpdateGachaBannerRequest, AddGachaBannerItemRequest, PagedResponse } from "@/lib/types";
-export type { GachaBannerResponse, GachaBannerDetailResponse, GachaBannerItemResponse, CreateGachaBannerRequest, UpdateGachaBannerRequest, AddGachaBannerItemRequest, PagedResponse } from "@/lib/types";
+import { get, put } from "./client";
+import type { GachaBannerResponse, GachaBannerDetailResponse, GachaBannerItemResponse, UpdateGachaBannerRequest, PagedResponse } from "@/lib/types";
+export type { GachaBannerResponse, GachaBannerDetailResponse, GachaBannerItemResponse, UpdateGachaBannerRequest, PagedResponse } from "@/lib/types";
 
 export const getById = async (id: number): Promise<GachaBannerDetailResponse> => {
   return get<GachaBannerDetailResponse>(`/api/gachabanners/${id}`);
 };
 
-export const getAll = async (page = 1, pageSize = 10): Promise<PagedResponse<GachaBannerResponse>> => {
-  return get<PagedResponse<GachaBannerResponse>>(
-    `/api/gachabanners?page=${page}&pageSize=${pageSize}`
-  );
+export const getAll = async (
+  page = 1,
+  pageSize = 10,
+  params?: { search?: string; type?: string; isActive?: boolean }
+): Promise<PagedResponse<GachaBannerResponse>> => {
+  const qs = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  if (params?.search) qs.set("search", params.search);
+  if (params?.type) qs.set("type", params.type);
+  if (params?.isActive !== undefined) qs.set("isActive", String(params.isActive));
+  return get<PagedResponse<GachaBannerResponse>>(`/api/gachabanners?${qs}`);
 };
 
 export const getAllItems = async (page = 1, pageSize = 10): Promise<PagedResponse<GachaBannerItemResponse>> => {
@@ -18,14 +24,6 @@ export const getAllItems = async (page = 1, pageSize = 10): Promise<PagedRespons
   );
 };
 
-export const create = async (data: CreateGachaBannerRequest): Promise<GachaBannerResponse> => {
-  return post<GachaBannerResponse>("/api/gachabanners", data);
-};
-
 export const update = async (id: number, data: UpdateGachaBannerRequest): Promise<GachaBannerResponse> => {
   return put<GachaBannerResponse>(`/api/gachabanners/${id}`, data);
-};
-
-export const addBannerItem = async (bannerId: number, data: AddGachaBannerItemRequest): Promise<GachaBannerItemResponse> => {
-  return post<GachaBannerItemResponse>(`/api/gachabanners/${bannerId}/items`, data);
 };

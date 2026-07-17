@@ -1,172 +1,166 @@
 # Mystic Journey — Frontend
 
-Next.js 16 frontend for **Mystic Journey**, a dark fantasy MMORPG. Built with App Router, TypeScript, Tailwind CSS 4, and HttpOnly Cookie-based authentication.
+Admin portal & public site cho **Mystic Journey**, một MMORPG dark fantasy. Xây
+dựng bằng Next.js 16 (App Router), React 19, TypeScript và Tailwind CSS v4.
+Xác thực bằng JWT trong HttpOnly cookie.
+
+> Đây là **admin portal + web công khai**, không phải game client (game chạy trên Unity).
 
 ---
 
 ## Tech Stack
 
-| Category | Technology |
+| Hạng mục | Công nghệ |
 |---|---|
-| Framework | Next.js 16.2.6 (App Router) |
+| Framework | Next.js 16 (App Router, không dùng `src/`) |
 | Language | TypeScript |
-| UI Library | React 19 |
-| Styling | Tailwind CSS 4 |
+| UI | React 19 |
+| Styling | Tailwind CSS v4 (`@theme` trong `app/globals.css`) |
 | HTTP Client | Axios (`withCredentials: true`) |
-| Icons | Lucide React |
+| Icons | Lucide React (SVG, không dùng emoji) |
 | Charts | ApexCharts |
-| Notifications | SweetAlert2 |
+| Alerts | SweetAlert2 |
+
+> **Lưu ý:** Next.js 16 có breaking changes so với bản cũ. Đọc `AGENTS.md` và tra
+> `node_modules/next/dist/docs/` trước khi viết code. Middleware được đổi tên thành
+> `proxy.ts`.
 
 ---
 
-## Authentication — HttpOnly Cookie Pattern
+## Gọi API — client trực tiếp tới .NET
 
-The frontend **never reads or stores tokens**. All authentication is handled server-side via HttpOnly cookies.
+Trình duyệt gọi **thẳng** .NET API qua một axios instance duy nhất
+(`lib/api/client.ts`) — **không** có route handler trung gian `app/api/*/route.ts`.
 
-```
-Login
-  ↓  POST /api/accounts/login
-  ↓  Backend sets HttpOnly cookie: access_token, refresh_token
-  ↓  Frontend calls GET /api/accounts/me
-  ↓  User info stored in AuthContext
-  ↓  UI renders based on user state
-```
+- `withCredentials: true` — cookie tự động gửi kèm mọi request.
+- `unwrap()` — tự bóc envelope `{ success, data }` của BE, trả về `data`.
+- Interceptor 401 — tự POST `/api/auth/refresh-token` một lần rồi retry; nếu vẫn
+  fail thì reject để `AuthContext` set `user = null`.
+- Base URL lấy từ `NEXT_PUBLIC_API_BASE_URL`.
+
+Mỗi domain có một file wrapper typed trong `lib/api/` (`items.ts`, `monsters.ts`,
+`mails.ts`, …). Kiểu dữ liệu tập trung ở `lib/types/index.ts`.
+
+### Auth (`lib/api/auth.ts` → `/api/auth/*`)
+
+`login`, `register`, `getMe`, `changePassword`, `logout`, `sendVerificationCode`,
+`verifyEmail`, `forgotPassword`, `resetPassword`.
+
+FE **không** đọc hay lưu token — toàn bộ nằm trong HttpOnly cookie do BE set.
 
 ### AuthContext (`lib/contexts/AuthContext.tsx`)
-
-Central context that manages authentication state for the entire app:
 
 ```typescript
 const { user, isLoading, login, logout, refreshUser } = useAuth();
 ```
 
-| Field / Method | Description |
+Mọi component cần thông tin user phải dùng `useAuth()`, không gọi `getMe()` trực tiếp.
+
+### Route guard (`proxy.ts`)
+
+Đọc cookie `access_token` ở phía server:
+
+| Route | Hành vi |
 |---|---|
-| `user` | Current user info (`MeResponse`), `null` if not authenticated |
-| `isLoading` | `true` while fetching `/me` on first load (prevents UI flash) |
-| `login(email, password)` | Calls API → backend sets cookie → re-fetches `/me` |
-| `logout()` | Calls API → backend clears cookie → `setUser(null)` |
-| `refreshUser()` | Re-fetches `/me` (use after profile update) |
-
-> **Rule:** Every component that needs user info must use `useAuth()` — never call `getMe()` directly.
-
-### Axios Client (`lib/api/client.ts`)
-
-- `withCredentials: true` — browser automatically sends cookies with every request
-- No request interceptor for Bearer header — backend reads token from cookie
-- Response interceptor handles `401`: attempts token refresh automatically; on failure rejects so `AuthContext` catches it and sets `user = null`
-
-### Middleware (`proxy.ts`)
-
-Server-side route guard — reads `access_token` cookie directly from the request:
-
-| Route | Behavior |
-|---|---|
-| `/dashboard`, `/manage-*`, `/account` | Redirect to `/login?redirect=<path>` if unauthenticated |
-| `/login`, `/register`, `/forgot-password`, `/reset-password` | Redirect to `/` if already authenticated |
+| `protectedRoutes` (`/dashboard`, `/manage-*`, `/account`) | Chưa đăng nhập → redirect `/login` |
+| `guestRoutes` (`/login`, `/register`, `/forgot-password`, `/reset-password`) | Đã đăng nhập → redirect `/` |
 
 ---
 
-## Project Structure
+## Cấu trúc dự án
 
 ```
-mystic-journey/
+Mystic-Journey-FE/
 ├── app/
-│   ├── layout.tsx                  # Root layout — wraps AuthProvider
-│   ├── (auth)/                     # Auth pages (login, register, ...)
-│   ├── (main)/                     # Public pages (home, wiki, account, ...)
-│   └── (dashboard)/                # Admin panel (manage-*)
+│   ├── layout.tsx              # Root layout — bọc AuthProvider
+│   ├── globals.css             # Tailwind v4 + @theme design tokens
+│   ├── (auth)/                 # login, register, forgot/reset password
+│   ├── (main)/                 # Trang công khai: landing, wiki, story, account…
+│   └── (dashboard)/            # Admin panel: các trang manage-*
 ├── components/
-│   └── ui/
-│       ├── Header.tsx              # Uses useAuth() — shows avatar or Login button
-│       ├── AdminTopBar.tsx         # Uses useAuth() — shows username and role
-│       ├── AdminSideBar.tsx
-│       ├── AdminTable.tsx
-│       ├── Button.tsx
-│       ├── FormModal.tsx
-│       └── ProfileSidebar.tsx
+│   ├── ui/                     # Header, AdminTable, AdminSideBar, Button…
+│   └── css/                    # CSS module cho hiệu ứng riêng
 ├── lib/
-│   ├── api/
-│   │   ├── client.ts               # Shared Axios instance with interceptors
-│   │   ├── account.ts              # login, logout, getMe, register, ...
-│   │   └── *.ts                    # Other API modules
-│   ├── contexts/
-│   │   └── AuthContext.tsx         # AuthProvider + useAuth hook
-│   ├── hooks/
-│   │   └── usePagedQuery.ts        # Pagination hook for admin tables
-│   └── utils/
-│       └── swal.ts                 # SweetAlert2 helpers
-└── proxy.ts                        # Route protection middleware (server-side)
+│   ├── api/                    # client.ts + wrapper theo domain
+│   ├── contexts/AuthContext.tsx
+│   ├── hooks/usePagedQuery.ts  # Phân trang server-side cho bảng admin
+│   └── types/index.ts          # Toàn bộ DTO/type dùng chung
+├── proxy.ts                    # Route guard (Next.js 16 middleware)
+├── DESIGN.md                   # Design system (BẮT BUỘC đọc trước khi sửa UI)
+└── AGENTS.md                   # Lưu ý Next.js 16 + trỏ tới DESIGN.md
 ```
+
+---
+
+## Design System
+
+Trước khi sửa bất kỳ UI nào, **đọc `DESIGN.md`**. Tóm tắt:
+
+- **Bản sắc:** dark-fantasy, nền đen `#111`, accent vàng gold `#ffc032`.
+- **Tokens:** khai báo trong `app/globals.css` dưới `@theme` (`bg-surface`,
+  `text-accent`, `border-line`…). Không hardcode hex mới — thêm/tái dùng token.
+- **Quality rules (áp global):** focus-visible ring vàng, tôn trọng
+  `prefers-reduced-motion`, contrast ≥ 4.5:1, icon SVG (Lucide) không emoji.
 
 ---
 
 ## Getting Started
 
-### Prerequisites
-
+### Yêu cầu
 - Node.js 18+
-- Mystic Journey Backend API running
+- Mystic Journey Backend API đang chạy
 
-### 1. Install Dependencies
-
+### 1. Cài dependencies
 ```bash
-cd mystic-journey
 npm install
 ```
 
-### 2. Configure Environment
-
-Create `.env.local` at the project root:
-
+### 2. Cấu hình môi trường
+Tạo `.env.local`:
 ```env
 NEXT_PUBLIC_API_BASE_URL=https://localhost:7116
 ```
 
-### 3. Run Development Server
-
+### 3. Dev server
 ```bash
-npm run dev
+npm run dev      # http://localhost:3000
 ```
 
-Frontend available at `http://localhost:3000`.
-
-### 4. Build for Production
-
+### 4. Build & lint
 ```bash
 npm run build
-npm run start
+npm run lint
 ```
 
 ---
 
 ## Admin Panel
 
-The dashboard at `/dashboard` provides full CRUD management for all game entities. Requires `Admin` or `SuperAdmin` role.
+Dashboard tại `/dashboard`, yêu cầu role `Admin` hoặc `SuperAdmin`.
 
-| Module | Features |
+| Module | Chức năng |
 |---|---|
-| Players | List, edit profile, ban/unban |
-| Admins | Create and edit admin accounts |
-| Items | Full CRUD with equipment stats |
-| Monsters | Full CRUD with drop tables |
-| Dungeons | Full CRUD with chest assignment |
-| Shop | Full CRUD with stock and purchase limits |
-| Gacha Pools | Full CRUD with item drop rates |
-| Quests | Full CRUD with rewards |
-| Achievements | Full CRUD with reward configuration |
-| Mailbox | Send individual and broadcast mails with attachments |
-| Content | CMS for articles and news |
-| Game Config | Runtime settings management |
-| Transactions | Purchase history |
-| Dashboard | Statistics charts (ApexCharts) |
+| Players | Danh sách, sửa profile |
+| Admins | Tạo/sửa tài khoản admin |
+| Items | CRUD + equipment stats |
+| Monsters | CRUD + drop table |
+| Dungeons | CRUD dungeon config |
+| Shop | CRUD shop item |
+| Gacha Pools | CRUD banner + tỉ lệ |
+| Quests | CRUD quest |
+| Achievements | CRUD achievement |
+| Mailbox | Gửi mail cá nhân & broadcast kèm phần thưởng |
+| Content | CMS bài viết |
+| Game Config | Cấu hình game runtime |
+| Transactions | Lịch sử mua hàng |
+| Dashboard | Biểu đồ thống kê (ApexCharts) |
 
 ---
 
 ## Role System
 
-| Role | Description |
+| Role | Mô tả |
 |---|---|
-| `Player` | Regular player account |
-| `Admin` | Full access to game features and settings |
-| `SuperAdmin` | Full system access including account management |
+| `Player` | Người chơi thông thường |
+| `Admin` | Toàn quyền tính năng & cài đặt game |
+| `SuperAdmin` | Toàn quyền hệ thống, kể cả quản lý tài khoản |

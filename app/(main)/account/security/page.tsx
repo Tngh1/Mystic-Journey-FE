@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Lock } from "lucide-react";
 import ProfileSidebar from "@/components/ui/ProfileSidebar";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { changePassword } from "@/lib/api/auth";
@@ -57,8 +57,14 @@ export default function SecurityPage() {
         <ProfileSidebar />
 
         <main className="flex-1 md:pl-8">
+          <div className="mb-5 flex items-center gap-3">
+            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">
+              <Lock className="w-3.5 h-3.5" /> Security
+            </span>
+            <span className="h-px w-12 bg-linear-to-r from-[#ffc032]/60 to-transparent" />
+          </div>
           <h1 className="text-4xl font-extrabold text-white mb-2">Password &amp; Security</h1>
-          <p className="text-gray-400 text-sm mb-12">Manage your password and security preferences.</p>
+          <p className="text-white/60 text-sm mb-12">Manage your password and security preferences.</p>
 
           <section className="mb-12">
             <h2 className="text-xl font-bold text-white mb-4">Change Password</h2>
@@ -66,20 +72,21 @@ export default function SecurityPage() {
             <form onSubmit={handleSave} className="max-w-2xl space-y-6">
               {FIELDS.map(({ key, label, placeholder }) => (
                 <div key={key}>
-                  <label className="block text-xs text-gray-400 mb-1.5">{label}</label>
+                  <label htmlFor={key} className="block text-xs text-white/60 mb-1.5">{label}</label>
                   <div className="relative">
                     <input
+                      id={key}
                       type={showField[key] ? "text" : "password"}
                       value={formData[key]}
                       onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
                       required
                       placeholder={placeholder}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-4 pr-10 text-white outline-none focus:border-[#ffc032] transition-colors"
+                      className="w-full bg-[#0d0d0d] border border-white/10 rounded-xl py-3 pl-4 pr-10 text-white placeholder-white/40 outline-none focus:border-[#ffc032] transition-colors"
                     />
                     <button
                       type="button"
                       onClick={() => toggle(key)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors cursor-pointer"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors cursor-pointer"
                     >
                       {showField[key] ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -91,7 +98,7 @@ export default function SecurityPage() {
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-8 py-3 bg-[#ffc032] hover:bg-[#ca831f] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition-colors font-bold tracking-wide cursor-pointer"
+                  className="px-8 py-3 bg-[#ffc032] hover:bg-[#ffd04c] disabled:opacity-50 disabled:cursor-not-allowed text-[#111] rounded-xl transition-colors font-bold tracking-wide cursor-pointer"
                 >
                   {isSaving ? "Updating..." : "Update Password"}
                 </button>

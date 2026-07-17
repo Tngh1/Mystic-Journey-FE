@@ -14,6 +14,7 @@ import {
   List,
   ChevronRight,
 } from "lucide-react";
+import PageLoader from "@/components/ui/PageLoader";
 import { ContentDetailResponse, ContentResponse, getBySlug, getAll } from "@/lib/api/contents";
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -151,7 +152,7 @@ function TableOfContents({ headings }: { headings: HeadingItem[] }) {
         </span>
       </div>
 
-      <div className="bg-[#1a1a1a]/90 border border-t-0 border-white/8 rounded-b-xl overflow-hidden">
+      <div className="bg-[#111111] border border-t-0 border-white/10 rounded-b-xl overflow-hidden">
         <ul className="py-3 space-y-0.5">
           {headings.map((heading) => {
             const isActive = activeId === heading.id;
@@ -257,7 +258,7 @@ function RecentPosts({ currentContentId }: { currentContentId: number }) {
         <div className="mt-1.5 w-10 h-0.5 bg-[#ffc032] rounded-full" />
       </div>
 
-      <div className="bg-[#1a1a1a]/80 border border-white/8 rounded-xl overflow-hidden">
+      <div className="bg-[#111111] border border-white/10 rounded-xl overflow-hidden">
         {loading ? (
           <div className="flex justify-center py-8">
             <Loader2 className="w-5 h-5 text-[#ffc032]/50 animate-spin" />
@@ -297,7 +298,7 @@ function RecentPosts({ currentContentId }: { currentContentId: number }) {
 
       <Link
         href="/content"
-        className="mt-3 flex items-center justify-center gap-1.5 w-full py-2.5 text-xs text-white/40 hover:text-[#ffc032] border border-white/8 hover:border-[#ffc032]/30 rounded-xl transition-all duration-200"
+        className="mt-3 flex items-center justify-center gap-1.5 w-full py-2.5 text-xs text-white/40 hover:text-[#ffc032] border border-white/10 hover:border-[#ffc032]/30 rounded-xl transition-all duration-200"
       >
         View all posts
         <ChevronRight className="w-3.5 h-3.5" />
@@ -410,9 +411,9 @@ export default function ContentDetailPage() {
   const hasToc = headings.length > 0;
 
   return (
-    <div className="min-h-screen pt-20 pb-16 bg-[#0f0f0f]">
+    <div className="min-h-screen pt-20 pb-16 ">
       {/* Page wrapper */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="max-w-[1200px] mx-auto px-4 py-8">
         {/* 3-column grid */}
         <div
           className={`
@@ -441,12 +442,17 @@ export default function ContentDetailPage() {
 
             {/* Hero Section */}
             <header className="pb-8">
-              {content.categoryName && (
+              {content.categoryName ? (
                 <div className="flex mb-5">
-                  <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-[#ffc032]/10 text-[#ffc032] border border-[#ffc032]/20 rounded-full text-sm font-semibold tracking-wide">
+                  <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-[#ffc032]/10 text-[#ffc032] border border-[#ffc032]/25 rounded-full text-sm font-semibold tracking-wide">
                     <Tag className="w-3.5 h-3.5" />
                     {content.categoryName}
                   </span>
+                </div>
+              ) : (
+                <div className="mb-5 flex items-center gap-3">
+                  <span className="text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">Article</span>
+                  <span className="h-px w-12 bg-linear-to-r from-[#ffc032]/60 to-transparent" />
                 </div>
               )}
 
@@ -481,7 +487,7 @@ export default function ContentDetailPage() {
                   alt={content.title}
                   className="w-full h-64 sm:h-80 md:h-96 object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f]/60 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-[#0f0f0f]/60 to-transparent" />
               </div>
             )}
 
@@ -502,7 +508,7 @@ export default function ContentDetailPage() {
                       const html = processedMap.get(block.blockContentId) || block.contentData || "";
                       return (
                         <div key={block.blockContentId} className="relative group">
-                          <div className="bg-[#1a1a1a]/80 border border-white/5 rounded-2xl p-6 sm:p-8">
+                          <div className="bg-[#111111] border border-white/5 rounded-2xl p-6 sm:p-8">
                             <div
                               className="text-white/80 leading-[1.9] text-base rendered-html"
                               dangerouslySetInnerHTML={{ __html: html }}
@@ -515,7 +521,7 @@ export default function ContentDetailPage() {
                     if (block.blockType === "image") {
                       return (
                         <div key={block.blockContentId} className="relative group">
-                          <div className="bg-[#1a1a1a]/80 border border-white/5 rounded-2xl overflow-hidden">
+                          <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden">
                             {block.mediaUrl ? (
                               <img
                                 src={block.mediaUrl}
@@ -523,7 +529,7 @@ export default function ContentDetailPage() {
                                 className="w-full object-contain max-h-[500px] bg-[#111]"
                               />
                             ) : (
-                              <div className="w-full h-48 bg-[#1a1a1a] flex items-center justify-center">
+                              <div className="w-full h-48 bg-[#111111] flex items-center justify-center">
                                 <span className="text-white/30 text-sm">No image</span>
                               </div>
                             )}
@@ -547,7 +553,7 @@ export default function ContentDetailPage() {
 
             {/* Empty state */}
             {content.blocks.length === 0 && (
-              <div className="text-center py-16 bg-[#1a1a1a]/50 border border-white/5 rounded-2xl">
+              <div className="text-center py-16 bg-[#111111]/50 border border-white/5 rounded-2xl">
                 <p className="text-white/40">No content available</p>
               </div>
             )}
