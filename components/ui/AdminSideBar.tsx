@@ -19,6 +19,7 @@ import {
   Trophy,
   Mail,
   FolderOpen,
+  CalendarDays,
 } from "lucide-react";
 import { useSidebar } from "@/lib/contexts/SidebarContext";
 
@@ -57,6 +58,7 @@ const menuGroups = [
     items: [
       { icon: Scroll, label: "Manage Quest", href: "/manage-quests", hasNotification: false },
       { icon: Trophy, label: "Manage Achievement", href: "/manage-achievements", hasNotification: false },
+      { icon: CalendarDays, label: "Daily Login Rewards", href: "/manage-daily-login", hasNotification: false },
     ],
   },
   {
