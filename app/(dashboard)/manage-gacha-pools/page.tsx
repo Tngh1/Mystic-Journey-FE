@@ -1,10 +1,10 @@
-'use client';
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { GachaBannerResponse } from "@/lib/api/gacha-banners";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
-import { Gem } from "lucide-react";
+import { Gem, Plus, History } from "lucide-react";
 import AdminTable from "@/components/ui/AdminTable";
 import FilterSortBar from "@/components/ui/FilterSortBar";
 
@@ -34,7 +34,6 @@ function formatDate(dateStr: string) {
 
 export default function ManageGachaPoolsPage() {
   const router = useRouter();
-
   const [filterType, setFilterType] = useState("");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("gachaBannerId");
@@ -49,7 +48,7 @@ export default function ManageGachaPoolsPage() {
 
   const { data: banners, totalCount, loading, error, page, pageSize, setPage, setPageSize, setParams, refresh } =
     usePagedQuery<GachaBannerResponse>({
-      endpoint: '/api/gachabanners',
+      endpoint: "/api/gachabanners",
       pageSize: 10,
       params: buildParams(),
     });
@@ -77,13 +76,7 @@ export default function ManageGachaPoolsPage() {
     setParams(buildParams());
   };
 
-  const handleOrderChange = (order: "asc" | "desc") => {
-    setSortOrder(order);
-    setPage(1);
-    setParams(buildParams());
-  };
-
-  const columnsWithDate = columns.map(col =>
+  const columnsWithDate = columns.map((col) =>
     col.key === "startAt" || col.key === "endAt"
       ? { ...col, render: (val: string) => formatDate(val) }
       : col
@@ -100,6 +93,22 @@ export default function ManageGachaPoolsPage() {
             <h1 className="text-2xl font-bold text-[#ffc032]">Manage Gacha</h1>
             <p className="text-sm text-gray-500">Configure banners and drop rates</p>
           </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.push("/manage-gacha-pools/history")}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl border border-white/20 text-white/70 hover:bg-white/10 transition-colors cursor-pointer"
+          >
+            <History className="w-4 h-4" />
+            Pull History
+          </button>
+          <button
+            onClick={() => router.push("/manage-gacha-pools/create")}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-xl bg-[#ffc032] text-[#111] hover:bg-[#ffd04c] transition-colors cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            Create Banner
+          </button>
         </div>
       </div>
 
