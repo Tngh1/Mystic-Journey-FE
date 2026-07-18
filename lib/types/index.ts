@@ -527,6 +527,41 @@ export interface AddGachaBannerItemRequest {
   isFeatured?: boolean;
 }
 
+export interface CreateGachaBannerRequest {
+  name: string;
+  type: string;
+  pullCost: number;
+  pityLimit: number;
+  isActive: boolean;
+  startAt: string;
+  endAt: string;
+}
+
+export interface GachaPullHistoryResponse {
+  gachaPullHistoryId: number;
+  playerProfileId: number;
+  gachaBannerId: number;
+  bannerName: string | null;
+  rewardItemId: number;
+  rewardItemName: string | null;
+  rewardItemIconUrl: string | null;
+  rewardItemRarity: string | null;
+  pullCount: number;
+  costSpent: number;
+  pulledAt: string;
+}
+
+export interface PlayerGachaStatsResponse {
+  playerProfileId: number;
+  playerName: string;
+  accountId: number;
+  totalPulls: number;
+  totalCost: number;
+  legendaryPulls: number;
+  actualLegendaryRate: number;
+  systemLegendaryRate: number;
+}
+
 /* ─── Mail ───────────────────────────────────────────────────────────────── */
 
 export interface MailRewardItemResponse {
@@ -709,6 +744,9 @@ export interface PurchaseHistoryResponse {
 export interface DailyLoginRewardResponse {
   dailyLoginRewardId: number;
   dayNumber: number;
+  month: number | null;
+  year: number | null;
+  isDefault: boolean;
   rewardType: string;
   rewardValue: number;
   rewardItemId: number | null;
@@ -720,11 +758,21 @@ export interface DailyLoginRewardResponse {
 
 export interface CreateDailyLoginRewardRequest {
   dayNumber: number;
+  month?: number | null;
+  year?: number | null;
   rewardType?: string;
   rewardValue?: number;
   rewardItemId?: number;
   rewardItemQuantity: number;
   isActive?: boolean;
+}
+
+export interface UpdateDailyLoginRewardRequest {
+  rewardType: string;
+  rewardValue: number;
+  rewardItemId?: number | null;
+  rewardItemQuantity: number;
+  isActive: boolean;
 }
 
 /* ─── Cloudinary ─────────────────────────────────────────────────────────── */

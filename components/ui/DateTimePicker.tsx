@@ -50,6 +50,7 @@ interface DateTimePickerProps {
   onChange: (value: string) => void;
   placeholder?: string;
   disabled?: boolean;
+  minDate?: Date;
 }
 
 /* ─── Component ───────────────────────────────────────────────────────────── */
@@ -60,6 +61,7 @@ export default function DateTimePicker({
   onChange,
   placeholder = "Pick date & time",
   disabled = false,
+  minDate,
 }: DateTimePickerProps) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<DropdownPos | null>(null);
@@ -193,7 +195,8 @@ export default function DateTimePicker({
         mode="single"
         selected={selected}
         onSelect={handleDaySelect}
-        defaultMonth={selected ?? new Date()}
+        defaultMonth={selected ?? minDate ?? new Date()}
+        disabled={minDate ? { before: minDate } : undefined}
         showOutsideDays
         classNames={{
           root: "p-4 select-none",
