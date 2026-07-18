@@ -22,7 +22,7 @@ export default function ImageUploader({ value, onChange, label, className = "" }
     if (value instanceof File) {
       objectUrl = URL.createObjectURL(value);
       nextPreviewUrl = objectUrl;
-    } else if (typeof value === 'string') {
+    } else if (typeof value === 'string' && value.trim() !== '' && value !== 'null') {
       nextPreviewUrl = value;
     }
 

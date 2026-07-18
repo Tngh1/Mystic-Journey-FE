@@ -527,6 +527,41 @@ export interface AddGachaBannerItemRequest {
   isFeatured?: boolean;
 }
 
+export interface CreateGachaBannerRequest {
+  name: string;
+  type: string;
+  pullCost: number;
+  pityLimit: number;
+  isActive: boolean;
+  startAt: string;
+  endAt: string;
+}
+
+export interface GachaPullHistoryResponse {
+  gachaPullHistoryId: number;
+  playerProfileId: number;
+  gachaBannerId: number;
+  bannerName: string | null;
+  rewardItemId: number;
+  rewardItemName: string | null;
+  rewardItemIconUrl: string | null;
+  rewardItemRarity: string | null;
+  pullCount: number;
+  costSpent: number;
+  pulledAt: string;
+}
+
+export interface PlayerGachaStatsResponse {
+  playerProfileId: number;
+  playerName: string;
+  accountId: number;
+  totalPulls: number;
+  totalCost: number;
+  legendaryPulls: number;
+  actualLegendaryRate: number;
+  systemLegendaryRate: number;
+}
+
 /* ─── Mail ───────────────────────────────────────────────────────────────── */
 
 export interface MailRewardItemResponse {
