@@ -709,6 +709,9 @@ export interface PurchaseHistoryResponse {
 export interface DailyLoginRewardResponse {
   dailyLoginRewardId: number;
   dayNumber: number;
+  month: number | null;
+  year: number | null;
+  isDefault: boolean;
   rewardType: string;
   rewardValue: number;
   rewardItemId: number | null;
@@ -720,11 +723,21 @@ export interface DailyLoginRewardResponse {
 
 export interface CreateDailyLoginRewardRequest {
   dayNumber: number;
+  month?: number | null;
+  year?: number | null;
   rewardType?: string;
   rewardValue?: number;
   rewardItemId?: number;
   rewardItemQuantity: number;
   isActive?: boolean;
+}
+
+export interface UpdateDailyLoginRewardRequest {
+  rewardType: string;
+  rewardValue: number;
+  rewardItemId?: number | null;
+  rewardItemQuantity: number;
+  isActive: boolean;
 }
 
 /* ─── Cloudinary ─────────────────────────────────────────────────────────── */
