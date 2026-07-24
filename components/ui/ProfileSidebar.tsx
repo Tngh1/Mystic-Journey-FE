@@ -1,12 +1,13 @@
 "use client";
 
-import { User, Settings, ShieldCheck } from "lucide-react";
+import { User, Settings, ShieldCheck, CreditCard } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/account/profile", label: "Profile", icon: User },
+  { href: "/account/transactions", label: "Transactions", icon: CreditCard },
   { href: "/account/setting", label: "Settings", icon: Settings },
   { href: "/account/security", label: "Password & Security", icon: ShieldCheck },
 ];

@@ -733,6 +733,7 @@ export interface PurchaseHistoryResponse {
   playerName: string | null;
   shopItemId: number;
   itemName: string | null;
+  itemIconUrl?: string;
   quantity: number;
   totalPrice: number;
   currency: string;
