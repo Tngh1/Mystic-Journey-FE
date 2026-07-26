@@ -718,6 +718,8 @@ export interface MonthlyStat {
 export interface DashboardStatsResponse {
   totalPlayers: number;
   totalAccounts: number;
+  onlinePlayers: number;
+  offlinePlayers: number;
   totalItems: number;
   totalMonsters: number;
   totalTransactions: number;
