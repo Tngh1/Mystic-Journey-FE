@@ -1,19 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { Eye, EyeOff, Lock } from "lucide-react";
+import { Eye, EyeOff, Lock, AlertCircle } from "lucide-react";
 import ProfileSidebar from "@/components/ui/ProfileSidebar";
+import Tapestry from "@/components/ui/Tapestry";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { changePassword } from "@/lib/api/auth";
 import { showSuccessAlert, showErrorAlert } from "@/lib/utils/swal";
 
 type PasswordField = "currentPassword" | "newPassword" | "confirmPassword";
 
-const FIELDS: { key: PasswordField; label: string; placeholder: string }[] = [
-  { key: "currentPassword",  label: "Current Password",     placeholder: "Enter current password..."  },
-  { key: "newPassword",      label: "New Password",         placeholder: "Enter new password..."      },
-  { key: "confirmPassword",  label: "Confirm New Password", placeholder: "Confirm new password..."    },
+/* `autoComplete` is what lets a password manager fill and then update the saved
+   entry — `current-password` on the old one, `new-password` on both new ones. */
+const FIELDS: { key: PasswordField; label: string; placeholder: string; autoComplete: string }[] = [
+  { key: "currentPassword", label: "Current Password",     placeholder: "Enter current password…", autoComplete: "current-password" },
+  { key: "newPassword",     label: "New Password",         placeholder: "Enter new password…",     autoComplete: "new-password"     },
+  { key: "confirmPassword", label: "Confirm New Password", placeholder: "Confirm new password…",   autoComplete: "new-password"     },
 ];
 
 const EMPTY_FORM = { currentPassword: "", newPassword: "", confirmPassword: "" };
@@ -27,6 +29,12 @@ export default function SecurityPage() {
     confirmPassword: false,
   });
   const [isSaving, setIsSaving] = useState(false);
+
+  /* Derived, not stored: the mismatch is a fact about the two fields, so there
+     is nothing to keep in sync. Only shown once the confirm box has been typed
+     in, so the warning doesn't fire on the first keystroke. */
+  const mismatch =
+    formData.confirmPassword.length > 0 && formData.newPassword !== formData.confirmPassword;
 
   if (isLoading) return null;
 
@@ -52,59 +60,104 @@ export default function SecurityPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-gray-300 font-['BeVietnamPro'] pt-24 pb-20">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-8">
+    <div className="min-h-dvh pt-[88px] pb-16 md:pt-[112px]">
+      <div className="mx-auto flex max-w-[1200px] flex-col gap-6 px-4 md:flex-row md:gap-8 md:px-6">
         <ProfileSidebar />
 
-        <main className="flex-1 md:pl-8">
+        <main className="min-w-0 flex-1">
           <div className="mb-5 flex items-center gap-3">
-            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">
-              <Lock className="w-3.5 h-3.5" /> Security
+            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.34em] text-accent">
+              <Lock className="h-3.5 w-3.5" aria-hidden="true" /> Security
             </span>
-            <span className="h-px w-12 bg-linear-to-r from-[#ffc032]/60 to-transparent" />
+            <span className="h-0.5 w-12 bg-accent/60" aria-hidden="true" />
           </div>
-          <h1 className="text-4xl font-extrabold text-white mb-2">Password &amp; Security</h1>
-          <p className="text-white/60 text-sm mb-12">Manage your password and security preferences.</p>
+          <h1 className="mb-2 text-3xl font-bold text-fg md:text-4xl">Password &amp; Security</h1>
+          <p className="mb-8 text-sm text-fg-muted">
+            Change the ward on your account. You will stay signed in on this device.
+          </p>
 
-          <section className="mb-12">
-            <h2 className="text-xl font-bold text-white mb-4">Change Password</h2>
+          {/* The ward, woven like the rest of /account: cloth on a rod, with each
+              field sunk into it. Wood belonged to the wiki.
 
-            <form onSubmit={handleSave} className="max-w-2xl space-y-6">
-              {FIELDS.map(({ key, label, placeholder }) => (
-                <div key={key}>
-                  <label htmlFor={key} className="block text-xs text-white/60 mb-1.5">{label}</label>
-                  <div className="relative">
-                    <input
-                      id={key}
-                      type={showField[key] ? "text" : "password"}
-                      value={formData[key]}
-                      onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-                      required
-                      placeholder={placeholder}
-                      className="w-full bg-[#0d0d0d] border border-white/10 rounded-xl py-3 pl-4 pr-10 text-white placeholder-white/40 outline-none focus:border-[#ffc032] transition-colors"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => toggle(key)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors cursor-pointer"
+              Royal, the same blue as the nav pennants beside it — this page is
+              asked to read as one continuous cloth rather than two hangings in
+              different dyes. Parchment on royal is ~7:1, and the open nav row
+              still marks itself four ways (aria-current, gold ink, edge bar,
+              darker ground), so nothing here rests on the dye to be legible. */}
+          <Tapestry
+            as="section"
+            aria-labelledby="change-pw"
+            dye="royal"
+            title="Change Password"
+            titleId="change-pw"
+            icon={<Lock className="h-4 w-4 text-accent" aria-hidden="true" />}
+            bodyClassName=""
+            className="max-w-2xl"
+          >
+            <form onSubmit={handleSave} className="space-y-5 p-4 md:p-6">
+              {FIELDS.map(({ key, label, placeholder, autoComplete }) => {
+                const invalid = key === "confirmPassword" && mismatch;
+                return (
+                  <div key={key}>
+                    <label
+                      htmlFor={key}
+                      className="mb-1.5 block text-[11px] font-bold uppercase tracking-widest text-parchment-dim"
                     >
-                      {showField[key] ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
+                      {label} <span className="text-accent">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        id={key}
+                        type={showField[key] ? "text" : "password"}
+                        value={formData[key]}
+                        onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+                        required
+                        autoComplete={autoComplete}
+                        placeholder={placeholder}
+                        aria-invalid={invalid || undefined}
+                        aria-describedby={invalid ? "confirm-error" : undefined}
+                        /* Reversed bevel so the field reads as cut into the plank. */
+                        className={`h-11 w-full border-2 bg-black/45 pl-3 pr-11 text-sm text-parchment placeholder:text-parchment-dim/50 shadow-[inset_2px_2px_0_rgb(0_0_0_/_0.45)] outline-none focus:border-accent ${
+                          invalid ? "border-danger" : "border-black/55"
+                        }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => toggle(key)}
+                        aria-label={showField[key] ? `Hide ${label}` : `Show ${label}`}
+                        aria-pressed={showField[key]}
+                        className="absolute right-0 top-0 flex h-11 w-11 cursor-pointer items-center justify-center text-parchment-dim hover:text-accent"
+                      >
+                        {showField[key]
+                          ? <EyeOff className="h-4 w-4" aria-hidden="true" />
+                          : <Eye className="h-4 w-4" aria-hidden="true" />}
+                      </button>
+                    </div>
+                    {invalid && (
+                      <p
+                        id="confirm-error"
+                        role="alert"
+                        className="mt-1.5 flex items-center gap-1.5 text-xs font-bold text-danger"
+                      >
+                        <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                        The two new passwords do not match.
+                      </p>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
-              <div className="pt-6 flex justify-end">
+              <div className="flex justify-end border-t-2 border-black/35 pt-5">
                 <button
                   type="submit"
-                  disabled={isSaving}
-                  className="px-8 py-3 bg-[#ffc032] hover:bg-[#ffd04c] disabled:opacity-50 disabled:cursor-not-allowed text-[#111] rounded-xl transition-colors font-bold tracking-wide cursor-pointer"
+                  disabled={isSaving || mismatch}
+                  className="pixel-press flex min-h-11 cursor-pointer items-center border-2 border-accent bg-accent px-6 text-sm font-black uppercase tracking-widest text-on-accent shadow-md hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {isSaving ? "Updating..." : "Update Password"}
+                  {isSaving ? "Updating…" : "Update Password"}
                 </button>
               </div>
             </form>
-          </section>
+          </Tapestry>
         </main>
       </div>
     </div>

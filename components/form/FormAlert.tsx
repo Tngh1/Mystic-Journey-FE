@@ -1,7 +1,15 @@
 "use client";
 
 import React from "react";
-import { AlertCircle, X } from "lucide-react";
+import { AlertCircle, AlertTriangle, Info, X } from "lucide-react";
+
+/* The notice nailed to the top of a form. Cloth plate on the left carries the
+   severity, so the type survives without the colour.
+
+   The old `ICON` map pointed all three types at `AlertCircle` — the map existed
+   but did nothing, leaving red/orange/blue as the only difference between an
+   error and a hint. Each type now has its own glyph. Tones are heraldic cloth
+   instead of `bg-red-500/10 border-red-500/30`. */
 
 interface FormAlertProps {
   type?: "error" | "warning" | "info";
@@ -10,16 +18,24 @@ interface FormAlertProps {
   onDismiss?: () => void;
 }
 
-const TYPE_STYLE: Record<NonNullable<FormAlertProps["type"]>, string> = {
-  error: "bg-red-500/10 border-red-500/30 text-red-400",
-  warning: "bg-orange-500/10 border-orange-500/30 text-orange-400",
-  info: "bg-blue-500/10 border-blue-500/30 text-blue-400",
+type AlertType = NonNullable<FormAlertProps["type"]>;
+
+const TYPE_PLATE: Record<AlertType, string> = {
+  error: "bg-heraldry-crimson text-parchment",
+  warning: "bg-heraldry-ember text-parchment",
+  info: "bg-heraldry-royal text-parchment",
 };
 
-const ICON: Record<NonNullable<FormAlertProps["type"]>, typeof AlertCircle> = {
+const TYPE_EDGE: Record<AlertType, string> = {
+  error: "border-danger",
+  warning: "border-accent-deep",
+  info: "border-info",
+};
+
+const ICON: Record<AlertType, typeof AlertCircle> = {
   error: AlertCircle,
-  warning: AlertCircle,
-  info: AlertCircle,
+  warning: AlertTriangle,
+  info: Info,
 };
 
 export default function FormAlert({
@@ -32,22 +48,26 @@ export default function FormAlert({
 
   return (
     <div
-      className={`flex items-start gap-3 p-4 rounded-xl border ${TYPE_STYLE[type]}`}
+      className={`pixel-bevel-plate flex items-start gap-3 border-2 p-3.5 ${TYPE_EDGE[type]}`}
       role="alert"
     >
-      <Icon className="w-5 h-5 shrink-0 mt-0.5" />
-      <div className="flex-1 min-w-0">
-        {title && <p className="font-semibold text-sm">{title}</p>}
-        <p className={`text-sm ${title ? "mt-1 opacity-90" : ""}`}>{message}</p>
+      <span
+        className={`flex h-9 w-9 shrink-0 items-center justify-center border-2 border-black/60 shadow-sm ${TYPE_PLATE[type]}`}
+      >
+        <Icon className="h-5 w-5" aria-hidden="true" />
+      </span>
+      <div className="min-w-0 flex-1">
+        {title && <p className="text-sm font-bold text-fg">{title}</p>}
+        <p className={`text-sm text-parchment ${title ? "mt-0.5" : ""}`}>{message}</p>
       </div>
       {onDismiss && (
         <button
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss"
-          className="opacity-60 hover:opacity-100 transition-opacity cursor-pointer shrink-0"
+          className="-my-1 -mr-1 flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center border-2 border-transparent text-parchment-dim transition-colors hover:border-accent hover:text-accent"
         >
-          <X className="w-4 h-4" />
+          <X className="h-4 w-4" aria-hidden="true" />
         </button>
       )}
     </div>

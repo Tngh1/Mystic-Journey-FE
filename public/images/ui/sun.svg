@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Pixel sun, used as the plate the /story chronicle is written on.
+
+     Drawn on a 32x32 grid with the disc rasterised from a real circle (centre
+     16,16 — radius 13), which is what the two earlier versions got wrong: a
+     20-cell grid is too coarse to describe a curve, so the silhouette came out
+     as an octagonal blob. 32 cells is fine enough to read as round and still
+     coarse enough that the edge steps — at 640px each cell is 20px.
+
+     Two tones only: an accent-deep rim one cell thick, and an accent body. The
+     third, lighter core disc is gone on purpose — scaled up it read as a pale
+     translucent patch washing out the text sitting on it, not as a highlight.
+     Ink on the body is on-parchment brown at roughly 7:1.
+
+     The corona is eight detached blocks (four cardinal rays, four diagonals)
+     with a one-cell gap to the disc, which is how pixel art shows glare without
+     a blur. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32"
+     shape-rendering="crispEdges">
+  <g fill="#ff8c00">
+    <!-- rim: the full circle, r=13 -->
+    <rect x="12" y="3" width="8" height="1" />
+    <rect x="10" y="4" width="12" height="1" />
+    <rect x="8" y="5" width="16" height="1" />
+    <rect x="7" y="6" width="18" height="1" />
+    <rect x="6" y="7" width="20" height="1" />
+    <rect x="5" y="8" width="22" height="2" />
+    <rect x="4" y="10" width="24" height="2" />
+    <rect x="3" y="12" width="26" height="8" />
+    <rect x="4" y="20" width="24" height="2" />
+    <rect x="5" y="22" width="22" height="2" />
+    <rect x="6" y="24" width="20" height="1" />
+    <rect x="7" y="25" width="18" height="1" />
+    <rect x="8" y="26" width="16" height="1" />
+    <rect x="10" y="27" width="12" height="1" />
+    <rect x="12" y="28" width="8" height="1" />
+    <!-- corona: cardinal rays -->
+    <rect x="15" y="0" width="2" height="2" />
+    <rect x="15" y="30" width="2" height="2" />
+    <rect x="0" y="15" width="2" height="2" />
+    <rect x="30" y="15" width="2" height="2" />
+    <!-- corona: diagonals -->
+    <rect x="4" y="4" width="2" height="2" />
+    <rect x="26" y="4" width="2" height="2" />
+    <rect x="4" y="26" width="2" height="2" />
+    <rect x="26" y="26" width="2" height="2" />
+  </g>
+  <g fill="#ffc032">
+    <!-- body: the same circle inset by one cell, so the rim stays even -->
+    <rect x="11" y="4" width="10" height="1" />
+    <rect x="9" y="5" width="14" height="1" />
+    <rect x="8" y="6" width="16" height="1" />
+    <rect x="7" y="7" width="18" height="1" />
+    <rect x="6" y="8" width="20" height="2" />
+    <rect x="5" y="10" width="22" height="2" />
+    <rect x="4" y="12" width="24" height="8" />
+    <rect x="5" y="20" width="22" height="2" />
+    <rect x="6" y="22" width="20" height="2" />
+    <rect x="7" y="24" width="18" height="1" />
+    <rect x="8" y="25" width="16" height="1" />
+    <rect x="9" y="26" width="14" height="1" />
+    <rect x="11" y="27" width="10" height="1" />
+  </g>
+</svg>

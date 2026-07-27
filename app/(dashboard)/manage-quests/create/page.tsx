@@ -541,7 +541,6 @@ export default function CreateQuestPage() {
             title="NPC Dialogue Link"
             subtitle="NPCDialogue row uses ResponseType Quest and LinkedQuestId"
             icon={MessageSquare}
-            iconColor="text-purple-400"
           >
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField label="Quest Giver / NPC" htmlFor="questGiverName">
@@ -581,7 +580,7 @@ export default function CreateQuestPage() {
             </button>
           </FormSection>
 
-          <FormSection title="Objectives & Location" icon={Target} iconColor="text-red-400">
+          <FormSection title="Objectives & Location" icon={Target}>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField label="Objective Type" htmlFor="objectiveType" required>
                 <SelectInput
@@ -675,7 +674,7 @@ export default function CreateQuestPage() {
               </FormField>
             </div>
           </FormSection>
-          <FormSection title="Requirements" icon={Shield} iconColor="text-blue-400">
+          <FormSection title="Requirements" icon={Shield}>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField label="Required Level" htmlFor="requiredLevel">
                 <TextInput
@@ -689,7 +688,7 @@ export default function CreateQuestPage() {
             </div>
           </FormSection>
 
-          <FormSection title="Rewards" icon={Gift} iconColor="text-green-400">
+          <FormSection title="Rewards" icon={Gift}>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               <FormField label="Reward Experience" htmlFor="rewardExperience">
                 <TextInput

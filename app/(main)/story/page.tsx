@@ -1,260 +1,282 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { BookOpen, ChevronRight, Trees, Leaf, Snowflake, Skull, MapPin, Crown, Star } from "lucide-react";
+import { useState } from "react";
+import Link from "next/link";
+import { BookOpen, ChevronRight, Trees, Leaf, Snowflake, Castle, Sprout, MapPin, Crown } from "lucide-react";
+import Panel from "@/components/ui/Panel";
+import ChapterFrame, { type Realm } from "@/components/ui/ChapterFrame";
 
 interface StoryChapter {
   id: number;
   title: string;
   subtitle: string;
   location: string;
-  level: string;
   content: string;
-  icon: React.ReactNode;
-  bgGradient: string;
+  Icon: typeof Trees;
+  /** The realm's heraldic cloth for the chapter plate. Ink on all five is
+   *  parchment, so the plate never carries meaning by colour alone — the
+   *  location name sits on it. */
+  cloth: string;
+  /** Which realm the chapter's whole enclosure is built from — see ChapterFrame. */
+  realm: Realm;
+}
+
+/* Story summaries follow the main-quest seed in the game database
+   (Quests 1–31, MysticJourneyDbContext) — introduction only, no spoilers
+   beyond what the quest log itself reveals. */
+const CHAPTERS: StoryChapter[] = [
+  {
+    id: 1,
+    title: "The Forest That Called You",
+    subtitle: "Where the journey begins",
+    location: "Elf Forest",
+    content: `You wake at the edge of the Elf Forest with no memory of how you arrived. Elder Rowan is waiting by the great roots — he needs your hands and your courage, and he starts small: white flowers for a healing draught, a first skill, slimes creeping out of the marsh.\n\nBut the slimes were only fleeing something worse. Deep in the woods a Swamp Demon guards a Seal Book — the first of four. When you carry it to the guardian Lyra at the Origin Tree, she tells you the truth: a curse is rotting the tree's roots, and all four seals are needed to lift it.\n\nThen a cloaked figure who has watched you since you woke steps into a portal at the forest's edge. You follow.`,
+    Icon: Trees,
+    cloth: "bg-heraldry-pine",
+    realm: "forest",
+  },
+  {
+    id: 2,
+    title: "The Silent City",
+    subtitle: "An autumn that never ends",
+    location: "Autumn Pumpkin",
+    content: `The portal spits you onto a cold beach under an autumn sky, with no coin and no name anyone knows. You work Farmer Fa's pumpkin fields for your supper and carry his harvest to the city gate — where the guard Tristan lets you through into silence. The city beyond is full of the dead.\n\nOnly one man ever held these ruins: the silver knight Arthur. You find him wounded, his power sealed, unable to fight for his own city. So he makes you strong enough to fight in his place — a training dungeon, a dark technique, his Silver Necklace.\n\nWhat broke the city was a dragon, nesting in the ruins. End it, and Arthur tells you where the cursed codex that started all of this went: north, to a kingdom it froze solid.`,
+    Icon: Leaf,
+    cloth: "bg-heraldry-ember",
+    realm: "pumpkin",
+  },
+  {
+    id: 3,
+    title: "The Frozen Kingdom",
+    subtitle: "Where the codex left its mark",
+    location: "Frozen Mountain",
+    content: `Queen Roselyn Aurora receives you in a hall of ice. Her kingdom still stands, but barely — ice slimes overrun the snow fields, and ice dragons circle the mountain shrine where the priest Zephyr keeps his rites.\n\nEarn the Queen's trust and Zephyr will tell you what the kingdom buried: the codex's mark lies inside the forbidden zone, behind boundary stones only the warden Roland may open.\n\nRoland's secret is heavier still. The kingdom hid the codex itself here, and forged a stone golem to guard it. Destroy the guardian, and the second Seal Book is yours.`,
+    Icon: Snowflake,
+    cloth: "bg-heraldry-royal",
+    realm: "frozen",
+  },
+  {
+    id: 4,
+    title: "The Castle of the Dead",
+    subtitle: "Two seals remain",
+    location: "Abandoned Castle",
+    content: `The trail of the seals ends at a ruined castle where skeletons still keep watch, held back by a single Valiant Warrior fighting alone in the valley.\n\nIn the drowned village of Tide-Knell, a girl named Natalie asks a strange favour: dig beside the old well and lift out the skull buried there. The skull is hers. Lay her to rest beneath the ivy tree, and she gives you the key she died holding.\n\nThat key opens the way to a deserted island where one elf guard still stands his post over a sealed crypt. Below waits the UnderKing — and the last two Seal Books are his.`,
+    Icon: Castle,
+    cloth: "bg-heraldry-arcane",
+    realm: "castle",
+  },
+  {
+    id: 5,
+    title: "The Origin Tree",
+    subtitle: "The homecoming",
+    location: "Elf Forest",
+    content: `All four Seal Books are in your pack, and a portal carries you home — to a forest worse than you left it.\n\nLyra opens the rite at the Origin Tree and steps back: the seals must be set by the one who won them. Place the four books on the tree, break the curse, and watch the forest wake green around you.\n\nBut when you speak with Lyra one last time, she leaves you with a warning instead of a farewell. The codex had a master. And that story is not finished.`,
+    Icon: Sprout,
+    cloth: "bg-heraldry-crimson",
+    realm: "forest",
+  },
+];
+
+/* The sun IS the hero. The stone wall, its tile lattice and the carved board are
+   gone: the chronicle's title now sits inside one large pixel disc, the way a
+   game's title card sits inside a sprite rather than on a UI panel.
+
+   The disc is one 32x32 SVG under a kilobyte, rasterised from a real circle so
+   the silhouette reads as round; a coarser grid turned it into an octagon. At
+   this size each cell is ~20px, so the edge still steps.
+
+   Ink is `on-parchment` brown, not gold — gold on gold is invisible, and brown
+   on the accent body is about 7:1. No flicker: this is a static plate carrying
+   body copy, and pulsing the text's own background is the one place the
+   torch-flicker cycle actively hurts legibility. */
+function Sun() {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/images/ui/sun.svg"
+      alt=""
+      aria-hidden="true"
+      className="pixelated pointer-events-none absolute inset-0 h-full w-full"
+    />
+  );
 }
 
 export default function StoryPage() {
-  const [activeChapter, setActiveChapter] = useState(0);
-  const [isVisible, setIsVisible] = useState<number | null>(0);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(null), 100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const chapters: StoryChapter[] = [
-    {
-      id: 1,
-      title: "Whispers of the Elf Forest",
-      subtitle: "Where the journey begins",
-      location: "Elf Forest",
-      level: "Lv. 1–20",
-      content: `Long before the first adventurer set foot in Eldoria, the ancient trees of the Elf Forest stood watch over a hidden civilization. For centuries, the elves lived in harmony with the woodland spirits, tending to groves that hummed with quiet magic.\n\nBut a creeping corruption has begun to seep through the roots. Shadow Sprouts multiply in the undergrowth, twisting the land from within. Elder Rowan, keeper of the forest's memory, calls upon outsiders to aid the elves before the corruption devours everything they have built.\n\nYou begin your journey here — armed with nothing but a blade, a promise, and the will to listen to what the forest has to say.`,
-      icon: <Trees className="w-8 h-8" />,
-      bgGradient: "from-emerald-500/20 to-green-500/20",
-    },
-    {
-      id: 2,
-      title: "The Eternal Harvest",
-      subtitle: "Autumn never ends",
-      location: "Autumn Pumpkin",
-      level: "Lv. 20–40",
-      content: `Past the treeline lies a land caught in an endless autumn. Giant pumpkins swell beneath a Harvest Moon that refuses to set, and scarecrow golems patrol the sacred fields where ancient rituals once brought the harvest home.\n\nWhen those rituals were abandoned, the spirits they were meant to honor grew restless. Now they wander the Twilight Cemetery in silence, and a great Witch has taken the Pumpkin Citadel as her seat of power.\n\nYour road leads you into this cursed season — to lift the lantern maze's curse, appease the spirits, and confront the Witch before the eternal harvest swallows another traveler whole.`,
-      icon: <Leaf className="w-8 h-8" />,
-      bgGradient: "from-orange-500/20 to-amber-500/20",
-    },
-    {
-      id: 3,
-      title: "The Glacial Tundra",
-      subtitle: "Where the cold remembers",
-      location: "Frozen Mountains",
-      level: "Lv. 40–60",
-      content: `Northward, beyond the autumn haze, jagged peaks rise into a sky choked by unnatural blizzards. The Frozen Mountains have sealed their passes for generations, guarded by a creature of pure frost that cannot be reasoned with — only faced.\n\nLegends speak of a Glacier Titan dormant beneath the ice lake, and of an entire civilization frozen mid-stride, preserved in crystal-clear ice as if time itself had held its breath.\n\nTo push the story forward, you must brave Blizzard Pass, awaken the Aurora Shrine, and put an end to the cold that has imprisoned these peaks for far too long.`,
-      icon: <Snowflake className="w-8 h-8" />,
-      bgGradient: "from-sky-500/20 to-cyan-500/20",
-    },
-    {
-      id: 4,
-      title: "Vestige of an Era",
-      subtitle: "The final chapter",
-      location: "Vestige of an Era",
-      level: "Lv. 60–80",
-      content: `At the edge of the known world stand the crumbling remnants of a civilization consumed by time. Vine-covered plazas, toppled colossi, and automaton sentinels still patrol the ruins as if their makers might one day return.\n\nSomewhere deep within these ruins, the Nexus Core — a relic of impossible engineering — still ticks. It is said to be the heart of a golden age, and the answer to a single question: what catastrophe erased an entire era from history?\n\nThis is where your story reaches its final page. Awaken the Memory Hall, claim the Sky Platform, and breach the Nexus Core. Only then will the chronicle of Mystic Journey find its ending.`,
-      icon: <Skull className="w-8 h-8" />,
-      bgGradient: "from-violet-500/20 to-fuchsia-500/20",
-    },
-  ];
+  const [active, setActive] = useState(0);
+  const chapter = CHAPTERS[active];
 
   return (
-    <div className="min-h-screen pt-[88px] md:pt-[112px] pb-12">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden border-b border-white/10">
-        <div className="pointer-events-none absolute -top-24 left-1/2 h-64 w-[min(85%,680px)] -translate-x-1/2 rounded-full bg-[#ffc032]/10 blur-[130px]" />
+    <div className="min-h-dvh pt-[88px] pb-16 md:pt-[112px]">
+      {/* Hero — the chronicle read in daylight: a pixel sun overhead, then a gilt
+          banner nailed above a carved board. It used to be centred text floating
+          on a bare dark band, which read as a web page header rather than
+          anything from the game; everything here is a material the rest of the
+          system already uses (stone ground, wood board, gilt cloth, gold ink).
+          The sun is the only motion and it animates opacity only, so it costs no
+          layout and vanishes under prefers-reduced-motion. */}
+      <header className="relative px-4 py-10 md:py-14">
+        {/* The disc, square so the sun stays round, and capped so the text band
+            inside it never gets wider than a readable measure. The cap used to
+            be 40rem, which filled the viewport and read as a splash screen
+            rather than a page header. The sun stays a step larger than
+            MoonHeader's 30rem because it carries two more rows — the rule and
+            the five seal marks. */}
+        <div className="relative mx-auto aspect-square w-full max-w-[22rem] sm:max-w-[27rem] md:max-w-[34rem]">
+          <Sun />
 
-        <div className="max-w-[1200px] mx-auto px-4 py-20 relative z-10">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="mb-5 flex items-center justify-center gap-3">
-              <span className="h-px w-10 bg-linear-to-r from-transparent to-[#ffc032]/60" />
-              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">
-                <BookOpen className="w-3.5 h-3.5" />
-                The Chronicle
-              </span>
-              <span className="h-px w-10 bg-linear-to-l from-transparent to-[#ffc032]/60" />
-            </div>
+          {/* The text sits in the disc's flat middle band — cells y=6..14 of the
+              20-cell grid, i.e. 30%–70% — inset horizontally by a fifth so it
+              clears the stepped left and right edges. Percentages, not padding,
+              so the field scales with the sun at every breakpoint. */}
+          <div className="absolute inset-x-[19%] inset-y-[29%] flex flex-col items-center justify-center text-center text-on-parchment">
+            <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.25em] md:text-xs">
+              <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
+              The Chronicle
+            </p>
 
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
-              The Tale of{" "}
-              <span className="text-transparent bg-clip-text bg-linear-to-r from-[#ffc032] to-[#ca831f]">
-                Mystic Journey
-              </span>
+            <h1 className="mt-1.5 text-lg leading-none font-bold sm:text-2xl md:text-3xl">
+              The Tale of Mystic Journey
             </h1>
 
-            <p className="text-white/70 text-xl mb-8 max-w-2xl mx-auto leading-relaxed">
-              Four chapters, four realms. Follow the journey from the enchanted Elf Forest to the
-              ancient ruins of a forgotten era.
+            {/* Brown rule rather than OrnateDivider: the divider is gold, and
+                gold on the gold disc is invisible. */}
+            <span
+              className="my-2 h-0.5 w-16 bg-on-parchment/40 md:my-3 md:w-24"
+              aria-hidden="true"
+            />
+
+            <p className="max-w-[34ch] text-[11px] leading-snug text-on-parchment/85 sm:text-sm md:text-base md:leading-relaxed">
+              You wake with no memory in a cursed forest. Four Seal Books, four realms, one
+              dying Origin Tree — this is the road ahead.
             </p>
 
-            <div className="flex flex-wrap justify-center gap-4">
-              <button
-                onClick={() => setActiveChapter(0)}
-                className="flex items-center gap-2 px-6 py-3 bg-[#ffc032] text-[#111] font-semibold rounded-xl hover:bg-[#ffd04c] transition-all duration-300 shadow-lg shadow-[#ffc032]/20 cursor-pointer"
-              >
-                <BookOpen className="w-5 h-5" />
-                Begin the Journey
-              </button>
-              <button
-                onClick={() => {
-                  const el = document.getElementById("chapters");
-                  el?.scrollIntoView({ behavior: "smooth" });
-                }}
-                className="flex items-center gap-2 px-6 py-3 bg-[#111111] text-white font-medium rounded-xl hover:bg-white/10 transition-all duration-300 border border-white/10 cursor-pointer"
-              >
-                <MapPin className="w-5 h-5" />
-                Read Chapters
-              </button>
+            {/* The five chapters as seal marks, so the length of the road is
+                visible before you start reading it. Decorative duplicate of the
+                chapter rail below, hence aria-hidden. */}
+            <div className="mt-2.5 flex items-center gap-1.5 md:mt-4 md:gap-2" aria-hidden="true">
+              {CHAPTERS.map((c) => (
+                <span
+                  key={c.id}
+                  className={`flex h-5 w-5 items-center justify-center border-2 border-black/60 shadow-md md:h-7 md:w-7 ${c.cloth}`}
+                >
+                  <c.Icon className="h-2.5 w-2.5 text-parchment md:h-3.5 md:w-3.5" />
+                </span>
+              ))}
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Chapter Navigation */}
-      <div id="chapters" className="max-w-[1200px] mx-auto px-4 py-8">
-        {/* Chapter Pills */}
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
-          {chapters.map((chapter, index) => (
-            <button
-              key={chapter.id}
-              onClick={() => setActiveChapter(index)}
-              className={`group flex items-center gap-2 px-5 py-3 rounded-xl font-medium transition-all duration-300 cursor-pointer ${
-                activeChapter === index
-                  ? "bg-[#ffc032] text-[#111] shadow-lg shadow-[#ffc032]/20"
-                  : "bg-[#111111] text-white/70 hover:bg-white/10 hover:text-white border border-white/10"
-              }`}
-            >
-              <span className={`${activeChapter === index ? "" : "text-[#ffc032]"}`}>
-                {chapter.icon}
-              </span>
-              <span className="hidden sm:inline">{chapter.location}</span>
-              <span className="sm:hidden">Ch. {chapter.id}</span>
-            </button>
-          ))}
-        </div>
+      <div className="mx-auto w-full max-w-[1000px] px-4 py-12 md:px-6 md:py-16">
+        {/* Chapter rail. Each realm is a heraldic plate; the open one takes the
+            gold frame and aria-current, so the state is never colour-only. */}
+        <nav aria-label="Chapters" className="mb-8 flex flex-wrap justify-center gap-2">
+          {CHAPTERS.map((c, i) => {
+            const isActive = active === i;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setActive(i)}
+                aria-current={isActive ? "step" : undefined}
+                className={`pixel-press flex min-h-11 cursor-pointer items-center gap-2 border-2 px-4 text-xs font-black uppercase tracking-widest shadow-md transition-colors ${
+                  isActive
+                    ? `border-accent ${c.cloth} text-parchment`
+                    : "border-black/60 bg-wood text-parchment-dim hover:border-accent hover:text-parchment"
+                }`}
+              >
+                <c.Icon className="h-4 w-4" aria-hidden="true" />
+                <span className="hidden sm:inline">{c.location}</span>
+                <span className="sm:hidden">Ch. {c.id}</span>
+              </button>
+            );
+          })}
+        </nav>
 
-        {/* Active Chapter Display */}
-        <div className="max-w-4xl mx-auto">
-          <div className="relative">
-            {/* Background Decoration */}
-            <div className="absolute -inset-4 bg-linear-to-r from-transparent via-[#ffc032]/5 to-transparent blur-2xl"></div>
+        {/* The open chapter, on parchment: this is the one place in the system
+            that is long-form reading, and ink on paper is what it wants. The
+            enclosure around it is the realm itself — canopy and bark for the Elf
+            Forest, gourd rind for Autumn Pumpkin, an ice pillar for Frozen
+            Mountain, a curtain wall for the Abandoned Castle. See
+            components/ui/ChapterFrame; the whole frame changes, not a trim. */}
+        <ChapterFrame realm={chapter.realm} aria-labelledby="chapter-title">
+          <div className={`flex flex-wrap items-center justify-between gap-2 border-b-2 border-black/60 ${chapter.cloth} px-4 py-2.5`}>
+            <span className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-parchment">
+              <chapter.Icon className="h-4 w-4" aria-hidden="true" />
+              Chapter {chapter.id}
+            </span>
+            <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-parchment-dim">
+              <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+              {chapter.location}
+            </span>
+          </div>
 
-            {/* Chapter Card */}
-            <div className={`relative bg-linear-to-br ${chapters[activeChapter].bgGradient} border border-white/10 rounded-3xl p-8 md:p-12 backdrop-blur-sm transition-all duration-500`}>
-              {/* Chapter Number */}
-              <div className="absolute -top-6 left-8">
-                <div className="bg-[#111111] border border-white/10 rounded-2xl px-6 py-3 flex items-center gap-3 shadow-xl">
-                  <span className="text-[#ffc032] font-bold text-sm">CHAPTER</span>
-                  <span className="text-3xl font-bold text-white">{chapters[activeChapter].id}</span>
-                </div>
-              </div>
-
-              {/* Location badge */}
-              <div className="absolute -top-6 right-8">
-                <div className="bg-[#111111] border border-white/10 rounded-2xl px-4 py-3 flex items-center gap-2 shadow-xl">
-                  <MapPin className="w-4 h-4 text-[#ffc032]" />
-                  <span className="text-sm font-semibold text-white">{chapters[activeChapter].location}</span>
-                </div>
-              </div>
-
-              {/* Chapter Icon */}
-              <div className="flex justify-center mb-8">
-                <div className="w-24 h-24 bg-white/10 rounded-3xl flex items-center justify-center border border-white/20 shadow-xl">
-                  <div className="text-[#ffc032]">
-                    {chapters[activeChapter].icon}
-                  </div>
-                </div>
-              </div>
-
-              {/* Chapter Title */}
-              <div className="text-center mb-8">
-                <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                  {chapters[activeChapter].title}
+          <div className="p-3 md:p-4">
+            <div className="parchment border-2 border-wood-dark p-6 shadow-[inset_0_0_0_2px_rgb(0_0_0_/_0.12)] md:p-10">
+              <header className="mb-6 border-b-2 border-on-parchment/20 pb-4 text-center">
+                <h2 id="chapter-title" className="text-2xl font-bold md:text-3xl">
+                  {chapter.title}
                 </h2>
-                <p className="text-[#ffc032] text-lg">
-                  {chapters[activeChapter].subtitle}
-                </p>
-              </div>
+                <p className="mt-1 text-sm italic text-on-parchment/70">{chapter.subtitle}</p>
+              </header>
 
-              {/* Chapter Content */}
-              <div className="prose prose-invert prose-lg max-w-none">
-                <div className="text-white/80 leading-relaxed text-center">
-                  {chapters[activeChapter].content.split("\n\n").map((paragraph, idx) => (
-                    <p key={idx} className="mb-6 last:mb-0">
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
-              </div>
-
-              {/* Navigation Buttons */}
-              <div className="flex items-center justify-between mt-10 pt-8 border-t border-white/10">
-                <button
-                  onClick={() => setActiveChapter(Math.max(0, activeChapter - 1))}
-                  disabled={activeChapter === 0}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-[#111111] hover:bg-white/10 text-white/70 hover:text-white rounded-xl transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer border border-white/10"
-                >
-                  <ChevronRight className="w-4 h-4 rotate-180" />
-                  Previous Chapter
-                </button>
-
-                <div className="flex items-center gap-2">
-                  {chapters.map((c, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setActiveChapter(idx)}
-                      aria-label={`Go to chapter ${c.id}: ${c.location}`}
-                      aria-current={activeChapter === idx ? "step" : undefined}
-                      className={`w-2.5 h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
-                        activeChapter === idx
-                          ? "bg-[#ffc032] w-8"
-                          : "bg-white/30 hover:bg-white/50"
-                      }`}
-                    />
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => setActiveChapter(Math.min(chapters.length - 1, activeChapter + 1))}
-                  disabled={activeChapter === chapters.length - 1}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-[#ffc032] hover:bg-[#ffd04c] text-[#111] font-medium rounded-xl transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  Next Chapter
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+              {/* max-w-[68ch] keeps the measure inside the readable line-length
+                  band; centred body copy is hard to track, so this is left-set. */}
+              <div className="mx-auto max-w-[68ch] space-y-4 text-[15px] leading-relaxed">
+                {chapter.content.split("\n\n").map((p, i) => (
+                  <p key={i}>{p}</p>
+                ))}
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Closing Section */}
-      <div className="max-w-[1200px] mx-auto px-4 py-16">
-        <div className="max-w-4xl mx-auto bg-linear-to-r from-[#ffc032]/20 via-[#ffc032]/10 to-[#ffc032]/20 border border-[#ffc032]/30 rounded-3xl p-12 text-center relative overflow-hidden">
-          <div className="relative z-10">
-            <Crown className="w-16 h-16 text-[#ffc032] mx-auto mb-6" />
-            <h3 className="text-3xl font-bold text-white mb-4">Every Map Tells a Story</h3>
-            <p className="text-white/70 mb-8 max-w-xl mx-auto">
-              Four chapters. Four realms. One chronicle. Step into each map to live the
-              tale as it unfolds.
-            </p>
-            <a
-              href="/wiki/maps"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-[#ffc032] text-[#111] font-bold text-lg rounded-xl hover:bg-[#ffd04c] transition-all duration-300 shadow-lg shadow-[#ffc032]/20 cursor-pointer"
+          {/* Pager, on the realm's own frame rather than the page — no fill of
+              its own, so it sits on ice in the mountain and on stone in the
+              castle instead of carrying oak into both. */}
+          <div className="flex items-center justify-between gap-3 border-t-2 border-black/60 px-3 py-3 md:px-4">
+            <button
+              type="button"
+              onClick={() => setActive(Math.max(0, active - 1))}
+              disabled={active === 0}
+              className="pixel-press flex min-h-11 cursor-pointer items-center gap-2 border-2 border-black/60 bg-wood px-3 text-xs font-bold uppercase tracking-widest text-parchment hover:border-accent disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <MapPin className="w-5 h-5" />
-              Explore the Maps
-            </a>
+              <ChevronRight className="h-4 w-4 rotate-180" aria-hidden="true" />
+              <span className="hidden sm:inline">Previous</span>
+            </button>
+
+            <p className="text-[11px] font-bold uppercase tracking-widest text-parchment-dim tabular-nums">
+              {chapter.id} / {CHAPTERS.length}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setActive(Math.min(CHAPTERS.length - 1, active + 1))}
+              disabled={active === CHAPTERS.length - 1}
+              className="pixel-press flex min-h-11 cursor-pointer items-center gap-2 border-2 border-accent bg-accent px-3 text-xs font-black uppercase tracking-widest text-on-accent hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <span className="hidden sm:inline">Next</span>
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            </button>
           </div>
-        </div>
+        </ChapterFrame>
+
+        {/* Closing call — the one gold panel on the page. */}
+        <Panel material="wood" as="section" aria-labelledby="closing" className="mt-8 p-8 text-center md:p-10">
+          <Crown className="mx-auto mb-4 h-10 w-10 text-accent" aria-hidden="true" />
+          <h2 id="closing" className="mb-3 text-xl font-bold text-parchment md:text-2xl">
+            The Codex Had a Master
+          </h2>
+          <p className="mx-auto mb-6 max-w-xl text-sm leading-relaxed text-parchment-dim">
+            Five chapters. Four Seal Books. One healed Origin Tree — and a story that is not
+            finished. Step into the world and live it yourself.
+          </p>
+          <Link
+            href="/download"
+            className="pixel-press inline-flex min-h-11 items-center gap-2 border-2 border-accent bg-accent px-8 text-sm font-black uppercase tracking-widest text-on-accent shadow-md hover:bg-accent-hover"
+          >
+            Play Now
+          </Link>
+        </Panel>
       </div>
     </div>
   );

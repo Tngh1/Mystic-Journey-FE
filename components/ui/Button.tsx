@@ -22,9 +22,9 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   outline:
     "border-2 border-white text-white hover:bg-white hover:text-black",
   solid: "bg-white text-black hover:bg-gray-200",
-  cta: "bg-[#ffc032] text-[#111] hover:bg-[#ffd04c]",
+  cta: "bg-accent text-on-accent hover:bg-accent-hover shadow-md active:translate-x-[3px] active:translate-y-[3px] active:shadow-none",
   custom: "",
-  hero: "border-2 border-white text-white hover:bg-white hover:text-black hover:scale-105 hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]",
+  hero: "border-2 border-white text-white hover:bg-white hover:text-black shadow-lg active:translate-x-1 active:translate-y-1 active:shadow-none",
 };
 
 const ROUNDED_CLASSES: Record<ButtonRounded, string> = {

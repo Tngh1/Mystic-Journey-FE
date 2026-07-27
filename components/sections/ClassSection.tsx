@@ -1,122 +1,82 @@
-"use client";
-
 import Image from "next/image";
-import Button from "@/components/ui/Button";
+import Link from "next/link";
+import { CLASSES } from "@/lib/data/classes";
+import SectionHeading from "@/components/ui/SectionHeading";
+import Panel from "@/components/ui/Panel";
 
-const CLASSES = [
-  {
-    id: "knight",
-    name: "Knight",
-    role: "Frontline Defender",
-    description:
-      "A sturdy sword fighter built for close combat. Knights protect the party, absorb hits from Shadow Sprouts, and hold the line while exploring the Enchanted Forest.",
-    image: "/images/classes/knight.png",
-    badgeColor: "bg-red-600",
-    cardBorder: "border-red-600/30",
-    buttonBg: "bg-red-600 hover:bg-red-700",
-  },
-  {
-    id: "mage",
-    name: "Mage",
-    role: "Arcane Damage",
-    description:
-      "A ranged spellcaster who channels elemental magic from a safe distance. Mages control groups of enemies and burst down corrupted forest creatures.",
-    image: "/images/classes/mage.png",
-    badgeColor: "bg-purple-600",
-    cardBorder: "border-purple-600/30",
-    buttonBg: "bg-purple-600 hover:bg-purple-700",
-  },
-  {
-    id: "archer",
-    name: "Archer",
-    role: "Precision Ranged",
-    description:
-      "A nimble bow user focused on speed, positioning, and precise shots. Archers thin out threats before they can reach the hero.",
-    image: "/images/classes/archer.png",
-    badgeColor: "bg-green-600",
-    cardBorder: "border-green-600/30",
-    buttonBg: "bg-green-600 hover:bg-green-700",
-  },
-];
+/* Rest angles for the dealt-hand layout, left to right. Small on purpose — the
+   card has to stay readable before you hover it. */
+const FAN_ANGLES = [-9, 3, 12];
 
+/* The landing page pitches the three paths; it does not balance them. Stat lines
+   live on /wiki/classes/[id], which reads them from the same class-configs table
+   the game creates characters from — so there is one place for numbers to be
+   right, and this section has no fetch, no skeleton and no loading state. */
 export default function ClassSection() {
+  /* No background fill on the section: the body's night sky shows through here.
+     Overflow stays visible so a tilted card in the fan isn't clipped. */
   return (
-    <section id="classes" className="relative w-full overflow-hidden bg-black px-5 py-16 md:px-10 lg:px-12 lg:py-24">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_rgba(255,255,255,0.1)_1px,_transparent_1px)] bg-[size:32px_32px]" />
-      </div>
+    <section id="classes" className="relative w-full px-5 py-16 md:px-10 lg:px-12 lg:py-24">
+      {/* Dungeon-tile texture (shared .pixel-grid utility) */}
+      <div className="pixel-grid pointer-events-none absolute inset-0" aria-hidden="true" />
 
       <div className="relative mx-auto max-w-7xl">
-        {/* Header */}
-        <div className="mb-16 text-center">
-          <div className="mb-5 flex items-center justify-center gap-3">
-            <span className="h-px w-10 bg-linear-to-r from-transparent to-[#ffc032]/60" />
-            <span className="text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">
-              Pick Your Path
-            </span>
-            <span className="h-px w-10 bg-linear-to-l from-transparent to-[#ffc032]/60" />
-          </div>
-          <h2 className="text-4xl font-black tracking-tight md:text-5xl lg:text-6xl">
-            Choose Your Class
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-base text-white/60 md:text-lg">
-            Start Chapter 1 as a Knight, Mage, or Archer before answering Elder Rowan&apos;s call.
-          </p>
-        </div>
+        <SectionHeading
+          className="mb-16"
+          eyebrow="Pick Your Path"
+          title="Choose Your Class"
+          subtitle="Wake in the Elf Forest as a Knight, Mage, or Archer — then answer Elder Rowan's call."
+        />
 
-        {/* Class Cards */}
-        <div className="grid gap-8 md:grid-cols-3 lg:gap-10">
-          {CLASSES.map((classData) => (
-            <div
-              key={classData.id}
-              className={`group relative flex flex-col overflow-hidden rounded-2xl border-2 ${classData.cardBorder} bg-gradient-to-b from-white/5 to-transparent p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl`}
+        {/* Class Cards — three frames dealt out like a hand of cards (.class-fan):
+            overlapped and tilted at rest, straightening and spreading on hover
+            or keyboard focus. On touch/narrow screens the utility is inert and
+            this is a plain stacked grid, so nothing depends on hovering. */}
+        <div className="class-fan grid gap-8 md:grid-cols-3 lg:gap-10">
+          {CLASSES.map((c, i) => (
+            <Panel
+              key={c.id}
+              material="wood"
+              style={{ "--r": FAN_ANGLES[i] ?? 0 } as React.CSSProperties}
+              className="group relative flex flex-col transition-colors hover:border-accent"
             >
-              {/* Character Image */}
-              <div className="relative mb-6 aspect-[3/4] w-full overflow-hidden">
+              {/* Name plate — the class's heraldic cloth, hung across the top of
+                  the frame. Ink is parchment on all three (≥7:1). */}
+              <div className={`flex items-center justify-between border-b-2 border-black/60 ${c.accent} px-4 py-2.5`}>
+                <span className={`text-sm font-black uppercase tracking-widest ${c.accentText}`}>
+                  {c.name}
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-parchment-dim">
+                  {c.role}
+                </span>
+              </div>
+
+              {/* Character portrait, sunk into the frame like a painted panel. */}
+              <div className="relative aspect-[3/4] w-full overflow-hidden border-y-2 border-black/50 bg-stone">
                 <Image
-                  src={classData.image}
-                  alt={classData.name}
+                  src={c.image}
+                  alt={c.name}
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                  className="pixelated object-cover object-top"
                 />
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent" />
               </div>
 
-              {/* Class Badge */}
-              <div className="mb-4">
-                <span
-                  className={`inline-block rounded-full ${classData.badgeColor} px-4 py-1.5 text-sm font-black tracking-wide text-white`}
-                >
-                  {classData.name.toUpperCase()}
-                </span>
-                <p className="mt-3 text-xs font-bold uppercase tracking-[0.24em] text-white/35">
-                  {classData.role}
+              {/* Body */}
+              <div className="flex flex-1 flex-col gap-4 p-5">
+                <p className="flex-1 text-sm leading-relaxed text-parchment-dim">
+                  {c.description}
                 </p>
+
+                <Link
+                  href={`/wiki/classes/${c.id}`}
+                  className="pixel-press block w-full border-2 border-accent/50 px-4 py-3 text-center text-sm font-black uppercase tracking-widest text-accent shadow-md hover:border-accent hover:bg-accent hover:text-on-accent cursor-pointer"
+                >
+                  View {c.name} Details
+                </Link>
               </div>
-
-              {/* Class Name (Mobile) */}
-              <h3 className="mb-3 text-2xl font-black tracking-tight text-white md:hidden">
-                {classData.name}
-              </h3>
-
-              {/* Description */}
-              <p className="mb-6 flex-1 text-base leading-relaxed text-white/70">
-                {classData.description}
-              </p>
-
-              {/* Choose Button */}
-              <Button
-                variant="custom"
-                rounded="xl"
-                fullWidth
-                className={`${classData.buttonBg} tracking-wide`}
-              >
-                Start as {classData.name}
-              </Button>
-            </div>
+            </Panel>
           ))}
         </div>
       </div>

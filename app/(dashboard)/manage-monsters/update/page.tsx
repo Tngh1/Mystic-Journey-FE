@@ -218,7 +218,7 @@ export default function EditMonsterPage() {
         </div>
       </FormSection>
 
-      <FormSection title="Monster Image" icon={ImageIcon} iconColor="text-purple-400">
+      <FormSection title="Monster Image" icon={ImageIcon}>
         <ImageUploader
           value={formData.imageUrl}
           onChange={(url) => handleChange("imageUrl", url)}

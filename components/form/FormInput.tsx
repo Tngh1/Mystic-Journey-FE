@@ -2,8 +2,16 @@
 
 import React from "react";
 
+/* Every admin input is a slot punched into the plate: 2px black edge, surface-2
+   floor, gold edge once it holds focus. One constant, so the whole portal's
+   inputs move together.
+
+   Was `bg-[#0d0d0d] border-white/10 rounded-lg … focus:ring-1` with a raw
+   #ffc032 — and a `focus:outline-none` that killed the global gold focus ring
+   without replacing it for keyboard users. The ring now stays; the border swap
+   is the extra signal on top of it. Height is 44px to clear the touch floor. */
 const BASE_INPUT =
-  "w-full bg-[#0d0d0d] border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder:text-gray-500 focus:outline-none focus:border-[#ffc032] focus:ring-1 focus:ring-[#ffc032]/30 transition-colors";
+  "w-full min-h-11 border-2 border-black/60 bg-surface-2 px-3 py-2.5 text-sm text-fg placeholder:text-fg-subtle transition-colors focus:border-accent disabled:cursor-not-allowed disabled:bg-iron/40 disabled:text-fg-subtle";
 
 interface TextInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
   inputClassName?: string;
@@ -44,7 +52,7 @@ export function SelectInput({
       className={`${BASE_INPUT} cursor-pointer ${inputClassName}`}
     >
       {placeholder && (
-        <option value="" className="bg-[#111111]">
+        <option value="" className="bg-surface">
           {placeholder}
         </option>
       )}
@@ -52,7 +60,7 @@ export function SelectInput({
         <option
           key={opt.value}
           value={opt.value}
-          className="bg-[#111111]"
+          className="bg-surface"
         >
           {opt.label}
         </option>
@@ -67,13 +75,14 @@ interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>
 
 export function Checkbox({ label, className = "", ...rest }: CheckboxProps) {
   return (
-    <label className="flex items-center gap-3 cursor-pointer select-none">
+    /* 44px row so the whole label is the hit area, not just the 20px box */
+    <label className="flex min-h-11 cursor-pointer select-none items-center gap-3">
       <input
         type="checkbox"
         {...rest}
-        className={`w-5 h-5 rounded border-white/10 bg-[#0d0d0d] text-accent focus:ring-accent focus:ring-offset-0 cursor-pointer ${className}`}
+        className={`h-5 w-5 cursor-pointer border-2 border-black/60 bg-surface-2 accent-accent ${className}`}
       />
-      {label && <span className="text-sm text-white/80">{label}</span>}
+      {label && <span className="text-sm text-fg">{label}</span>}
     </label>
   );
 }

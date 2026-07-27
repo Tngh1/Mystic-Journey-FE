@@ -225,7 +225,7 @@ export default function ShopItemForm({
 
       <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-6">
-          <FormSection title="Shop Item" icon={Package} iconColor="text-sky-300">
+          <FormSection title="Shop Item" icon={Package}>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField label="Item" htmlFor="itemId" required>
                 {loadingItems ? (
@@ -257,7 +257,7 @@ export default function ShopItemForm({
             </div>
           </FormSection>
 
-          <FormSection title="Pricing & Stock" icon={ShoppingBag} iconColor="text-[#ffc032]">
+          <FormSection title="Pricing & Stock" icon={ShoppingBag}>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField label="Currency" htmlFor="currency" required>
                 <SelectInput
@@ -310,7 +310,7 @@ export default function ShopItemForm({
             </div>
           </FormSection>
 
-          <FormSection title="Purchase Limits" icon={TimerReset} iconColor="text-purple-300">
+          <FormSection title="Purchase Limits" icon={TimerReset}>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField label="Daily Purchase Limit" htmlFor="dailyPurchaseLimit" hint="0 = None">
                 <TextInput
@@ -334,7 +334,7 @@ export default function ShopItemForm({
             </div>
           </FormSection>
 
-          <FormSection title="Availability" icon={CalendarClock} iconColor="text-emerald-300">
+          <FormSection title="Availability" icon={CalendarClock}>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField label="Available From" htmlFor="availableFrom" hint="Optional">
                 <DateTimePicker

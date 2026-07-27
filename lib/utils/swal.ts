@@ -1,60 +1,88 @@
-import Swal from "sweetalert2";
+import Swal, { type SweetAlertOptions } from "sweetalert2";
 
-export const showSuccessAlert = (title: string, message: string) => {
-  return Swal.fire({
-    title: title,
+/* The app's dialog box, as a carved wooden plank rather than SweetAlert's
+   default white card.
+ *
+ * Everything visual now lives in `components/css/swal.css`, keyed off the
+ * `swal-pixel-*` classes below. This file used to set `background: "#18181b"`,
+ * `confirmButtonColor: "#ffc032"` and `popup: "rounded-2xl"` on every call —
+ * three raw hexes the design system forbids, a colour that duplicated
+ * `--color-accent`, and a radius the global reset then had to fight. Colours
+ * belong to the tokens; this module only decides *which* dialog is being shown.
+ */
+
+/* Lucide glyphs as markup, since `iconHtml` takes a string and cannot take a
+   React element. Same four icons the components import, hand-inlined: Check,
+   X, TriangleAlert, Info. Stroke geometry copied verbatim from the package so
+   they stay identical to the rest of the UI. */
+const glyph = (paths: string) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true">${paths}</svg>`;
+
+const ICONS = {
+  success: glyph('<path d="M20 6 9 17l-5-5"/>'),
+  error: glyph('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'),
+  warning: glyph(
+    '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>'
+  ),
+} as const;
+
+/* Shared shell. `buttonsStyling: false` hands the buttons to our own CSS —
+   otherwise the library writes inline background-color from
+   confirmButtonColor and wins on specificity. */
+const base = (danger = false): SweetAlertOptions => ({
+  buttonsStyling: false,
+  customClass: {
+    container: "swal-pixel-container",
+    popup: "swal-pixel-popup",
+    icon: "swal-pixel-icon",
+    title: "swal-pixel-title",
+    htmlContainer: "swal-pixel-text",
+    actions: "swal-pixel-actions",
+    confirmButton: `swal-pixel-confirm${danger ? " swal-pixel-danger" : ""}`,
+    cancelButton: "swal-pixel-cancel",
+  },
+});
+
+export const showSuccessAlert = (title: string, message: string) =>
+  Swal.fire({
+    ...base(),
+    title,
     text: message,
     icon: "success",
-    background: "#18181b",
-    color: "#ffffff",
-    confirmButtonColor: "#ffc032",
-    confirmButtonText: "OK",
-    customClass: {
-      title: "swal-title",
-      htmlContainer: "swal-text",
-      popup: "border border-white/10 rounded-2xl",
-    },
+    iconHtml: ICONS.success,
+    confirmButtonText: "Onward",
   });
-};
 
-export const showErrorAlert = (title: string, message: string) => {
-  return Swal.fire({
-    title: title,
+export const showErrorAlert = (title: string, message: string) =>
+  Swal.fire({
+    ...base(),
+    title,
     text: message,
     icon: "error",
-    background: "#18181b",
-    color: "#ffffff",
-    confirmButtonColor: "#ca831f",
+    iconHtml: ICONS.error,
     confirmButtonText: "Try Again",
-    customClass: {
-      title: "swal-title",
-      htmlContainer: "swal-text",
-      popup: "border border-white/10 rounded-2xl",
-    },
   });
-};
 
 export const showConfirmAlert = (
   title: string,
   message: string,
   confirmText: string = "Yes",
   cancelText: string = "Cancel"
-) => {
-  return Swal.fire({
+) =>
+  Swal.fire({
+    /* Destructive confirms wear crimson, not the gold reserved for "act on
+       this" — and the button keeps its explicit verb, so the meaning is never
+       carried by colour alone. */
+    ...base(true),
     title,
     text: message,
     icon: "warning",
-    background: "#18181b",
-    color: "#ffffff",
+    iconHtml: ICONS.warning,
     showCancelButton: true,
-    confirmButtonColor: "#dc2626",
-    cancelButtonColor: "#3f3f46",
     confirmButtonText: confirmText,
     cancelButtonText: cancelText,
-    customClass: {
-      title: "swal-title",
-      htmlContainer: "swal-text",
-      popup: "border border-white/10 rounded-2xl",
-    },
+    /* Cancel first: the safe choice sits where the eye lands, and Escape or an
+       outside click already resolves to it. */
+    reverseButtons: true,
+    focusCancel: true,
   });
-};

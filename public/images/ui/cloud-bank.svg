@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The cloud lumps hanging off the bottom of the header. Drawn on a 64x6 grid
+     that the CSS renders at 4x (256x24), so every "pixel" is a 4px block and the
+     whole strip still fits the 24px of clearance the fixed header leaves above
+     page content.
+
+     Two distinct lumps with gaps between them, not one continuous ragged edge —
+     an unbroken staircase across the full width reads as a snow line, not as
+     clouds. Each lump is a wide dome that steps down fast at the shoulders and
+     runs flat underneath, which is how the reference sheet's clouds are built.
+
+     Volume comes from drawing the same silhouette four times, each copy one row
+     higher, so the rows left exposed at the bottom are the sheet's tone ramp:
+     white body, then a light step, then the shaded underside, then the coolest
+     base row. The final full-width row is white, tying the lumps back into the
+     header plate across the gaps. Both tile edges fall inside a gap, so the
+     repeat is seamless at any width. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 6" width="64" height="6"
+     preserveAspectRatio="none" shape-rendering="crispEdges">
+  <defs>
+    <path id="c"
+      d="M0,1 H4 V2 H6 V3 H8 V5 H10 V6 H22 V5 H24 V3 H26 V2 H28 V1
+         H36 V2 H38 V3 H40 V4 H50 V3 H52 V2 H54 V1 H64 V0 H0 Z" />
+  </defs>
+  <use href="#c" fill="#b8dcf0" />
+  <use href="#c" fill="#cfe6f5" y="-1" />
+  <use href="#c" fill="#e8f4fb" y="-2" />
+  <use href="#c" fill="#ffffff" y="-3" />
+  <rect x="0" y="0" width="64" height="1" fill="#ffffff" />
+</svg>

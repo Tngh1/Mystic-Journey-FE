@@ -26,8 +26,8 @@ import {
 } from "lucide-react";
 import FormHeader from "@/components/form/FormHeader";
 import FormAlert from "@/components/form/FormAlert";
-import { sendByList, sendBroadcast } from "@/lib/api/mails";
-import type { SendMailByListIdRequest, SendMailToAllRequest } from "@/lib/api/mails";
+import { sendByList, sendBroadcast } from "@/lib/api/mailboxes";
+import type { SendMailboxByListIdRequest, SendMailboxToAllRequest } from "@/lib/api/mailboxes";
 import { getAll as getAllSimple } from "@/lib/api/items";
 import { getAll as getAllPlayers, getPlayerProfileById } from "@/lib/api/player-profiles";
 import type { ItemResponse, PlayerProfileResponse } from "@/lib/types";
@@ -257,7 +257,7 @@ export default function SendMailPage() {
     setError(null);
   };
 
-  const buildPayload = (): SendMailByListIdRequest | SendMailToAllRequest => {
+  const buildPayload = (): SendMailboxByListIdRequest | SendMailboxToAllRequest => {
     let expiredAtUtc: string | undefined = undefined;
     if (form.expiredAt) {
       const localDate = new Date(form.expiredAt);
@@ -278,12 +278,12 @@ export default function SendMailPage() {
     };
 
     if (sendToAll) {
-      return base as SendMailToAllRequest;
+      return base as SendMailboxToAllRequest;
     }
 
     const ids = selectedPlayers.map((p) => p.playerProfileId);
 
-    return { ...base, playerProfileIds: ids } as SendMailByListIdRequest;
+    return { ...base, playerProfileIds: ids } as SendMailboxByListIdRequest;
   };
 
   const validateCurrentStep = (): boolean => {
@@ -296,11 +296,11 @@ export default function SendMailPage() {
     }
     if (activeStep === 2) {
       if (!form.title.trim()) {
-        setError("Mail title is required.");
+        setError("Mailbox title is required.");
         return false;
       }
       if (!form.content.trim()) {
-        setError("Mail content is required.");
+        setError("Mailbox content is required.");
         return false;
       }
     }
@@ -329,14 +329,14 @@ export default function SendMailPage() {
     try {
       setSubmitting(true);
       if (sendToAll) {
-        await sendBroadcast(buildPayload() as SendMailToAllRequest);
+        await sendBroadcast(buildPayload() as SendMailboxToAllRequest);
       } else {
-        await sendByList(buildPayload() as SendMailByListIdRequest);
+        await sendByList(buildPayload() as SendMailboxByListIdRequest);
       }
       setSuccess(true);
       setTimeout(() => router.push("/manage-mailbox"), 1500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send mail. Please try again.");
+      setError(err instanceof Error ? err.message : "Failed to send mailbox. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -347,8 +347,8 @@ export default function SendMailPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <FormHeader
-        title="Send Mail"
-        subtitle="Compose and deliver mail to players"
+        title="Send Mailbox"
+        subtitle="Compose and deliver mailbox to players"
         backHref="/manage-mailbox"
         badge="Composer"
         badgeTone="warning"
@@ -418,7 +418,7 @@ export default function SendMailPage() {
       {success && (
         <div className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
           <CheckCircle2 className="w-5 h-5 text-green-400 shrink-0" />
-          <p className="text-green-400 text-sm">Mail sent successfully! Redirecting...</p>
+          <p className="text-green-400 text-sm">Mailbox sent successfully! Redirecting...</p>
         </div>
       )}
 
@@ -713,7 +713,7 @@ export default function SendMailPage() {
 
                 <div>
                   <label className="block text-xs font-medium text-gray-400 mb-3 uppercase tracking-wide">
-                    Mail Type
+                    Mailbox Type
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {MAIL_TYPES.map((t) => {
@@ -1100,7 +1100,7 @@ export default function SendMailPage() {
                       Summary
                     </p>
                     <SummaryRow label="Recipients" value={recipientCount} />
-                    <SummaryRow label="Mail Type" value={currentType.label} />
+                    <SummaryRow label="Mailbox Type" value={currentType.label} />
                     <SummaryRow
                       label="Title"
                       value={form.title || <span className="text-red-400">missing</span>}

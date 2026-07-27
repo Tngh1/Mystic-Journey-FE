@@ -2,6 +2,42 @@
    content detail page. The .rendered-html wrapper scopes these rules so
    they don't leak into the rest of the app. */
 
+/* Editor copy is arbitrary admin input and may be one unbroken string with no
+   spaces, which used to run out of the panel and off the right of the viewport.
+   `anywhere` (not `break-word`) so the break also counts toward min-content —
+   otherwise the flex/grid track still sizes to the whole string. */
+.rendered-html {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* On the /content detail page the prose sits on `.parchment`, and the heading /
+   strong colours below are white for the dark admin editor — white on parchment
+   is invisible, so re-ink them when the two classes are on the same element. */
+.parchment.rendered-html :is(h1, h2, h3, h4, h5, h6, b, strong) {
+  color: var(--color-on-parchment);
+}
+
+.parchment.rendered-html blockquote {
+  border-left-color: rgb(59 42 23 / 0.4);
+  color: rgb(59 42 23 / 0.75);
+}
+
+.parchment.rendered-html a {
+  /* Gold on parchment is 1.9:1; ink plus the underline carries the link. */
+  color: var(--color-on-parchment);
+  text-decoration-thickness: 2px;
+}
+
+.parchment.rendered-html :is(code, pre) {
+  background-color: rgb(59 42 23 / 0.1);
+  color: var(--color-on-parchment);
+}
+
+.parchment.rendered-html hr {
+  border-top-color: rgb(59 42 23 / 0.25);
+}
+
 .rendered-html h1 {
   font-size: 1.9rem;
   font-weight: 700;

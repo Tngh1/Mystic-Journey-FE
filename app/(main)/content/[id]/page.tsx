@@ -1,25 +1,21 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import {
   Calendar,
   Tag,
-  ArrowLeft,
-  Loader2,
-  Share2,
   Clock,
   ChevronLeft,
   List,
   ChevronRight,
+  AlertCircle,
+  ImageOff,
 } from "lucide-react";
-import PageLoader from "@/components/ui/PageLoader";
+import Panel from "@/components/ui/Panel";
+import { BoardFrame } from "@/components/ui/NoticeBoard";
 import { ContentDetailResponse, ContentResponse, getBySlug, getAll } from "@/lib/api/contents";
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   Heading extraction utilities
-───────────────────────────────────────────────────────────────────────────── */
 
 interface HeadingItem {
   id: string;
@@ -27,18 +23,15 @@ interface HeadingItem {
   level: 1 | 2 | 3;
 }
 
-/**
- * Slugify heading text into a valid HTML id.
- * Duplicate slugs get a numeric suffix.
- */
+/** Slugify heading text into a valid HTML id. Duplicates get a numeric suffix. */
 function slugify(text: string, seen: Map<string, number>): string {
-  const base = text
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/[\s_]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    || "heading";
+  const base =
+    text
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/[\s_]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "heading";
 
   const count = seen.get(base) ?? 0;
   seen.set(base, count + 1);
@@ -46,37 +39,14 @@ function slugify(text: string, seen: Map<string, number>): string {
 }
 
 /**
- * Parse raw HTML string and extract H1/H2/H3 headings.
- * Runs in a detached DOM so it's safe on the client.
+ * Inject unique `id` attributes into the H1/H2/H3 elements of each raw HTML
+ * block and collect them for the table of contents. Parses in a detached
+ * document, so nothing runs while we walk it.
  */
-function extractHeadings(htmlBlocks: string[]): HeadingItem[] {
-  if (typeof window === "undefined") return [];
-
-  const seen = new Map<string, number>();
-  const items: HeadingItem[] = [];
-
-  for (const html of htmlBlocks) {
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    const nodes = doc.body.querySelectorAll("h1, h2, h3");
-    nodes.forEach((node) => {
-      const level = parseInt(node.tagName[1]) as 1 | 2 | 3;
-      const text = node.textContent?.trim() || "";
-      if (!text) return;
-      const id = slugify(text, seen);
-      items.push({ id, text, level });
-    });
-  }
-
-  return items;
-}
-
-/**
- * Inject unique `id` attributes into H1/H2/H3 elements in raw HTML.
- * Returns the modified HTML string and the heading list.
- */
-function processHtmlWithIds(
-  htmlBlocks: string[]
-): { processedBlocks: string[]; headings: HeadingItem[] } {
+function processHtmlWithIds(htmlBlocks: string[]): {
+  processedBlocks: string[];
+  headings: HeadingItem[];
+} {
   if (typeof window === "undefined") {
     return { processedBlocks: htmlBlocks, headings: [] };
   }
@@ -87,8 +57,7 @@ function processHtmlWithIds(
 
   for (const html of htmlBlocks) {
     const doc = new DOMParser().parseFromString(html, "text/html");
-    const nodes = doc.body.querySelectorAll("h1, h2, h3");
-    nodes.forEach((node) => {
+    doc.body.querySelectorAll("h1, h2, h3").forEach((node) => {
       const level = parseInt(node.tagName[1]) as 1 | 2 | 3;
       const text = node.textContent?.trim() || "";
       if (!text) return;
@@ -102,10 +71,9 @@ function processHtmlWithIds(
   return { processedBlocks, headings };
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   TableOfContents component
-───────────────────────────────────────────────────────────────────────────── */
-
+/* The contents index — a brass plate of ruled lines. The open section is marked
+   by the gold ink *and* a gilt bar on its inner edge, so it never rests on
+   colour alone. */
 function TableOfContents({ headings }: { headings: HeadingItem[] }) {
   const [activeId, setActiveId] = useState<string>("");
 
@@ -115,9 +83,7 @@ function TableOfContents({ headings }: { headings: HeadingItem[] }) {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveId(entry.target.id);
-          }
+          if (entry.isIntersecting) setActiveId(entry.target.id);
         });
       },
       { rootMargin: "-20% 0px -60% 0px" }
@@ -131,460 +97,378 @@ function TableOfContents({ headings }: { headings: HeadingItem[] }) {
     return () => observer.disconnect();
   }, [headings]);
 
-  const scrollTo = (id: string) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const offset = 100;
-    const top = el.getBoundingClientRect().top + window.scrollY - offset;
-    window.scrollTo({ top, behavior: "smooth" });
-  };
-
   if (headings.length === 0) return null;
 
-  let h1Counter = 0;
-
   return (
-    <div className="sticky top-24 w-full">
-      <div className="flex items-center gap-2 px-4 py-3 bg-[#ffc032]/10 border border-[#ffc032]/25 rounded-t-xl">
-        <List className="w-4 h-4 text-[#ffc032] shrink-0" />
-        <span className="text-[#ffc032] text-xs font-bold tracking-widest uppercase">
-          Table of Contents
-        </span>
-      </div>
-
-      <div className="bg-[#111111] border border-t-0 border-white/10 rounded-b-xl overflow-hidden">
-        <ul className="py-3 space-y-0.5">
-          {headings.map((heading) => {
-            const isActive = activeId === heading.id;
-            const isH1 = heading.level === 1;
-            const isH2 = heading.level === 2;
-            const isH3 = heading.level === 3;
-
-            if (isH1) h1Counter++;
-
-            return (
-              <li key={heading.id}>
-                <button
-                  onClick={() => scrollTo(heading.id)}
-                  className={`
-                    w-full text-left flex items-start gap-2.5 px-4 py-2 transition-all duration-200 group cursor-pointer
-                    ${isH2 ? "pl-8" : ""}
-                    ${isH3 ? "pl-12" : ""}
-                    ${isActive
-                      ? "text-[#ffc032] bg-[#ffc032]/8"
-                      : "text-white/55 hover:text-white/85 hover:bg-white/4"
-                    }
-                  `}
-                >
-                  {isH1 && (
-                    <span
-                      className={`shrink-0 text-xs font-semibold mt-0.5 min-w-[18px] ${
-                        isActive ? "text-[#ffc032]" : "text-white/30"
-                      }`}
-                    >
-                      {h1Counter}.
-                    </span>
-                  )}
-                  {isH2 && (
-                    <span
-                      className={`shrink-0 w-1.5 h-1.5 rounded-full mt-1.5 ${
-                        isActive ? "bg-[#ffc032]" : "bg-white/20"
-                      }`}
-                    />
-                  )}
-                  {isH3 && (
-                    <span
-                      className={`shrink-0 w-1 h-1 rounded-full mt-2 ${
-                        isActive ? "bg-[#ffc032]/70" : "bg-white/15"
-                      }`}
-                    />
-                  )}
-
+    <Panel material="wood" as="nav" aria-label="On this page" className="sticky top-24 w-full">
+      <p className="flex items-center gap-2 border-b-2 border-black/60 bg-wood-dark px-3 py-2.5 text-[11px] font-black uppercase tracking-[0.2em] text-accent">
+        <List className="h-3.5 w-3.5" aria-hidden="true" />
+        Contents
+      </p>
+      <ul className="max-h-[60dvh] overflow-y-auto py-2">
+        {headings.map((heading) => {
+          const isActive = activeId === heading.id;
+          return (
+            <li key={heading.id}>
+              <a
+                href={`#${heading.id}`}
+                aria-current={isActive ? "location" : undefined}
+                className={`relative flex min-h-11 items-center break-words px-3 py-2 text-sm leading-snug transition-colors ${
+                  heading.level === 2 ? "pl-6" : heading.level === 3 ? "pl-9 text-xs" : "font-bold"
+                } ${isActive ? "bg-black/25 text-accent" : "text-parchment-dim hover:text-parchment"} break-words`}
+              >
+                {isActive && (
                   <span
-                    className={`text-sm leading-snug ${
-                      isH1 ? "font-medium" : isH2 ? "font-normal" : "text-xs"
-                    } ${isActive ? "text-[#ffc032]" : ""}`}
-                  >
-                    {heading.text}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </div>
+                    className="pointer-events-none absolute inset-y-0 left-0 w-1 bg-accent"
+                    aria-hidden="true"
+                  />
+                )}
+                {heading.text}
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </Panel>
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   RecentPosts component
-───────────────────────────────────────────────────────────────────────────── */
+function formatDate(dateString: string, long = false) {
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: long ? "long" : "short",
+    day: "numeric",
+  });
+}
 
+/* The other notices still on the board. A failed fetch here costs the rail and
+   nothing else, so it degrades to a quiet line rather than an alert. */
 function RecentPosts({ currentContentId }: { currentContentId: number }) {
-  const [posts, setPosts] = useState<ContentResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState<ContentResponse[] | null>(null);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    const fetchRecent = async () => {
-      try {
-        const data = await getAll(1, 10);
-        const filtered = data.items
-          .filter((p) => p.isPublished && p.contentId !== currentContentId)
-          .slice(0, 5);
-        setPosts(filtered);
-      } catch {
-        // silently ignore
-      } finally {
-        setLoading(false);
-      }
+    let mounted = true;
+    getAll(1, 10)
+      .then((data) => {
+        if (!mounted) return;
+        setPosts(
+          data.items.filter((p) => p.isPublished && p.contentId !== currentContentId).slice(0, 5)
+        );
+      })
+      .catch(() => {
+        if (mounted) setFailed(true);
+      });
+    return () => {
+      mounted = false;
     };
-    fetchRecent();
   }, [currentContentId]);
 
-  const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+  const loading = !posts && !failed;
 
   return (
     <div className="sticky top-24 w-full">
-      <div className="mb-4">
-        <h3 className="text-white font-bold text-base tracking-wide uppercase">
+      <Panel material="wood" as="section" aria-labelledby="recent-heading">
+        <h2
+          id="recent-heading"
+          className="border-b-2 border-black/60 bg-wood-dark px-3 py-2.5 text-[11px] font-black uppercase tracking-[0.2em] text-parchment"
+        >
           Recent Posts
-        </h3>
-        <div className="mt-1.5 w-10 h-0.5 bg-[#ffc032] rounded-full" />
-      </div>
+        </h2>
 
-      <div className="bg-[#111111] border border-white/10 rounded-xl overflow-hidden">
-        {loading ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="w-5 h-5 text-[#ffc032]/50 animate-spin" />
-          </div>
-        ) : posts.length === 0 ? (
-          <p className="text-white/30 text-sm text-center py-8 px-4">
-            No recent posts
-          </p>
-        ) : (
-          <ul>
-            {posts.map((post, idx) => (
-              <li key={post.contentId}>
-                {idx > 0 && <div className="mx-4 h-px bg-white/5" />}
-                <Link
-                  href={`/content/${post.slug || post.contentId}`}
-                  className="flex flex-col gap-1.5 px-4 py-4 hover:bg-white/4 transition-colors group"
-                >
-                  <span className="text-sm text-white/80 font-medium leading-snug group-hover:text-[#ffc032] transition-colors line-clamp-2">
-                    {post.title}
-                  </span>
-                  <div className="flex items-center gap-1.5 text-white/30 text-xs">
-                    <Calendar className="w-3 h-3" />
-                    <span>{formatDate(post.createdAt)}</span>
-                    {post.categoryName && (
-                      <>
-                        <span className="w-0.5 h-0.5 rounded-full bg-white/20" />
-                        <span className="text-[#ffc032]/60">{post.categoryName}</span>
-                      </>
-                    )}
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+        <div aria-busy={loading || undefined}>
+          {loading ? (
+            <ul className="space-y-2 p-3" aria-hidden="true">
+              {Array.from({ length: 3 }, (_, i) => (
+                <li key={i} className="space-y-1.5">
+                  <span className="block h-4 w-full bg-parchment/10" />
+                  <span className="block h-3 w-1/2 bg-parchment/8" />
+                </li>
+              ))}
+            </ul>
+          ) : failed || posts!.length === 0 ? (
+            <p className="px-3 py-6 text-center text-xs text-parchment-dim">
+              {failed ? "The board could not be read." : "No other posts yet."}
+            </p>
+          ) : (
+            <ul>
+              {posts!.map((post, idx) => (
+                <li key={post.contentId} className={idx > 0 ? "border-t border-black/40" : ""}>
+                  <Link
+                    href={`/content/${post.slug || post.contentId}`}
+                    className="group flex flex-col gap-1 px-3 py-3 hover:bg-black/25"
+                  >
+                    <span className="line-clamp-2 text-sm font-bold leading-snug text-parchment group-hover:text-accent">
+                      {post.title}
+                    </span>
+                    <span className="flex items-center gap-1.5 text-[11px] text-parchment-dim">
+                      <Calendar className="h-3 w-3" aria-hidden="true" />
+                      <time dateTime={post.createdAt}>{formatDate(post.createdAt)}</time>
+                      {post.categoryName && <span>· {post.categoryName}</span>}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </Panel>
 
       <Link
         href="/content"
-        className="mt-3 flex items-center justify-center gap-1.5 w-full py-2.5 text-xs text-white/40 hover:text-[#ffc032] border border-white/10 hover:border-[#ffc032]/30 rounded-xl transition-all duration-200"
+        className="pixel-press mt-3 flex min-h-11 w-full items-center justify-center gap-1.5 border-2 border-black/60 bg-wood text-xs font-bold uppercase tracking-widest text-parchment-dim hover:border-accent hover:text-accent"
       >
         View all posts
-        <ChevronRight className="w-3.5 h-3.5" />
+        <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
       </Link>
     </div>
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   Main page component
-───────────────────────────────────────────────────────────────────────────── */
-
 export default function ContentDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const [content, setContent] = useState<ContentDetailResponse | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [headings, setHeadings] = useState<HeadingItem[]>([]);
-  const [processedTextBlocks, setProcessedTextBlocks] = useState<{ id: number; html: string }[]>([]);
+  /* Keyed by position, not by blockContentId: the BE hands back 0 for every
+     block on some records, so an id-keyed map collapsed them into one entry and
+     rendered the first block's HTML everywhere. */
+  const [processedTextBlocks, setProcessedTextBlocks] = useState<string[]>([]);
 
-  const fetchContent = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const id = params.id as string;
-      const data = await getBySlug(id);
-      setContent(data);
+  const slug = params.id as string;
 
-      const activeTextBlocks = data.blocks
-        .filter((b) => b.blockType === "text" && b.isActive)
-        .sort((a, b) => a.sortOrder - b.sortOrder);
-
-      const rawHtmlList = activeTextBlocks.map((b) => b.contentData || "");
-      const { processedBlocks, headings: extracted } = processHtmlWithIds(rawHtmlList);
-
-      setHeadings(extracted);
-      setProcessedTextBlocks(
-        activeTextBlocks.map((b, i) => ({
-          id: b.blockContentId,
-          html: processedBlocks[i],
-        }))
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Content not found");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  /* All state lands in the promise callbacks, never in the effect body — a
+     synchronous setState here would cascade a second render on every mount. */
   useEffect(() => {
-    void Promise.resolve().then(fetchContent);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.id]);
+    let mounted = true;
+    getBySlug(slug)
+      .then((data) => {
+        if (!mounted) return;
+
+        /* Same filter and comparator as the render below, so the processed HTML
+           lines up with the rendered blocks by index. Non-text blocks keep an
+           empty slot rather than being squeezed out. */
+        const activeBlocks = data.blocks
+          .filter((b) => b.isActive)
+          .sort((a, b) => a.sortOrder - b.sortOrder);
+
+        const { processedBlocks, headings: extracted } = processHtmlWithIds(
+          activeBlocks.map((b) => (b.blockType === "text" ? b.contentData || "" : ""))
+        );
+
+        setHeadings(extracted);
+        setProcessedTextBlocks(processedBlocks);
+        setContent(data);
+        setError(null);
+      })
+      .catch((err) => {
+        if (mounted) setError(err instanceof Error ? err.message : "Content not found");
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [slug]);
+
+  // Derived, not a third piece of state to keep in sync.
+  const loading = !content && !error;
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-20">
-        <Loader2 className="w-16 h-16 text-[#ffc032] animate-spin" />
+      <div className="min-h-dvh px-4 pt-[88px] pb-16 md:pt-[112px]">
+        <p role="status" className="sr-only">
+          Loading article…
+        </p>
+        <div className="mx-auto max-w-[760px] space-y-4 py-10" aria-hidden="true">
+          <span className="block h-8 w-3/4 bg-parchment/10" />
+          <span className="block h-4 w-1/2 bg-parchment/8" />
+          <span className="block h-64 w-full bg-parchment/8" />
+        </div>
       </div>
     );
   }
 
   if (error || !content) {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-20">
-        <div className="text-center">
-          <p className="text-white/50 text-lg">{error || "Content not found"}</p>
-          <button
-            onClick={() => router.push("/content")}
-            className="mt-4 px-6 py-2 bg-[#ffc032] text-black rounded-xl font-medium hover:bg-[#e6ad2d] transition-colors cursor-pointer"
+      <div className="flex min-h-dvh items-center justify-center px-4 pt-[88px] pb-16 md:pt-[112px]">
+        <Panel material="wood" role="alert" className="w-full max-w-md p-8 text-center">
+          <AlertCircle className="mx-auto mb-3 h-8 w-8 text-accent" aria-hidden="true" />
+          <h1 className="mb-2 text-xl font-bold text-parchment">Notice not found</h1>
+          <p className="mb-6 text-sm text-parchment-dim">{error || "This post is no longer posted."}</p>
+          <Link
+            href="/content"
+            className="pixel-press flex min-h-11 w-full items-center justify-center border-2 border-accent bg-accent text-sm font-black uppercase tracking-widest text-on-accent shadow-md hover:bg-accent-hover"
           >
             Back to Contents
-          </button>
-        </div>
+          </Link>
+        </Panel>
       </div>
     );
   }
 
-  const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-
-  const imageBlocks = content.blocks
-    .filter((b) => b.blockType === "image" && b.isActive)
-    .sort((a, b) => a.sortOrder - b.sortOrder);
-
-  const totalBlocks = processedTextBlocks.length + imageBlocks.length;
-
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: content.title,
-          text: content.summary || content.title,
-          url: window.location.href,
-        });
-      } catch {
-        // User cancelled or error
-      }
-    } else {
-      await navigator.clipboard.writeText(window.location.href);
-      alert("Link copied to clipboard!");
-    }
-  };
-
+  const sortedBlocks = content.blocks.filter((b) => b.isActive).sort((a, b) => a.sortOrder - b.sortOrder);
+  const totalBlocks = sortedBlocks.length;
   const hasToc = headings.length > 0;
 
   return (
-    <div className="min-h-screen pt-20 pb-16 ">
-      {/* Page wrapper */}
-      <div className="max-w-[1200px] mx-auto px-4 py-8">
-        {/* 3-column grid */}
+    /* Full-height column, `mt-auto` on the body and no bottom padding: a short
+       notice sinks to the bottom of the page so the board stands in the
+       footer's turf strip instead of floating over empty sky. */
+    <div className="flex min-h-dvh flex-col pt-[88px] md:pt-[112px]">
+      <div className="mx-auto mt-auto w-full max-w-[1200px] px-4 pt-8 md:px-6">
         <div
-          className={`
-            grid gap-8
-            ${hasToc
-              ? "grid-cols-1 xl:grid-cols-[260px_1fr_260px]"
+          className={`grid gap-6 lg:gap-8 ${
+            hasToc
+              ? "grid-cols-1 xl:grid-cols-[240px_1fr_260px]"
               : "grid-cols-1 xl:grid-cols-[1fr_260px]"
-            }
-          `}
+          }`}
         >
-          {/* LEFT: Table of Contents */}
           {hasToc && (
             <aside className="hidden xl:block">
               <TableOfContents headings={headings} />
             </aside>
           )}
 
-          {/* CENTER: Article */}
           <article className="min-w-0">
-            {/* Mobile TOC (above article) */}
             {hasToc && (
-              <div className="xl:hidden mb-6">
+              <div className="mb-6 xl:hidden">
                 <TableOfContents headings={headings} />
               </div>
             )}
 
-            {/* Hero Section */}
-            <header className="pb-8">
-              {content.categoryName ? (
-                <div className="flex mb-5">
-                  <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-[#ffc032]/10 text-[#ffc032] border border-[#ffc032]/25 rounded-full text-sm font-semibold tracking-wide">
-                    <Tag className="w-3.5 h-3.5" />
-                    {content.categoryName}
-                  </span>
-                </div>
-              ) : (
-                <div className="mb-5 flex items-center gap-3">
-                  <span className="text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">Article</span>
-                  <span className="h-px w-12 bg-linear-to-r from-[#ffc032]/60 to-transparent" />
-                </div>
-              )}
+            {/* The same board as /content — BoardFrame is shared, so the list and
+                a single notice read as one object rather than two designs. The
+                title plate and every block are nailed to the same planks, so a
+                block is a slip on the board rather than a board of its own. */}
+            <BoardFrame>
+              <div className="min-w-0 space-y-3 md:space-y-4">
+                {/* Title plate, sized to its own text and centred like the one on
+                    /content. It used to be a full-width sheet at md:text-4xl with
+                    p-8, which made the header taller than most articles' bodies. */}
+                <header className="parchment mx-auto max-w-[68ch] border-2 border-wood-dark px-5 py-4 text-center text-on-parchment shadow-[inset_0_0_0_2px_rgb(0_0_0_/_0.12)] md:px-8 md:py-5">
+                  {content.categoryName ? (
+                    <span className="mb-2 inline-flex items-center gap-1.5 border-2 border-black/60 bg-wood px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-parchment">
+                      <Tag className="h-3 w-3 text-accent" aria-hidden="true" />
+                      {content.categoryName}
+                    </span>
+                  ) : (
+                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.25em]">
+                      Article
+                    </span>
+                  )}
 
-              <h1 className="text-3xl sm:text-4xl font-bold text-white leading-tight mb-5">
-                {content.title}
-              </h1>
+                  {/* break-words: title and summary are admin-supplied and may be a
+                      single unbroken string, which used to run off the viewport. */}
+                  <h1 className="break-words text-lg font-bold leading-tight sm:text-xl md:text-2xl">
+                    {content.title}
+                  </h1>
 
-              {content.summary && (
-                <p className="text-lg text-white/50 leading-relaxed mb-5">
-                  {content.summary}
-                </p>
-              )}
+                  {content.summary && (
+                    <p className="mt-1.5 break-words text-[11px] leading-snug text-on-parchment/85 sm:text-xs">
+                      {content.summary}
+                    </p>
+                  )}
 
-              <div className="flex items-center gap-5 text-sm text-white/40">
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5" />
-                  <span>{formatDate(content.createdAt)}</span>
-                </div>
-                <span className="w-1 h-1 rounded-full bg-white/20" />
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>{totalBlocks} section{totalBlocks !== 1 ? "s" : ""}</span>
-                </div>
+                  <div className="mt-2.5 flex flex-wrap items-center justify-center gap-3 border-t-2 border-on-parchment/25 pt-2 text-[11px] text-on-parchment/75">
+                    <span className="flex items-center gap-1.5">
+                      <Calendar className="h-3 w-3" aria-hidden="true" />
+                      <time dateTime={content.createdAt}>{formatDate(content.createdAt, true)}</time>
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <Clock className="h-3 w-3" aria-hidden="true" />
+                      {totalBlocks} section{totalBlocks !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                </header>
+
+                {/* Banner, framed rather than rounded-and-glowing. */}
+                {content.thumbnailUrl && (
+                  <div className="border-2 border-wood-dark bg-stone">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={content.thumbnailUrl}
+                      alt=""
+                      className="pixelated h-56 w-full object-cover sm:h-72 md:h-80"
+                    />
+                  </div>
+                )}
+
+                {/* Blocks. Long-form prose sits on parchment — the one light surface
+                    in the system, and the only place a wall of text is comfortable. */}
+                {sortedBlocks.map((block, i) => {
+                  if (block.blockType === "text") {
+                    const html = processedTextBlocks[i] || block.contentData || "";
+                    return (
+                      <div
+                        key={i}
+                        /* Editor HTML from the admin portal; `.rendered-html` in
+                           components/css/rendered-html.css carries the prose rules. */
+                        className="parchment rendered-html border-2 border-wood-dark p-5 text-[15px] leading-[1.8] shadow-[inset_0_0_0_2px_rgb(0_0_0_/_0.12)] md:p-8"
+                        dangerouslySetInnerHTML={{ __html: html }}
+                      />
+                    );
+                  }
+
+                  if (block.blockType === "image") {
+                    return (
+                      <figure key={i} className="border-2 border-wood-dark">
+                        {block.mediaUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={block.mediaUrl}
+                            alt={block.caption || ""}
+                            loading="lazy"
+                            className="pixelated max-h-[500px] w-full bg-stone object-contain"
+                          />
+                        ) : (
+                          <p className="flex h-40 items-center justify-center gap-2 bg-stone text-sm text-parchment-dim">
+                            <ImageOff className="h-4 w-4" aria-hidden="true" />
+                            Image unavailable
+                          </p>
+                        )}
+                        {block.caption && (
+                          <figcaption className="border-t-2 border-wood-dark bg-wood-dark px-4 py-2.5 text-center text-xs italic leading-relaxed text-parchment-dim">
+                            {block.caption}
+                          </figcaption>
+                        )}
+                      </figure>
+                    );
+                  }
+
+                  return null;
+                })}
+
+                {sortedBlocks.length === 0 && (
+                  <p className="parchment border-2 border-wood-dark p-10 text-center text-sm text-on-parchment/80">
+                    This notice has no body yet.
+                  </p>
+                )}
+
+                {/* The way out is nailed to the board too. Outside it, the row
+                    was a rule and two lines floating on the starfield below the
+                    planks — one object, so it goes on the planks. */}
+                <footer className="flex flex-wrap items-center justify-between gap-3 border-2 border-black/60 bg-wood-dark px-3 py-3">
+                  <Link
+                    href="/content"
+                    className="pixel-press flex min-h-11 items-center gap-2 border-2 border-accent/50 px-5 text-xs font-black uppercase tracking-widest text-accent hover:border-accent hover:bg-accent hover:text-on-accent"
+                  >
+                    <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                    Back to all posts
+                  </Link>
+                  <p className="flex items-center gap-1.5 text-xs text-parchment-dim">
+                    <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
+                    Published {formatDate(content.createdAt, true)}
+                  </p>
+                </footer>
               </div>
-            </header>
-
-            {/* Banner Image */}
-            {content.thumbnailUrl && (
-              <div className="relative w-full rounded-2xl overflow-hidden mb-10 shadow-2xl shadow-black/50">
-                <img
-                  src={content.thumbnailUrl}
-                  alt={content.title}
-                  className="w-full h-64 sm:h-80 md:h-96 object-cover"
-                />
-                <div className="absolute inset-0 bg-linear-to-t from-[#0f0f0f]/60 to-transparent" />
-              </div>
-            )}
-
-            {/* Content Blocks */}
-            {(() => {
-              const allSorted = content.blocks
-                .filter((b) => b.isActive)
-                .sort((a, b) => a.sortOrder - b.sortOrder);
-
-              const processedMap = new Map(
-                processedTextBlocks.map((p) => [p.id, p.html])
-              );
-
-              return (
-                <div className="space-y-6 pb-12">
-                  {allSorted.map((block) => {
-                    if (block.blockType === "text") {
-                      const html = processedMap.get(block.blockContentId) || block.contentData || "";
-                      return (
-                        <div key={block.blockContentId} className="relative group">
-                          <div className="bg-[#111111] border border-white/5 rounded-2xl p-6 sm:p-8">
-                            <div
-                              className="text-white/80 leading-[1.9] text-base rendered-html"
-                              dangerouslySetInnerHTML={{ __html: html }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    }
-
-                    if (block.blockType === "image") {
-                      return (
-                        <div key={block.blockContentId} className="relative group">
-                          <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden">
-                            {block.mediaUrl ? (
-                              <img
-                                src={block.mediaUrl}
-                                alt={block.caption || "Image"}
-                                className="w-full object-contain max-h-[500px] bg-[#111]"
-                              />
-                            ) : (
-                              <div className="w-full h-48 bg-[#111111] flex items-center justify-center">
-                                <span className="text-white/30 text-sm">No image</span>
-                              </div>
-                            )}
-                            {block.caption && (
-                              <div className="px-6 py-4 border-t border-white/5">
-                                <p className="text-white/40 text-sm italic text-center leading-relaxed">
-                                  {block.caption}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    }
-
-                    return null;
-                  })}
-                </div>
-              );
-            })()}
-
-            {/* Empty state */}
-            {content.blocks.length === 0 && (
-              <div className="text-center py-16 bg-[#111111]/50 border border-white/5 rounded-2xl">
-                <p className="text-white/40">No content available</p>
-              </div>
-            )}
-
-            {/* Article Footer */}
-            <footer className="border-t border-white/5 pt-8 mt-4">
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={() => router.push("/content")}
-                  className="flex items-center gap-2 px-6 py-3 bg-[#ffc032]/10 hover:bg-[#ffc032]/20 border border-[#ffc032]/20 text-[#ffc032] rounded-xl font-medium transition-all cursor-pointer"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Back to all posts
-                </button>
-
-                <div className="flex items-center gap-2 text-white/40 text-sm">
-                  <Calendar className="w-3.5 h-3.5" />
-                  <span>Published {formatDate(content.createdAt)}</span>
-                </div>
-              </div>
-            </footer>
+            </BoardFrame>
           </article>
 
-          {/* RIGHT: Recent Posts */}
           <aside className="hidden xl:block">
             <RecentPosts currentContentId={content.contentId} />
           </aside>
         </div>
 
-        {/* Mobile Recent Posts */}
-        <div className="xl:hidden mt-10">
+        <div className="mt-10 xl:hidden">
           <RecentPosts currentContentId={content.contentId} />
         </div>
       </div>

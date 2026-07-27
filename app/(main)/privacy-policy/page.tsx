@@ -1,155 +1,133 @@
-import { Shield, ArrowRight, Lock, Eye, Database } from "lucide-react";
+import { ArrowLeft, Lock, Eye, Database, Shield } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
+import MoonHeader from "@/components/ui/MoonHeader";
+import { Scroll, Clause, Provisions, Note } from "@/components/ui/LegalScroll";
+
+/* The privacy policy as a charter on parchment — see components/ui/LegalScroll.
+   Every word below is the copy the page already carried; only the surface it is
+   written on changed. */
+
+const COLLECTED: { icon: LucideIcon; title: string; text: string }[] = [
+  {
+    icon: Database,
+    title: "Personal Information",
+    text: "Account credentials, email address, and profile data you provide during registration.",
+  },
+  {
+    icon: Eye,
+    title: "Gameplay Data",
+    text: "Character progress, inventory, achievements, match history, and in-game statistics.",
+  },
+  {
+    icon: Lock,
+    title: "Technical Data",
+    text: "Device identifiers, IP address, browser type, and session information.",
+  },
+];
+
+const USES = [
+  "To create and manage your player account and provide customer support.",
+  "To detect, prevent, and address cheating, hacking, or any violations of our game rules.",
+  "To communicate important updates, maintenance notices, and promotional content.",
+  "To analyze player behavior and improve game balance, features, and overall experience.",
+  "To comply with legal obligations and protect the rights and safety of our community.",
+];
+
+const RIGHTS = [
+  "You may access and update your account information at any time through the in-game settings.",
+  "You may request deletion of your account and associated data by contacting our support team.",
+  "You have the right to opt out of promotional communications at any time.",
+];
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen pt-32 pb-20 px-4">
-      <div className="max-w-[1200px] mx-auto">
-        <div className="bg-[#111111] border border-white/10 rounded-3xl p-8 md:p-12">
-          <div className="flex items-center gap-4 mb-8 border-b border-white/10 pb-8">
-            <div className="w-16 h-16 rounded-2xl bg-[#ffc032]/20 flex items-center justify-center text-[#ffc032]">
-              <Shield className="w-8 h-8" />
-            </div>
-            <div>
-              <div className="mb-2 flex items-center gap-3">
-                <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">
-                  <Lock className="w-3.5 h-3.5" /> Legal
+    <div className="min-h-dvh pt-[88px] pb-16 md:pt-[112px]">
+      <MoonHeader eyebrow="Legal" icon={Shield} title="Privacy Policy">
+        Last updated: July 8, 2026
+      </MoonHeader>
+
+      <Scroll>
+        <Clause n={1} title="Introduction">
+          <Note>
+            Mystic Journey is committed to protecting your privacy. This Privacy Policy explains how
+            we collect, use, disclose, and safeguard your information when you play our game and use
+            our services. Please read this policy carefully. By using Mystic Journey, you consent to
+            the data practices described herein.
+          </Note>
+        </Clause>
+
+        <Clause n={2} title="Information We Collect">
+          <p>
+            We gather various types of information to enhance your gaming experience and ensure fair
+            gameplay for all adventurers.
+          </p>
+          {/* Three inked plates rather than the old blue/purple/amber pads: the
+              sigil carries no meaning of its own, so it takes the sheet's own ink
+              instead of three colours borrowed from outside the system. */}
+          <ul className="grid gap-3 pt-1 sm:grid-cols-3">
+            {COLLECTED.map(({ icon: Icon, title, text }) => (
+              <li
+                key={title}
+                className="border-2 border-on-parchment/25 bg-parchment-dim/50 p-4 text-center shadow-[3px_3px_0_rgb(59_42_23_/_0.20)]"
+              >
+                <span className="mx-auto mb-3 flex h-11 w-11 items-center justify-center border-2 border-black/50 bg-on-parchment text-parchment">
+                  <Icon className="h-5 w-5" aria-hidden="true" />
                 </span>
-                <span className="h-px w-12 bg-linear-to-r from-[#ffc032]/60 to-transparent" />
-              </div>
-              <h1 className="text-4xl font-bold text-white mb-2">Privacy Policy</h1>
-              <p className="text-white/60">Last updated: July 8, 2026</p>
-            </div>
-          </div>
+                <h3 className="text-sm font-black uppercase tracking-[0.12em] text-on-parchment">
+                  {title}
+                </h3>
+                <p className="mt-1.5 text-[13px] leading-snug">{text}</p>
+              </li>
+            ))}
+          </ul>
+        </Clause>
 
-          <div className="space-y-8 text-white/80 leading-relaxed">
-            <section>
-              <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
-                <span className="text-[#ffc032]">1.</span> Introduction
-              </h2>
-              <p className="bg-[#0d0d0d] p-4 rounded-xl border border-white/10">
-                Mystic Journey is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you play our game and use our services. Please read this policy carefully. By using Mystic Journey, you consent to the data practices described herein.
-              </p>
-            </section>
+        <Clause n={3} title="How We Use Your Information">
+          <Provisions items={USES} />
+        </Clause>
 
-            <section>
-              <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
-                <span className="text-[#ffc032]">2.</span> Information We Collect
-              </h2>
-              <p className="mb-6">
-                We gather various types of information to enhance your gaming experience and ensure fair gameplay for all adventurers.
-              </p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-[#0d0d0d] p-5 rounded-xl border border-white/10 flex flex-col items-center text-center">
-                  <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 mb-4">
-                    <Database className="w-6 h-6" />
-                  </div>
-                  <h3 className="font-semibold text-white mb-2">Personal Information</h3>
-                  <p className="text-sm text-white/60">Account credentials, email address, and profile data you provide during registration.</p>
-                </div>
+        <Clause n={4} title="Data Security">
+          <Note>
+            We employ industry-standard encryption and security protocols to protect your personal
+            data. Passwords are hashed using bcrypt, and all data transmissions occur over secure
+            HTTPS connections. While we strive to safeguard your information, no method of
+            transmission over the Internet is 100% secure, and we cannot guarantee absolute
+            security.
+          </Note>
+        </Clause>
 
-                <div className="bg-[#0d0d0d] p-5 rounded-xl border border-white/10 flex flex-col items-center text-center">
-                  <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 mb-4">
-                    <Eye className="w-6 h-6" />
-                  </div>
-                  <h3 className="font-semibold text-white mb-2">Gameplay Data</h3>
-                  <p className="text-sm text-white/60">Character progress, inventory, achievements, match history, and in-game statistics.</p>
-                </div>
+        <Clause n={5} title="Cookies & Tracking">
+          <Note>
+            Mystic Journey uses cookies and similar technologies to maintain your login session,
+            remember your preferences, and analyze game performance. You may disable cookies through
+            your browser settings, though doing so may affect certain game functionalities.
+          </Note>
+        </Clause>
 
-                <div className="bg-[#0d0d0d] p-5 rounded-xl border border-white/10 flex flex-col items-center text-center">
-                  <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400 mb-4">
-                    <Lock className="w-6 h-6" />
-                  </div>
-                  <h3 className="font-semibold text-white mb-2">Technical Data</h3>
-                  <p className="text-sm text-white/60">Device identifiers, IP address, browser type, and session information.</p>
-                </div>
-              </div>
-            </section>
+        <Clause n={6} title="Your Rights">
+          <Provisions items={RIGHTS} />
+        </Clause>
 
-            <section>
-              <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
-                <span className="text-[#ffc032]">3.</span> How We Use Your Information
-              </h2>
-              <ul className="space-y-3 pl-4">
-                <li className="flex gap-3">
-                  <ArrowRight className="w-5 h-5 text-[#ffc032] shrink-0 mt-0.5" />
-                  <span>To create and manage your player account and provide customer support.</span>
-                </li>
-                <li className="flex gap-3">
-                  <ArrowRight className="w-5 h-5 text-[#ffc032] shrink-0 mt-0.5" />
-                  <span>To detect, prevent, and address cheating, hacking, or any violations of our game rules.</span>
-                </li>
-                <li className="flex gap-3">
-                  <ArrowRight className="w-5 h-5 text-[#ffc032] shrink-0 mt-0.5" />
-                  <span>To communicate important updates, maintenance notices, and promotional content.</span>
-                </li>
-                <li className="flex gap-3">
-                  <ArrowRight className="w-5 h-5 text-[#ffc032] shrink-0 mt-0.5" />
-                  <span>To analyze player behavior and improve game balance, features, and overall experience.</span>
-                </li>
-                <li className="flex gap-3">
-                  <ArrowRight className="w-5 h-5 text-[#ffc032] shrink-0 mt-0.5" />
-                  <span>To comply with legal obligations and protect the rights and safety of our community.</span>
-                </li>
-              </ul>
-            </section>
+        <Clause n={7} title="Contact Us">
+          <Note>
+            If you have any questions or concerns about this Privacy Policy, please contact our Data
+            Protection Officer at privacy@mysticjourney.game or through our in-game support system.
+          </Note>
+        </Clause>
+      </Scroll>
 
-            <section>
-              <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
-                <span className="text-[#ffc032]">4.</span> Data Security
-              </h2>
-              <p className="bg-[#0d0d0d] p-4 rounded-xl border border-white/10">
-                We employ industry-standard encryption and security protocols to protect your personal data. Passwords are hashed using bcrypt, and all data transmissions occur over secure HTTPS connections. While we strive to safeguard your information, no method of transmission over the Internet is 100% secure, and we cannot guarantee absolute security.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
-                <span className="text-[#ffc032]">5.</span> Cookies & Tracking
-              </h2>
-              <p className="bg-[#0d0d0d] p-4 rounded-xl border border-white/10">
-                Mystic Journey uses cookies and similar technologies to maintain your login session, remember your preferences, and analyze game performance. You may disable cookies through your browser settings, though doing so may affect certain game functionalities.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
-                <span className="text-[#ffc032]">6.</span> Your Rights
-              </h2>
-              <ul className="space-y-3 pl-4">
-                <li className="flex gap-3">
-                  <ArrowRight className="w-5 h-5 text-[#ffc032] shrink-0 mt-0.5" />
-                  <span>You may access and update your account information at any time through the in-game settings.</span>
-                </li>
-                <li className="flex gap-3">
-                  <ArrowRight className="w-5 h-5 text-[#ffc032] shrink-0 mt-0.5" />
-                  <span>You may request deletion of your account and associated data by contacting our support team.</span>
-                </li>
-                <li className="flex gap-3">
-                  <ArrowRight className="w-5 h-5 text-[#ffc032] shrink-0 mt-0.5" />
-                  <span>You have the right to opt out of promotional communications at any time.</span>
-                </li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
-                <span className="text-[#ffc032]">7.</span> Contact Us
-              </h2>
-              <p className="bg-[#0d0d0d] p-4 rounded-xl border border-white/10">
-                If you have any questions or concerns about this Privacy Policy, please contact our Data Protection Officer at privacy@mysticjourney.game or through our in-game support system.
-              </p>
-            </section>
-
-            <div className="pt-8 mt-8 border-t border-white/10 flex justify-center">
-              <Link href="/register" className="text-[#ffc032] hover:text-[#ffd04c] font-semibold transition-colors flex items-center gap-2">
-                <ArrowRight className="w-4 h-4 rotate-180" />
-                Return to Registration
-              </Link>
-            </div>
-          </div>
-        </div>
+      {/* The way back sits below the sheet, on the dark ground, where gold is the
+          one thing meaning "act on this" — inside the parchment it would be
+          1.7:1 and unreadable. */}
+      <div className="flex justify-center px-4">
+        <Link
+          href="/register"
+          className="pixel-press flex min-h-11 items-center gap-2 border-2 border-accent bg-transparent px-5 text-sm font-black uppercase tracking-widest text-accent shadow-[3px_3px_0_rgb(0_0_0_/_0.5)] hover:bg-accent hover:text-on-accent"
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          Return to Registration
+        </Link>
       </div>
     </div>
   );

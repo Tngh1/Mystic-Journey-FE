@@ -3,7 +3,13 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+
+/* Title bar for a create/update screen: an iron back plate, the title, and an
+   optional cloth badge.
+
+   Badge tones were five raw `-500/10` washes plus a hardcoded #ffc032; they are
+   heraldic cloth now. The unused `LucideIcon` type import is gone, and the back
+   button is 44px rather than the old 36px. */
 
 interface FormHeaderProps {
   title: string;
@@ -15,11 +21,11 @@ interface FormHeaderProps {
 }
 
 const BADGE_TONE: Record<NonNullable<FormHeaderProps["badgeTone"]>, string> = {
-  default: "bg-white/5 border-white/10 text-white/60",
-  primary: "bg-[#ffc032]/10 border-[#ffc032]/30 text-[#ffc032]",
-  success: "bg-green-500/10 border-green-500/30 text-green-400",
-  warning: "bg-orange-500/10 border-orange-500/30 text-orange-400",
-  danger: "bg-red-500/10 border-red-500/30 text-red-400",
+  default: "border-black/60 bg-iron text-parchment",
+  primary: "border-accent bg-accent text-on-accent",
+  success: "border-black/60 bg-heraldry-pine text-parchment",
+  warning: "border-black/60 bg-heraldry-ember text-parchment",
+  danger: "border-black/60 bg-heraldry-crimson text-parchment",
 };
 
 export default function FormHeader({
@@ -39,23 +45,23 @@ export default function FormHeader({
         onClick={() => router.push(backHref)}
         title="Back"
         aria-label="Back"
-        className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer shrink-0"
+        className="pixel-press flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center border-2 border-black/60 bg-iron text-parchment shadow-sm transition-colors hover:text-accent"
       >
-        <ArrowLeft className="w-5 h-5" />
+        <ArrowLeft className="h-5 w-5" aria-hidden="true" />
       </button>
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2 flex-wrap">
-          <h1 className="text-2xl font-bold text-white truncate">{title}</h1>
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="truncate text-2xl font-bold text-fg">{title}</h1>
           {badge && (
             <span
-              className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md border ${BADGE_TONE[badgeTone]}`}
+              className={`border-2 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] shadow-sm ${BADGE_TONE[badgeTone]}`}
             >
               {badge}
             </span>
           )}
         </div>
         {subtitle && (
-          <p className="text-sm text-white/50 mt-1 truncate">{subtitle}</p>
+          <p className="mt-1 truncate text-sm text-fg-muted">{subtitle}</p>
         )}
       </div>
       {actions && <div className="shrink-0">{actions}</div>}

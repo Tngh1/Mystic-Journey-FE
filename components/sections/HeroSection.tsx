@@ -1,165 +1,142 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Play, ChevronDown } from "lucide-react";
 import AnimatedButton from "@/components/ui/AnimatedButton";
 
+/* The wordmark, carved rather than glossed.
+
+   It used to be an SVG drawn in Comic Sans with a four-stop sunset gradient, a
+   white gloss overlay, two feDropShadow glows and gaussian-blurred sparkles —
+   five things this system forbids in one element, and the loudest modern-web
+   tell on the landing page. It is now real text in the display face with hard
+   zero-blur offsets: gold face, an accent-deep step below it (the same lit-top /
+   shadowed-bottom logic as pixel-bevel), then wood and black steps that read as
+   the letter's cast shadow on the wall behind it.
+
+   Being real text also means the h1 is the wordmark, so the sr-only duplicate
+   heading that used to sit beside the aria-hidden SVG is gone. */
+const WORDMARK_SHADOW =
+  "[text-shadow:0_4px_0_var(--color-accent-deep),4px_4px_0_var(--color-wood-dark),8px_8px_0_rgb(0_0_0_/_0.55)]";
+
+/* Glare as detached pixel blocks, the same trick sun.svg uses for its corona:
+   a blur would be a soft halo, a hard square reads as a sprite's sparkle.
+   Percentages so they stay pinned to the wordmark at every breakpoint. */
+const STARS = [
+  { top: "4%", left: "6%", size: "h-2 w-2" },
+  { top: "-2%", left: "48%", size: "h-1.5 w-1.5" },
+  { top: "10%", left: "92%", size: "h-2.5 w-2.5" },
+  { top: "72%", left: "2%", size: "h-1.5 w-1.5" },
+  { top: "88%", left: "72%", size: "h-2 w-2" },
+];
+
 const MysticTitle = () => (
-  <div className="relative w-full max-w-[580px] mx-auto select-none">
-    <svg
-      viewBox="0 0 640 255"
-      xmlns="http://www.w3.org/2000/svg"
-      className="w-full h-auto"
-      aria-label="Mystic Journey"
+  <div className="relative mx-auto w-full max-w-[36rem] select-none">
+    <span aria-hidden="true">
+      {STARS.map((s) => (
+        <span
+          key={`${s.top}${s.left}`}
+          className={`pointer-events-none absolute bg-accent shadow-2xs ${s.size}`}
+          style={{ top: s.top, left: s.left }}
+        />
+      ))}
+    </span>
+
+    <h1
+      className={`relative flex flex-col items-center leading-[0.85] text-accent ${WORDMARK_SHADOW}`}
     >
-      <defs>
-        {/* Sunset gradient: pale gold → orange → crimson */}
-        <linearGradient id="titleFill" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%"   stopColor="#fff1b8" />
-          <stop offset="30%"  stopColor="#ffb347" />
-          <stop offset="70%"  stopColor="#f97316" />
-          <stop offset="100%" stopColor="#b91c1c" />
-        </linearGradient>
-
-        {/* Glossy top-shine overlay */}
-        <linearGradient id="titleShine" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%"   stopColor="#ffffff" stopOpacity="0.80" />
-          <stop offset="28%"  stopColor="#ffffff" stopOpacity="0.10" />
-          <stop offset="40%"  stopColor="#ffffff" stopOpacity="0" />
-        </linearGradient>
-
-        {/* Outer glow filter */}
-        <filter id="titleGlow" x="-15%" y="-15%" width="130%" height="150%">
-          <feDropShadow dx="0" dy="5"  stdDeviation="5" floodColor="#f97316" floodOpacity="0.6" />
-          <feDropShadow dx="0" dy="10" stdDeviation="10" floodColor="#000000" floodOpacity="0.6" />
-        </filter>
-
-        {/* Sparkle blur */}
-        <filter id="sparkle">
-          <feGaussianBlur stdDeviation="2.5" result="b"/>
-          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-      </defs>
-
-      {/* Sparkles — warm golden */}
-      <g filter="url(#sparkle)" fill="#fde68a">
-        <circle cx="60"  cy="60"  r="5"/>
-        <circle cx="540" cy="50"  r="7"/>
-        <circle cx="40"  cy="165" r="3.5"/>
-        <circle cx="565" cy="180" r="4"/>
-        <circle cx="300" cy="18"  r="3.5"/>
-        <circle cx="130" cy="210" r="3"/>
-        <circle cx="460" cy="218" r="3.5"/>
-      </g>
-
-      {/* ── Slight tilt on the whole logo group ── */}
-      <g transform="rotate(-2, 300, 120)">
-        {/* ─── MYSTIC ─── */}
-        {/* Layer 1: thick dark stroke / outline */}
-        <text x="300" y="105"
-          textAnchor="middle"
-          fontFamily="'Comic Sans MS', 'PatrickHandSC', cursive"
-          fontSize="115" fontWeight="900"
-          fill="#4a1500" stroke="#4a1500" strokeWidth="22"
-          strokeLinejoin="round" strokeLinecap="round"
-          paintOrder="stroke"
-        >Mystic</text>
-        {/* Layer 2: gradient fill + glow */}
-        <text x="300" y="105"
-          textAnchor="middle"
-          fontFamily="'Comic Sans MS', 'PatrickHandSC', cursive"
-          fontSize="115" fontWeight="900"
-          fill="url(#titleFill)"
-          filter="url(#titleGlow)"
-        >Mystic</text>
-        {/* Layer 3: gloss */}
-        <text x="300" y="105"
-          textAnchor="middle"
-          fontFamily="'Comic Sans MS', 'PatrickHandSC', cursive"
-          fontSize="115" fontWeight="900"
-          fill="url(#titleShine)"
-        >Mystic</text>
-
-        {/* ─── JOURNEY ─── */}
-        <text x="300" y="205"
-          textAnchor="middle"
-          fontFamily="'Comic Sans MS', 'PatrickHandSC', cursive"
-          fontSize="95" fontWeight="900"
-          fill="#4a1500" stroke="#4a1500" strokeWidth="20"
-          strokeLinejoin="round" strokeLinecap="round"
-          paintOrder="stroke"
-        >Journey</text>
-        <text x="300" y="205"
-          textAnchor="middle"
-          fontFamily="'Comic Sans MS', 'PatrickHandSC', cursive"
-          fontSize="95" fontWeight="900"
-          fill="url(#titleFill)"
-          filter="url(#titleGlow)"
-        >Journey</text>
-        <text x="300" y="205"
-          textAnchor="middle"
-          fontFamily="'Comic Sans MS', 'PatrickHandSC', cursive"
-          fontSize="95" fontWeight="900"
-          fill="url(#titleShine)"
-        >Journey</text>
-      </g>
-    </svg>
+      <span className="text-5xl font-bold uppercase tracking-[0.06em] sm:text-6xl md:text-7xl">
+        Mystic
+      </span>
+      <span className="mt-2 text-4xl font-bold uppercase tracking-[0.18em] sm:text-5xl md:text-6xl">
+        Journey
+      </span>
+    </h1>
   </div>
 );
 
 export default function HeroSection() {
   return (
-    <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Video Banner Background */}
-      <div className="absolute inset-0 z-0">
+    <section className="relative w-full min-h-dvh flex items-center justify-center overflow-hidden">
+      {/* Video Banner Background — decorative, so it is hidden from screen
+          readers and skipped for users who ask for reduced motion (the poster
+          frame stands in as a still image). */}
+      <div className="absolute inset-0 z-0" aria-hidden="true">
+        <Image
+          src="/images/ui/hero-banner.webp"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
         <video
           autoPlay
           loop
           muted
           playsInline
-          className="w-full h-full object-cover object-center"
-          poster="/images/ui/hero-banner.png"
+          preload="none"
+          poster="/images/ui/hero-banner.webp"
+          className="absolute inset-0 h-full w-full object-cover object-center motion-reduce:hidden"
         >
           <source src="/videos/Banner.mp4" type="video/mp4" />
         </video>
-        {/* Layered scrims for text legibility (skill: dark bg for focus) */}
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute inset-0 bg-linear-to-b from-black/50 via-transparent to-black/70" />
+        {/* Layered scrims for text legibility, plus a CRT scanline pass that
+            ties the live-action banner back to the pixel-art UI. */}
+        <div className="absolute inset-0 bg-black/45" />
+        <div className="absolute inset-0 bg-linear-to-b from-black/60 via-transparent to-black/75" />
+        <div className="pixel-scanlines absolute inset-0 opacity-40 mix-blend-multiply" />
       </div>
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center max-w-5xl mx-auto w-full pt-16">
 
-        {/* Eyebrow */}
-        <div className="mb-6 flex items-center gap-3">
-          <span className="h-px w-8 bg-linear-to-r from-transparent to-[#ffc032]/60" />
-          <span className="text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">
-            Dark Fantasy MMORPG
+        {/* Eyebrow — hard 2px rules rather than the gradients that used to fade
+            out at both ends; a gradient is the one thing a pixel rule can't be.
+            SectionHeading does the same on the h2s below. */}
+        <div className="mb-6 flex items-center gap-3" aria-hidden="true">
+          <span className="h-0.5 w-6 bg-accent" />
+          <span className="h-0.5 w-2 bg-accent" />
+          <span className="text-xs font-bold uppercase tracking-[0.34em] text-accent">
+            Pixel-Art Dark Fantasy MMORPG
           </span>
-          <span className="h-px w-8 bg-linear-to-l from-transparent to-[#ffc032]/60" />
+          <span className="h-0.5 w-2 bg-accent" />
+          <span className="h-0.5 w-6 bg-accent" />
         </div>
 
-        {/* ── Artistic Bouncy Title ── */}
+        {/* The wordmark IS the page h1 now that it is real text, so the document
+            outline starts at level 1 here before the section h2s. */}
         <MysticTitle />
 
         {/* Tagline */}
-        <p className="mt-6 max-w-xl text-base md:text-lg text-white/75 leading-relaxed">
-          Rise as a hero against the shadow. Master your class, explore four
-          legendary realms, and uncover the corruption spreading through the world.
+        <p className="mt-6 max-w-xl text-base md:text-lg text-white/80 leading-relaxed">
+          Wake with no memory in a cursed forest. Hunt the four Seal Books
+          across four realms, and heal the Origin Tree before the curse
+          devours it.
         </p>
 
-        {/* CTAs — primary action + secondary trailer */}
+        {/* CTAs — one primary action (gold fill) + secondary trailer.
+            Square frame + offset shadow that sinks on press: no pill, no zoom. */}
         <div className="mt-9 flex flex-col sm:flex-row items-center gap-4">
           <Link
             href="/download"
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[#ffc032] text-[#111] font-black tracking-widest uppercase text-sm transition-all hover:bg-[#ffd04c] hover:scale-105 shadow-lg shadow-[#ffc032]/25 cursor-pointer"
+            className="pixel-press inline-flex items-center gap-2 border-2 border-accent bg-accent px-8 py-3.5 text-sm font-black uppercase tracking-widest text-on-accent shadow-lg hover:bg-accent-hover cursor-pointer"
           >
-            <Play className="w-4 h-4 fill-current" />
+            <Play className="w-4 h-4 fill-current" aria-hidden="true" />
             Play Now
           </Link>
+          {/* The handler used to be `console.log("Watch Trailer")` — a button
+              that did nothing. The banner clip the hero already ships is the
+              trailer, so it opens that rather than a placeholder. Kept a
+              <button> + window.open instead of wrapping AnimatedButton in a
+              Link: an <a> around a <button> is two nested interactive elements
+              and screen readers announce it twice.
+              // ponytail: same file for both roles — swap the href when a real
+              // long-form trailer is cut, ideally to a lightbox. */}
           <AnimatedButton
             size="lg"
-            onClick={() => { console.log("Watch Trailer"); }}
+            onClick={() => window.open("/videos/Banner.mp4", "_blank", "noopener,noreferrer")}
           >
             WATCH TRAILER
           </AnimatedButton>
@@ -170,10 +147,10 @@ export default function HeroSection() {
       <a
         href="#about"
         aria-label="Scroll to learn more"
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-white/50 hover:text-[#ffc032] transition-colors cursor-pointer motion-safe:animate-bounce"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-white/60 hover:text-accent transition-colors cursor-pointer motion-safe:animate-bounce"
       >
         <span className="text-[10px] uppercase tracking-[0.3em]">Scroll</span>
-        <ChevronDown className="w-5 h-5" />
+        <ChevronDown className="w-5 h-5" aria-hidden="true" />
       </a>
 
       {/* Bottom fade */}

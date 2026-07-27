@@ -11,7 +11,11 @@ interface RevealProps {
 
 /**
  * Fades + slides its children up when scrolled into view (once).
- * Falls back to visible immediately when the user prefers reduced motion.
+ *
+ * The reduced-motion fallback is pure CSS (`motion-reduce:` variants) rather
+ * than a media-query read in the effect: the effect version had to setState
+ * synchronously on mount, which both trips react-hooks/set-state-in-effect and
+ * paints the hidden state for one frame before correcting it.
  */
 export default function Reveal({ children, delay = 0, className = "" }: RevealProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -20,12 +24,6 @@ export default function Reveal({ children, delay = 0, className = "" }: RevealPr
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReduced) {
-      setShown(true);
-      return;
-    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -44,8 +42,11 @@ export default function Reveal({ children, delay = 0, className = "" }: RevealPr
   return (
     <div
       ref={ref}
-      className={`transition-all duration-700 ease-out will-change-transform ${
-        shown ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+      // 700ms was slow enough to read as a page load rather than a reveal; 400ms
+      // sits just past the micro-interaction window, which suits a section-sized
+      // element. will-change is dropped once shown so the layer is released.
+      className={`transition-[opacity,transform] duration-400 ease-out motion-reduce:transition-none motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
+        shown ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0 will-change-transform"
       } ${className}`}
       style={{ transitionDelay: shown ? `${delay}ms` : "0ms" }}
     >

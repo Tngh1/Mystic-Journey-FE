@@ -1,5 +1,15 @@
 import React, { useState } from "react";
-import { Plus, Search, Edit2, Trash2, Inbox, AlertCircle, Loader2, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Inbox, AlertCircle, Loader2, ArrowUp, ArrowDown, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+
+/* The ledger every manage-* screen writes into: a steel-plate register with a
+   dark head strip, parchment-dim column labels and gold only on the one Create
+   action. Plate, not wood — the admin keep is rolled steel on a forge floor;
+   the wood belongs to the wiki.
+
+   Was a `rounded-2xl` #111111 card with `rounded-lg` rows, `rounded-full` empty
+   /error medallions and #ffc032 / #1e1e1e / #252525 hardcoded throughout. The
+   pager's bare "←" / "→" glyphs are now Lucide chevrons in 44px hit areas — the
+   old ones were 27px and below the touch floor. */
 
 interface Column<T extends object> {
   key: string;
@@ -96,20 +106,14 @@ export default function AdminTable<T extends object>({
     }
   };
 
-  const handleSort = (key: string) => {
-    if (onSort) {
-      onSort(key);
-    }
-  };
-
   const getSortIcon = (key: string) => {
     if (sortBy !== key) {
-      return <ArrowUpDown className="w-3 h-3 text-gray-600" />;
+      return <ArrowUpDown className="h-3 w-3 text-parchment-dim/60" aria-hidden="true" />;
     }
     return sortOrder === "asc" ? (
-      <ArrowUp className="w-3 h-3 text-[#ffc032]" />
+      <ArrowUp className="h-3 w-3 text-accent" aria-hidden="true" />
     ) : (
-      <ArrowDown className="w-3 h-3 text-[#ffc032]" />
+      <ArrowDown className="h-3 w-3 text-accent" aria-hidden="true" />
     );
   };
 
@@ -121,17 +125,17 @@ export default function AdminTable<T extends object>({
         <tr>
           <td colSpan={columnCount} className="px-5 py-16">
             <div className="flex flex-col items-center gap-3 text-center">
-              <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
-                <AlertCircle className="w-6 h-6 text-red-400" />
-              </div>
+              <span className="flex h-12 w-12 items-center justify-center border-2 border-black/60 bg-heraldry-crimson shadow-sm">
+                <AlertCircle className="h-6 w-6 text-parchment" aria-hidden="true" />
+              </span>
               <div>
-                <p className="text-sm font-semibold text-white">Failed to load data</p>
-                <p className="text-xs text-white/50 mt-1 max-w-md">{error}</p>
+                <p className="text-sm font-bold text-fg">Failed to load data</p>
+                <p className="mx-auto mt-1 max-w-md text-xs text-fg-muted">{error}</p>
               </div>
               {onRetry && (
                 <button
                   onClick={onRetry}
-                  className="mt-1 px-4 h-9 rounded-lg bg-white/5 border border-white/10 text-sm text-white hover:bg-white/10 transition-colors cursor-pointer"
+                  className="pixel-press mt-1 h-11 cursor-pointer border-2 border-black/60 bg-iron px-4 text-xs font-black uppercase tracking-[0.1em] text-parchment shadow-sm transition-colors hover:border-accent hover:text-accent"
                 >
                   Try again
                 </button>
@@ -144,15 +148,18 @@ export default function AdminTable<T extends object>({
 
     if (loading && currentData.length === 0) {
       return Array.from({ length: 5 }).map((_, rowIdx) => (
-        <tr key={`skeleton-${rowIdx}`} className="border-b border-white/5">
+        <tr key={`skeleton-${rowIdx}`} className="border-b border-iron-light/20">
           {columns.map((col) => (
             <td key={col.key} className="px-5 py-3.5">
-              <div className="h-4 bg-white/5 rounded animate-pulse" style={{ width: `${50 + ((rowIdx * 17 + col.key.length * 11) % 40)}%` }} />
+              <div
+                className="h-4 animate-pulse bg-iron-light/25"
+                style={{ width: `${50 + ((rowIdx * 17 + col.key.length * 11) % 40)}%` }}
+              />
             </td>
           ))}
           {(onUpdate || onDelete) && (
             <td className="px-5 py-3.5 text-right">
-              <div className="h-4 w-12 bg-white/5 rounded animate-pulse ml-auto" />
+              <div className="ml-auto h-4 w-12 animate-pulse bg-iron-light/25" />
             </td>
           )}
         </tr>
@@ -164,12 +171,12 @@ export default function AdminTable<T extends object>({
         <tr>
           <td colSpan={columnCount} className="px-5 py-16">
             <div className="flex flex-col items-center gap-3 text-center">
-              <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center">
-                <Inbox className="w-7 h-7 text-white/40" />
-              </div>
+              <span className="flex h-14 w-14 items-center justify-center border-2 border-black/60 bg-iron shadow-sm">
+                <Inbox className="h-7 w-7 text-parchment-dim" aria-hidden="true" />
+              </span>
               <div>
-                <p className="text-sm font-semibold text-white">{emptyTitle}</p>
-                {emptyHint && <p className="text-xs text-white/50 mt-1 max-w-md">{emptyHint}</p>}
+                <p className="text-sm font-bold text-fg">{emptyTitle}</p>
+                {emptyHint && <p className="mx-auto mt-1 max-w-md text-xs text-fg-muted">{emptyHint}</p>}
               </div>
             </div>
           </td>
@@ -184,34 +191,42 @@ export default function AdminTable<T extends object>({
         <tr
           key={String(rowId ?? rowIndex)}
           onClick={() => onRowClick?.(item)}
-          className={`border-b border-white/5 hover:bg-[#1e1e1e]/70 transition-colors group ${
-            onRowClick ? "cursor-pointer" : ""
-          } ${isSelected ? "bg-[#252525]" : ""}`}
+          className={[
+            "group border-b border-iron-light/20 transition-colors hover:bg-iron-light/12",
+            onRowClick ? "cursor-pointer" : "",
+            /* Selected also gets a gold left edge, so the row is not marked by
+               fill alone. */
+            isSelected ? "bg-accent/12 shadow-[inset_3px_0_0_var(--color-accent)]" : "",
+          ].join(" ")}
         >
           {columns.map((col) => (
-            <td key={col.key} className="px-5 py-3.5 text-sm text-white/80 whitespace-nowrap">
-              {col.render ? col.render((item as Record<string, unknown>)[col.key] as never, item) : String((item as Record<string, unknown>)[col.key] ?? "")}
+            <td key={col.key} className="whitespace-nowrap px-5 py-3.5 text-sm text-parchment">
+              {col.render
+                ? col.render((item as Record<string, unknown>)[col.key] as never, item)
+                : String((item as Record<string, unknown>)[col.key] ?? "")}
             </td>
           ))}
           {(onUpdate || onDelete) && (
-            <td className="px-5 py-3.5 text-right whitespace-nowrap">
-              <div className="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+            <td className="whitespace-nowrap px-5 py-3.5 text-right">
+              <div className="flex items-center justify-end gap-1">
                 {onUpdate && (
                   <button
                     title="Update"
+                    aria-label="Update"
                     onClick={() => onUpdate(item)}
-                    className="p-1.5 text-gray-500 hover:text-[#ffc032] hover:bg-[#ffc032]/10 rounded-lg transition-colors cursor-pointer"
+                    className="flex h-11 w-11 cursor-pointer items-center justify-center border-2 border-transparent text-parchment-dim transition-colors hover:border-accent hover:text-accent"
                   >
-                    <Edit2 className="w-4 h-4" />
+                    <Edit2 className="h-4 w-4" aria-hidden="true" />
                   </button>
                 )}
                 {onDelete && (
                   <button
                     title="Delete"
+                    aria-label="Delete"
                     onClick={() => onDelete(item)}
-                    className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors cursor-pointer"
+                    className="flex h-11 w-11 cursor-pointer items-center justify-center border-2 border-transparent text-parchment-dim transition-colors hover:border-danger hover:text-danger"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="h-4 w-4" aria-hidden="true" />
                   </button>
                 )}
               </div>
@@ -223,61 +238,70 @@ export default function AdminTable<T extends object>({
   };
 
   return (
-    <div className="bg-[#111111] border border-white/10 rounded-2xl overflow-hidden">
-      {/* Header */}
-      <div className="px-5 py-4 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+    <div className="pixel-bevel-plate overflow-hidden border-2 border-black/60">
+      {/* Head strip */}
+      <div className="flex flex-col justify-between gap-3 border-b-2 border-black/60 bg-iron-dark px-4 py-3 sm:flex-row sm:items-center">
+        <h2 className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-accent">
           {title}
           {loading && data.length > 0 && (
-            <Loader2 className="w-3.5 h-3.5 text-[#ffc032] animate-spin" />
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" aria-hidden="true" />
           )}
         </h2>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {!serverSide && (
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <div className="flex items-center gap-2 border-2 border-black/60 bg-surface-2 px-2.5 focus-within:border-accent">
+              <Search className="h-4 w-4 shrink-0 text-parchment-dim" aria-hidden="true" />
               <input
-                type="text"
+                type="search"
                 placeholder="Search..."
+                aria-label={`Search ${title}`}
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="pl-9 pr-4 py-2 bg-[#111] border border-white/10 rounded-lg text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors w-48"
+                className="h-11 w-40 min-w-0 bg-transparent text-sm text-fg placeholder:text-fg-subtle focus:outline-none sm:w-48"
               />
             </div>
           )}
           {onCreate && (
             <button
               onClick={onCreate}
-              className="flex items-center gap-2 bg-[#ffc032] text-[#111] px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#ffd04c] transition-colors cursor-pointer"
+              className="pixel-press flex h-11 cursor-pointer items-center gap-2 border-2 border-accent bg-accent px-4 text-xs font-black uppercase tracking-[0.1em] text-on-accent shadow-sm transition-colors hover:bg-accent-hover"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="h-4 w-4" aria-hidden="true" />
               Create
             </button>
           )}
         </div>
       </div>
 
-      {/* Table */}
+      {/* Register */}
       <div className="overflow-x-auto">
         <table className="w-full text-left">
-          <thead className="bg-[#161616] sticky top-0 z-10">
-            <tr className="border-b border-white/10">
-              {columns.map((col) => (
-                <th
-                  key={col.key}
-                  onClick={() => col.sortable && onSort && handleSort(col.key)}
-                  className={`px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap ${
-                    col.sortable && onSort ? "cursor-pointer hover:text-white transition-colors" : ""
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5">
-                    <span>{col.label}</span>
-                    {col.sortable && onSort && getSortIcon(col.key)}
-                  </div>
-                </th>
-              ))}
+          <thead className="sticky top-0 z-10 bg-iron-dark/95">
+            <tr className="border-b-2 border-black/60">
+              {columns.map((col) => {
+                const sortable = Boolean(col.sortable && onSort);
+                return (
+                  <th
+                    key={col.key}
+                    aria-sort={
+                      sortable && sortBy === col.key
+                        ? sortOrder === "asc" ? "ascending" : "descending"
+                        : undefined
+                    }
+                    onClick={() => sortable && onSort?.(col.key)}
+                    className={`whitespace-nowrap px-5 py-3 text-[11px] font-black uppercase tracking-[0.15em] text-parchment-dim ${
+                      sortable ? "cursor-pointer transition-colors hover:text-accent" : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>{col.label}</span>
+                      {sortable && getSortIcon(col.key)}
+                    </div>
+                  </th>
+                );
+              })}
               {(onUpdate || onDelete) && (
-                <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">
+                <th className="px-5 py-3 text-right text-[11px] font-black uppercase tracking-[0.15em] text-parchment-dim">
                   Actions
                 </th>
               )}
@@ -287,10 +311,10 @@ export default function AdminTable<T extends object>({
         </table>
       </div>
 
-      {/* Footer / Pagination */}
+      {/* Foot strip / pager */}
       {!error && totalItems > 0 && (
-        <div className="px-5 py-3.5 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-white/40">
+        <div className="flex flex-col items-center justify-between gap-3 border-t-2 border-black/60 bg-iron-dark px-4 py-2.5 sm:flex-row">
+          <p className="text-[11px] tabular-nums text-parchment-dim">
             {serverSide && pagination ? (
               <>Showing {totalItems === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1}–{Math.min(pagination.page * pagination.pageSize, totalItems)} of {totalItems}</>
             ) : (
@@ -303,32 +327,32 @@ export default function AdminTable<T extends object>({
                 aria-label="Rows per page"
                 value={currentPageSize}
                 onChange={(e) => pagination.setPageSize(Number(e.target.value))}
-                className="bg-[#111] border border-white/10 rounded px-2 py-1 text-xs text-white focus:outline-none cursor-pointer"
+                className="h-11 cursor-pointer border-2 border-black/60 bg-surface-2 px-2 text-xs text-fg focus:outline-none"
               >
                 {PAGE_SIZE_OPTIONS.map((size) => (
                   <option key={size} value={size}>{size} / page</option>
                 ))}
               </select>
             )}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
               <button
                 aria-label="Previous page"
                 onClick={() => handlePageChange(safePage - 1)}
                 disabled={safePage === 1}
-                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                className="pixel-press flex h-11 w-11 cursor-pointer items-center justify-center border-2 border-black/60 bg-iron text-parchment transition-colors hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
               >
-                ←
+                <ChevronLeft className="h-4 w-4" aria-hidden="true" />
               </button>
-              <span className="px-2 py-1 text-xs text-white">
+              <span className="px-2 text-xs tabular-nums text-parchment">
                 {safePage} / {totalPages}
               </span>
               <button
                 aria-label="Next page"
                 onClick={() => handlePageChange(safePage + 1)}
                 disabled={safePage >= totalPages}
-                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#252525] rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                className="pixel-press flex h-11 w-11 cursor-pointer items-center justify-center border-2 border-black/60 bg-iron text-parchment transition-colors hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
               >
-                →
+                <ChevronRight className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
           </div>
