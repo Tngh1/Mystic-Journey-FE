@@ -5,34 +5,28 @@ import { getStats } from "@/lib/api/dashboard";
 import PageLoader from "@/components/ui/PageLoader";
 import {
   Users, UserCircle, Package, Ghost, CreditCard, DollarSign,
-  TrendingUp, BarChart3, LayoutDashboard,
+  TrendingUp, BarChart3, LayoutDashboard, Wifi, WifiOff,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import MonthlyChart from "@/components/ui/MonthlyChart";
-
-interface DashboardStats {
-  totalPlayers: number;
-  totalAccounts: number;
-  totalItems: number;
-  totalMonsters: number;
-  totalTransactions: number;
-  totalRevenue: number;
-  monthlyStats: Array<{ month: string; count: number; amount: number }>;
-}
+import type { DashboardStatsResponse } from "@/lib/types";
 
 interface StatCardData {
   label: string;
   value: string;
   icon: LucideIcon;
-  tone: "default" | "gold";
+  tone: "default" | "gold" | "success";
 }
 
 function StatCard({ label, value, icon: Icon, tone }: StatCardData) {
   const iconClass =
     tone === "gold"
-      ? "bg-[#ffc032]/10 text-[#ffc032]"
-      : "bg-white/5 text-white/70";
-  const valueClass = tone === "gold" ? "text-[#ffc032]" : "text-white";
+      ? "bg-accent/10 text-accent"
+      : tone === "success"
+        ? "bg-success/10 text-success"
+        : "bg-white/5 text-white/70";
+  const valueClass =
+    tone === "gold" ? "text-accent" : tone === "success" ? "text-success" : "text-white";
   return (
     <div className="group bg-[#111111] border border-white/10 rounded-2xl p-5 transition-colors hover:border-white/20">
       <div className="flex items-start justify-between gap-3">
@@ -49,17 +43,35 @@ function StatCard({ label, value, icon: Icon, tone }: StatCardData) {
 }
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [stats, setStats] = useState<DashboardStatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getStats()
-      .then(setStats)
-      .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : "Failed to load dashboard");
-      })
-      .finally(() => setLoading(false));
+    let cancelled = false;
+
+    const load = () =>
+      getStats()
+        .then((data) => {
+          if (cancelled) return;
+          setStats(data);
+          setError(null);
+        })
+        .catch((err: unknown) => {
+          if (cancelled) return;
+          setError(err instanceof Error ? err.message : "Failed to load dashboard");
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
+
+    load();
+    // Online count is realtime (BE marks online = LastSeen within 1 min) — refresh periodically.
+    const interval = setInterval(load, 30_000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, []);
 
   if (loading) {
@@ -84,6 +96,11 @@ export default function DashboardPage() {
     stats.totalTransactions > 0 ? stats.totalRevenue / stats.totalTransactions : 0;
   const fmtMoney = (n: number) =>
     `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const liveStats: StatCardData[] = [
+    { label: "Players Online", value: stats.onlinePlayers.toLocaleString(), icon: Wifi, tone: "success" },
+    { label: "Players Offline", value: stats.offlinePlayers.toLocaleString(), icon: WifiOff, tone: "default" },
+  ];
 
   const entityStats: StatCardData[] = [
     { label: "Total Players", value: stats.totalPlayers.toLocaleString(), icon: Users, tone: "default" },
@@ -110,6 +127,19 @@ export default function DashboardPage() {
           <p className="text-white/50 text-sm mt-0.5">Overview of the Mystic Journey game system.</p>
         </div>
       </div>
+
+      {/* Live stats — auto-refreshes every 30s */}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-white/40">Live</h2>
+          <span className="text-xs text-white/40">Auto-refreshes every 30s</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {liveStats.map((s) => (
+            <StatCard key={s.label} {...s} />
+          ))}
+        </div>
+      </section>
 
       {/* Entity stats */}
       <section className="space-y-3">
