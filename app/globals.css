@@ -516,20 +516,8 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: inset -2px 0 0 rgb(0 0 0 / 0.35);
 }
 
-/* ─── Leadlight and cloth ───────────────────────────────────────────────────
-   .leadlight — a stained-glass lattice for the class dossier's portrait bay.
-   Lead cames on a 16px grid with a diagonal light fall across them, laid over
-   whatever heraldry cloth the caller sets as the background colour. Decorative
-   overlay: pair with pointer-events-none + aria-hidden. */
-.leadlight {
-  background-image:
-    linear-gradient(to right, rgb(0 0 0 / 0.45) 0 2px, transparent 2px),
-    linear-gradient(to bottom, rgb(0 0 0 / 0.45) 0 2px, transparent 2px),
-    linear-gradient(135deg, rgb(255 255 255 / 0.10) 0 40%, transparent 40%);
-  background-size: 16px 16px, 16px 16px, 100% 100%;
-}
-
-/* .tapestry — woven cloth, the account pages' own material. Warp and weft as
+/* ─── Cloth ─────────────────────────────────────────────────────────────────
+   .tapestry — woven cloth, the account pages' own material. Warp and weft as
    two hard-stop 4px gradients, so the surface reads as a thread count rather
    than a texture photograph. Sets no colour of its own: pair it with a heraldry
    token (`bg-heraldry-royal`) and the weave takes that dye. */

@@ -2,26 +2,36 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Users, Shield, Swords, Heart, ArrowRight, AlertCircle } from "lucide-react";
+import { Users, Shield, Swords, Heart, ChevronRight, AlertCircle, Fingerprint } from "lucide-react";
 import { CLASSES } from "@/lib/data/classes";
 import { useClassConfigs, statCeilings, findConfig } from "@/lib/hooks/useClassConfigs";
 import type { ClassConfigResponse } from "@/lib/api/characters";
-import Panel from "@/components/ui/Panel";
-import MoonHeader from "@/components/ui/MoonHeader";
 
-/* The three stats every plate compares. `read` pulls the value off the live
-   ClassConfig row, so the row component never has to know which field of the API
-   shape a label maps to. */
-const STAT_ROWS = [
+/* Redesigned as a **muster roll**: three enlistment records stood side by side,
+   the way a character-select screen shows its roster rather than the way a wiki
+   shows three cards. Each record is one object — cloth head, the recruit's
+   portrait full height beneath it, and a rivetted service strip at the foot
+   carrying the name, the role and the stat gauges. Nothing is a Panel, nothing
+   is a wooden plaque, and the whole record is the link, so the click target is
+   the recruit and not a button tacked under one.
+
+   The three stats every record compares. `read` pulls the value off the live
+   ClassConfig row, so the gauge never has to know which API field a label maps
+   to. */
+const STAT_COLUMNS = [
   { key: "hp", label: "HP", Icon: Heart, read: (c: ClassConfigResponse) => c.maxHp },
   { key: "atk", label: "ATK", Icon: Swords, read: (c: ClassConfigResponse) => c.atk },
   { key: "def", label: "DEF", Icon: Shield, read: (c: ClassConfigResponse) => c.def },
 ] as const;
 
-/* Ten discrete blocks rather than a percentage fill — a smooth bar is the wrong
-   idiom here. The value is always printed alongside, so meaning never rests on
-   colour. */
-function StatRow({
+const PIPS = 8;
+
+/* A gauge stood on end — pips stacked bottom-up, the way a level meter reads on
+   a character sheet. Horizontal bars were the old design's idiom; upright
+   columns let the three stats sit beside each other in the strip and be compared
+   at a glance. The figure is always printed above the column, so nothing here
+   depends on colour. */
+function StatColumn({
   label,
   Icon,
   value,
@@ -34,46 +44,44 @@ function StatRow({
   max: number;
   barColor: string;
 }) {
-  const filled = Math.max(1, Math.round((value / max) * 10));
+  const filled = Math.max(1, Math.round((value / max) * PIPS));
+
   return (
-    <div className="flex items-center gap-2">
-      <span className="flex w-12 shrink-0 items-center gap-1 text-[11px] font-bold uppercase text-parchment-dim">
-        <Icon className="h-3 w-3" aria-hidden="true" />
-        {label}
-      </span>
-      <span className="flex flex-1 gap-0.5" role="img" aria-label={`${label} ${value} of ${max}`}>
-        {Array.from({ length: 10 }, (_, i) => (
+    <div className="flex min-w-0 flex-col items-center gap-1.5">
+      <span className="text-sm font-black tabular-nums text-parchment">{value}</span>
+
+      <span
+        role="img"
+        aria-label={`${label} ${value} of ${max}`}
+        className="flex h-16 w-full flex-col-reverse gap-0.5 border-2 border-black/60 bg-black/50 p-0.5 shadow-[inset_2px_2px_0_rgb(0_0_0_/_0.45)]"
+      >
+        {Array.from({ length: PIPS }, (_, i) => (
           <span
             key={i}
-            className="h-2 flex-1 border border-black/40"
-            style={{ backgroundColor: i < filled ? barColor : "rgb(0 0 0 / 0.4)" }}
+            className="block h-full w-full"
+            style={i < filled ? { backgroundColor: barColor } : undefined}
           />
         ))}
       </span>
-      <span className="w-9 shrink-0 text-right text-[11px] font-bold tabular-nums text-parchment">
-        {value}
+
+      <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.12em] text-parchment-dim">
+        <Icon className="h-3 w-3" aria-hidden="true" />
+        {label}
       </span>
     </div>
   );
 }
 
-/* The stat block while the table is in flight: the same three rows at the same
-   heights, so the card does not resize when the numbers land. */
-function StatRowsSkeleton() {
+/* Holds the gauge row's exact height while the ClassConfig table is in flight,
+   so the record never resizes under the cursor when the numbers land. */
+function StatColumnsSkeleton() {
   return (
-    <div className="space-y-2" aria-hidden="true">
-      {STAT_ROWS.map((s) => (
-        <div key={s.key} className="flex items-center gap-2">
-          <span className="flex w-12 shrink-0 items-center gap-1 text-[11px] font-bold uppercase text-parchment-dim/50">
-            <s.Icon className="h-3 w-3" />
-            {s.label}
-          </span>
-          <span className="flex flex-1 gap-0.5">
-            {Array.from({ length: 10 }, (_, i) => (
-              <span key={i} className="h-2 flex-1 border border-black/40 bg-black/40" />
-            ))}
-          </span>
-          <span className="h-3 w-9 shrink-0 bg-parchment/10" />
+    <div className="grid grid-cols-3 gap-3" aria-hidden="true">
+      {STAT_COLUMNS.map((s) => (
+        <div key={s.key} className="flex flex-col items-center gap-1.5">
+          <span className="h-5 w-8 bg-black/40" />
+          <span className="h-16 w-full border-2 border-black/60 bg-black/40" />
+          <span className="h-3 w-9 bg-black/40" />
         </div>
       ))}
     </div>
@@ -85,112 +93,158 @@ export default function WikiClassesPage() {
   const ceilings = configs ? statCeilings(configs) : null;
 
   return (
-    <div className="min-h-dvh pt-[88px] md:pt-[112px]">
-      <MoonHeader eyebrow="Class Guide" icon={Users} title="Choose Your Class">
-        Three distinct playstyles await. Compare their roles and strengths, then open a
-        class for its full stats and skills.
-      </MoonHeader>
+    <div className="min-h-dvh pt-[88px] pb-16 md:pt-[112px]">
+      <div className="mx-auto w-full max-w-[1200px] px-4 py-12 md:px-6 md:py-16">
+        {/* Register head. A left-set title with a rule running off it — no moon,
+            no carved board: the roster below is the thing to look at. */}
+        <header className="mb-10 md:mb-12">
+          <p className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] text-accent">
+            <Users className="h-3.5 w-3.5" aria-hidden="true" />
+            Muster Roll
+          </p>
 
-      {/* The classes are not codex entries to be read in a tome — they are a
-          roster to be picked from, so this is the game's own character-select
-          idiom: three tall banner plaques hung side by side on the hall wall. */}
-      <div className="mx-auto w-full max-w-[1200px] px-4 py-12 md:py-16">
-        {loading && <p role="status" className="sr-only">Loading class stats…</p>}
+          <div className="mt-3 flex items-center gap-4">
+            <h1 className="shrink-0 text-3xl font-bold text-fg md:text-4xl lg:text-5xl">
+              Choose Your Class
+            </h1>
+            <span className="h-0.5 flex-1 bg-line-strong" aria-hidden="true" />
+          </div>
 
-        {/* The art and lore are local, so only the numbers wait on the network:
-            a failed fetch degrades one block per plaque, not the roster. */}
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-fg-muted md:text-base">
+            Three recruits stand for inspection. Their gauges are read straight from the
+            game&apos;s own class table, so what you see here is what you will play.
+          </p>
+        </header>
+
+        <p role="status" className="sr-only">
+          {loading ? "Loading class stats" : ""}
+        </p>
+
         {error && (
-          <Panel material="iron" role="alert" className="mb-8 flex items-start gap-3 px-4 py-3">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
-            <p className="text-sm leading-relaxed text-parchment-dim">
-              Base stats could not be read from the archive ({error}). The orders below are still
-              described in full.{" "}
-              <button
-                type="button"
-                onClick={() => window.location.reload()}
-                className="cursor-pointer font-bold text-accent underline decoration-accent/50 underline-offset-2 hover:decoration-accent"
-              >
-                Try again
-              </button>
+          <div
+            role="alert"
+            className="mb-8 flex flex-wrap items-center gap-3 border-2 border-black/70 bg-iron-dark px-4 py-3 shadow-[4px_4px_0_rgb(0_0_0_/_0.5)]"
+          >
+            <AlertCircle className="h-5 w-5 shrink-0 text-danger" aria-hidden="true" />
+            <p className="min-w-0 flex-1 text-sm text-parchment">
+              The class table could not be read. {error}
             </p>
-          </Panel>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="pixel-press flex min-h-11 items-center border-2 border-accent bg-accent px-4 text-xs font-black uppercase tracking-widest text-on-accent hover:bg-accent-hover"
+            >
+              Try again
+            </button>
+          </div>
         )}
 
-        <div className="grid gap-6 md:grid-cols-3 lg:gap-8" aria-busy={loading || undefined}>
-          {CLASSES.map((cls) => {
+        {/* The roll. `items-stretch` so all three records are the same height
+            whatever the length of the lore line. */}
+        <ol
+          className="grid items-stretch gap-6 md:grid-cols-3 lg:gap-8"
+          aria-busy={loading || undefined}
+        >
+          {CLASSES.map((cls, i) => {
             const cfg = findConfig(configs, cls.name);
+
             return (
-              <Panel
-                key={cls.id}
-                as="article"
-                material="wood"
-                className="group flex flex-col transition-colors hover:border-accent"
-              >
-                {/* Name plate — the order's heraldic cloth hung across the top of
-                    the frame. Ink is parchment on all three (≥7:1). */}
-                <div className={`flex items-center justify-between gap-2 border-b-2 border-black/60 ${cls.accent} px-4 py-2.5`}>
-                  <h2 className={`text-sm font-black uppercase tracking-widest ${cls.accentText}`}>
-                    {cls.name}
-                  </h2>
-                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-parchment-dim">
-                    {cls.role}
-                  </span>
-                </div>
-
-                {/* Portrait, sunk into the frame like a painted panel. No
-                    scale-on-hover — a smooth zoom is the modern-web tell the
-                    pixel system rules out. */}
-                <div className="relative aspect-[3/4] w-full overflow-hidden border-b-2 border-black/50 bg-stone">
-                  <Image
-                    src={cls.image}
-                    alt={cls.name}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="pixelated object-cover object-top"
-                  />
-                  <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent" />
-                </div>
-
-                <div className="flex flex-1 flex-col gap-4 p-4">
-                  {/* Stat slot, carved into the plank: reversed bevel so it reads
-                      as recessed rather than raised. */}
-                  <div className="space-y-2 border-2 border-black/60 bg-wood-dark p-3 shadow-[inset_2px_2px_0_rgb(0_0_0_/_0.5)]">
-                    {cfg && ceilings ? (
-                      STAT_ROWS.map((s) => (
-                        <StatRow
-                          key={s.key}
-                          label={s.label}
-                          Icon={s.Icon}
-                          value={s.read(cfg)}
-                          max={ceilings[s.key]}
-                          barColor={cls.barColor}
-                        />
-                      ))
-                    ) : loading ? (
-                      <StatRowsSkeleton />
-                    ) : (
-                      <p className="py-1 text-xs italic text-parchment-dim/70">Stat line unavailable.</p>
-                    )}
+              <li key={cls.id} className="flex">
+                <Link
+                  href={`/wiki/classes/${cls.id}`}
+                  className="group flex w-full flex-col border-2 border-black/70 bg-slate shadow-[6px_6px_0_rgb(0_0_0_/_0.55)] transition-colors hover:border-accent"
+                >
+                  {/* Cloth head: the recruit's file number and heraldry. */}
+                  <div
+                    className={`flex items-center justify-between gap-2 border-b-2 border-black/60 ${cls.accent} px-3 py-2`}
+                  >
+                    <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-parchment-dim">
+                      <Fingerprint className="h-3 w-3" aria-hidden="true" />
+                      No. {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-parchment">
+                      {cls.role}
+                    </span>
                   </div>
 
-                  <p className="text-sm leading-relaxed text-parchment-dim">{cls.description}</p>
+                  {/* Portrait, full width of the record. The scrim runs into the
+                      service strip below so the two read as one object. */}
+                  <div className="relative aspect-3/4 w-full overflow-hidden border-b-2 border-black/60 bg-stone">
+                    <Image
+                      src={cls.image}
+                      alt={cls.name}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 380px"
+                      loading={i === 0 ? "eager" : "lazy"}
+                      className="pixelated object-cover object-top"
+                    />
+                    <div
+                      className="absolute inset-0 bg-linear-to-t from-black/85 via-black/10 to-transparent"
+                      aria-hidden="true"
+                    />
+                    <div className="pixel-scanlines absolute inset-0 opacity-20" aria-hidden="true" />
 
-                  <p className="flex items-start gap-2 border-t-2 border-black/40 pt-3 text-xs italic leading-relaxed text-parchment-dim/85">
-                    {cls.playstyle}
-                  </p>
+                    {/* The name, stencilled onto the portrait's dark foot rather
+                        than given a plate of its own. */}
+                    <h2 className="absolute inset-x-0 bottom-0 px-3 pb-3 text-2xl font-bold leading-none text-parchment">
+                      {cls.name}
+                    </h2>
+                  </div>
 
-                  <Link
-                    href={`/wiki/classes/${cls.id}`}
-                    className="pixel-press mt-auto flex min-h-11 w-full items-center justify-center gap-2 border-2 border-accent/50 px-4 text-sm font-black uppercase tracking-widest text-accent shadow-md transition-colors hover:border-accent hover:bg-accent hover:text-on-accent"
-                  >
-                    View {cls.name}
-                    <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                  </Link>
-                </div>
-              </Panel>
+                  {/* Service strip: gauges, then the lore line, then the tail. */}
+                  <div className="flex flex-1 flex-col gap-3 bg-iron-dark p-3">
+                    {cfg && ceilings ? (
+                      <div className="grid grid-cols-3 gap-3">
+                        <StatColumn
+                          label="HP"
+                          Icon={Heart}
+                          value={cfg.maxHp}
+                          max={ceilings.hp}
+                          barColor={cls.barColor}
+                        />
+                        <StatColumn
+                          label="ATK"
+                          Icon={Swords}
+                          value={cfg.atk}
+                          max={ceilings.atk}
+                          barColor={cls.barColor}
+                        />
+                        <StatColumn
+                          label="DEF"
+                          Icon={Shield}
+                          value={cfg.def}
+                          max={ceilings.def}
+                          barColor={cls.barColor}
+                        />
+                      </div>
+                    ) : loading ? (
+                      <StatColumnsSkeleton />
+                    ) : (
+                      <p className="py-4 text-center text-xs text-parchment-dim">
+                        Gauges unavailable.
+                      </p>
+                    )}
+
+                    <p className="border-t-2 border-black/40 pt-3 text-[13px] leading-relaxed text-parchment-dim">
+                      {cls.description}
+                    </p>
+
+                    <p className="mt-auto flex items-center justify-between gap-2 border-t-2 border-black/40 pt-3 text-[11px] font-black uppercase tracking-widest text-parchment-dim">
+                      {cls.playstyle}
+                      <span className="flex shrink-0 items-center gap-1 text-accent">
+                        File
+                        <ChevronRight
+                          className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"
+                          aria-hidden="true"
+                        />
+                      </span>
+                    </p>
+                  </div>
+                </Link>
+              </li>
             );
           })}
-        </div>
+        </ol>
       </div>
     </div>
   );
