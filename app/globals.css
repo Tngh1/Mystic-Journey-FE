@@ -2,11 +2,11 @@
 @import "../components/css/rendered-html.css";
 @import "../components/css/scrollbar.css";
 @import "../components/css/animated-button.css";
-@import "../components/css/logout-button.css";
 @import "../components/css/face-animation.css";
 @import "../components/css/download-button.css";
+@import "../components/css/swal.css";
 
-/* ─── Design tokens — Mystic Journey (dark-fantasy gold) ──────────────────────
+/* ─── Design tokens — Mystic Journey (pixel-art dark fantasy) ─────────────────
    Single source of truth for the brand palette. Consume as Tailwind utilities
    (bg-surface, text-accent, border-line …) or via var(--color-*) in raw CSS.
    Kept in sync with DESIGN.md. */
@@ -29,17 +29,140 @@
   --color-success: #22c55e;
   --color-danger: #ef4444;
   --color-info: #3b82f6;
+
+  /* ── Vintage medieval material palette ──────────────────────────────────
+     Sampled from the game's own tileset (the Pixel World pack the Unity client
+     ships in Assets/PixelWorld: snow forest, grassland camp, woodland, autumn
+     harvest, castle courtyard, witch dungeon, desert market) and darkened to
+     sit under white text, so the chrome around a screenshot shares its hues
+     instead of clashing with them. The base above stays the identity: these are
+     *materials*, not new brand accents. The tileset's amber foliage (#f2c94c)
+     and lava (#f0801e) are already almost exactly --color-accent /
+     --color-accent-deep, which is why gold stays the one saturated colour
+     allowed to mean "act on this".
+
+     Two greys, not one: the courtyard's cobblestone and the knights' armour are
+     distinctly *cool* blue-grey, while the plateau and desert rock are warm. So
+     --color-stone is the warm quarried block and --color-iron carries the cool
+     note for fittings and controls. Wood is the fence-rail / crate brown, which
+     in the art is a mid-tone — the near-black brown I first used read as burnt,
+     not aged. Parchment is the market's canvas awning and dune sand. */
+  --color-wood: #3b2a1a;        /* frame fill — aged oak, fence-rail brown */
+  --color-wood-light: #5c4227;  /* frame top bevel (lit edge) */
+  --color-wood-dark: #221610;   /* frame bottom bevel (shadowed edge) */
+  --color-stone: #1f1c19;       /* section ground — warm quarried block */
+  --color-stone-light: #2e2823; /* stone bevel / mortar highlight */
+  --color-iron: #3a3f4a;        /* buttons, fittings, rivets — cool cobble */
+  --color-iron-light: #5b6272;  /* iron lit edge — knight's armour highlight */
+  --color-iron-dark: #1c1f26;   /* iron shadowed edge / head strips — the admin
+                                   keep's plate steel. Wood is the tavern and
+                                   the lore pages; the dashboard is a forge. */
+  --color-slate: #12151b;       /* admin ground — cold flagstone under the forge */
+  --color-parchment: #e9dcb8;   /* aged paper / canvas / sand surface */
+  --color-parchment-dim: #cdbc92;/* paper in shade / secondary rule */
+  --color-on-parchment: #3b2a17; /* ink on paper — 8.7:1 on parchment */
+
+  /* Heraldic banner cloth. These are not invented realm colours: they are the
+     cloth the art already uses — the dungeon's blue standard with its gold
+     trim, the Skeleton King's crimson cape and the market's striped awnings,
+     the spruce line, the autumn maples, and the imp's arcane violet. Chapter
+     and faction plates only, never CTAs. All clear 6.5:1 against
+     --color-parchment, which is the text colour they pair with. */
+  --color-heraldry-royal: #26356f;  /* the standard — blue with gold trim */
+  --color-heraldry-crimson: #7f2424;/* cape / awning stripe */
+  --color-heraldry-ember: #7a3517;  /* autumn — rust and maple */
+  --color-heraldry-pine: #1e4430;   /* woodland — spruce shadow */
+  --color-heraldry-arcane: #4e3168; /* violet — imps, brews, dungeon magic */
+
+  /* Night sky — the app's ground. Sampled from the game's own starfield strip:
+     an all but black indigo, not blue enough to fight the gold. Everything that
+     used bg-black keeps working; this only changes what shows *behind* panels. */
+  --color-night: #0b0620;
+  --color-night-deep: #060312;  /* vignette / footer end of the sky */
+
+  /* Sky and ground — the page is stacked like one of the game's own screens:
+     a white cloud mass across the top, starfield in the middle, turf over earth
+     at the bottom. The cloud ramp is the four tones the reference sprite sheet
+     uses: white crown, then two cooler steps, then the shaded underside. The
+     header plate is --color-cloud itself, so the bar and the lumps hanging off
+     its bottom edge read as one cloud; the nav on it is inked royal (9:1) since
+     gold on white would be 1.7:1. Grass and soil come off the bundle's
+     grassland strip. */
+  --color-cloud: #ffffff;       /* sunlit crown row, and the header plate */
+  --color-cloud-mid: #e8f4fb;   /* cloud body */
+  --color-cloud-shade: #cfe6f5; /* underside in shade */
+  --color-cloud-deep: #b8dcf0;  /* the base row, coolest step */
+  --color-grass: #3f7d33;       /* turf body */
+  --color-grass-lit: #62b544;   /* sunlit top row of the turf */
+  --color-soil: #5a3d24;        /* earth under the grass */
+  --color-soil-dark: #3d2817;   /* deeper earth / footer floor */
+
+  /* Blooms — the potted-flower sprites (wiki planter). Purely decorative sprite
+     fill: they never sit behind text, so they are exempt from the 4.5:1 rule but
+     still tokens, because a hex in a component is a hex nobody can retune.
+     The heraldry dyes are all too dark to read as petals at this size. */
+  --color-bloom-rose: #e8748f;  /* pink petal */
+  --color-bloom-coral: #ef9c86; /* salmon petal */
+  --color-bloom-lilac: #b083dd; /* violet petal */
+  --color-clay: #b5643c;        /* terracotta pot body */
+  --color-clay-light: #cf7d50;  /* lit rim course */
+  --color-clay-dark: #8c4526;   /* shaded course / foot */
+
+  /* Pixel-art: hard-edged offset shadows (no blur), scaled by elevation.
+     Existing shadow-* utilities pick these up automatically; color-modified
+     shadows (e.g. shadow-accent/20) keep working via --tw-shadow-color. */
+  --shadow-2xs: 1px 1px 0 rgb(0 0 0 / 0.6);
+  --shadow-xs: 2px 2px 0 rgb(0 0 0 / 0.6);
+  --shadow-sm: 2px 2px 0 rgb(0 0 0 / 0.6);
+  --shadow-md: 3px 3px 0 rgb(0 0 0 / 0.6);
+  --shadow-lg: 4px 4px 0 rgb(0 0 0 / 0.6);
+  --shadow-xl: 6px 6px 0 rgb(0 0 0 / 0.6);
+  --shadow-2xl: 8px 8px 0 rgb(0 0 0 / 0.6);
+}
+
+/* Pixel-art has no curves. One global rule beats editing ~700 rounded-*
+   call sites: it catches every Tailwind utility, arbitrary value, and raw
+   border-radius in the component css files (scrollbar, animated-button…). */
+/* ponytail: nếu sau này cần một element bo tròn thật (vd. avatar bản đồ),
+   thêm class .allow-round đặt sau rule này với !important thay vì gỡ nó. */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
 }
 
 html {
   scroll-behavior: smooth;
 }
 
+/* The app's ground is now a night sky: deep space navy with pixel stars. Three
+   tiled layers of hard-stop radial gradients (1px dots, no blur, three
+   brightnesses) at different tile sizes, so the field never looks like a
+   regular grid. `fixed` attachment keeps the stars still while content scrolls
+   — the sky is a backdrop, not a texture that slides. Any full-bleed section
+   that paints .stone-wall / .book-leather still covers it, by design. */
 body {
   padding: 0;
   margin: 0;
   font-family: 'PatrickHand', sans-serif;
-  background-color: black;
+  background-color: var(--color-night);
+  background-image:
+    radial-gradient(circle at 17% 23%, rgb(255 255 255 / 0.85) 0 1px, transparent 1px),
+    radial-gradient(circle at 68% 41%, rgb(255 255 255 / 0.85) 0 1px, transparent 1px),
+    radial-gradient(circle at 42% 78%, rgb(199 210 255 / 0.55) 0 1px, transparent 1px),
+    radial-gradient(circle at 83% 12%, rgb(255 224 178 / 0.5) 0 1px, transparent 1px),
+    radial-gradient(circle at 9% 61%, rgb(255 255 255 / 0.35) 0 1px, transparent 1px),
+    radial-gradient(circle at 55% 8%, rgb(255 255 255 / 0.28) 0 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(78 49 104 / 0.35), transparent 60%);
+  background-size:
+    167px 167px,
+    211px 211px,
+    139px 139px,
+    293px 293px,
+    97px 97px,
+    73px 73px,
+    100% 100%;
+  background-attachment: fixed;
   color: white;
 }
 
@@ -53,7 +176,448 @@ h1, h2, h3, h4, h5, h6 {
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
-  border-radius: 4px;
+}
+
+/* ─── Pixel-art utilities ───────────────────────────────────────────────────
+   .pixelated       — nearest-neighbor scaling for sprite/pixel images.
+   .pixel-frame     — the signature chunky game-UI frame: thick border +
+                      hard offset shadow, like a Unity dialog box.
+   .pixel-frame-gold — same frame with the gold accent (active/CTA panels). */
+.pixelated {
+  image-rendering: pixelated;
+}
+
+.pixel-frame {
+  border: 2px solid var(--color-line-strong);
+  box-shadow: 4px 4px 0 rgb(0 0 0 / 0.6);
+}
+
+.pixel-frame-gold {
+  border: 2px solid var(--color-accent);
+  box-shadow: 4px 4px 0 rgb(0 0 0 / 0.6), inset 0 0 0 1px rgb(0 0 0 / 0.4);
+}
+
+/* .pixel-press — mechanical press feedback: the element sinks into its own
+   offset shadow instead of scaling (a smooth zoom breaks the pixel illusion).
+   Stepped easing keeps it feeling like a sprite swap, not a tween. */
+.pixel-press {
+  transition:
+    transform 120ms steps(2, end),
+    box-shadow 120ms steps(2, end),
+    background-color 150ms linear,
+    border-color 150ms linear,
+    color 150ms linear;
+}
+
+.pixel-press:active {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+
+/* .pixel-grid — faint dungeon-tile texture for section backgrounds. Replaces
+   soft radial glows (blur is an anti-pattern here) with a hard 32px lattice. */
+.pixel-grid {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.045) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* .pixel-scanlines — CRT overlay for hero/media surfaces. Purely decorative:
+   always pair with pointer-events-none + aria-hidden. */
+.pixel-scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 0) 0 2px,
+    rgb(0 0 0 / 0.28) 2px 4px
+  );
+}
+
+/* ─── Vintage medieval surfaces ─────────────────────────────────────────────
+   These build on the pixel utilities above: still zero radius, still hard
+   edges, no blur anywhere. The medieval read comes from *bevels* (a lit top
+   edge + shadowed bottom edge, like a carved wooden plank) rather than from
+   gradients or soft shadows.
+
+   .pixel-bevel      — carved wood/stone plank: 2px lit top-left, dark
+                       bottom-right, plus the usual hard drop shadow.
+   .pixel-bevel-iron — same geometry in cold iron, for controls and fittings.
+   .pixel-bevel-gold — the "active/legendary" variant; pairs with bg-accent.
+   Each uses inset box-shadow so the bevel costs no extra DOM and never
+   affects layout (no border-width shifts between states). */
+.pixel-bevel {
+  background-color: var(--color-wood);
+  box-shadow:
+    inset 2px 2px 0 var(--color-wood-light),
+    inset -2px -2px 0 var(--color-wood-dark),
+    4px 4px 0 rgb(0 0 0 / 0.6);
+}
+
+.pixel-bevel-iron {
+  background-color: var(--color-iron);
+  box-shadow:
+    inset 2px 2px 0 var(--color-iron-light),
+    inset -2px -2px 0 rgb(0 0 0 / 0.55),
+    3px 3px 0 rgb(0 0 0 / 0.6);
+}
+
+.pixel-bevel-gold {
+  box-shadow:
+    inset 2px 2px 0 var(--color-accent-hover),
+    inset -2px -2px 0 var(--color-accent-deep),
+    4px 4px 0 rgb(0 0 0 / 0.6);
+}
+
+/* .parchment — the one light surface in the system, for lore/scroll content.
+   Ink is --color-on-parchment (8.9:1), so body copy on it passes AA. The
+   speckle is two hard-stop radial gradients: aged fibre, not a blur. */
+.parchment {
+  background-color: var(--color-parchment);
+  background-image:
+    radial-gradient(circle at 20% 30%, rgb(120 90 50 / 0.10) 0 2px, transparent 2px),
+    radial-gradient(circle at 75% 65%, rgb(120 90 50 / 0.08) 0 2px, transparent 2px),
+    radial-gradient(circle at 45% 85%, rgb(120 90 50 / 0.07) 0 1px, transparent 1px);
+  background-size: 64px 64px, 96px 96px, 48px 48px;
+  color: var(--color-on-parchment);
+}
+
+/* .book-leather — the cover board of an open tome, for the wiki spreads. Matches
+   the game's own skill-up panel: dyed hide with a gold rule inset a few pixels
+   from the edge. The rule is drawn as two stacked insets rather than a second
+   element — a wider ring in the hide colour first, then the gilt line outside
+   it. Earlier shadows paint on top, so the bevel pair has to stay first in the
+   list.
+
+   The dye comes from `--book-hide`, which BookSpread sets from its tone, so an
+   entry opens bound in the same colour as the spine you pulled off the wiki
+   shelf. Crimson is the fallback for a spread that names no tone. */
+.book-leather {
+  --book-hide: var(--color-heraldry-crimson);
+  background-color: var(--book-hide);
+  background-image:
+    radial-gradient(circle at 50% 0%, rgb(255 255 255 / 0.08) 0%, transparent 70%),
+    linear-gradient(to bottom, rgb(0 0 0 / 0.15), transparent 40%, rgb(0 0 0 / 0.35));
+  box-shadow:
+    inset 2px 2px 0 rgb(255 255 255 / 0.15),
+    inset -2px -2px 0 rgb(0 0 0 / 0.6),
+    inset 0 0 0 6px var(--book-hide),
+    inset 0 0 0 8px var(--color-accent-deep),
+    8px 12px 24px rgb(0 0 0 / 0.7),
+    0 4px 10px rgb(0 0 0 / 0.5);
+}
+
+/* .book-spine — the gutter between two leaves: a sunken band of the same hide
+   taken down toward black, with 3D stitching lines. Mixed from `--book-hide`
+   rather than listed per dye, so a new tone needs no second entry here. */
+.book-spine {
+  position: relative;
+  background-color: color-mix(in srgb, var(--book-hide, var(--color-heraldry-crimson)) 55%, #000);
+  background-image:
+    linear-gradient(
+      to right,
+      rgb(0 0 0 / 0.65) 0%,
+      rgb(0 0 0 / 0.2) 20%,
+      rgb(255 255 255 / 0.05) 50%,
+      rgb(0 0 0 / 0.2) 80%,
+      rgb(0 0 0 / 0.65) 100%
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 8px,
+      rgb(0 0 0 / 0.4) 8px,
+      rgb(0 0 0 / 0.4) 10px
+    );
+  box-shadow: inset 0 0 8px rgb(0 0 0 / 0.8);
+}
+
+/* .book-page-stack — simulates realistic stacked parchment page edges under leaves */
+.book-page-stack-left {
+  box-shadow:
+    -3px 3px 0 #d0be96,
+    -4px 4px 0 #b3a078,
+    -6px 6px 0 #8c7853,
+    -7px 7px 10px rgb(0 0 0 / 0.4),
+    inset -8px 0 12px rgb(59 42 23 / 0.12);
+}
+
+.book-page-stack-right {
+  box-shadow:
+    3px 3px 0 #d0be96,
+    4px 4px 0 #b3a078,
+    6px 6px 0 #8c7853,
+    7px 7px 10px rgb(0 0 0 / 0.4),
+    inset 8px 0 12px rgb(59 42 23 / 0.12);
+}
+
+/* .class-fan — three class cards dealt out like a hand of cards: overlapped and
+   tilted at rest, straightening and spreading when the hand is examined. Each
+   child sets its own angle with --r.
+
+   Guards, because a hover-only flourish must not cost anyone the content:
+   • Only on md+ with a real pointer. Touch and narrow screens keep the plain
+     stacked grid — there is no hover there to undo the tilt with.
+   • :focus-within straightens too, so keyboard users get the same reveal.
+   • Angles stay small (≤14deg): the card text has to be readable *at rest*,
+     not only once straightened.
+   • prefers-reduced-motion drops the tilt entirely rather than just killing the
+     transition, so nobody is left staring at a permanently rotated card.
+   Rotation is the one transform allowed to be smooth-ish here; steps() easing
+   keeps it reading as dealt frames rather than a tween.
+
+   The overlap is fixed geometry (margin never animates) and the spread is a
+   translate, so the whole flourish stays on the compositor — animating margin
+   here re-laid out three cards plus their images on every frame and dropped
+   the hand to a crawl. The ±6.25rem is what closing a -2.5rem overlap out to a
+   0.625rem gutter works out to for the outer two cards. */
+@media (min-width: 768px) and (hover: hover) and (pointer: fine) {
+  .class-fan {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+  }
+
+  .class-fan > * {
+    flex: 0 1 22rem;
+    margin: 0 -2.5rem;
+    transform: translateX(var(--x, 0)) rotate(calc(var(--r, 0) * 1deg));
+    transition: transform 260ms steps(5, end);
+    will-change: transform;
+  }
+
+  .class-fan:hover > *,
+  .class-fan:focus-within > * {
+    transform: translateX(var(--x, 0)) rotate(0deg);
+  }
+
+  .class-fan:hover > *:first-child,
+  .class-fan:focus-within > *:first-child {
+    --x: -6.25rem;
+  }
+
+  .class-fan:hover > *:last-child,
+  .class-fan:focus-within > *:last-child {
+    --x: 6.25rem;
+  }
+
+  /* Whichever card is being read sits on top of its neighbours. */
+  .class-fan > *:hover,
+  .class-fan > *:focus-within {
+    position: relative;
+    z-index: 3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .class-fan > * {
+    transform: none !important;
+  }
+}
+
+/* Rarity aura animations */
+@keyframes rarity-pulse {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+
+.animate-rarity-pulse {
+  animation: rarity-pulse 3s infinite ease-in-out;
+}
+
+
+/* .stone-wall — dungeon masonry ground for full-bleed sections. Offset rows of
+   64x32 blocks drawn with hard-stop gradients (mortar lines), so it tiles
+   cleanly and costs one paint. Darker and coarser than .pixel-grid, which
+   stays the choice for subtle panel interiors. */
+.stone-wall {
+  background-color: var(--color-stone);
+  background-image:
+    linear-gradient(to right, rgb(0 0 0 / 0.45) 0 2px, transparent 2px),
+    linear-gradient(to bottom, rgb(0 0 0 / 0.45) 0 2px, transparent 2px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.025) 0 1px, transparent 1px);
+  background-size: 64px 32px, 64px 32px, 64px 32px;
+}
+
+/* ─── The forge: ground and plate for the admin keep ─────────────────────────
+   The dashboard was standing on .stone-wall — warm quarried brown — with wood
+   panels on top, so the whole board read as a tavern table. Admin work is not
+   lore: it is the armoury, cold rolled steel and rivets. So the keep gets its
+   own two surfaces, and wood stays with the wiki and the story pages.
+
+   .forge-floor — cold flagstone under a steel deck. A 16px hairline lattice for
+   the deck seams (finer than .stone-wall's 64px blocks, so it reads as plate and
+   not masonry), a 96px rivet grid, and one top-down light fall. Hard stops only;
+   fixed attachment so the ground stays put while the ledger scrolls. */
+.forge-floor {
+  background-color: var(--color-slate);
+  background-image:
+    radial-gradient(circle, rgb(91 98 114 / 0.30) 0 1px, transparent 1px),
+    linear-gradient(to right, rgb(255 255 255 / 0.022) 0 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.022) 0 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(91 98 114 / 0.10), transparent 420px);
+  background-size: 96px 96px, 16px 16px, 16px 16px, 100% 100%;
+  background-position: 48px 48px, 0 0, 0 0, 0 0;
+  background-attachment: fixed, fixed, fixed, fixed;
+}
+
+/* .pixel-bevel-plate — the panel that sits on the forge floor. Same 2px carved
+   bevel geometry as .pixel-bevel, cut in steel instead of oak, and one step
+   lighter than the floor so a panel edge is legible without a border colour
+   change. Use with border-2 border-black/60. */
+.pixel-bevel-plate {
+  background-color: #1a1e26;
+  box-shadow:
+    inset 2px 2px 0 rgb(91 98 114 / 0.45),
+    inset -2px -2px 0 rgb(0 0 0 / 0.55),
+    4px 4px 0 rgb(0 0 0 / 0.6);
+}
+
+/* ─── The bookcase: carcass, shelf and page block ───────────────────────────
+   /wiki was three thin coloured bars stood on a plank, which read as a chart,
+   not as furniture. What makes a shelf legible is the *carcass* around the books
+   and the page block beside each spine — so both are materials now.
+
+   .bookcase-back — the inside back of the case, seen between the volumes:
+   vertical planks with dark seams every 28px, and the top of the case in shade.
+   Pair with border-x-8 border-wood for the stiles. */
+.bookcase-back {
+  background-color: var(--color-wood-dark);
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      rgb(0 0 0 / 0.45) 0 2px,
+      transparent 2px 28px
+    ),
+    linear-gradient(to bottom, rgb(0 0 0 / 0.55), transparent 120px);
+}
+
+/* .shelf-board — the plank the volumes stand on: lit top face, a front lip in
+   shadowed oak under it, and the case floor darkening below that. Three hard
+   stops, no blur, so it keeps the stepped look at any width. */
+.shelf-board {
+  background-color: var(--color-wood-light);
+  background-image: linear-gradient(to bottom, rgb(255 255 255 / 0.10) 0 2px, transparent 2px);
+  box-shadow:
+    0 4px 0 var(--color-wood),
+    0 8px 0 var(--color-wood-dark),
+    0 12px 10px rgb(0 0 0 / 0.55);
+}
+
+/* .book-block — the cut page edges beside a spine. This is the one detail that
+   turns a coloured rectangle into a book: cream paper, ruled with the leaf
+   lines, sunk slightly into the cover. */
+.book-block {
+  background-color: var(--color-parchment-dim);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgb(59 42 23 / 0.30) 0 1px,
+    transparent 1px 4px
+  );
+  box-shadow: inset -2px 0 0 rgb(0 0 0 / 0.35);
+}
+
+/* ─── Cloth ─────────────────────────────────────────────────────────────────
+   .tapestry — woven cloth, the account pages' own material. Warp and weft as
+   two hard-stop 4px gradients, so the surface reads as a thread count rather
+   than a texture photograph. Sets no colour of its own: pair it with a heraldry
+   token (`bg-heraldry-royal`) and the weave takes that dye. */
+.tapestry {
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      rgb(255 255 255 / 0.055) 0 2px,
+      transparent 2px 4px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      rgb(0 0 0 / 0.22) 0 2px,
+      transparent 2px 4px
+    );
+}
+
+/* ─── Sky and ground ────────────────────────────────────────────────────────
+   The page is framed like one of the game's own screens: a cloud bank hanging
+   under the header, starfield in between, turf over earth under the footer.
+   All three are hard-stop gradients on one element — no sprites to download,
+   no extra DOM, and they tile to any width. Decorative: pair with
+   pointer-events-none + aria-hidden, and never put text on them.
+
+   .cloud-bank — the cloud lumps hanging off the bottom of the header. Rounded
+   CSS discs can't make stepped pixel clouds, so this is one 64x6 SVG tile
+   (cloud-bank.svg, well under 1 KB, no raster download) repeated across the
+   width at 4x. Two separate domes per tile with sky showing through the gaps:
+   an unbroken ragged band across the whole width reads as a snow line instead
+   of clouds. Every "pixel" lands on a 4px grid, both tile edges fall inside a
+   gap, so the repeat is seamless. Pair with h-6, the scaled tile height. */
+.cloud-bank {
+  background-image: url("/images/ui/cloud-bank.svg");
+  background-size: 256px 24px;
+  background-position: 0 0;
+  background-repeat: repeat-x;
+  image-rendering: pixelated;
+}
+
+/* .turf-strip — the grass line the footer stands on: a sunlit crown row, grass
+   body, then two broken rows of soil biting upward so the grass/earth boundary
+   is ragged rather than a ruled line. The teeth are one 4px-tall tiled row
+   each, offset from one another. */
+.turf-strip {
+  background-color: var(--color-grass);
+  background-image:
+    linear-gradient(to right, var(--color-soil) 0 5px, transparent 5px),
+    linear-gradient(to right, var(--color-soil) 0 7px, transparent 7px),
+    linear-gradient(to bottom, transparent 0 22px, var(--color-soil) 22px),
+    linear-gradient(to bottom, var(--color-grass-lit) 0 4px, transparent 4px);
+  background-size: 12px 4px, 18px 4px, 100% 100%, 100% 100%;
+  background-position: 0 14px, 9px 18px, 0 0, 0 0;
+  background-repeat: repeat-x, repeat-x, no-repeat, no-repeat;
+}
+
+/* .soil-ground — packed earth under the turf, for the footer body. Pebbles and
+   root flecks are hard-stop dots at coprime tile sizes; the vertical wash sinks
+   the colour toward the bottom of the page so the footer reads as depth. */
+.soil-ground {
+  background-color: var(--color-soil);
+  background-image:
+    radial-gradient(circle at 22% 34%, rgb(0 0 0 / 0.28) 0 2px, transparent 2px),
+    radial-gradient(circle at 71% 62%, rgb(255 255 255 / 0.06) 0 2px, transparent 2px),
+    radial-gradient(circle at 48% 81%, rgb(0 0 0 / 0.22) 0 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(0 0 0 / 0) 0, var(--color-soil-dark) 100%);
+  background-size: 61px 61px, 89px 89px, 43px 43px, 100% 100%;
+}
+
+/* .pixel-rivets — four corner studs for framed panels, drawn as background
+   images so no pseudo-elements or extra nodes are needed. Decorative only. */
+.pixel-rivets {
+  background-image:
+    radial-gradient(circle, var(--color-iron-light) 0 2px, transparent 2px),
+    radial-gradient(circle, var(--color-iron-light) 0 2px, transparent 2px),
+    radial-gradient(circle, var(--color-iron-light) 0 2px, transparent 2px),
+    radial-gradient(circle, var(--color-iron-light) 0 2px, transparent 2px);
+  background-position: 7px 7px, calc(100% - 7px) 7px, 7px calc(100% - 7px), calc(100% - 7px) calc(100% - 7px);
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+}
+
+/* .torch-flicker — stepped opacity cycle for torch/brazier accents. Steps, not
+   a smooth fade, so it reads as a sprite animation. Uses opacity only (no
+   filter/box-shadow) to stay off the layout and paint path, and is disabled
+   wholesale by the reduced-motion block below. */
+@keyframes torch-flicker {
+  0%, 100% { opacity: 1; }
+  25%      { opacity: 0.82; }
+  50%      { opacity: 0.94; }
+  75%      { opacity: 0.76; }
+}
+
+.torch-flicker {
+  animation: torch-flicker 1.6s steps(4, end) infinite;
+}
+
+/* Fixed header clearance for in-page anchors (#about, #classes …) so smooth
+   scroll doesn't park section headings underneath the top bar. */
+[id] {
+  scroll-margin-top: 6rem;
 }
 
 /* Respect users who ask for less motion — neutralise animations/transitions. */
@@ -69,54 +633,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
-@font-face {
-  font-family: 'BeVietnamPro';
-  src: url('/fonts/BeVietnamPro-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'BeVietnamPro';
-  src: url('/fonts/BeVietnamPro-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'BeVietnamPro';
-  src: url('/fonts/BeVietnamPro-Italic.ttf') format('truetype');
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'NotoSans';
-  src: url('/fonts/NotoSans-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'NotoSans';
-  src: url('/fonts/NotoSans-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'NotoSans';
-  src: url('/fonts/NotoSans-Italic.ttf') format('truetype');
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-}
-
+/* Only two families ship: PatrickHand for body and PatrickHandSC for display.
+   BeVietnamPro (3 faces) and NotoSans (3 faces, ~1.8 MB) used to be declared
+   here but were referenced only by the old error/404 screens, which now use the
+   display face like everything else — six dead @font-face rules deleted. */
 @font-face {
   font-family: 'PatrickHand';
   src: url('/fonts/PatrickHand-Regular.ttf') format('truetype');

@@ -253,7 +253,6 @@ export default function EditItemPage() {
         title="Combat Stats & Bonuses"
         subtitle="Optional"
         icon={Shield}
-        iconColor="text-blue-400"
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <FormField label="Base HP" htmlFor="baseHp">
@@ -327,7 +326,7 @@ export default function EditItemPage() {
         </div>
       </FormSection>
 
-      <FormSection title="Item Icon" icon={ImageIcon} iconColor="text-purple-400">
+      <FormSection title="Item Icon" icon={ImageIcon}>
         <ImageUploader
           value={formData.iconUrl}
           onChange={(url) => handleChange("iconUrl", url)}

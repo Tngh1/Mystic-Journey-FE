@@ -1,105 +1,81 @@
 "use client";
 
-import { Menu, LogOut, X } from "lucide-react";
+import { Menu, LogOut } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { useSidebar } from "@/lib/contexts/SidebarContext";
-import LogoutButton from "./LogoutButton";
+import { showConfirmAlert } from "@/lib/utils/swal";
 
+/* The gate rail above the ledger board. Was a bare bordered strip carrying a
+   `rounded-full` gradient avatar and its own hand-built logout modal — a second
+   confirm dialog with `rounded-2xl`, `backdrop-blur-sm` and five raw hexes,
+   sitting alongside the app's real one.
+
+   That modal is gone: `showConfirmAlert` already is this dialog, already wears
+   the crimson destructive confirm, and already puts Cancel where the eye lands.
+   The old bespoke copy was ~50 lines maintaining a second answer to the same
+   question. */
 export default function AdminTopBar() {
   const { user, logout } = useAuth();
   const { toggle } = useSidebar();
   const router = useRouter();
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
   const handleLogout = async () => {
+    const { isConfirmed } = await showConfirmAlert(
+      "Leave the Keep?",
+      "You will need to sign in again to reach the dashboard.",
+      "Log Out",
+      "Stay"
+    );
+    if (!isConfirmed) return;
     try {
       setLoggingOut(true);
       await logout();
       router.push("/login");
     } finally {
       setLoggingOut(false);
-      setShowLogoutConfirm(false);
     }
   };
 
+  const initial = user ? user.userName.charAt(0).toUpperCase() : "A";
+
   return (
-    <header className="h-20 border-b border-white/10 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-40">
-      <div className="flex items-center gap-4">
+    <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b-2 border-black/60 bg-iron-dark px-4 sm:px-6">
+      <button
+        onClick={toggle}
+        className="pixel-press flex h-11 w-11 cursor-pointer items-center justify-center border-2 border-black/60 bg-iron text-parchment transition-colors hover:text-accent lg:hidden"
+        aria-label="Toggle menu"
+      >
+        <Menu className="h-5 w-5" aria-hidden="true" />
+      </button>
+      {/* Keeps the identity block right-aligned once the menu toggle is hidden */}
+      <span className="hidden lg:block" aria-hidden="true" />
+
+      <div className="flex items-center gap-3">
+        <div className="hidden items-center gap-3 border-r-2 border-black/40 pr-3 md:flex">
+          <div className="text-right">
+            <p className="text-sm font-bold text-parchment">{user?.userName || "Admin"}</p>
+            <p className="text-[11px] uppercase tracking-[0.15em] text-accent-deep">
+              {user?.role || "Admin"}
+            </p>
+          </div>
+          {/* Signet: a square gold plate, not a soft circular gradient */}
+          <span className="flex h-11 w-11 items-center justify-center border-2 border-accent bg-accent text-lg font-black text-on-accent shadow-sm">
+            {initial}
+          </span>
+        </div>
+
         <button
-          onClick={toggle}
-          className="p-2 text-white/70 hover:text-white cursor-pointer"
-          aria-label="Toggle menu"
+          onClick={handleLogout}
+          disabled={loggingOut}
+          className="pixel-press flex h-11 cursor-pointer items-center gap-2 border-2 border-black/60 bg-iron px-3 text-xs font-black uppercase tracking-[0.1em] text-parchment shadow-sm transition-colors hover:border-danger hover:text-danger disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <Menu className="w-6 h-6" />
+          <LogOut className="h-4 w-4" aria-hidden="true" />
+          <span className="hidden sm:inline">{loggingOut ? "Leaving…" : "Log Out"}</span>
         </button>
       </div>
-
-      <div className="flex items-center gap-3 sm:gap-4">
-        <div className="hidden md:flex items-center gap-3 pr-4 border-r border-white/10">
-          <div className="text-right">
-            <p className="text-sm font-semibold text-white">{user?.userName || "Admin User"}</p>
-            <p className="text-xs text-white/50">{user?.role || "Admin"}</p>
-          </div>
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#ffc032] to-[#ca831f] flex items-center justify-center text-white font-bold overflow-hidden relative border-2 border-[#ffc032]">
-            {user ? user.userName.charAt(0).toUpperCase() : "A"}
-          </div>
-        </div>
-
-        <LogoutButton onClick={() => setShowLogoutConfirm(true)} />
-      </div>
-
-      {showLogoutConfirm && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
-          onClick={() => !loggingOut && setShowLogoutConfirm(false)}
-        >
-          <div
-            className="w-full max-w-sm bg-[#111111] border border-white/10 rounded-2xl shadow-2xl p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
-                  <LogOut className="w-5 h-5 text-red-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-white">Confirm Logout</h3>
-              </div>
-              <button
-                onClick={() => setShowLogoutConfirm(false)}
-                disabled={loggingOut}
-                className="text-white/50 hover:text-white disabled:opacity-40 cursor-pointer"
-                aria-label="Close"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <p className="text-sm text-white/70 mb-6">
-              Are you sure you want to log out? You will need to sign in again to access the dashboard.
-            </p>
-
-            <div className="flex items-center justify-end gap-3">
-              <button
-                onClick={() => setShowLogoutConfirm(false)}
-                disabled={loggingOut}
-                className="px-4 h-10 rounded-lg bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleLogout}
-                disabled={loggingOut}
-                className="px-4 h-10 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 transition-colors cursor-pointer disabled:opacity-60"
-              >
-                {loggingOut ? "Logging out..." : "Logout"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </header>
   );
 }

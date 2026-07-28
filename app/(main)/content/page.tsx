@@ -2,187 +2,237 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Calendar, Tag, Bell, ArrowRight } from "lucide-react";
+import { Calendar, Tag, Bell, ArrowRight, AlertCircle } from "lucide-react";
 import { getAll, getCategories, type ContentResponse, type CategoryResponse } from "@/lib/api/contents";
-import PageLoader from "@/components/ui/PageLoader";
+import Panel from "@/components/ui/Panel";
+import NoticeBoard from "@/components/ui/NoticeBoard";
+
+/* Dates on the board are the herald's own record, so they stay in the site's
+   locale rather than the visitor's. */
+function formatDate(dateString: string) {
+  return new Date(dateString).toLocaleDateString("vi-VN", {
+    day: "numeric",
+    month: "numeric",
+    year: "numeric",
+  });
+}
+
+/* One notice nailed to the board: a parchment slip on the planks, with the
+   illustration sunk into its left half. Parchment rather than another wood
+   panel — the notices sit *on* the board now, and oak on oak reads flat. */
+function ContentCard({ content }: { content: ContentResponse }) {
+  return (
+    <Panel
+      as="article"
+      material="parchment"
+      className="min-w-0 transition-colors focus-within:border-accent hover:border-accent"
+    >
+      <Link
+        href={`/content/${content.slug || content.contentId}`}
+        className="group flex flex-col text-on-parchment md:flex-row"
+      >
+        <div className="relative h-40 w-full shrink-0 overflow-hidden border-b-2 border-wood-dark bg-stone md:h-auto md:w-[240px] md:border-b-0 md:border-r-2 lg:w-[280px]">
+          {content.thumbnailUrl ? (
+            /* Plain <img>, not next/image: thumbnails are arbitrary admin-supplied
+               URLs and no remotePatterns are configured, so the optimizer would
+               reject them at runtime. Lazy + sized to keep CLS at zero.
+               // ponytail: swap to next/image once the upload host is fixed and
+               // added to next.config.ts remotePatterns. */
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={content.thumbnailUrl}
+              alt=""
+              loading="lazy"
+              className="pixelated absolute inset-0 h-full w-full object-cover"
+            />
+          ) : (
+            /* No art: the slip shows a blank notice rather than a broken frame. */
+            <span className="pixel-grid flex h-full w-full items-center justify-center">
+              <Bell className="h-8 w-8 text-parchment-dim/40" aria-hidden="true" />
+            </span>
+          )}
+
+          {content.categoryName && (
+            <span className="absolute left-2.5 top-2.5 flex items-center gap-1.5 border-2 border-black/60 bg-wood-dark px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-parchment">
+              <Tag className="h-3 w-3 text-accent" aria-hidden="true" />
+              {content.categoryName}
+            </span>
+          )}
+        </div>
+
+        <div className="flex min-w-0 flex-1 flex-col p-4 md:p-5">
+          {/* break-words: titles and summaries are admin-supplied and may be one
+              unbroken string, which used to push the panel past the viewport. */}
+          <h2 className="mb-2 line-clamp-2 break-words text-lg font-bold group-hover:underline md:text-xl">
+            {content.title}
+          </h2>
+          {content.summary && (
+            <p className="mb-4 line-clamp-2 break-words text-sm leading-relaxed text-on-parchment/80">
+              {content.summary}
+            </p>
+          )}
+
+          <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t-2 border-on-parchment/20 pt-3">
+            <span className="flex items-center gap-1.5 text-xs text-on-parchment/70">
+              <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
+              <time dateTime={content.createdAt}>{formatDate(content.createdAt)}</time>
+            </span>
+            {/* Ink, not gold: gold on parchment is 1.9:1, and the page's one gold
+                thing stays the active filter. */}
+            <span className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest">
+              Read more
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </span>
+          </div>
+        </div>
+      </Link>
+    </Panel>
+  );
+}
+
+/* A slip-shaped placeholder at roughly the height of a real one, so the board
+   doesn't jump when the notices land. */
+function CardSkeleton() {
+  return (
+    <Panel material="parchment" aria-hidden="true" className="flex flex-col md:flex-row">
+      <span className="pixel-grid h-40 w-full shrink-0 border-b-2 border-wood-dark md:h-auto md:min-h-[164px] md:w-[240px] md:border-b-0 md:border-r-2 lg:w-[280px]" />
+      <span className="flex flex-1 flex-col gap-3 p-4 md:p-5">
+        <span className="h-5 w-3/4 bg-on-parchment/15" />
+        <span className="h-4 w-full bg-on-parchment/10" />
+        <span className="h-4 w-2/3 bg-on-parchment/10" />
+      </span>
+    </Panel>
+  );
+}
 
 export default function ContentPage() {
-  const [contents, setContents] = useState<ContentResponse[]>([]);
+  const [contents, setContents] = useState<ContentResponse[] | null>(null);
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
   useEffect(() => {
     let mounted = true;
-    async function load() {
-      try {
-        setLoading(true);
-        const [contentsRes, categoriesRes] = await Promise.all([
-          getAll(1, 100, { isPublished: true }),
-          getCategories(),
-        ]);
+    Promise.all([getAll(1, 100, { isPublished: true }), getCategories()])
+      .then(([contentsRes, categoriesRes]) => {
         if (!mounted) return;
         setContents(contentsRes.items ?? []);
         setCategories(Array.isArray(categoriesRes) ? categoriesRes.filter((c) => c.isActive) : []);
-      } catch (error) {
-        console.error("Failed to fetch contents:", error);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    }
-    load();
-    return () => { mounted = false; };
+        setError(null);
+      })
+      .catch((e) => {
+        if (mounted) setError(e instanceof Error ? e.message : "Failed to load notices.");
+      });
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const filteredContents = selectedCategory
-    ? contents.filter((c) => c.categoryId === selectedCategory)
-    : contents;
+  // Derived rather than stored — there is no third state to keep in sync.
+  const loading = !contents && !error;
+  const filtered = selectedCategory
+    ? (contents ?? []).filter((c) => c.categoryId === selectedCategory)
+    : contents ?? [];
 
-  if (loading) {
-    return <PageLoader />;
-  }
-
-  return (
-    <div className="min-h-screen pt-[88px] md:pt-[112px] flex flex-col">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden border-b border-white/10 py-10 md:py-14">
-        {/* Ambient gold glow */}
-        <div className="pointer-events-none absolute -top-24 left-1/2 h-64 w-[min(85%,680px)] -translate-x-1/2 rounded-full bg-[#ffc032]/10 blur-[130px]" />
-
-        <div className="max-w-[1200px] mx-auto px-4 relative z-10">
-          <div className="text-center max-w-3xl mx-auto">
-            <div className="mb-5 flex items-center justify-center gap-3">
-              <span className="h-px w-10 bg-linear-to-r from-transparent to-[#ffc032]/60" />
-              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">
-                <Bell className="w-3.5 h-3.5" />
-                Latest Contents
-              </span>
-              <span className="h-px w-10 bg-linear-to-l from-transparent to-[#ffc032]/60" />
-            </div>
-            <h1 className="text-3xl md:text-5xl font-bold text-white mb-3">
-              Contents
-            </h1>
-            <p className="text-white/60 text-sm md:text-base">
-              Stay updated with the latest news and events.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex-grow max-w-[1200px] mx-auto w-full px-4 pb-8 md:pb-12">
-        {/* Filter Tabs */}
-        <div className="flex flex-wrap justify-center gap-3 mb-10">
-          <button
-            onClick={() => setSelectedCategory(null)}
-            className={`px-5 py-2.5 rounded-xl font-medium transition-all duration-300 cursor-pointer ${
-              selectedCategory === null
-                ? "bg-[#ffc032] text-[#111] shadow-lg shadow-[#ffc032]/20"
-                : "bg-[#0d0d0d] text-white/70 hover:bg-white/5 hover:text-white border border-white/10"
-            }`}
-          >
-            All
-          </button>
-          {categories.map((cat) => (
-            <button
-              key={cat.categoryContentId}
-              onClick={() => setSelectedCategory(cat.categoryContentId)}
-              className={`px-5 py-2.5 rounded-xl font-medium transition-all duration-300 cursor-pointer ${
-                selectedCategory === cat.categoryContentId
-                  ? "bg-[#ffc032] text-[#111] shadow-lg shadow-[#ffc032]/20"
-                  : "bg-[#0d0d0d] text-white/70 hover:bg-white/5 hover:text-white border border-white/10"
-              }`}
-            >
-              {cat.name}
-            </button>
-          ))}
-        </div>
-
-        {/* Contents Grid */}
-        <div className="grid grid-cols-1 gap-6 max-w-5xl mx-auto">
-          {filteredContents.map((item) => (
-            <ContentCard key={item.contentId} content={item} />
-          ))}
-        </div>
-
-        {/* Empty State */}
-        {filteredContents.length === 0 && (
-          <div className="text-center py-20">
-            <Bell className="w-20 h-20 text-white/20 mx-auto mb-4" />
-            <p className="text-white/50 text-lg">No contents found</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function ContentCard({ content }: { content: ContentResponse }) {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      day: 'numeric',
-      month: 'numeric',
-      year: 'numeric',
-    });
-  };
+  const tabs: { id: number | null; name: string }[] = [
+    { id: null, name: "All" },
+    ...categories.map((c) => ({ id: c.categoryContentId, name: c.name })),
+  ];
 
   return (
-    <Link
-      href={`/content/${content.slug || content.contentId}`}
-      className="group relative flex flex-col md:flex-row bg-[#111111] border border-white/10 rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#ffc032]/40 hover:shadow-xl hover:shadow-[#ffc032]/5"
-    >
-      {/* Image Section */}
-      <div className="relative w-full md:w-[320px] lg:w-[380px] h-48 md:h-auto shrink-0 overflow-hidden">
-        {content.thumbnailUrl ? (
-          <img
-            src={content.thumbnailUrl}
-            alt={content.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        ) : (
-          <div className="w-full h-full bg-linear-to-br from-[#ffc032]/20 to-[#ff8c00]/20 flex items-center justify-center">
-            <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-              <Bell className="w-8 h-8 text-[#ffc032]" />
-            </div>
-          </div>
-        )}
-        
-        {/* Category Badge */}
-        {content.categoryName && (
-          <div className="absolute top-4 left-4 z-10">
-            <span className="px-3 py-1 bg-black/60 backdrop-blur-md text-white text-xs font-medium rounded-full flex items-center gap-1.5 border border-white/10">
-              <Tag className="w-3.5 h-3.5" />
-              {content.categoryName}
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="p-6 md:p-8 flex flex-col flex-1 justify-center">
-        <h3 className="text-xl md:text-2xl font-bold text-white mb-3 group-hover:text-[#ffc032] transition-colors line-clamp-2">
-          {content.title}
-        </h3>
-        {content.summary && (
-          <p className="text-white/60 text-sm md:text-base mb-6 line-clamp-2 leading-relaxed">
-            {content.summary}
+    /* Full-height column with no bottom padding: on a short list the board is
+       pushed down by NoticeBoard's own `mt-auto` so its legs land in the
+       footer's turf strip instead of floating over dead sky. */
+    <div className="flex min-h-dvh flex-col pt-[88px] md:pt-[112px]">
+      {/* The board carries the list, so it grows as tall as the notices need —
+          the title notice is nailed at the top of the same planks. */}
+      <NoticeBoard
+        eyebrow="Notice Board"
+        icon={Bell}
+        title="Contents"
+        lede="News, events and patch notes, posted as they are proclaimed."
+      >
+        {loading && (
+          <p role="status" className="sr-only">
+            Loading notices…
           </p>
         )}
 
-        {/* Meta Info */}
-        <div className="mt-auto pt-2 flex flex-wrap items-center justify-between gap-4 text-sm">
-          <div className="flex items-center gap-5 text-white/50">
-            <div className="flex items-center gap-1.5">
-              <Calendar className="w-4 h-4" />
-              <span>{formatDate(content.createdAt)}</span>
-            </div>
+        {/* Filter tabs. Only rendered once categories are known — an empty rail
+            would otherwise flash a lone "All" button on first paint. Inactive
+            tabs are wood-dark so they read against the planks behind them. */}
+        {categories.length > 0 && (
+          <div role="tablist" aria-label="Categories" className="mb-3 flex flex-wrap justify-center gap-2 md:mb-4">
+            {tabs.map((t) => {
+              const isActive = selectedCategory === t.id;
+              return (
+                <button
+                  key={t.id ?? "all"}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => setSelectedCategory(t.id)}
+                  className={`pixel-press flex min-h-11 cursor-pointer items-center border-2 px-4 text-xs font-black uppercase tracking-widest shadow-md transition-colors ${
+                    isActive
+                      ? "border-accent bg-accent text-on-accent"
+                      : "border-black/60 bg-wood-dark text-parchment-dim hover:border-accent hover:text-parchment"
+                  }`}
+                >
+                  {t.name}
+                </button>
+              );
+            })}
           </div>
+        )}
 
-          {/* Read More Link */}
-          <div className="flex items-center gap-1.5 text-[#ffc032] font-medium group-hover:translate-x-1 transition-transform">
-            Read more <ArrowRight className="w-4 h-4" />
-          </div>
+        {error && (
+          <Panel material="iron" role="alert" className="mb-3 flex items-start gap-3 px-4 py-3">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+            <p className="text-sm leading-relaxed text-parchment-dim">
+              The board could not be read ({error}).{" "}
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="cursor-pointer font-bold text-accent underline decoration-accent/50 underline-offset-2 hover:decoration-accent"
+              >
+                Try again
+              </button>
+            </p>
+          </Panel>
+        )}
+
+        <div className="grid min-w-0 grid-cols-1 gap-3 md:gap-4" aria-busy={loading || undefined}>
+          {loading
+            ? Array.from({ length: 3 }, (_, i) => <CardSkeleton key={i} />)
+            : filtered.map((item) => <ContentCard key={item.contentId} content={item} />)}
         </div>
-      </div>
-    </Link>
+
+        {/* Empty state carries both a message and a way out of it. */}
+        {!loading && !error && filtered.length === 0 && (
+          <Panel material="parchment" className="p-10 text-center text-on-parchment">
+            <Bell className="mx-auto mb-3 h-10 w-10 text-on-parchment/40" aria-hidden="true" />
+            <p className="mb-4 text-sm text-on-parchment/80">
+              {selectedCategory ? "Nothing posted under this category yet." : "No notices posted yet."}
+            </p>
+            {selectedCategory ? (
+              <button
+                type="button"
+                onClick={() => setSelectedCategory(null)}
+                className="pixel-press inline-flex min-h-11 cursor-pointer items-center border-2 border-wood-dark bg-wood px-5 text-xs font-black uppercase tracking-widest text-parchment hover:border-accent hover:text-accent"
+              >
+                Show all notices
+              </button>
+            ) : (
+              <Link
+                href="/wiki"
+                className="pixel-press inline-flex min-h-11 items-center border-2 border-wood-dark bg-wood px-5 text-xs font-black uppercase tracking-widest text-parchment hover:border-accent hover:text-accent"
+              >
+                Visit the archive
+              </Link>
+            )}
+          </Panel>
+        )}
+      </NoticeBoard>
+    </div>
   );
 }

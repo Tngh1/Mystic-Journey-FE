@@ -1,10 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Button from "@/components/ui/Button";
+import { Check, ScrollText } from "lucide-react";
+import AuthField from "@/components/ui/AuthField";
+import AuthFrame from "@/components/ui/AuthFrame";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { sendVerificationCode, verifyEmail } from "@/lib/api/auth";
 import { showErrorAlert, showSuccessAlert } from "@/lib/utils/swal";
@@ -21,8 +22,6 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSendingOTP, setIsSendingOTP] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [otpCountdown, setOtpCountdown] = useState(0);
@@ -35,6 +34,8 @@ export default function RegisterPage() {
     }, 1000);
     return () => clearInterval(timer);
   }, [otpCountdown]);
+
+  const mismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
   const handleSendOTP = async () => {
     if (!email) {
@@ -108,241 +109,159 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="w-full">
-      {/* Logo */}
-      <div className="flex justify-center mb-8">
-        <Link href="/" className="relative w-32 h-20">
-          <Image
-            src="/images/logo/logo.png"
-            alt="Mystic Journey Logo"
-            fill
-            className="object-contain"
-            priority
-          />
-        </Link>
-      </div>
+    <AuthFrame
+      eyebrow="Muster Roll"
+      icon={ScrollText}
+      title="Enlist"
+      lede="Write your name in the muster roll and join the journey."
+      footer={
+        <>
+          Already have an account?{" "}
+          <Link href="/login" className="font-bold text-accent hover:text-accent-hover">
+            Log In
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} aria-label="Register" className="space-y-4">
+        <AuthField
+          label="Username"
+          id="username"
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Choose a username"
+          autoComplete="username"
+          required
+        />
 
-      {/* Form Card */}
-      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 shadow-2xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Register</h1>
-          <p className="text-white/60 text-sm">Join the adventure today</p>
-        </div>
+        <AuthField
+          label="Email Address"
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setIsEmailVerified(false);
+          }}
+          placeholder="Enter your email"
+          autoComplete="email"
+          disabled={isEmailVerified}
+          required
+          hint={isEmailVerified ? "Verified — this address is locked in." : undefined}
+          trailing={
+            isEmailVerified ? (
+              <span className="absolute right-3 flex items-center gap-1 text-xs font-bold uppercase tracking-widest text-success">
+                <Check className="h-4 w-4" aria-hidden="true" />
+                Verified
+              </span>
+            ) : undefined
+          }
+        />
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Username */}
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-white/80 mb-2">
-              Username
-            </label>
-            <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Choose a username"
-              required
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
-            />
-          </div>
-
-          {/* Email */}
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-2">
-              Email Address
-            </label>
-            <div className="relative flex items-center">
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setIsEmailVerified(false);
-                }}
-                placeholder="Enter your email"
-                required
-                disabled={isEmailVerified}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200 disabled:opacity-60"
-              />
-              {isEmailVerified && (
-                <span className="absolute right-3 text-green-400">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* OTP - Step 1: Send & Step 2: Verify */}
-          <div>
-            <label htmlFor="otp" className="block text-sm font-medium text-white/80 mb-2">
-              OTP Code
-              {isEmailVerified && (
-                <span className="ml-2 text-green-400 text-xs font-normal">(Verified)</span>
-              )}
-            </label>
-            <div className="relative flex items-center gap-2">
-              <input
-                id="otp"
-                type="text"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                placeholder="Enter 6-digit code"
-                maxLength={6}
-                disabled={isEmailVerified}
-                className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200 disabled:opacity-60"
-              />
-              {isEmailVerified ? (
-                <span className="px-3 py-2 bg-green-500/20 border border-green-500/30 rounded-xl text-green-400 text-sm font-medium whitespace-nowrap">
-                  Verified
-                </span>
-              ) : (
-                <>
+        {/* Email seal: send the code, then verify it. Both steps stay visible
+            so it is clear which one is outstanding. */}
+        <AuthField
+          label="OTP Code"
+          id="otp"
+          type="text"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          value={otp}
+          onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+          placeholder="Enter 6-digit code"
+          maxLength={6}
+          disabled={isEmailVerified}
+          hint={
+            isEmailVerified
+              ? "Email sealed. You may complete the roll."
+              : otpCountdown > 0
+                ? `Code expires in 5 minutes. Resend available in ${otpCountdown}s.`
+                : "Enter your email, then send a code to verify it."
+          }
+          trailing={
+            isEmailVerified ? undefined : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleSendOTP}
+                  disabled={isSendingOTP || otpCountdown > 0}
+                  className="pixel-press flex h-11 shrink-0 cursor-pointer items-center border-2 border-black/60 bg-wood px-3 text-xs font-bold uppercase tracking-widest text-parchment hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isSendingOTP
+                    ? "Sending…"
+                    : otpCountdown > 0
+                      ? `${otpCountdown}s`
+                      : "Send"}
+                </button>
+                {otp.length === 6 && (
                   <button
                     type="button"
-                    onClick={handleSendOTP}
-                    disabled={isSendingOTP || otpCountdown > 0}
-                    className="w-8 h-8 flex items-center justify-center text-[#ffc032] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    onClick={handleVerifyOTP}
+                    disabled={isVerifying}
+                    className="pixel-press flex h-11 shrink-0 cursor-pointer items-center border-2 border-accent bg-accent px-3 text-xs font-black uppercase tracking-widest text-on-accent hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {isSendingOTP ? (
-                      <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                    ) : (
-                      <span className="text-xs font-medium whitespace-nowrap">{otpCountdown > 0 ? `${otpCountdown}s` : "Send"}</span>
-                    )}
+                    {isVerifying ? "…" : "Verify"}
                   </button>
-                  {otp.length === 6 && (
-                    <button
-                      type="button"
-                      onClick={handleVerifyOTP}
-                      disabled={isVerifying}
-                      className="px-3 py-2 bg-[#ffc032] hover:bg-[#e0a800] text-black rounded-xl text-sm font-medium transition-colors disabled:opacity-50 whitespace-nowrap"
-                    >
-                      {isVerifying ? "..." : "Verify"}
-                    </button>
-                  )}
-                </>
-              )}
-            </div>
-            {!isEmailVerified && (
-              <p className="text-xs text-white/40 mt-1">
-                {otpCountdown > 0
-                  ? `Code expires in 5 minutes. Resend in ${otpCountdown}s.`
-                  : "Enter your email and click Send OTP to receive a verification code."}
-              </p>
-            )}
-          </div>
-
-          {/* Password */}
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-white/80 mb-2">
-              Password
-            </label>
-            <div className="relative">
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Create a password"
-                required
-                minLength={6}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
-              >
-                {showPassword ? (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
                 )}
-              </button>
-            </div>
-            <p className="text-xs text-white/40 mt-1">Must be 6-100 characters with at least 1 letter and 1 number</p>
-          </div>
+              </>
+            )
+          }
+        />
 
-          {/* Confirm Password */}
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-white/80 mb-2">
-              Confirm Password
-            </label>
-            <div className="relative">
-              <input
-                id="confirmPassword"
-                type={showConfirmPassword ? "text" : "password"}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm your password"
-                required
-                minLength={8}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 outline-none focus:border-[#ffc032] focus:bg-white/10 transition-all duration-200"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
-              >
-                {showConfirmPassword ? (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                )}
-              </button>
-            </div>
-          </div>
+        <AuthField
+          label="Password"
+          id="password"
+          reveal
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Create a password"
+          autoComplete="new-password"
+          minLength={6}
+          hint="6–100 characters, with at least one letter and one number."
+          required
+        />
 
-          {/* Terms Checkbox */}
-          <div className="flex items-start gap-3">
-            <input
-              id="terms"
-              type="checkbox"
-              checked={agreedToTerms}
-              onChange={(e) => setAgreedToTerms(e.target.checked)}
-              className="mt-1 w-4 h-4 rounded border-white/20 bg-white/5 text-[#ffc032] focus:ring-[#ffc032] focus:ring-offset-0 cursor-pointer"
-            />
-            <label htmlFor="terms" className="text-sm text-white/60 cursor-pointer">
-              I agree to the{" "}
-              <Link href="/terms" className="text-[#ffc032] hover:text-[#ffd04c]">
-                Terms of Service
-              </Link>{" "}
-              and{" "}
-              <Link href="/privacy-policy" className="text-[#ffc032] hover:text-[#ffd04c]">
-                Privacy Policy
-              </Link>
-            </label>
-          </div>
+        <AuthField
+          label="Confirm Password"
+          id="confirmPassword"
+          reveal
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          placeholder="Confirm your password"
+          autoComplete="new-password"
+          error={mismatch ? "The two passwords do not match." : undefined}
+          required
+        />
 
-          {/* Submit Button */}
-          <Button variant="cta" size="lg" fullWidth type="submit" isLoading={isLoading}>
-            Register
-          </Button>
-        </form>
-      </div>
+        <div className="flex items-start gap-3 border-t-2 border-black/40 pt-4">
+          <input
+            id="terms"
+            type="checkbox"
+            checked={agreedToTerms}
+            onChange={(e) => setAgreedToTerms(e.target.checked)}
+            className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer accent-[var(--color-accent)]"
+          />
+          <label htmlFor="terms" className="cursor-pointer text-sm leading-relaxed text-parchment-dim">
+            I agree to the{" "}
+            <Link href="/terms" className="font-bold text-accent hover:text-accent-hover">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy-policy" className="font-bold text-accent hover:text-accent-hover">
+              Privacy Policy
+            </Link>
+          </label>
+        </div>
 
-      {/* Login Link */}
-      <p className="text-center text-white/60 mt-6">
-        Already have an account?{" "}
-        <Link href="/login" className="text-[#ffc032] hover:text-[#ffd04c] font-semibold transition-colors">
-          Login
-        </Link>
-      </p>
-    </div>
+        <button
+          type="submit"
+          disabled={isLoading || mismatch}
+          className="pixel-press flex min-h-11 w-full cursor-pointer items-center justify-center border-2 border-accent bg-accent text-sm font-black uppercase tracking-widest text-on-accent shadow-md hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isLoading ? "Enlisting…" : "Register"}
+        </button>
+      </form>
+    </AuthFrame>
   );
 }

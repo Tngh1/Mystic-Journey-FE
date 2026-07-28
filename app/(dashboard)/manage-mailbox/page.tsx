@@ -19,11 +19,11 @@ import {
   Zap,
   Filter,
 } from "lucide-react";
-import { MailResponse, markAsRead, claimReward, remove } from "@/lib/api/mails";
+import { MailboxResponse, markAsRead, claimReward, remove } from "@/lib/api/mailboxes";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import AdminTable from "@/components/ui/AdminTable";
 
-const MAIL_TYPE_CONFIG: Record<
+const MAILBOX_TYPE_CONFIG: Record<
   string,
   { icon: typeof Star; color: string; bg: string; border: string }
 > = {
@@ -44,13 +44,13 @@ function formatDate(dateString: string): string {
 }
 
 const columns = [
-  { key: "mailId", label: "#", sortable: true },
+  { key: "mailboxId", label: "#", sortable: true },
   {
     key: "title",
     label: "Title",
     sortable: true,
-    render: (val: string, row: MailResponse) => {
-      const typeConfig = MAIL_TYPE_CONFIG[row.type] ?? MAIL_TYPE_CONFIG["System"];
+    render: (val: string, row: MailboxResponse) => {
+      const typeConfig = MAILBOX_TYPE_CONFIG[row.type] ?? MAILBOX_TYPE_CONFIG["System"];
       const TypeIcon = typeConfig.icon;
       const isUnread = !row.isRead;
       return (
@@ -82,7 +82,7 @@ const columns = [
     label: "Type",
     sortable: true,
     render: (val: string) => {
-      const typeConfig = MAIL_TYPE_CONFIG[val] ?? MAIL_TYPE_CONFIG["System"];
+      const typeConfig = MAILBOX_TYPE_CONFIG[val] ?? MAILBOX_TYPE_CONFIG["System"];
       const TypeIcon = typeConfig.icon;
       return (
         <span
@@ -111,12 +111,12 @@ export default function ManageMailboxPage() {
   const [filterRead, setFilterRead] = useState<string>("all");
   const [filterClaimed, setFilterClaimed] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
-  const [sortBy, setSortBy] = useState("mailId");
+  const [sortBy, setSortBy] = useState("mailboxId");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
-  const { data: mails, totalCount, loading, error, setParams, refresh } =
-    usePagedQuery<MailResponse>({
-      endpoint: "/api/mails",
+  const { data: mailboxes, totalCount, loading, error, setParams, refresh } =
+    usePagedQuery<MailboxResponse>({
+      endpoint: "/api/mailboxes",
       pageSize: 10,
       params: {
         ...(search.trim() ? { search: search.trim() } : {}),
@@ -125,7 +125,7 @@ export default function ManageMailboxPage() {
       },
     });
 
-  const [selectedMail, setSelectedMail] = useState<MailResponse | null>(null);
+  const [selectedMailbox, setSelectedMailbox] = useState<MailboxResponse | null>(null);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [toastMsg, setToastMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -138,12 +138,12 @@ export default function ManageMailboxPage() {
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  const handleSelectMail = async (mail: MailResponse) => {
-    setSelectedMail(mail);
-    if (!mail.isRead) {
+  const handleSelectMailbox = async (mailbox: MailboxResponse) => {
+    setSelectedMailbox(mailbox);
+    if (!mailbox.isRead) {
       try {
-        const updated = await markAsRead(mail.mailId);
-        setSelectedMail(updated);
+        const updated = await markAsRead(mailbox.mailboxId);
+        setSelectedMailbox(updated);
         refresh();
       } catch {
         // silently continue
@@ -152,11 +152,11 @@ export default function ManageMailboxPage() {
   };
 
   const handleClaim = async () => {
-    if (!selectedMail || selectedMail.isClaimed) return;
+    if (!selectedMailbox || selectedMailbox.isClaimed) return;
     try {
-      setActionLoading(selectedMail.mailId);
-      const updated = await claimReward(selectedMail.mailId);
-      setSelectedMail(updated);
+      setActionLoading(selectedMailbox.mailboxId);
+      const updated = await claimReward(selectedMailbox.mailboxId);
+      setSelectedMailbox(updated);
       refresh();
       showToast("success", "Reward claimed!");
     } catch (err) {
@@ -166,16 +166,16 @@ export default function ManageMailboxPage() {
     }
   };
 
-  const handleDelete = async (mail: MailResponse) => {
-    if (!confirm(`Delete mail "${mail.title}"?`)) return;
+  const handleDelete = async (mailbox: MailboxResponse) => {
+    if (!confirm(`Delete mailbox "${mailbox.title}"?`)) return;
     try {
-      setActionLoading(mail.mailId);
-      await remove(mail.mailId, mail.playerProfileId);
-      if (selectedMail?.mailId === mail.mailId) setSelectedMail(null);
-      showToast("success", "Mail deleted.");
+      setActionLoading(mailbox.mailboxId);
+      await remove(mailbox.mailboxId, mailbox.playerProfileId);
+      if (selectedMailbox?.mailboxId === mailbox.mailboxId) setSelectedMailbox(null);
+      showToast("success", "Mailbox deleted.");
       refresh();
     } catch (err) {
-      showToast("error", err instanceof Error ? err.message : "Failed to delete mail.");
+      showToast("error", err instanceof Error ? err.message : "Failed to delete mailbox.");
     } finally {
       setActionLoading(null);
     }
@@ -383,46 +383,46 @@ export default function ManageMailboxPage() {
       )}
 
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-5 items-start">
-        {/* Mail List */}
+        {/* Mailbox List */}
         <div className="min-w-0">
           <AdminTable
-            title="Mails"
+            title="Mailboxes"
             columns={columns}
-            data={mails}
+            data={mailboxes}
             loading={loading}
             serverSide
             pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
-            onRowClick={handleSelectMail}
-            selectedId={selectedMail?.mailId}
-            idField="mailId"
+            onRowClick={handleSelectMailbox}
+            selectedId={selectedMailbox?.mailboxId}
+            idField="mailboxId"
             sortBy={sortBy}
             sortOrder={sortOrder}
             onSort={handleSortChange}
           />
         </div>
 
-        {/* Mail Detail Panel */}
+        {/* Mailbox Detail Panel */}
         <div className="bg-[#111111] border border-white/10 rounded-2xl overflow-hidden h-fit xl:sticky xl:top-6">
           <div className="px-5 py-3.5 border-b border-white/10 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
-              Mail Detail
+              Mailbox Detail
             </h2>
-            {selectedMail && (
+            {selectedMailbox && (
               <span className="text-xs text-gray-600 font-mono">
-                #{selectedMail.mailId}
+                #{selectedMailbox.mailboxId}
               </span>
             )}
           </div>
 
-          {selectedMail ? (() => {
-            const typeConfig = MAIL_TYPE_CONFIG[selectedMail.type] ?? MAIL_TYPE_CONFIG["System"];
+          {selectedMailbox ? (() => {
+            const typeConfig = MAILBOX_TYPE_CONFIG[selectedMailbox.type] ?? MAILBOX_TYPE_CONFIG["System"];
             const TypeIcon = typeConfig.icon;
-            const isActing = actionLoading === selectedMail.mailId;
+            const isActing = actionLoading === selectedMailbox.mailboxId;
             const hasReward =
-              Number(selectedMail.attachedGold) > 0 ||
-              Number(selectedMail.attachedGems) > 0 ||
-              (selectedMail.attachedItems &&
-                selectedMail.attachedItems.some((i) => i.quantity > 0));
+              Number(selectedMailbox.attachedGold) > 0 ||
+              Number(selectedMailbox.attachedGems) > 0 ||
+              (selectedMailbox.attachedItems &&
+                selectedMailbox.attachedItems.some((i) => i.quantity > 0));
 
             return (
               <div className="p-5 space-y-4">
@@ -432,19 +432,19 @@ export default function ManageMailboxPage() {
                     className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${typeConfig.bg} ${typeConfig.color} ${typeConfig.border}`}
                   >
                     <TypeIcon className="w-3 h-3" />
-                    {selectedMail.type}
+                    {selectedMailbox.type}
                   </span>
-                  {!selectedMail.isRead && (
+                  {!selectedMailbox.isRead && (
                     <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/15 text-blue-400 border border-blue-500/30">
                       New
                     </span>
                   )}
-                  {selectedMail.isClaimed && (
+                  {selectedMailbox.isClaimed && (
                     <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/15 text-green-400 border border-green-500/30">
                       Claimed
                     </span>
                   )}
-                  {selectedMail.isDeleted && (
+                  {selectedMailbox.isDeleted && (
                     <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-red-500/15 text-red-400 border border-red-500/30">
                       Deleted
                     </span>
@@ -453,29 +453,29 @@ export default function ManageMailboxPage() {
 
                 {/* Title */}
                 <h3 className="text-lg font-bold text-white leading-tight">
-                  {selectedMail.title}
+                  {selectedMailbox.title}
                 </h3>
 
                 {/* Meta grid */}
                 <div className="grid grid-cols-2 gap-2">
                   <div className="bg-[#111] border border-white/10 rounded-xl p-3 space-y-1">
                     <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Recipient</p>
-                    <p className="text-sm text-white truncate" title={selectedMail.playerName || "All Players"}>
-                      {selectedMail.playerName || "All Players"}
+                    <p className="text-sm text-white truncate" title={selectedMailbox.playerName || "All Players"}>
+                      {selectedMailbox.playerName || "All Players"}
                     </p>
                   </div>
                   <div className="bg-[#111] border border-white/10 rounded-xl p-3 space-y-1">
                     <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Sent</p>
-                    <p className="text-sm text-white leading-tight">{formatDate(selectedMail.sentAt)}</p>
+                    <p className="text-sm text-white leading-tight">{formatDate(selectedMailbox.sentAt)}</p>
                   </div>
                 </div>
 
-                {selectedMail.expiredAt && (
+                {selectedMailbox.expiredAt && (
                   <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-3 flex items-center gap-2">
                     <AlertCircle className="w-3.5 h-3.5 text-orange-400 shrink-0" />
                     <div>
                       <p className="text-[10px] font-semibold text-orange-400 uppercase tracking-wider">Expires</p>
-                      <p className="text-sm text-orange-300">{formatDate(selectedMail.expiredAt)}</p>
+                      <p className="text-sm text-orange-300">{formatDate(selectedMailbox.expiredAt)}</p>
                     </div>
                   </div>
                 )}
@@ -487,7 +487,7 @@ export default function ManageMailboxPage() {
                     Message
                   </p>
                   <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
-                    {selectedMail.content || (
+                    {selectedMailbox.content || (
                       <span className="italic text-gray-600">No content</span>
                     )}
                   </p>
@@ -501,18 +501,18 @@ export default function ManageMailboxPage() {
                       Attached Rewards
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {Number(selectedMail.attachedGold) > 0 && (
+                      {Number(selectedMailbox.attachedGold) > 0 && (
                         <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-yellow-500/15 text-yellow-400 border border-yellow-500/30">
-                          {Number(selectedMail.attachedGold).toLocaleString()} Gold
+                          {Number(selectedMailbox.attachedGold).toLocaleString()} Gold
                         </span>
                       )}
-                      {Number(selectedMail.attachedGems) > 0 && (
+                      {Number(selectedMailbox.attachedGems) > 0 && (
                         <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/30">
-                          {Number(selectedMail.attachedGems).toLocaleString()} Gems
+                          {Number(selectedMailbox.attachedGems).toLocaleString()} Gems
                         </span>
                       )}
-                      {selectedMail.attachedItems &&
-                        selectedMail.attachedItems.map((it, idx) =>
+                      {selectedMailbox.attachedItems &&
+                        selectedMailbox.attachedItems.map((it, idx) =>
                           it.itemName ? (
                             <span
                               key={idx}
@@ -524,7 +524,7 @@ export default function ManageMailboxPage() {
                           ) : null
                         )}
                     </div>
-                    {!selectedMail.isClaimed && (
+                    {!selectedMailbox.isClaimed && (
                       <button
                         onClick={handleClaim}
                         disabled={isActing}
@@ -544,7 +544,7 @@ export default function ManageMailboxPage() {
                 {/* Actions */}
                 <div className="pt-2 flex gap-2">
                   <button
-                    onClick={() => handleDelete(selectedMail)}
+                    onClick={() => handleDelete(selectedMailbox)}
                     disabled={isActing}
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
@@ -560,7 +560,7 @@ export default function ManageMailboxPage() {
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#ffc032]/10 hover:bg-[#ffc032]/20 text-[#ffc032] border border-[#ffc032]/30 rounded-xl text-sm font-medium transition-all cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
-                    New Mail
+                    New Mailbox
                   </Link>
                 </div>
               </div>
@@ -570,16 +570,16 @@ export default function ManageMailboxPage() {
               <div className="w-16 h-16 rounded-2xl bg-[#111] border border-white/10 flex items-center justify-center mb-4">
                 <Eye className="w-7 h-7 text-gray-700" />
               </div>
-              <p className="text-sm font-medium text-gray-500 mb-1">No mail selected</p>
+              <p className="text-sm font-medium text-gray-500 mb-1">No mailbox selected</p>
               <p className="text-xs text-gray-600 mb-5">
-                Click on a mail in the list to view its details
+                Click on a mailbox in the list to view its details
               </p>
               <Link
                 href="/manage-mailbox/create"
                 className="flex items-center gap-2 px-5 py-2.5 bg-[#ffc032] text-[#111] rounded-xl text-sm font-bold hover:bg-[#ffd04c] transition-colors shadow-lg shadow-[#ffc032]/20"
               >
                 <Plus className="w-4 h-4" />
-                Send First Mail
+                Send First Mailbox
               </Link>
             </div>
           )}

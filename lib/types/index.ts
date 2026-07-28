@@ -293,7 +293,6 @@ export interface DungeonConfigResponse {
   dungeonConfigId: number;
   name: string;
   description: string | null;
-  imageUrl: string | null;
   type: string;
   levelRequirement: number;
   maxMembers: number;
@@ -307,7 +306,6 @@ export interface DungeonConfigResponse {
 export interface UpdateDungeonConfigRequest {
   name?: string;
   description?: string;
-  imageUrl?: string;
   type?: string;
   levelRequirement?: number;
   maxMembers?: number;
@@ -562,17 +560,17 @@ export interface PlayerGachaStatsResponse {
   systemLegendaryRate: number;
 }
 
-/* ─── Mail ───────────────────────────────────────────────────────────────── */
+/* ─── Mailbox ────────────────────────────────────────────────────────────── */
 
-export interface MailRewardItemResponse {
+export interface MailboxRewardItemResponse {
   itemId: number;
   itemName: string | null;
   iconUrl: string | null;
   quantity: number;
 }
 
-export interface MailResponse {
-  mailId: number;
+export interface MailboxResponse {
+  mailboxId: number;
   playerProfileId: number;
   playerName: string | null;
   title: string;
@@ -580,7 +578,7 @@ export interface MailResponse {
   type: string;
   attachedGold: number;
   attachedGems: number;
-  attachedItems: MailRewardItemResponse[];
+  attachedItems: MailboxRewardItemResponse[];
   isRead: boolean;
   isClaimed: boolean;
   isDeleted: boolean;
@@ -589,29 +587,29 @@ export interface MailResponse {
   expiredAt: string | null;
 }
 
-export interface SendMailRewardItem {
+export interface SendMailboxRewardItem {
   itemId: number;
   quantity: number;
 }
 
-export interface SendMailByListIdRequest {
+export interface SendMailboxByListIdRequest {
   playerProfileIds: number[];
   title: string;
   content: string;
   type?: string;
   attachedGold?: number;
   attachedGems?: number;
-  attachedItems?: SendMailRewardItem[];
+  attachedItems?: SendMailboxRewardItem[];
   expiredAt?: string;
 }
 
-export interface SendMailToAllRequest {
+export interface SendMailboxToAllRequest {
   title: string;
   content: string;
   type?: string;
   attachedGold?: number;
   attachedGems?: number;
-  attachedItems?: SendMailRewardItem[];
+  attachedItems?: SendMailboxRewardItem[];
   expiredAt?: string;
 }
 
@@ -718,6 +716,8 @@ export interface MonthlyStat {
 export interface DashboardStatsResponse {
   totalPlayers: number;
   totalAccounts: number;
+  onlinePlayers: number;
+  offlinePlayers: number;
   totalItems: number;
   totalMonsters: number;
   totalTransactions: number;

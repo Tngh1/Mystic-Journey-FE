@@ -8,10 +8,15 @@ interface AnimatedButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 /**
- * Button with arrow-swap hover animation.
+ * The secondary button: arrow-swap hover animation.
  * - Default: right arrow visible at right edge, left arrow parked off the left edge
  * - Hover: left arrow slides in from the left, right arrow slides out to the right,
- *          text nudges right, ring expands and fills, radius softens to pill-to-square
+ *          text nudges right, the ring expands and fills
+ *
+ * Corners are square, not pill — the global `border-radius: 0` rule in
+ * globals.css overrides whatever animated-button.css asks for. The primary
+ * action is the solid gold `bg-accent` button in HeroSection; use this for the
+ * secondary action beside it.
  */
 export default function AnimatedButton({
   children,

@@ -3,11 +3,19 @@
 import React from "react";
 import type { LucideIcon } from "lucide-react";
 
+/* A panel of the form: a steel plate with a dark title strip, matching the ledger
+   AdminTable hangs beside it. Plate rather than wood — the admin keep is rolled
+   steel on a forge floor.
+
+   The `iconColor` prop is gone. Callers were passing `text-purple-400`,
+   `text-red-400`, `text-sky-300`, `text-emerald-300` and one raw `#ffc032` —
+   nine competing accents for a plate that carries no meaning, on a system where
+   gold alone says "act on this". The plate is iron now, everywhere. */
+
 interface FormSectionProps {
   title: string;
   subtitle?: string;
   icon?: LucideIcon;
-  iconColor?: string;
   actions?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
@@ -17,34 +25,33 @@ export default function FormSection({
   title,
   subtitle,
   icon: Icon,
-  iconColor = "text-[#ffc032]",
   actions,
   children,
   className = "",
 }: FormSectionProps) {
   return (
     <section
-      className={`bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden ${className}`}
+      className={`pixel-bevel-plate overflow-hidden border-2 border-black/60 ${className}`}
     >
-      <div className="px-6 py-4 border-b border-gray-800 flex items-center justify-between gap-3 bg-gradient-to-r from-white/[0.02] to-transparent">
-        <div className="flex items-center gap-2.5 min-w-0">
+      <div className="flex items-center justify-between gap-3 border-b-2 border-black/60 bg-iron-dark px-5 py-3">
+        <div className="flex min-w-0 items-center gap-2.5">
           {Icon && (
-            <div
-              className={`w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0 ${iconColor}`}
-            >
-              <Icon className="w-4 h-4" />
-            </div>
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center border-2 border-black/60 bg-iron text-parchment shadow-sm">
+              <Icon className="h-4 w-4" aria-hidden="true" />
+            </span>
           )}
           <div className="min-w-0">
-            <h2 className="text-base font-bold text-white truncate">{title}</h2>
+            <h2 className="truncate text-xs font-black uppercase tracking-[0.15em] text-accent">
+              {title}
+            </h2>
             {subtitle && (
-              <p className="text-xs text-white/50 truncate">{subtitle}</p>
+              <p className="truncate text-xs text-parchment-dim">{subtitle}</p>
             )}
           </div>
         </div>
         {actions}
       </div>
-      <div className="p-6 space-y-6">{children}</div>
+      <div className="space-y-6 p-5">{children}</div>
     </section>
   );
 }

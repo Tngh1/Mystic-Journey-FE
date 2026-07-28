@@ -10,10 +10,14 @@ export const getPlayerProfileAdmin = async (id: number): Promise<PlayerProfileWi
   return get<PlayerProfileWithStats>(`/api/playerprofiles/${id}`);
 };
 
-export const getAll = async (page = 1, pageSize = 10): Promise<PagedResponse<PlayerProfileResponse>> => {
-  return get<PagedResponse<PlayerProfileResponse>>(
-    `/api/playerprofiles?page=${page}&pageSize=${pageSize}`
-  );
+export const getAll = async (
+  page = 1,
+  pageSize = 10,
+  search?: string
+): Promise<PagedResponse<PlayerProfileResponse>> => {
+  const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  if (search && search.trim()) params.set("search", search.trim());
+  return get<PagedResponse<PlayerProfileResponse>>(`/api/playerprofiles?${params.toString()}`);
 };
 
 export const updatePlayerProfile = async (id: number, data: UpdatePlayerProfileRequest): Promise<PlayerProfileResponse> => {
