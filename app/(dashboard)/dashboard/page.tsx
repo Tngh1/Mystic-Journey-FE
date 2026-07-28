@@ -4,40 +4,86 @@ import { useEffect, useState } from "react";
 import { getStats } from "@/lib/api/dashboard";
 import PageLoader from "@/components/ui/PageLoader";
 import {
-  Users, UserCircle, Package, Ghost, CreditCard, DollarSign,
-  TrendingUp, BarChart3, LayoutDashboard, Wifi, WifiOff,
+  Users, UserCircle, Package, Ghost, Activity,
+  BarChart3, LayoutDashboard, Wifi, WifiOff, AlertCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import MonthlyChart from "@/components/ui/MonthlyChart";
+import OnlinePlayersChart, { type OnlineSample } from "@/components/ui/OnlinePlayersChart";
+import Panel from "@/components/ui/Panel";
+import PageHeader from "@/components/ui/PageHeader";
 import type { DashboardStatsResponse } from "@/lib/types";
 
-interface StatCardData {
+/* The keep's muster board. Was `rounded-2xl` #111111 cards, `rounded-xl` icon
+   pads, white/50 labels and `#ffc032` written out by hand in four places — the
+   last page in the dashboard still off the token system.
+
+   Every surface here is now the admin keep's own material: rolled steel plate on
+   the forge floor, gold only on the figures that are money. */
+
+interface StatTileData {
   label: string;
   value: string;
   icon: LucideIcon;
   tone: "default" | "gold" | "success";
 }
 
-function StatCard({ label, value, icon: Icon, tone }: StatCardData) {
-  const iconClass =
-    tone === "gold"
-      ? "bg-accent/10 text-accent"
-      : tone === "success"
-        ? "bg-success/10 text-success"
-        : "bg-white/5 text-white/70";
-  const valueClass =
-    tone === "gold" ? "text-accent" : tone === "success" ? "text-success" : "text-white";
+/* Cloth for the sigil, ink for the figure — the same pairing PageHeader's tiles
+   use, so the muster board and a manage-* screen read as one keep. */
+const TONE_PLATE: Record<StatTileData["tone"], string> = {
+  default: "bg-iron text-parchment",
+  gold: "bg-accent text-on-accent",
+  success: "bg-heraldry-pine text-parchment",
+};
+
+const TONE_VALUE: Record<StatTileData["tone"], string> = {
+  default: "text-fg",
+  gold: "text-accent",
+  success: "text-success",
+};
+
+function StatTile({ label, value, icon: Icon, tone }: StatTileData) {
   return (
-    <div className="group bg-[#111111] border border-white/10 rounded-2xl p-5 transition-colors hover:border-white/20">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-white/50 text-sm mb-1.5 truncate">{label}</p>
-          <p className={`text-2xl font-bold truncate ${valueClass}`}>{value}</p>
-        </div>
-        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${iconClass}`}>
-          <Icon className="w-5 h-5" />
-        </div>
+    <Panel material="plate" className="flex items-start justify-between gap-3 p-4">
+      <div className="min-w-0">
+        <p className="truncate text-[11px] font-bold uppercase tracking-[0.12em] text-parchment-dim">
+          {label}
+        </p>
+        <p className={`mt-1 truncate text-2xl font-black tabular-nums ${TONE_VALUE[tone]}`}>
+          {value}
+        </p>
       </div>
+      <span
+        className={`flex h-11 w-11 shrink-0 items-center justify-center border-2 border-black/60 shadow-sm ${TONE_PLATE[tone]}`}
+      >
+        <Icon className="h-5 w-5" aria-hidden="true" />
+      </span>
+    </Panel>
+  );
+}
+
+/* A section rule: the group name struck in gold with a rail running off it. */
+function SectionHead({
+  title,
+  icon: Icon,
+  note,
+}: {
+  title: string;
+  icon?: LucideIcon;
+  note?: string;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <h2 className="flex shrink-0 items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-accent">
+        {Icon && <Icon className="h-3.5 w-3.5" aria-hidden="true" />}
+        {title}
+      </h2>
+      <span className="h-0.5 flex-1 bg-line" aria-hidden="true" />
+      {note && (
+        <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.16em] text-fg-subtle">
+          {note}
+        </span>
+      )}
     </div>
   );
 }
@@ -46,6 +92,11 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  /* The API only reports a point-in-time count, so the series is built here from
+     the poll that already runs below — one sample every 30s while the page is open.
+     // ponytail: in-memory only, so the line restarts on reload; swap for a BE
+     history endpoint (GET /dashboard/online-history) when one exists. */
+  const [samples, setSamples] = useState<OnlineSample[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,6 +107,10 @@ export default function DashboardPage() {
           if (cancelled) return;
           setStats(data);
           setError(null);
+          // Bounded: 120 samples ≈ the last hour at a 30s poll.
+          setSamples((prev) =>
+            [...prev, { t: Date.now(), online: data.onlinePlayers }].slice(-120),
+          );
         })
         .catch((err: unknown) => {
           if (cancelled) return;
@@ -81,10 +136,15 @@ export default function DashboardPage() {
   if (error || !stats) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-        <div className="bg-red-400/10 border border-red-400/20 rounded-xl p-4 text-red-400">
-          {error || "No data available"}
-        </div>
+        <PageHeader
+          title="Dashboard"
+          subtitle="Overview of the Mystic Journey game system."
+          icon={LayoutDashboard}
+        />
+        <Panel material="plate" className="flex items-start gap-3 p-4" role="alert">
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-danger" aria-hidden="true" />
+          <p className="text-sm text-fg">{error || "No data available"}</p>
+        </Panel>
       </div>
     );
   }
@@ -92,123 +152,82 @@ export default function DashboardPage() {
   const topMonths = stats.monthlyStats.slice(0, 6);
   // Chart reads left→right as oldest→newest (table shows newest first).
   const chartData = [...topMonths].reverse();
-  const avgRevenue =
-    stats.totalTransactions > 0 ? stats.totalRevenue / stats.totalTransactions : 0;
-  const fmtMoney = (n: number) =>
-    `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-  const liveStats: StatCardData[] = [
+  const liveStats: StatTileData[] = [
     { label: "Players Online", value: stats.onlinePlayers.toLocaleString(), icon: Wifi, tone: "success" },
     { label: "Players Offline", value: stats.offlinePlayers.toLocaleString(), icon: WifiOff, tone: "default" },
   ];
 
-  const entityStats: StatCardData[] = [
+  const entityStats: StatTileData[] = [
     { label: "Total Players", value: stats.totalPlayers.toLocaleString(), icon: Users, tone: "default" },
     { label: "Total Accounts", value: stats.totalAccounts.toLocaleString(), icon: UserCircle, tone: "default" },
     { label: "Total Items", value: stats.totalItems.toLocaleString(), icon: Package, tone: "default" },
     { label: "Total Monsters", value: stats.totalMonsters.toLocaleString(), icon: Ghost, tone: "default" },
   ];
 
-  const revenueStats: StatCardData[] = [
-    { label: "Total Transactions", value: stats.totalTransactions.toLocaleString(), icon: CreditCard, tone: "default" },
-    { label: "Total Revenue", value: fmtMoney(stats.totalRevenue), icon: DollarSign, tone: "gold" },
-    { label: "Avg Revenue / Txn", value: fmtMoney(avgRevenue), icon: TrendingUp, tone: "gold" },
-  ];
-
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-[#ffc032] to-[#ff8c00] flex items-center justify-center shrink-0 shadow-lg shadow-[#ffc032]/20">
-          <LayoutDashboard className="w-7 h-7 text-[#111]" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-          <p className="text-white/50 text-sm mt-0.5">Overview of the Mystic Journey game system.</p>
-        </div>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        subtitle="Overview of the Mystic Journey game system."
+        icon={LayoutDashboard}
+      />
 
-      {/* Live stats — auto-refreshes every 30s */}
       <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-white/40">Live</h2>
-          <span className="text-xs text-white/40">Auto-refreshes every 30s</span>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <SectionHead title="Live" icon={Wifi} note="Auto-refreshes every 30s" />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {liveStats.map((s) => (
-            <StatCard key={s.label} {...s} />
+            <StatTile key={s.label} {...s} />
           ))}
         </div>
       </section>
 
-      {/* Entity stats */}
       <section className="space-y-3">
-        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-white/40">Game Entities</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <SectionHead title="Game Entities" icon={Package} />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {entityStats.map((s) => (
-            <StatCard key={s.label} {...s} />
+            <StatTile key={s.label} {...s} />
           ))}
         </div>
       </section>
 
-      {/* Revenue stats */}
-      <section className="space-y-3">
-        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-white/40">Economy</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {revenueStats.map((s) => (
-            <StatCard key={s.label} {...s} />
-          ))}
+      {/* Where the three zeroed Economy tiles were. Revenue is charted in Monthly
+          Overview below, so the space goes to the one number on this page that
+          actually moves. */}
+      <Panel material="plate" as="section" className="overflow-hidden">
+        <div className="flex items-center gap-2.5 border-b-2 border-black/60 bg-iron-dark px-5 py-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center border-2 border-black/60 bg-iron text-parchment shadow-sm">
+            <Activity className="h-4 w-4" aria-hidden="true" />
+          </span>
+          <h2 className="text-xs font-black uppercase tracking-[0.15em] text-accent">
+            Players Online
+          </h2>
         </div>
-      </section>
+        <div className="p-5">
+          <OnlinePlayersChart samples={samples} />
+        </div>
+      </Panel>
 
-      {/* Monthly Chart */}
       {topMonths.length > 0 && (
-        <section className="bg-[#111111] border border-white/10 rounded-2xl p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <BarChart3 className="w-5 h-5 text-[#ffc032]" />
-            <h2 className="text-lg font-bold text-white">Monthly Overview</h2>
+        <Panel material="plate" as="section" className="overflow-hidden">
+          <div className="flex items-center gap-2.5 border-b-2 border-black/60 bg-iron-dark px-5 py-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center border-2 border-black/60 bg-iron text-parchment shadow-sm">
+              <BarChart3 className="h-4 w-4" aria-hidden="true" />
+            </span>
+            <h2 className="text-xs font-black uppercase tracking-[0.15em] text-accent">
+              Monthly Overview
+            </h2>
           </div>
-          <MonthlyChart
-            categories={chartData.map((m) => m.month)}
-            transactions={chartData.map((m) => m.count)}
-            revenue={chartData.map((m) => m.amount)}
-          />
-        </section>
+          <div className="p-5">
+            <MonthlyChart
+              categories={chartData.map((m) => m.month)}
+              transactions={chartData.map((m) => m.count)}
+              revenue={chartData.map((m) => m.amount)}
+            />
+          </div>
+        </Panel>
       )}
 
-      {/* Monthly Stats Table */}
-      <section className="bg-[#111111] border border-white/10 rounded-2xl p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <BarChart3 className="w-5 h-5 text-[#ffc032]" />
-          <h2 className="text-lg font-bold text-white">Monthly Statistics</h2>
-        </div>
-        {topMonths.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-white/10">
-                  <th className="text-left text-white/50 text-xs font-semibold uppercase tracking-wider pb-3">Month</th>
-                  <th className="text-right text-white/50 text-xs font-semibold uppercase tracking-wider pb-3">Transactions</th>
-                  <th className="text-right text-white/50 text-xs font-semibold uppercase tracking-wider pb-3">Revenue</th>
-                </tr>
-              </thead>
-              <tbody>
-                {topMonths.map((month, i) => (
-                  <tr key={i} className="border-b border-white/5 hover:bg-white/[0.03] transition-colors">
-                    <td className="py-3 text-white">{month.month}</td>
-                    <td className="py-3 text-right text-white">{month.count.toLocaleString()}</td>
-                    <td className="py-3 text-right text-[#ffc032] font-semibold">
-                      {fmtMoney(month.amount)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="text-white/40 text-sm text-center py-4">No monthly data available.</p>
-        )}
-      </section>
     </div>
   );
 }

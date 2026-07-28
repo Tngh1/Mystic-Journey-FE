@@ -39,7 +39,7 @@ Trình duyệt gọi **thẳng** .NET API qua một axios instance duy nhất
 - Base URL lấy từ `NEXT_PUBLIC_API_BASE_URL`.
 
 Mỗi domain có một file wrapper typed trong `lib/api/` (`items.ts`, `monsters.ts`,
-`mails.ts`, …). Kiểu dữ liệu tập trung ở `lib/types/index.ts`.
+`mailboxes.ts`, …). Kiểu dữ liệu tập trung ở `lib/types/index.ts`.
 
 ### Auth (`lib/api/auth.ts` → `/api/auth/*`)
 

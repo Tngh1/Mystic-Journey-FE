@@ -3,8 +3,18 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Trees, Leaf, Snowflake, Landmark, MapPin, Swords, Milestone } from "lucide-react";
 import AnimatedButton from "@/components/ui/AnimatedButton";
+import SectionHeading from "@/components/ui/SectionHeading";
+import Banner from "@/components/ui/Banner";
+import OrnateDivider from "@/components/ui/OrnateDivider";
 
+/* Each realm used to carry a bright accent hex (#4ade80, #7dd3fc …) plus a
+   matching Tailwind palette triple for its badge. Those were five extra
+   saturated colours competing with gold, and the tints landed on top of pixel
+   art at 15% opacity, muddying the sprites. Realms now identify themselves by
+   *heraldry* — a banner tone from the medieval set — so gold stays the only
+   saturated colour that signals "act on this". */
 const WORLDS = [
   {
     id: "elf-forest",
@@ -12,11 +22,14 @@ const WORLDS = [
     subtitle: "Chapter I",
     description:
       "Venture into the ancient heartwood where towering trees whisper forgotten magic. The elves have guarded these woods for millennia, but a creeping shadow now threatens their sanctuary. Unravel the mystery before the forest falls to darkness.",
-    image: "/images/worlds/latest/elf-forest.png",
-    accent: "#4ade80",
-    accentDim: "rgba(74,222,128,0.15)",
+    image: "/images/worlds/latest/elf-forest.webp",
     tag: "Enchanted Woodland",
-    tagBg: "bg-emerald-900/60 text-emerald-300 border-emerald-700/50",
+    tone: "pine" as const,
+    Icon: Trees,
+    /* The dossier's header cloth. Same five heraldic tones the /story chapters
+       use, so a realm is the same colour on both pages. */
+    cloth: "bg-heraldry-pine",
+    quarry: ["Swamp Slime", "Swamp Demon"],
   },
   {
     id: "autumn-pumpkin",
@@ -24,11 +37,12 @@ const WORLDS = [
     subtitle: "Chapter II",
     description:
       "A land draped in eternal autumn, where giant pumpkins glow under twilight skies and mischievous spirits roam the misty paths. Ancient harvest rituals have gone awry - restore balance before the harvest moon rises again.",
-    image: "/images/worlds/latest/autumn-pumpkin.png",
-    accent: "#fb923c",
-    accentDim: "rgba(251,146,60,0.15)",
+    image: "/images/worlds/latest/autumn-pumpkin.webp",
     tag: "Harvest Twilight",
-    tagBg: "bg-orange-950/60 text-orange-300 border-orange-700/50",
+    tone: "ember" as const,
+    Icon: Leaf,
+    cloth: "bg-heraldry-ember",
+    quarry: ["Pumpkin Spirit", "Ruin Dragon"],
   },
   {
     id: "frozen-mountains",
@@ -36,11 +50,12 @@ const WORLDS = [
     subtitle: "Chapter III",
     description:
       "Scale treacherous glacial peaks where the aurora dances above frozen lakes and ice elementals patrol crystalline caverns. A blizzard of unnatural origin locks the mountain pass - only the bravest heroes can push through.",
-    image: "/images/worlds/latest/frozen-mountains.png",
-    accent: "#7dd3fc",
-    accentDim: "rgba(125,211,252,0.15)",
+    image: "/images/worlds/latest/frozen-mountains.webp",
     tag: "Glacial Tundra",
-    tagBg: "bg-sky-950/60 text-sky-300 border-sky-700/50",
+    tone: "royal" as const,
+    Icon: Snowflake,
+    cloth: "bg-heraldry-royal",
+    quarry: ["Ice Slime", "Ice Dragon", "Stone Golem"],
   },
   {
     id: "vestige-era",
@@ -48,20 +63,43 @@ const WORLDS = [
     subtitle: "Chapter IV",
     description:
       "Explore the crumbling remnants of a lost civilization swallowed by time. Ancient machines still hum beneath overgrown temples, and forgotten relics pulse with dormant power. Uncover the truth that brought a golden age to ruin.",
-    image: "/images/worlds/latest/vestige-era.png",
-    accent: "#c084fc",
-    accentDim: "rgba(192,132,252,0.15)",
+    image: "/images/worlds/latest/vestige-era.webp",
     tag: "Ancient Ruins",
-    tagBg: "bg-purple-950/60 text-purple-300 border-purple-700/50",
+    tone: "arcane" as const,
+    Icon: Landmark,
+    cloth: "bg-heraldry-arcane",
+    quarry: ["Skeleton Guard", "UnderKing"],
   },
 ];
 
+const NUMERALS = ["I", "II", "III", "IV"];
+
+/* Redesigned: the section was a sticky picture frame on the left crossfading
+   between four realms, with the text in a narrow rail on the right. Two things
+   were wrong with that — only one realm's art was ever really visible, and the
+   realm's own name, chapter chip and banner were spread across four
+   separate surfaces.
+
+   It is now read as a **road with dossiers**. The sticky column is a route rail
+   of waystones (which is also the section's nav, so the scroll position is
+   usable, not just decorative), and each realm is one self-contained expedition
+   dossier: heraldic header, its own wide plate of art, field notes on parchment.
+   The scroll behaviour is unchanged — the page still runs top to bottom and the
+   active realm is still whichever one is nearest the viewport centre. */
 export default function WorldSection() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const worldRefs = useRef<(HTMLDivElement | null)[]>([]);
+  // <article>, so HTMLElement — not the HTMLDivElement the old sticky column used.
+  const worldRefs = useRef<(HTMLElement | null)[]>([]);
 
   useEffect(() => {
-    const handleScroll = () => {
+    // The scroll handler reads layout (getBoundingClientRect) for every world,
+    // so it is coalesced into one rAF frame per scroll burst instead of firing
+    // on every scroll event — otherwise it forces a reflow dozens of times a
+    // second and janks the sticky column.
+    let frame = 0;
+
+    const measure = () => {
+      frame = 0;
       const viewportHeight = window.innerHeight;
       const viewportCenter = viewportHeight / 2;
 
@@ -69,144 +107,230 @@ export default function WorldSection() {
       let closestDistance = Infinity;
 
       worldRefs.current.forEach((ref, index) => {
-        if (ref) {
-          const rect = ref.getBoundingClientRect();
-          const sectionCenter = rect.top + rect.height / 2;
-          const distance = Math.abs(sectionCenter - viewportCenter);
+        if (!ref) return;
+        const rect = ref.getBoundingClientRect();
+        const sectionCenter = rect.top + rect.height / 2;
+        const distance = Math.abs(sectionCenter - viewportCenter);
 
-          if (distance < closestDistance && rect.top < viewportHeight && rect.bottom > 0) {
-            closestDistance = distance;
-            closestIndex = index;
-          }
+        if (distance < closestDistance && rect.top < viewportHeight && rect.bottom > 0) {
+          closestDistance = distance;
+          closestIndex = index;
         }
       });
 
       setActiveIndex(closestIndex);
     };
 
+    const handleScroll = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(measure);
+    };
+
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("resize", handleScroll, { passive: true });
+    measure();
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, []);
 
-  const active = WORLDS[activeIndex];
+  const travelTo = (index: number) =>
+    worldRefs.current[index]?.scrollIntoView({
+      // Smooth scrolling is motion, so the system preference decides.
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+      block: "center",
+    });
 
   return (
-    <section id="game-features" className="w-full  px-5 py-16 text-white md:px-10 lg:px-12 lg:py-20">
+    <section id="game-features" className="w-full px-5 py-16 text-white md:px-10 lg:px-12 lg:py-20">
       <div className="mx-auto max-w-7xl">
-        {/* Header */}
-        <div className="mb-20 grid gap-6 lg:grid-cols-2 lg:items-end">
-          <h2 className="text-4xl font-black leading-[1.15] tracking-tight md:text-5xl lg:text-6xl">
-            Explore the{" "}
-            <span
-              className="transition-colors duration-500"
-              style={{ color: active.accent }}
-            >
-              World
-            </span>
-          </h2>
+        {/* Header — asymmetric (title left, blurb right) so it reads differently
+            from the centered About/Class headers. */}
+        <div className="mb-14 grid gap-6 lg:grid-cols-2 lg:items-end">
+          <SectionHeading
+            align="left"
+            eyebrow="Four Realms"
+            title={
+              <>
+                Explore the <span className="text-accent">World</span>
+              </>
+            }
+          />
 
-          <p className="max-w-xl text-base leading-relaxed tracking-wide text-white/50 md:text-lg">
+          <p className="max-w-xl text-base leading-relaxed tracking-wide text-fg-muted md:text-lg">
             Four legendary realms await. Each region holds its own secrets, monsters,
-            and stories - only the worthy may traverse them all.
+            and stories — only the worthy may traverse them all.
           </p>
         </div>
 
-        {/* Main Content - Sticky Layout */}
-        <div className="lg:grid lg:grid-cols-[1.15fr_0.45fr_0.65fr] lg:gap-16">
-          {/* Left: Sticky Image */}
-          <div className="hidden lg:block lg:sticky lg:top-40 lg:h-[calc(100vh-30rem)] lg:self-start">
-            <div className="relative h-full w-full overflow-hidden rounded-2xl border border-white/10">
-              {WORLDS.map((world, index) => (
-                <div
-                  key={world.id}
-                  className={`absolute inset-0 transition-all duration-700 ease-out ${
-                    index === activeIndex ? "opacity-100 scale-100" : "opacity-0 scale-105"
-                  }`}
-                >
-                  <Image
-                    src={world.image}
-                    alt={world.title}
-                    fill
-                    sizes="520px"
-                    className="object-cover"
-                  />
-                  {/* Color tint overlay */}
-                  <div
-                    className="absolute inset-0 transition-opacity duration-700"
-                    style={{ background: `linear-gradient(to top, ${world.accentDim} 0%, transparent 60%)` }}
-                  />
-                  {/* Chapter badge */}
-                  <div className="absolute top-4 left-4">
-                    <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-widest backdrop-blur-sm ${world.tagBg}`}>
-                      {world.tag}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+        <div className="lg:grid lg:grid-cols-[15rem_1fr] lg:gap-12">
+          {/* The road. A sticky rail of waystones: one per realm, joined by an
+              iron line, with the one you are standing on struck in gold. It is a
+              real <nav> because it answers "where am I and what is left" — the
+              old sticky column could only be looked at. */}
+          <nav
+            aria-label="Realms of Mystic Journey"
+            className="hidden lg:block lg:sticky lg:top-40 lg:max-h-[calc(100dvh-14rem)] lg:self-start"
+          >
+            <p className="mb-3 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-fg-subtle">
+              <Milestone className="h-3.5 w-3.5" aria-hidden="true" />
+              The Road
+            </p>
 
-          {/* Right: World Content */}
-          <div className="space-y-32 md:space-y-52 lg:col-span-2">
+            <ol className="relative">
+              {/* The road itself, run behind the waystones. */}
+              <span
+                className="absolute top-5 bottom-5 left-[1.375rem] w-0.5 bg-iron-light"
+                aria-hidden="true"
+              />
+
+              {WORLDS.map((world, index) => {
+                const active = index === activeIndex;
+                return (
+                  <li key={world.id} className="relative">
+                    <button
+                      type="button"
+                      onClick={() => travelTo(index)}
+                      aria-current={active ? "true" : undefined}
+                      className={`flex min-h-11 w-full cursor-pointer items-center gap-3 py-1.5 text-left transition-colors duration-300 ${
+                        active ? "text-accent" : "text-fg-muted hover:text-fg"
+                      }`}
+                    >
+                      {/* Waystone: the chapter numeral cut into stone, dyed with
+                          the realm's cloth once you reach it. Gold frame *and*
+                          gold ink *and* aria-current, so the position never
+                          rests on colour alone. */}
+                      <span
+                        className={`flex h-11 w-11 shrink-0 items-center justify-center border-2 text-sm font-black tabular-nums shadow-md transition-colors duration-300 ${
+                          active
+                            ? `border-accent ${world.cloth} text-parchment`
+                            : "border-black/60 bg-iron text-parchment-dim"
+                        }`}
+                      >
+                        {NUMERALS[index]}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-bold">{world.title}</span>
+                        <span className="block truncate text-[11px] font-bold uppercase tracking-widest text-fg-subtle">
+                          {world.tag}
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          </nav>
+
+          {/* The dossiers. One realm, one object — heraldic header, its own plate
+              of art, field notes on paper. */}
+          <div className="space-y-12 md:space-y-16">
             {WORLDS.map((world, index) => (
-              <div
+              <article
                 key={world.id}
+                id={world.id}
                 ref={(el) => { worldRefs.current[index] = el; }}
-                className="lg:grid lg:grid-cols-[0.45fr_0.65fr] lg:gap-16"
+                aria-labelledby={`${world.id}-title`}
+                className={`border-2 shadow-[6px_6px_0_rgb(0_0_0_/_0.55)] transition-colors duration-300 ${
+                  index === activeIndex ? "border-accent" : "border-black/60"
+                }`}
               >
-                {/* Mobile Image */}
-                <div className="relative mb-6 aspect-[16/9] w-full overflow-hidden rounded-xl lg:hidden">
-                  <Image
-                    src={world.image}
-                    alt={world.title}
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 0px"
-                    className="object-cover"
-                  />
-                  <div className="absolute top-3 left-3">
-                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider backdrop-blur-sm ${world.tagBg}`}>
-                      {world.tag}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Chapter label */}
-                <p
-                  className={`text-xs font-black uppercase tracking-[0.3em] transition-all duration-300 lg:self-start lg:pt-3 ${
-                    index === activeIndex ? "" : "opacity-40"
-                  }`}
-                  style={{ color: index === activeIndex ? world.accent : "white" }}
+                <div
+                  className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b-2 border-black/60 ${world.cloth} px-4 py-3`}
                 >
-                  {world.subtitle}
-                </p>
-
-                {/* Title + Description */}
-                <div className={`transition-all duration-300 ${index === activeIndex ? "" : "opacity-40"}`}>
-                  <h3 className="mb-3 text-3xl font-black leading-tight tracking-tight text-white md:text-4xl">
+                  <h3
+                    id={`${world.id}-title`}
+                    className="flex items-center gap-2.5 text-lg font-black uppercase tracking-[0.14em] text-parchment md:text-xl"
+                  >
+                    <world.Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
                     {world.title}
                   </h3>
-                  <p className="max-w-sm text-base leading-loose tracking-wide text-white/80 md:text-lg">
-                    {world.description}
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-parchment-dim">
+                    {world.subtitle}
                   </p>
                 </div>
-              </div>
+
+                {/* Wide plate of art. Every realm shows its own now, so nothing
+                    is hidden behind an opacity swap and there is no aria-hidden
+                    to keep in sync. */}
+                <div className="relative aspect-16/9 w-full overflow-hidden border-b-2 border-black/60 md:aspect-21/9">
+                  <Image
+                    src={world.image}
+                    alt={world.title}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 860px"
+                    loading={index === 0 ? "eager" : "lazy"}
+                    className="pixelated object-cover"
+                  />
+                  {/* Neutral vignette instead of a per-realm colour wash, so the
+                      banner is the only thing carrying realm identity. */}
+                  <div
+                    className="absolute inset-0 bg-linear-to-t from-black/70 to-transparent"
+                    aria-hidden="true"
+                  />
+                  <div className="pixel-scanlines absolute inset-0 opacity-25" aria-hidden="true" />
+                  <div className="absolute top-0 left-4">
+                    <Banner tone={world.tone}>{world.tag}</Banner>
+                  </div>
+                </div>
+
+                {/* Field notes. Ink on parchment: this is the one long-form read
+                    in the section, and paper is what it wants. */}
+                <div className="parchment p-4 md:p-6">
+                  <div className="grid gap-5 md:grid-cols-[1fr_15rem]">
+                    <p className="max-w-[64ch] text-[15px] leading-relaxed text-on-parchment">
+                      {world.description}
+                    </p>
+
+                    <dl className="space-y-3 border-t-2 border-on-parchment/20 pt-4 md:border-t-0 md:border-l-2 md:border-on-parchment/20 md:pt-0 md:pl-5">
+                      <div>
+                        <dt className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-on-parchment/60">
+                          <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+                          Terrain
+                        </dt>
+                        <dd className="mt-1 text-sm font-bold text-on-parchment">{world.tag}</dd>
+                      </div>
+
+                      <div>
+                        <dt className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-on-parchment/60">
+                          <Swords className="h-3.5 w-3.5" aria-hidden="true" />
+                          Quarry
+                        </dt>
+                        {/* Wood chips on the page, so the list reads as pinned
+                            notes rather than running prose. */}
+                        <dd className="mt-1.5 flex flex-wrap gap-1.5">
+                          {world.quarry.map((q) => (
+                            <span
+                              key={q}
+                              className="border-2 border-black/60 bg-wood px-2 py-0.5 text-[11px] font-bold text-parchment shadow-xs"
+                            >
+                              {q}
+                            </span>
+                          ))}
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
+              </article>
             ))}
           </div>
         </div>
 
-        {/* Bottom CTA */}
+        {/* Bottom CTA, framed by mirrored dividers — the weights are biased in
+            opposite directions so the pair doesn't read as mechanically equal. */}
         <div className="mt-24 md:mt-28">
-          <div className="mb-10 flex items-center gap-4">
-            <div className="h-px flex-1 bg-[#ffc032]" style={{ opacity: 0.5 }} />
-            <div className="h-2 w-2 rounded-full bg-[#ffc032]" />
-            <div className="h-px flex-[2.4] bg-[#ffc032]" style={{ opacity: 0.5 }} />
-          </div>
+          <OrnateDivider weight="right" />
 
-          <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
-            <h3 className="text-3xl font-black leading-tight md:text-4xl lg:text-5xl text-white">
+          <div className="mt-10 flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
+            <h3 className="text-3xl font-bold leading-tight text-fg md:text-4xl lg:text-5xl">
               Step Into the World of{" "}
-              <span className="text-[#ffc032]">Mystic Journey</span>
+              <span className="text-accent">Mystic Journey</span>
             </h3>
 
             <Link href="/story" className="self-start md:self-auto">
@@ -214,11 +338,7 @@ export default function WorldSection() {
             </Link>
           </div>
 
-          <div className="mt-10 flex items-center gap-4">
-            <div className="h-px flex-[2.4] bg-[#ffc032]" style={{ opacity: 0.5 }} />
-            <div className="h-2 w-2 rounded-full bg-[#ffc032]" />
-            <div className="h-px flex-1 bg-[#ffc032]" style={{ opacity: 0.5 }} />
-          </div>
+          <OrnateDivider weight="left" className="mt-10" />
         </div>
       </div>
     </section>

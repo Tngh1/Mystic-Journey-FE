@@ -1,77 +1,148 @@
 "use client";
 
 import Link from "next/link";
-import { Settings } from "lucide-react";
+import { Settings, ScrollText, MapPin } from "lucide-react";
 import ProfileSidebar from "@/components/ui/ProfileSidebar";
+import Panel from "@/components/ui/Panel";
+import Tapestry from "@/components/ui/Tapestry";
 import { useAuth } from "@/lib/contexts/AuthContext";
+
+/* The account record on cloth, not planks — the whole of `/account` is woven now
+   (see `components/ui/Tapestry.tsx`); wood belongs to the wiki. */
+
+/* One embroidered line of the record. `mono` is for identifiers and coordinates,
+   where tabular figures stop the column from shifting as digits change. */
+function LedgerRow({
+  label,
+  value,
+  mono,
+  last,
+}: {
+  label: string;
+  value: React.ReactNode;
+  mono?: boolean;
+  last?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center justify-between gap-3 px-3 py-2.5 ${last ? "" : "border-b border-black/35"}`}
+    >
+      <span className="text-[11px] font-bold uppercase tracking-widest text-parchment-dim">
+        {label}
+      </span>
+      <span className={`text-sm font-bold text-parchment ${mono ? "font-mono tabular-nums" : ""}`}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+/* A titled hanging holding one group of record lines.
+
+   Dyed crimson, by elimination. Royal is the nav pennants beside it (and, by the
+   user's own call, the whole of `/account/security`), arcane is the night-violet
+   page itself, and ember would fight the fringe, which is always `accent-deep`
+   orange. Crimson is the one dye left that reads as a separate surface from both
+   its neighbour and its sibling pages; parchment on it still clears 7:1, so the
+   swap is contrast-neutral.
+
+   `/account/profile`'s main hangings take the hero's class dye, so they can land
+   on crimson too — but that is one page's worth of overlap on a colour the user
+   chooses, not a fixed clash. */
+function LedgerPanel({
+  id,
+  title,
+  icon,
+  rows,
+}: {
+  id: string;
+  title: string;
+  icon: React.ReactNode;
+  rows: { label: string; value: React.ReactNode; mono?: boolean }[];
+}) {
+  return (
+    <Tapestry
+      as="section"
+      aria-labelledby={id}
+      dye="crimson"
+      title={title}
+      titleId={id}
+      icon={icon}
+      bodyClassName="p-2"
+    >
+      <div className="border-2 border-black/50 bg-black/25 shadow-[inset_2px_2px_0_rgb(0_0_0_/_0.4)]">
+        {rows.map((r, i) => (
+          <LedgerRow key={r.label} {...r} last={i === rows.length - 1} />
+        ))}
+      </div>
+    </Tapestry>
+  );
+}
 
 export default function AccountSettingPage() {
   const { user, isLoading } = useAuth();
 
   if (isLoading) return null;
 
-  // Middleware đã bảo vệ route này, nhưng giữ fallback phòng edge case
+  // proxy.ts already gates this route; this is the edge-case fallback.
   if (!user) {
     return (
-      <div className="min-h-screen bg-black pt-32 pb-20 flex items-center justify-center px-4">
-        <div className="text-center bg-[#111111] border border-white/10 rounded-xl p-10 max-w-md w-full">
-          <h2 className="text-2xl font-bold text-white mb-4">Not Authenticated</h2>
-          <p className="text-white/60 mb-8">Please log in to view your account.</p>
-          <Link href="/login" className="inline-block px-6 py-3 bg-[#ffc032] hover:bg-[#ffd04c] text-[#111] rounded-xl transition-colors font-semibold w-full cursor-pointer">
-            Log In Now
+      <div className="flex min-h-dvh items-center justify-center px-4 pt-[88px] pb-16 md:pt-[112px]">
+        <Panel material="iron" role="alert" className="w-full max-w-md p-8 text-center">
+          <h1 className="mb-3 text-2xl font-bold text-parchment">Not Authenticated</h1>
+          <p className="mb-6 text-sm text-parchment-dim">Sign in to read your account record.</p>
+          <Link
+            href="/login"
+            className="pixel-press flex min-h-11 w-full items-center justify-center border-2 border-accent bg-accent text-sm font-black uppercase tracking-widest text-on-accent shadow-md hover:bg-accent-hover"
+          >
+            Log In
           </Link>
-        </div>
+        </Panel>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-gray-300 font-['BeVietnamPro'] pt-24 pb-20">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-8">
+    <div className="min-h-dvh pt-[88px] pb-16 md:pt-[112px]">
+      <div className="mx-auto flex max-w-[1200px] flex-col gap-6 px-4 md:flex-row md:gap-8 md:px-6">
         <ProfileSidebar />
 
-        <main className="flex-1 md:pl-8">
+        <main className="min-w-0 flex-1">
           <div className="mb-5 flex items-center gap-3">
-            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">
-              <Settings className="w-3.5 h-3.5" /> Settings
+            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.34em] text-accent">
+              <Settings className="h-3.5 w-3.5" aria-hidden="true" /> Settings
             </span>
-            <span className="h-px w-12 bg-linear-to-r from-[#ffc032]/60 to-transparent" />
+            <span className="h-0.5 w-12 bg-accent/60" aria-hidden="true" />
           </div>
-          <h1 className="text-4xl font-extrabold text-white mb-2">Settings</h1>
-          <p className="text-white/60 text-sm mb-12">Your account information.</p>
+          <h1 className="mb-2 text-3xl font-bold text-fg md:text-4xl">Settings</h1>
+          <p className="mb-8 text-sm text-fg-muted">
+            What the archive has on record for your account.
+          </p>
 
-          <section>
-            <h2 className="text-xl font-bold text-white mb-4">Account Information</h2>
-            <div className="bg-[#111111] border border-white/10 rounded-xl p-6 space-y-4">
-              {[
+          <div className="grid gap-6 lg:grid-cols-2">
+            <LedgerPanel
+              id="account-info"
+              title="Account"
+              icon={<ScrollText className="h-4 w-4 text-accent" aria-hidden="true" />}
+              rows={[
                 { label: "Account ID", value: user.accountId, mono: true },
                 { label: "Username", value: `@${user.userName}` },
                 { label: "Email", value: user.email },
                 { label: "Role", value: user.role },
-              ].map(({ label, value, mono }) => (
-                <div key={label} className="flex justify-between items-center">
-                  <span className="text-white/60 text-sm">{label}</span>
-                  <span className={`text-white text-sm ${mono ? "font-mono" : ""}`}>{value}</span>
-                </div>
-              ))}
-            </div>
-          </section>
+              ]}
+            />
 
-          <section className="mt-8">
-            <h2 className="text-xl font-bold text-white mb-4">Current Position</h2>
-            <div className="bg-[#111111] border border-white/10 rounded-xl p-6 space-y-4">
-              {[
+            <LedgerPanel
+              id="last-position"
+              title="Last Seen"
+              icon={<MapPin className="h-4 w-4 text-accent" aria-hidden="true" />}
+              rows={[
                 { label: "Map", value: user.lastMapName },
                 { label: "Position X", value: user.positionX, mono: true },
                 { label: "Position Y", value: user.positionY, mono: true },
-              ].map(({ label, value, mono }) => (
-                <div key={label} className="flex justify-between items-center">
-                  <span className="text-white/60 text-sm">{label}</span>
-                  <span className={`text-white text-sm ${mono ? "font-mono" : ""}`}>{value}</span>
-                </div>
-              ))}
-            </div>
-          </section>
+              ]}
+            />
+          </div>
         </main>
       </div>
     </div>

@@ -1,0 +1,220 @@
+/* SweetAlert2, rebuilt as a game dialog box.
+   ─────────────────────────────────────────────────────────────────────────────
+   The library's default popup is a white rounded card with a bouncing
+   scale-in and a circular animated icon — three of this system's forbidden
+   things at once (curve, smooth zoom, soft ring). It used to be patched from
+   JS with raw hexes (#18181b, #ffc032) plus `rounded-2xl`, which the global
+   border-radius reset then fought.
+
+   All of it lives here instead, keyed off the `swal-pixel-*` classes that
+   lib/utils/swal.ts passes as `customClass`. The dialog is the same carved
+   plank as every Panel: wood frame, wood-dark title/footer strips, the message
+   on parchment, one gold CTA. Nothing in the JS knows a colour any more.
+
+   Specificity note: sweetalert2 writes its own rules as `div:where(.swal2-x)`,
+   which is 0,0,2 — a single class here (0,1,0) out-ranks it, so none of this
+   needs !important. */
+
+.swal-pixel-container {
+  /* Blur on the backdrop is the one sanctioned use in this system: it means
+     "the layer behind is dismissed", not decoration. */
+  background: rgb(0 0 0 / 0.72);
+  backdrop-filter: blur(2px);
+}
+
+.swal-pixel-popup {
+  width: 27em;
+  max-width: calc(100vw - 2rem);
+  padding: 0;
+  border: 2px solid rgb(0 0 0 / 0.6);
+  background: var(--color-wood);
+  color: var(--color-parchment);
+  /* Carved plank: lit top-left, shadowed bottom-right, then a hard offset cast
+     shadow. Zero blur radius on the cast shadow — same as --shadow-2xl. */
+  box-shadow:
+    inset 2px 2px 0 rgb(255 255 255 / 0.12),
+    inset -2px -2px 0 rgb(0 0 0 / 0.45),
+    8px 8px 0 rgb(0 0 0 / 0.6);
+  /* The library gates its icon line-drawing animations on this custom property
+     via a style container query. Off: those are soft rings and swipes. */
+  --swal2-icon-animations: false;
+}
+
+/* Entry as a plank dropping into place: translate + opacity on stepped easing,
+   never the default scale bounce. Exit is a flat fade, ~60% of the entry. */
+@keyframes swal-pixel-in {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes swal-pixel-out {
+  to {
+    opacity: 0;
+  }
+}
+
+.swal-pixel-popup.swal2-show {
+  animation: swal-pixel-in 200ms steps(4, end) both;
+}
+
+.swal-pixel-popup.swal2-hide {
+  animation: swal-pixel-out 120ms steps(3, end) forwards;
+}
+
+/* ── Seal plate ──────────────────────────────────────────────────────────────
+   The round animated icon becomes a square heraldic plate holding one Lucide
+   glyph (supplied as `iconHtml`). Cloth colour carries the tone, but never
+   alone — the title states the outcome in words and the glyph differs too. */
+.swal-pixel-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  margin: 1.5rem auto 0;
+  padding: 0;
+  border: 2px solid rgb(0 0 0 / 0.6);
+  box-shadow: 4px 4px 0 rgb(0 0 0 / 0.6);
+  color: var(--color-parchment);
+  background: var(--color-iron);
+}
+
+.swal-pixel-icon .swal2-icon-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: inherit;
+  line-height: 1;
+}
+
+.swal-pixel-icon.swal2-success {
+  background: var(--color-heraldry-pine);
+}
+
+.swal-pixel-icon.swal2-error {
+  background: var(--color-heraldry-crimson);
+}
+
+.swal-pixel-icon.swal2-warning {
+  background: var(--color-heraldry-ember);
+}
+
+.swal-pixel-icon.swal2-info,
+.swal-pixel-icon.swal2-question {
+  background: var(--color-heraldry-royal);
+}
+
+/* ── Title ─────────────────────────────────────────────────────────────────── */
+.swal-pixel-title {
+  padding: 0.9rem 1.25rem 0;
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  /* Hard one-step offset, the wordmark's logic at small size. */
+  text-shadow: 0 2px 0 rgb(0 0 0 / 0.6);
+}
+
+/* ── Message, on paper ─────────────────────────────────────────────────────── */
+.swal-pixel-text {
+  margin: 1rem 1.25rem 1.25rem;
+  padding: 0.9rem 1rem;
+  border: 2px solid var(--color-wood-dark);
+  box-shadow: inset 0 0 0 2px rgb(0 0 0 / 0.12);
+  font-size: 1rem;
+  line-height: 1.6;
+  text-align: center;
+  /* Same paper as the lore panels: ink is --color-on-parchment at 8.7:1. */
+  background-color: var(--color-parchment);
+  background-image:
+    radial-gradient(circle at 20% 30%, rgb(120 90 50 / 0.1) 0 2px, transparent 2px),
+    radial-gradient(circle at 75% 65%, rgb(120 90 50 / 0.08) 0 2px, transparent 2px);
+  background-size: 64px 64px, 96px 96px;
+  color: var(--color-on-parchment);
+}
+
+/* ── Footer strip with the actions ─────────────────────────────────────────── */
+.swal-pixel-actions {
+  gap: 0.625rem;
+  width: 100%;
+  margin: 0;
+  padding: 0.75rem 1.25rem;
+  border-top: 2px solid rgb(0 0 0 / 0.6);
+  background: var(--color-wood-dark);
+}
+
+.swal-pixel-confirm,
+.swal-pixel-cancel {
+  /* 44px floor, the house touch-target size. */
+  min-height: 2.75rem;
+  min-width: 7rem;
+  padding: 0 1.25rem;
+  border: 2px solid;
+  font-size: 0.8125rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 rgb(0 0 0 / 0.6);
+  transition:
+    transform 120ms steps(2, end),
+    box-shadow 120ms steps(2, end),
+    background-color 150ms linear,
+    border-color 150ms linear;
+}
+
+/* The mechanical sink, same as .pixel-press — the button drops into its own
+   shadow rather than scaling. */
+.swal-pixel-confirm:active,
+.swal-pixel-cancel:active {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+
+.swal-pixel-confirm {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.swal-pixel-confirm:hover {
+  background: var(--color-accent-hover);
+}
+
+/* Destructive confirm: crimson cloth, so "delete" never wears the same gold as
+   "OK". Paired with the warning seal and explicit button text. */
+.swal-pixel-confirm.swal-pixel-danger {
+  border-color: var(--color-danger);
+  background: var(--color-heraldry-crimson);
+  color: var(--color-parchment);
+}
+
+.swal-pixel-confirm.swal-pixel-danger:hover {
+  background: var(--color-danger);
+}
+
+.swal-pixel-cancel {
+  border-color: rgb(0 0 0 / 0.6);
+  background: var(--color-iron);
+  color: var(--color-parchment);
+}
+
+.swal-pixel-cancel:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* The global :focus-visible gold ring already covers these; the library ships
+   its own soft blue ring, so drop that one. */
+.swal-pixel-confirm:focus-visible,
+.swal-pixel-cancel:focus-visible {
+  box-shadow: 3px 3px 0 rgb(0 0 0 / 0.6);
+}

@@ -125,7 +125,7 @@ export default function CreateCategoryContentPage() {
         />
       </FormSection>
 
-      <FormSection title="Icon" icon={ImageIcon} iconColor="text-purple-400">
+      <FormSection title="Icon" icon={ImageIcon}>
         <ImageUploader
           value={formData.iconUrl}
           onChange={(url) => handleChange('iconUrl', url)}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { BadgeCheck, CalendarClock, Coins, Gem, Package, Save, ShoppingBag, TimerReset, Search } from "lucide-react";
+import { BadgeCheck, CalendarClock, Coins, Gem, Loader2, Package, Save, ShoppingBag, TimerReset, Archive } from "lucide-react";
 import { getAll as getAllItems } from "@/lib/api/items";
 import type { CreateShopItemRequest, ItemResponse, ShopItemResponse } from "@/lib/types";
 import FormActions from "@/components/form/FormActions";
@@ -10,7 +10,6 @@ import FormField from "@/components/form/FormField";
 import FormSection from "@/components/form/FormSection";
 import { Checkbox, SelectInput, TextInput } from "@/components/form/FormInput";
 import DateTimePicker from "@/components/ui/DateTimePicker";
-import ItemPickerModal from "@/components/ui/ItemPickerModal";
 
 const CURRENCY_OPTIONS = [
   { value: "Gold", label: "Gold" },
@@ -21,15 +20,6 @@ const SECTION_OPTIONS = [
   { value: "Fixed", label: "Fixed" },
   { value: "DailyDeal", label: "Daily Deal" },
 ];
-
-const RARITY_BADGES: Record<string, string> = {
-  Common: "text-slate-300 border-slate-500/30 bg-slate-500/10",
-  Uncommon: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10",
-  Rare: "text-sky-400 border-sky-500/30 bg-sky-500/10",
-  Epic: "text-purple-400 border-purple-500/30 bg-purple-500/10",
-  Legendary: "text-amber-400 border-amber-500/30 bg-amber-500/10",
-  Mythic: "text-rose-400 border-rose-500/30 bg-rose-500/10",
-};
 
 type ShopFormData = {
   itemId: number;
@@ -136,7 +126,6 @@ export default function ShopItemForm({
   const [items, setItems] = useState<ItemResponse[]>([]);
   const [loadingItems, setLoadingItems] = useState(true);
   const [localError, setLocalError] = useState<string | null>(null);
-  const [pickerOpen, setPickerOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -164,19 +153,26 @@ export default function ShopItemForm({
     [formData.itemId, items],
   );
 
+  const itemOptions = useMemo(() => {
+    const options = items.map((item) => ({
+      value: String(item.itemId),
+      label: `${item.name} #${item.itemId} - ${item.type}${item.rarity ? ` / ${item.rarity}` : ""}`,
+    }));
+
+    if (initialData?.itemId && !options.some((option) => option.value === String(initialData.itemId))) {
+      options.unshift({
+        value: String(initialData.itemId),
+        label: `${initialData.itemName ?? `Item #${initialData.itemId}`} #${initialData.itemId} - current item`,
+      });
+    }
+
+    return options;
+  }, [initialData, items]);
+
   const alertMessage = localError || error;
 
   const handleChange = <K extends keyof ShopFormData>(field: K, value: ShopFormData[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSelectItem = (item: ItemResponse) => {
-    setFormData((prev) => ({
-      ...prev,
-      itemId: item.itemId,
-      // Smart default price matching item baseValue if price is 0
-      price: prev.price === 0 ? item.baseValue : prev.price,
-    }));
   };
 
   const validate = () => {
@@ -227,43 +223,26 @@ export default function ShopItemForm({
         />
       )}
 
-      {/* Item Picker Modal */}
-      <ItemPickerModal
-        isOpen={pickerOpen}
-        onClose={() => setPickerOpen(false)}
-        onSelect={handleSelectItem}
-        selectedItemId={formData.itemId}
-        title="Select Target Shop Item"
-      />
-
       <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-6">
-          <FormSection title="Shop Item Selection" icon={Package} iconColor="text-sky-300">
+          <FormSection title="Shop Item" icon={Package}>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <FormField label="Target Item" htmlFor="itemId" required>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setPickerOpen(true)}
-                    className="flex h-11 flex-1 items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#0d0d0d] px-4 text-left text-sm transition-colors hover:border-[#ffc032]/40"
-                  >
-                    {selectedItem ? (
-                      <div className="flex items-center gap-2.5 truncate">
-                        <img
-                          src={selectedItem.iconUrl || "/images/demo.jpg"}
-                          alt={selectedItem.name}
-                          className="h-6 w-6 rounded object-cover"
-                          onError={(e) => { (e.target as HTMLImageElement).src = "/images/demo.jpg"; }}
-                        />
-                        <span className="truncate font-bold text-white">{selectedItem.name}</span>
-                        <span className="text-xs text-white/40">#{selectedItem.itemId}</span>
-                      </div>
-                    ) : (
-                      <span className="text-white/40">Click to pick game item...</span>
-                    )}
-                    <Search className="h-4 w-4 shrink-0 text-[#ffc032]" />
-                  </button>
-                </div>
+              <FormField label="Item" htmlFor="itemId" required>
+                {loadingItems ? (
+                  <div className="flex h-11 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-4 text-sm text-white/50">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading items...
+                  </div>
+                ) : (
+                  <SelectInput
+                    id="itemId"
+                    options={itemOptions}
+                    placeholder="Choose item"
+                    value={formData.itemId > 0 ? String(formData.itemId) : ""}
+                    onChange={(event) => handleChange("itemId", event.target.value ? Number(event.target.value) : 0)}
+                    required
+                  />
+                )}
               </FormField>
 
               <FormField label="Shop Section" htmlFor="shopSection" required>
@@ -278,9 +257,9 @@ export default function ShopItemForm({
             </div>
           </FormSection>
 
-          <FormSection title="Pricing & Stock Settings" icon={ShoppingBag} iconColor="text-[#ffc032]">
+          <FormSection title="Pricing & Stock" icon={ShoppingBag}>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <FormField label="Currency Type" htmlFor="currency" required>
+              <FormField label="Currency" htmlFor="currency" required>
                 <SelectInput
                   id="currency"
                   options={CURRENCY_OPTIONS}
@@ -290,30 +269,19 @@ export default function ShopItemForm({
                 />
               </FormField>
 
-              <FormField label="Selling Price" htmlFor="price" required>
-                <div className="space-y-2">
-                  <TextInput
-                    id="price"
-                    type="number"
-                    value={formData.price}
-                    onChange={(event) => handleChange("price", Math.max(0, toNumber(event.target.value)))}
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                  {selectedItem && selectedItem.baseValue > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => handleChange("price", selectedItem.baseValue)}
-                      className="text-xs text-[#ffc032] hover:underline"
-                    >
-                      ⚡ Match Base Item Value ({selectedItem.baseValue} Gold)
-                    </button>
-                  )}
-                </div>
+              <FormField label="Price" htmlFor="price" required>
+                <TextInput
+                  id="price"
+                  type="number"
+                  value={formData.price}
+                  onChange={(event) => handleChange("price", Math.max(0, toNumber(event.target.value)))}
+                  min="0"
+                  step="0.01"
+                  required
+                />
               </FormField>
 
-              <FormField label="Stock Quantity" htmlFor="stock" hint="-1 = Unlimited">
+              <FormField label="Stock" htmlFor="stock" hint="-1 = Unlimited">
                 <TextInput
                   id="stock"
                   type="number"
@@ -328,8 +296,6 @@ export default function ShopItemForm({
                   { label: "Unlimited", value: -1 },
                   { label: "Sold out", value: 0 },
                   { label: "10", value: 10 },
-                  { label: "50", value: 50 },
-                  { label: "100", value: 100 },
                 ].map((preset) => (
                   <button
                     key={preset.label}
@@ -344,9 +310,9 @@ export default function ShopItemForm({
             </div>
           </FormSection>
 
-          <FormSection title="Purchase Limits" icon={TimerReset} iconColor="text-purple-300">
+          <FormSection title="Purchase Limits" icon={TimerReset}>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <FormField label="Daily Purchase Limit" htmlFor="dailyPurchaseLimit" hint="0 = No daily limit">
+              <FormField label="Daily Purchase Limit" htmlFor="dailyPurchaseLimit" hint="0 = None">
                 <TextInput
                   id="dailyPurchaseLimit"
                   type="number"
@@ -356,7 +322,7 @@ export default function ShopItemForm({
                 />
               </FormField>
 
-              <FormField label="Weekly Purchase Limit" htmlFor="weeklyPurchaseLimit" hint="0 = No weekly limit">
+              <FormField label="Weekly Purchase Limit" htmlFor="weeklyPurchaseLimit" hint="0 = None">
                 <TextInput
                   id="weeklyPurchaseLimit"
                   type="number"
@@ -368,9 +334,9 @@ export default function ShopItemForm({
             </div>
           </FormSection>
 
-          <FormSection title="Availability Window" icon={CalendarClock} iconColor="text-emerald-300">
+          <FormSection title="Availability" icon={CalendarClock}>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <FormField label="Available From" htmlFor="availableFrom" hint="Optional start time">
+              <FormField label="Available From" htmlFor="availableFrom" hint="Optional">
                 <DateTimePicker
                   id="availableFrom"
                   value={formData.availableFrom}
@@ -379,7 +345,7 @@ export default function ShopItemForm({
                 />
               </FormField>
 
-              <FormField label="Available To" htmlFor="availableTo" hint="Optional end time">
+              <FormField label="Available To" htmlFor="availableTo" hint="Optional">
                 <DateTimePicker
                   id="availableTo"
                   value={formData.availableTo}
@@ -398,78 +364,55 @@ export default function ShopItemForm({
           </FormSection>
         </div>
 
-        {/* Live Shop Preview Card */}
-        <aside className="sticky top-24 space-y-4">
-          <div className="rounded-2xl border border-white/10 bg-[#111111] p-5 shadow-xl">
-            <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#ffc032]/10 text-[#ffc032]">
-                  <BadgeCheck className="h-4 w-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-white">Live Shop Card</h3>
-                  <p className="text-[10px] text-white/40">{mode === "create" ? "New Shop Item" : `Shop Item #${initialData?.shopItemId}`}</p>
-                </div>
+        <aside className="space-y-4 xl:sticky xl:top-24">
+          <div className="rounded-2xl border border-white/10 bg-[#111111] p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#ffc032]/10 text-[#ffc032]">
+                <BadgeCheck className="h-4 w-4" />
               </div>
-              <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${formData.isActive ? "border-green-500/30 bg-green-500/10 text-green-400" : "border-red-500/30 bg-red-500/10 text-red-400"}`}>
-                {formData.isActive ? "ACTIVE" : "INACTIVE"}
-              </span>
+              <div>
+                <h2 className="text-sm font-bold text-white">Shop Preview</h2>
+                <p className="text-xs text-white/40">{mode === "create" ? "New item" : `Shop item #${initialData?.shopItemId ?? ""}`}</p>
+              </div>
             </div>
 
-            {/* Simulated Shop Card */}
-            <div className="rounded-xl border border-white/10 bg-[#0a0a0a] p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-black/40">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-black/20">
                   {selectedItem?.iconUrl || initialData?.itemIconUrl ? (
                     <img
                       src={selectedItem?.iconUrl || initialData?.itemIconUrl || ""}
-                      alt={selectedItem?.name || initialData?.itemName || "Shop Item"}
+                      alt={selectedItem?.name || initialData?.itemName || "Shop item"}
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <Package className="h-6 w-6 text-white/30" />
+                    <Package className="h-5 w-5 text-white/35" />
                   )}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    {selectedItem?.rarity && (
-                      <span className={`rounded border px-1.5 py-0.5 text-[9px] font-bold uppercase ${RARITY_BADGES[selectedItem.rarity] || "text-white"}`}>
-                        {selectedItem.rarity}
-                      </span>
-                    )}
-                    <span className="text-[10px] text-white/40">{selectedItem?.type || initialData?.itemType || "Item"}</span>
-                  </div>
-                  <h4 className="truncate text-sm font-bold text-white mt-1">
-                    {selectedItem?.name || initialData?.itemName || "No item selected"}
-                  </h4>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-white">{selectedItem?.name || initialData?.itemName || "No item selected"}</p>
+                  <p className="mt-1 text-xs text-white/40">{selectedItem?.type || initialData?.itemType || "Item"}</p>
                 </div>
               </div>
 
-              <div className="mt-4 grid grid-cols-2 gap-2 text-center">
-                <div className="rounded-lg border border-white/10 bg-white/[0.03] p-2.5">
-                  <div className="flex items-center justify-center gap-1.5 text-sm font-black text-white">
-                    {formData.currency === "Gems" ? <Gem className="h-4 w-4 text-cyan-400" /> : <Coins className="h-4 w-4 text-amber-400" />}
-                    {formatCurrency(formData.price, formData.currency)}
-                  </div>
-                  <span className="text-[10px] font-semibold text-white/40 uppercase">Price Tag</span>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                  {formData.currency === "Gems" ? <Gem className="h-4 w-4 text-cyan-300" /> : <Coins className="h-4 w-4 text-yellow-300" />}
+                  <p className="mt-2 text-sm font-black text-white">{formatCurrency(formData.price, formData.currency)}</p>
+                  <p className="text-[10px] uppercase tracking-wider text-white/35">Price</p>
                 </div>
-
-                <div className="rounded-lg border border-white/10 bg-white/[0.03] p-2.5">
-                  <div className="text-sm font-black text-white">{stockLabel(formData.stock)}</div>
-                  <span className="text-[10px] font-semibold text-white/40 uppercase">Stock</span>
+                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                  <Archive className="h-4 w-4 text-green-300" />
+                  <p className="mt-2 text-sm font-black text-white">{stockLabel(formData.stock)}</p>
+                  <p className="text-[10px] uppercase tracking-wider text-white/35">Stock</p>
                 </div>
               </div>
 
-              <div className="mt-3 rounded-lg border border-white/5 bg-white/[0.02] p-2.5 text-xs">
-                <div className="flex items-center justify-between text-white/60">
-                  <span>Limits:</span>
-                  <span className="font-semibold text-purple-300">
-                    {formData.dailyPurchaseLimit > 0 ? `Daily ${formData.dailyPurchaseLimit}` : "No Daily"} / {formData.weeklyPurchaseLimit > 0 ? `Weekly ${formData.weeklyPurchaseLimit}` : "No Weekly"}
-                  </span>
-                </div>
-                <div className="mt-1 flex items-center justify-between text-white/60">
-                  <span>Runtime:</span>
-                  <span className="font-semibold text-amber-300">{availabilityLabel(formData)}</span>
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-white/35">Runtime</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <span className="rounded-lg bg-[#ffc032]/10 px-2 py-1 text-xs font-semibold text-[#ffc032]">{formData.shopSection}</span>
+                  <span className="rounded-lg bg-white/5 px-2 py-1 text-xs font-semibold text-white/70">{availabilityLabel(formData)}</span>
                 </div>
               </div>
             </div>

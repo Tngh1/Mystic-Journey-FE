@@ -204,7 +204,7 @@ export default function EditAchievementPage() {
         />
       </FormSection>
 
-      <FormSection title="Achievement Icon" icon={ImageIcon} iconColor="text-purple-400">
+      <FormSection title="Achievement Icon" icon={ImageIcon}>
         <ImageUploader
           value={formData.iconUrl}
           onChange={(url) => handleChange("iconUrl", url)}

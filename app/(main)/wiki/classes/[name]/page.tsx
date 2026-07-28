@@ -1,22 +1,59 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  ArrowLeft, Users, Shield, Swords, Heart, Zap, Star, Ghost,
-  Sparkles, Clock, Lock, Gauge,
+  ArrowLeft, ArrowRight, Users, Shield, Swords, Heart, Zap, Star, Ghost,
+  Sparkles, Clock, Lock, Gauge, Target, Layers, Footprints, Crosshair,
+  Percent, TrendingUp, AlertCircle, Fingerprint, ChevronRight,
 } from "lucide-react";
 import { getSkills, type SkillResponse } from "@/lib/api/skills";
-import { getClassBySlug, SHARED_STATS, STAT_MAX } from "@/lib/data/classes";
-import PageLoader from "@/components/ui/PageLoader";
+import { getClassBySlug, CLASSES } from "@/lib/data/classes";
+import { useClassConfigs, findConfig } from "@/lib/hooks/useClassConfigs";
 
-const skillTypeColors: Record<string, { bg: string; text: string; border: string }> = {
-  Active:  { bg: "bg-red-500/15", text: "text-red-400", border: "border-red-500/30" },
-  Passive: { bg: "bg-blue-500/15", text: "text-blue-400", border: "border-blue-500/30" },
-  Buff:    { bg: "bg-green-500/15", text: "text-green-400", border: "border-green-500/30" },
-  Debuff:  { bg: "bg-purple-500/15", text: "text-purple-400", border: "border-purple-500/30" },
+/* The service record.
+
+   The previous page was a chapel bay — a masonry window with leaded glazing, a
+   brass tablet bolted under it, and the techniques on an iron rack down the
+   side. Handsome, but it read as architecture rather than as a *character
+   profile*, and its enclosures (Panel iron/stone, the stone-wall bay) were
+   the same shared furniture the rest of the site is built from.
+
+   This is built fresh, as one continuous record card of the kind a game's
+   character screen shows:
+
+     • **The file head** — a single wide object. The portrait stands at the left
+       edge, full bleed to the card's own border; the identity block sits beside
+       it with the name in display type, the file number, the role and the two
+       lore lines. One object, one border, one shadow: no plaque inside a plaque.
+     • **The attribute board** — the eight live ClassConfig figures as engraved
+       cells in one grid, each figure large and tabular. Not a two-column list of
+       label/value rows.
+     • **The technique dock** — the skills as a strip of file tabs across the top
+       of one wide body, so the open technique reads as the open tab of the same
+       object rather than as a second panel beside a rack.
+
+   Nothing about the data changed: still two independent reads, ClassConfigs and
+   Skills, neither blocking the other, each degrading inside its own block. */
+
+/* Cloth for a technique's type chip. Every one of these carries parchment ink at
+   better than 7:1, and the type word is printed on the chip, so the colour is
+   never the signal on its own. */
+const SKILL_TYPE_CLOTH: Record<string, string> = {
+  Active: "bg-heraldry-crimson",
+  Passive: "bg-heraldry-royal",
+  Buff: "bg-heraldry-pine",
+  Debuff: "bg-heraldry-arcane",
+};
+
+/* One glyph per order, for the roster rail at the top. The accessible name is
+   the class name — the icon is decorative. */
+const CLASS_ICONS: Record<string, typeof Shield> = {
+  knight: Shield,
+  mage: Sparkles,
+  archer: Target,
 };
 
 function SkillTypeIcon({ type, className }: { type: string; className?: string }) {
@@ -28,208 +65,437 @@ function SkillTypeIcon({ type, className }: { type: string; className?: string }
   return <Sparkles className={className} />;
 }
 
-function BigStat({ label, value, max, barColor }: { label: string; value: number; max: number; barColor: string }) {
-  const Icon = label === "HP" ? Heart : label === "ATK" ? Swords : Shield;
-  const pct = Math.max(6, Math.round((value / max) * 100));
+/* One engraved cell of the attribute board: the glyph and the noun small at the
+   top, the figure struck large beneath it. Tabular figures so the board does not
+   shift as values change. */
+function AttributeCell({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: string | number;
+  icon: React.ReactNode;
+}) {
   return (
-    <div className="rounded-xl bg-[#0d0d0d] border border-white/10 p-4">
-      <div className="flex items-center justify-between mb-2">
-        <span className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-white/50 font-semibold">
-          <Icon className="w-3.5 h-3.5" />
-          {label}
-        </span>
-        <span className="text-lg font-black text-white tabular-nums">{value}</span>
-      </div>
-      <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
-        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: barColor }} />
-      </div>
+    <div className="border-2 border-black/60 bg-black/30 px-3 py-2.5 shadow-[inset_2px_2px_0_rgb(0_0_0_/_0.45)]">
+      <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-parchment-dim">
+        {icon}
+        <span className="truncate">{label}</span>
+      </p>
+      <p className="mt-1 text-xl font-black tabular-nums text-parchment">{value}</p>
+    </div>
+  );
+}
+
+/* Cells held open at the right height while the table is in flight, so the board
+   does not resize when the figures land. */
+function AttributeBoardSkeleton() {
+  return (
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" aria-hidden="true">
+      {Array.from({ length: 8 }, (_, i) => (
+        <div key={i} className="border-2 border-black/60 bg-black/30 px-3 py-2.5">
+          <span className="block h-3 w-16 bg-parchment/10" />
+          <span className="mt-1.5 block h-6 w-12 bg-parchment/10" />
+        </div>
+      ))}
     </div>
   );
 }
 
 export default function ClassDetailPage() {
-  const router = useRouter();
   const params = useParams<{ name: string }>();
   const slug = params?.name ?? "";
   const gameClass = getClassBySlug(slug);
 
-  const [skills, setSkills] = useState<SkillResponse[]>([]);
-  const [loadingSkills, setLoadingSkills] = useState(true);
+  /* Two independent reads: the stat line from ClassConfigs and the skill list
+     from Skills. Neither blocks the other, so one archive being down only
+     empties its own block. */
+  const { configs, error: statsError, loading: loadingStats } = useClassConfigs();
+
+  const [skills, setSkills] = useState<SkillResponse[] | null>(null);
+  const [skillsError, setSkillsError] = useState<string | null>(null);
+  const [selectedSkillId, setSelectedSkillId] = useState<number | null>(null);
 
   useEffect(() => {
     let mounted = true;
-    setLoadingSkills(true);
     getSkills(1, 1000)
-      .then((res) => { if (mounted) setSkills(res.items); })
-      .catch(() => { if (mounted) setSkills([]); })
-      .finally(() => { if (mounted) setLoadingSkills(false); });
+      .then((res) => { if (mounted) { setSkills(res.items); setSkillsError(null); } })
+      .catch((e) => {
+        if (mounted) setSkillsError(e instanceof Error ? e.message : "Failed to load skills.");
+      });
     return () => { mounted = false; };
   }, []);
 
+  const loadingSkills = !skills && !skillsError;
+
   const classSkills = useMemo(() => {
-    if (!gameClass) return [];
+    if (!gameClass || !skills) return [];
     return skills
       .filter((s) => s.isActive && s.classRequirement === gameClass.name)
       .sort((a, b) => a.unlockLevel - b.unlockLevel);
   }, [skills, gameClass]);
 
+  const selectedSkill =
+    classSkills.find((s) => s.skillId === selectedSkillId) ?? classSkills[0] ?? null;
+
   if (!gameClass) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 pt-[88px] md:pt-[112px] px-4">
-        <Users className="w-16 h-16 text-white/20" />
-        <h2 className="text-xl font-bold text-white">Class not found</h2>
-        <button
-          onClick={() => router.push("/wiki/classes")}
-          className="px-4 py-2 bg-[#ffc032]/10 hover:bg-[#ffc032]/20 text-[#ffc032] border border-[#ffc032]/30 rounded-xl cursor-pointer transition-colors"
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-4 px-4 pt-[88px] md:pt-[112px]">
+        <Users className="h-16 w-16 text-fg-subtle" aria-hidden="true" />
+        <h1 className="text-xl font-bold text-fg">Class not found</h1>
+        <p className="text-sm text-fg-muted">No order is recorded under that name.</p>
+        <Link
+          href="/wiki/classes"
+          className="pixel-press mt-2 flex h-11 items-center border-2 border-accent bg-accent px-4 text-sm font-black uppercase tracking-widest text-on-accent shadow-md hover:bg-accent-hover"
         >
           Back to classes
-        </button>
+        </Link>
       </div>
     );
   }
 
   const cls = gameClass;
+  const cfg = findConfig(configs, cls.name);
+  const index = CLASSES.findIndex((c) => c.id === cls.id);
+  const prevClass = CLASSES[(index - 1 + CLASSES.length) % CLASSES.length];
+  const nextClass = CLASSES[(index + 1) % CLASSES.length];
+
+  /* Every field of the live ClassConfig row, not just the three the roster
+     compares. Percentages carry their unit in the value so the label stays a
+     plain noun. */
+  const attributes = cfg
+    ? [
+        { label: "Max HP", value: cfg.maxHp, icon: <Heart className="h-3 w-3" aria-hidden="true" /> },
+        { label: "Attack", value: cfg.atk, icon: <Swords className="h-3 w-3" aria-hidden="true" /> },
+        { label: "Defence", value: cfg.def, icon: <Shield className="h-3 w-3" aria-hidden="true" /> },
+        { label: "Move Speed", value: cfg.moveSpeed, icon: <Footprints className="h-3 w-3" aria-hidden="true" /> },
+        { label: "Atk Speed", value: cfg.attackSpeed, icon: <Gauge className="h-3 w-3" aria-hidden="true" /> },
+        { label: "Crit Rate", value: `${cfg.critRate}%`, icon: <Crosshair className="h-3 w-3" aria-hidden="true" /> },
+        { label: "Crit Damage", value: `${cfg.critDamage}%`, icon: <Percent className="h-3 w-3" aria-hidden="true" /> },
+        { label: "Damage Bonus", value: `${cfg.damageBonus}%`, icon: <TrendingUp className="h-3 w-3" aria-hidden="true" /> },
+      ]
+    : [];
+
+  const skillDetails = selectedSkill
+    ? [
+        {
+          label: "Base Damage",
+          value: selectedSkill.baseDamage > 0 ? selectedSkill.baseDamage : "—",
+          icon: <Swords className="h-3 w-3" aria-hidden="true" />,
+        },
+        {
+          label: "Damage Type",
+          value: selectedSkill.damageType,
+          icon: <Target className="h-3 w-3" aria-hidden="true" />,
+        },
+        {
+          label: "Cooldown",
+          value: selectedSkill.cooldownSeconds > 0 ? `${selectedSkill.cooldownSeconds}s` : "Instant",
+          icon: <Clock className="h-3 w-3" aria-hidden="true" />,
+        },
+        {
+          label: "Corruption Cost",
+          value: selectedSkill.corruptionCost > 0 ? selectedSkill.corruptionCost : "—",
+          icon: <Sparkles className="h-3 w-3" aria-hidden="true" />,
+        },
+      ]
+    : [];
 
   return (
-    <div className="min-h-screen pt-[88px] md:pt-[112px] pb-16">
-      <div className="max-w-[1200px] mx-auto px-4 lg:px-6">
-        {/* Breadcrumb */}
-        <div className="mb-5 flex items-center gap-3">
+    <div className="min-h-dvh pb-16 pt-[88px] md:pt-[112px]">
+      <div className="mx-auto w-full max-w-[1200px] space-y-6 px-4 py-10 md:px-6 md:py-14">
+        {/* Back link and the roster rail. No hero band — the name lives on the
+            file head below, so nothing competes with it up here. */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
           <Link
             href="/wiki/classes"
-            className="inline-flex items-center gap-1.5 text-white/50 hover:text-[#ffc032] text-sm transition-colors"
+            className="inline-flex h-11 items-center gap-1.5 text-sm font-bold text-fg-muted transition-colors hover:text-accent"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Classes
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            Muster Roll
           </Link>
-          <span className="h-px flex-1 bg-linear-to-r from-white/10 to-transparent" />
+
+          <span className="h-0.5 flex-1 bg-line" aria-hidden="true" />
+
+          <nav aria-label="Classes" className="flex flex-wrap gap-2">
+            {CLASSES.map((c) => {
+              const Icon = CLASS_ICONS[c.id] ?? Users;
+              const active = c.id === cls.id;
+              return (
+                <Link
+                  key={c.id}
+                  href={`/wiki/classes/${c.id}`}
+                  aria-current={active ? "page" : undefined}
+                  className={[
+                    "pixel-press flex min-h-11 items-center gap-2 border-2 px-4 text-xs font-black uppercase tracking-widest shadow-md transition-colors",
+                    active
+                      ? `border-accent ${c.accent} ${c.accentText}`
+                      : "border-black/60 bg-iron-dark text-parchment-dim hover:border-accent hover:text-parchment",
+                  ].join(" ")}
+                >
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                  {c.name}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Header */}
-        <div className={`relative rounded-3xl border ${cls.accentBorder} overflow-hidden bg-linear-to-b from-white/[0.04] to-transparent`}>
-          <div className="absolute top-0 left-0 right-0 h-1" style={{ background: cls.barColor }} />
-          <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-6 p-5 md:p-6">
-            {/* Portrait */}
-            <div className="relative aspect-[3/4] w-full max-w-[240px] mx-auto md:mx-0 rounded-2xl overflow-hidden bg-[#0d0d0d] border border-white/10">
-              <Image src={cls.image} alt={cls.name} fill sizes="240px" className="object-cover object-top" />
+        {/* ── The file head ──────────────────────────────────────────────────
+            One object: portrait flush to the left edge of the card, identity
+            block beside it, attribute board along the foot. The card's own
+            border is the only frame in here. */}
+        <article
+          aria-labelledby="class-name"
+          className="border-2 border-black/70 bg-slate shadow-[8px_8px_0_rgb(0_0_0_/_0.55)]"
+        >
+          {/* Cloth head in the order's heraldry — the file number and role. */}
+          <div
+            className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b-2 border-black/60 ${cls.accent} px-4 py-2`}
+          >
+            <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-parchment-dim">
+              <Fingerprint className="h-3 w-3" aria-hidden="true" />
+              Service Record · No. {String(index + 1).padStart(2, "0")}
+            </p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-parchment">
+              {cls.role}
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-[minmax(0,17rem)_1fr]">
+            {/* Portrait. Bleeds to the card edge, divided from the identity
+                block by one rule rather than by a frame of its own. */}
+            <div className="relative aspect-3/4 w-full overflow-hidden border-b-2 border-black/60 bg-stone md:border-b-0 md:border-r-2">
+              <Image
+                src={cls.image}
+                alt={cls.name}
+                fill
+                sizes="(min-width: 768px) 272px, 100vw"
+                className="pixelated object-cover object-top"
+                priority
+              />
+              <div
+                className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-black/25"
+                aria-hidden="true"
+              />
+              <div className="pixel-scanlines absolute inset-0 opacity-20" aria-hidden="true" />
             </div>
 
-            {/* Info */}
-            <div className="min-w-0 flex flex-col">
-              <div className="flex flex-wrap items-center gap-3">
-                <h1 className={`text-3xl md:text-4xl font-black ${cls.accentText}`}>{cls.name}</h1>
+            {/* Identity block. */}
+            <div className="flex flex-col gap-4 p-4 md:p-6">
+              <div>
+                <h1
+                  id="class-name"
+                  className="text-4xl font-bold leading-none text-fg md:text-5xl"
+                >
+                  {cls.name}
+                </h1>
+                <p className="mt-2 flex items-center gap-2 text-xs font-black uppercase tracking-[0.28em] text-accent">
+                  {cls.role}
+                  <span className="h-0.5 w-8 bg-accent/60" aria-hidden="true" />
+                </p>
               </div>
-              <p className={`text-sm font-semibold uppercase tracking-wide mt-1 ${cls.accentText}`}>{cls.role}</p>
-              <p className="text-white/65 text-sm leading-relaxed mt-3">{cls.description}</p>
 
-              <div className="rounded-xl bg-[#0d0d0d] border border-white/10 p-3 mt-4">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-white/40 mb-1">Playstyle</p>
-                <p className="text-xs text-white/70 leading-relaxed">{cls.playstyle}</p>
+              <p className="max-w-[60ch] text-sm leading-relaxed text-parchment-dim md:text-[15px]">
+                {cls.description}
+              </p>
+
+              <p className="flex items-start gap-2 border-t-2 border-black/40 pt-3 text-xs italic leading-relaxed text-parchment-dim/85">
+                <Gauge className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                {cls.playstyle}
+              </p>
+
+              {/* The attribute board, inside the same card — the figures belong
+                  to this record, not to a tablet bolted under it. */}
+              <div className="mt-auto" aria-busy={loadingStats || undefined}>
+                <p className="mb-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-parchment-dim">
+                  <Layers className="h-3 w-3" aria-hidden="true" />
+                  Starting Line · Level 1
+                </p>
+
+                {loadingStats && <p role="status" className="sr-only">Loading base stats…</p>}
+
+                {cfg ? (
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {attributes.map((a) => (
+                      <AttributeCell key={a.label} {...a} />
+                    ))}
+                  </div>
+                ) : loadingStats ? (
+                  <AttributeBoardSkeleton />
+                ) : (
+                  <div
+                    role="alert"
+                    className="border-2 border-black/60 bg-black/30 px-3 py-3 text-xs leading-relaxed text-parchment-dim"
+                  >
+                    <p className="flex items-start gap-2">
+                      <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-danger" aria-hidden="true" />
+                      <span>
+                        {statsError
+                          ? `The stat line could not be read from the archive (${statsError}).`
+                          : `No stat line is recorded for the ${cls.name} order.`}
+                      </span>
+                    </p>
+                    {statsError && (
+                      <button
+                        type="button"
+                        onClick={() => window.location.reload()}
+                        className="pixel-press mt-3 flex min-h-11 items-center border-2 border-accent bg-accent px-4 text-xs font-black uppercase tracking-widest text-on-accent shadow-md hover:bg-accent-hover"
+                      >
+                        Try Again
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
-        </div>
+        </article>
 
-        {/* Base stats */}
-        <section className="mt-6">
-          <div className="flex items-center gap-2 mb-3">
-            <Gauge className="w-4 h-4 text-[#ffc032]" />
-            <h2 className="text-lg font-bold text-white">Base Stats</h2>
-            <span className="text-xs text-white/30">· Level 1</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <BigStat label="HP" value={cls.stats.hp} max={STAT_MAX.hp} barColor={cls.barColor} />
-            <BigStat label="ATK" value={cls.stats.atk} max={STAT_MAX.atk} barColor={cls.barColor} />
-            <BigStat label="DEF" value={cls.stats.def} max={STAT_MAX.def} barColor={cls.barColor} />
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
-            {SHARED_STATS.map((s) => (
-              <div key={s.label} className="rounded-xl bg-[#111111] border border-white/10 px-4 py-3 text-center">
-                <p className="text-base font-bold text-white tabular-nums">{s.value}</p>
-                <p className="text-[11px] text-white/45 mt-0.5">{s.label}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Skills */}
-        <section className="mt-8">
-          <div className="flex items-center gap-2 mb-3">
-            <Zap className="w-4 h-4 text-[#ffc032]" />
-            <h2 className="text-lg font-bold text-white">Class Skills</h2>
-            {!loadingSkills && (
-              <span className="text-xs text-white/30">· {classSkills.length}</span>
+        {/* ── The technique dock ─────────────────────────────────────────────
+            Tabs across the head of one wide body: the open technique is the open
+            tab of the same object, so there is no rack-and-slab pair. */}
+        <section
+          aria-labelledby="techniques"
+          className="border-2 border-black/70 bg-slate shadow-[8px_8px_0_rgb(0_0_0_/_0.55)]"
+          aria-busy={loadingSkills || undefined}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-black/60 bg-iron-dark px-4 py-2">
+            <h2
+              id="techniques"
+              className="text-xs font-black uppercase tracking-[0.2em] text-accent"
+            >
+              Techniques
+            </h2>
+            {classSkills.length > 0 && (
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-parchment-dim tabular-nums">
+                {classSkills.length} on record
+              </p>
             )}
           </div>
 
           {loadingSkills ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-28 rounded-2xl bg-[#111111] border border-white/10 animate-pulse" />
-              ))}
+            <>
+              <p role="status" className="sr-only">Loading skills…</p>
+              <div className="flex flex-wrap gap-1 border-b-2 border-black/60 bg-black/25 p-2" aria-hidden="true">
+                {Array.from({ length: 5 }, (_, i) => (
+                  <span key={i} className="h-11 w-32 border-2 border-black/50 bg-black/30" />
+                ))}
+              </div>
+              <div className="space-y-2 p-4" aria-hidden="true">
+                <span className="block h-3 w-2/3 bg-parchment/10" />
+                <span className="block h-3 w-1/2 bg-parchment/10" />
+              </div>
+            </>
+          ) : skillsError ? (
+            <div role="alert" className="p-4">
+              <p className="flex items-start gap-2 border-2 border-black/60 bg-black/30 px-3 py-3 text-xs leading-relaxed text-parchment-dim">
+                <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-danger" aria-hidden="true" />
+                <span>The technique roll could not be read ({skillsError}).</span>
+              </p>
             </div>
           ) : classSkills.length === 0 ? (
-            <div className="text-center py-12 rounded-2xl bg-[#111111] border border-white/10">
-              <Sparkles className="w-12 h-12 text-white/15 mx-auto mb-3" />
-              <p className="text-white/40 text-sm">No skills found for {cls.name}.</p>
+            <div className="p-6 text-center">
+              <Ghost className="mx-auto mb-2 h-8 w-8 text-parchment-dim/40" aria-hidden="true" />
+              <p className="text-xs italic text-parchment-dim/80">
+                No technique is recorded for this order yet.
+              </p>
+              <Link
+                href="/wiki/skills"
+                className="pixel-press mx-auto mt-3 flex min-h-11 w-fit items-center gap-1.5 border-2 border-accent bg-accent px-4 text-xs font-black uppercase tracking-widest text-on-accent shadow-md hover:bg-accent-hover"
+              >
+                Browse all skills
+                <ArrowRight className="h-3 w-3" aria-hidden="true" />
+              </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {classSkills.map((skill) => {
-                const tc = skillTypeColors[skill.type] ?? { bg: "bg-white/10", text: "text-white/60", border: "border-white/10" };
-                return (
-                  <div
-                    key={skill.skillId}
-                    className="group rounded-2xl bg-[#111111] border border-white/10 p-5 hover:border-[#ffc032]/40 transition-colors"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border ${tc.bg} ${tc.text} ${tc.border}`}>
-                        <SkillTypeIcon type={skill.type} className="w-5 h-5" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="text-base font-bold text-white group-hover:text-[#ffc032] transition-colors">{skill.name}</h3>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${tc.bg} ${tc.text} ${tc.border}`}>
-                            {skill.type}
+            <>
+              {/* The tab strip. The open tab loses its bottom rule so it runs
+                  into the body — and carries a gold frame plus aria-pressed, so
+                  the state never rests on colour. */}
+              <ul className="flex flex-wrap gap-1 border-b-2 border-black/60 bg-black/25 p-2">
+                {classSkills.map((skill) => {
+                  const isOpen = selectedSkill?.skillId === skill.skillId;
+                  return (
+                    <li key={skill.skillId}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedSkillId(skill.skillId)}
+                        aria-pressed={isOpen}
+                        className={[
+                          "flex min-h-11 cursor-pointer items-center gap-2 border-2 px-3 text-left transition-colors",
+                          isOpen
+                            ? "border-accent bg-iron text-parchment shadow-md"
+                            : "border-black/50 bg-iron-dark text-parchment-dim hover:border-accent/60 hover:text-parchment",
+                        ].join(" ")}
+                      >
+                        <SkillTypeIcon type={skill.type} className="h-3.5 w-3.5 shrink-0" />
+                        <span className="min-w-0">
+                          <span className="block truncate text-xs font-bold">{skill.name}</span>
+                          <span className="block truncate text-[10px] font-bold uppercase tracking-widest text-parchment-dim/80 tabular-nums">
+                            Lv {skill.unlockLevel}
                           </span>
-                        </div>
-                        <p className="text-white/55 text-xs leading-relaxed mt-1 line-clamp-2">
-                          {skill.description ?? "No description available."}
-                        </p>
-                      </div>
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {selectedSkill && (
+                <div className="grid gap-5 p-4 md:grid-cols-[1fr_minmax(0,20rem)] md:p-6">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-xl font-bold text-fg">{selectedSkill.name}</h3>
+                      <span
+                        className={`flex items-center gap-1.5 border-2 border-black/60 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-parchment ${
+                          SKILL_TYPE_CLOTH[selectedSkill.type] ?? "bg-iron"
+                        }`}
+                      >
+                        <SkillTypeIcon type={selectedSkill.type} className="h-3 w-3" />
+                        {selectedSkill.type}
+                      </span>
+                      <span className="flex items-center gap-1.5 border-2 border-black/60 bg-black/30 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-parchment-dim tabular-nums">
+                        <Lock className="h-3 w-3" aria-hidden="true" />
+                        Level {selectedSkill.unlockLevel}
+                      </span>
                     </div>
 
-                    {/* Skill meta */}
-                    <div className="flex flex-wrap items-center gap-3 mt-4 text-xs text-white/50">
-                      <span className="inline-flex items-center gap-1">
-                        <Lock className="w-3.5 h-3.5" />
-                        Lv. {skill.unlockLevel}
-                      </span>
-                      {skill.cooldownSeconds > 0 && (
-                        <span className="inline-flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5" />
-                          {skill.cooldownSeconds}s
-                        </span>
-                      )}
-                      {skill.baseDamage > 0 && (
-                        <span className="inline-flex items-center gap-1">
-                          <Swords className="w-3.5 h-3.5 text-orange-400" />
-                          {skill.baseDamage} dmg
-                        </span>
-                      )}
-                      {skill.corruptionCost > 0 && (
-                        <span className="inline-flex items-center gap-1 text-purple-400">
-                          <Sparkles className="w-3.5 h-3.5" />
-                          {skill.corruptionCost}
-                        </span>
-                      )}
-                    </div>
+                    <p className="mt-3 max-w-[62ch] text-sm italic leading-relaxed text-parchment-dim">
+                      {selectedSkill.description ??
+                        "An ancient technique whose description has been lost to time."}
+                    </p>
                   </div>
-                );
-              })}
-            </div>
+
+                  <div className="grid grid-cols-2 gap-2 self-start">
+                    {skillDetails.map((d) => (
+                      <AttributeCell key={d.label} {...d} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </section>
+
+        {/* Order-to-order navigation under the record. */}
+        <nav aria-label="Other classes" className="flex flex-wrap items-center justify-between gap-3">
+          <Link
+            href={`/wiki/classes/${prevClass.id}`}
+            className="pixel-press flex min-h-11 items-center gap-2 border-2 border-black/60 bg-iron-dark px-4 text-xs font-black uppercase tracking-widest text-parchment shadow-md transition-colors hover:border-accent"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+            {prevClass.name}
+          </Link>
+          <Link
+            href={`/wiki/classes/${nextClass.id}`}
+            className="pixel-press flex min-h-11 items-center gap-2 border-2 border-black/60 bg-iron-dark px-4 text-xs font-black uppercase tracking-widest text-parchment shadow-md transition-colors hover:border-accent"
+          >
+            {nextClass.name}
+            <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+          </Link>
+        </nav>
       </div>
     </div>
   );

@@ -1,38 +1,41 @@
 import Link from "next/link";
 import FaceAnimation from "@/components/ui/FaceAnimation";
+import Panel from "@/components/ui/Panel";
 
+/* A signpost in the dark rather than a web 404: stone ground, a wood board with
+   the message carved into it, gold for the way home and iron for the sidetrack.
+   No NotoSans here any more — it was loaded (3 faces, ~1.8 MB) only for these
+   two error screens, and the display face the rest of the app uses covers them. */
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4">
-      <div className="max-w-md w-full text-center space-y-6">
-        <div className="flex justify-center">
+    <div className="stone-wall flex min-h-dvh items-center justify-center px-4 py-16">
+      <Panel material="wood" className="w-full max-w-md p-8 text-center">
+        <div className="mb-6 flex justify-center">
           <FaceAnimation />
         </div>
 
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-white font-['PatrickHandSC']">
-            Page not found
-          </h1>
-          <p className="text-white/60 text-sm font-['NotoSans']">
-            This page seems to have vanished into the void. Let&apos;s get you back on track.
-          </p>
-        </div>
+        <h1 className="text-3xl font-black uppercase tracking-widest text-accent">
+          Page not found
+        </h1>
+        <p className="mt-3 text-sm leading-relaxed text-parchment-dim">
+          This path leads nowhere. The road back is marked below.
+        </p>
 
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Link
             href="/"
-            className="px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold rounded-lg transition-colors font-['NotoSans']"
+            className="pixel-press pixel-bevel-gold flex min-h-11 flex-1 items-center justify-center border-2 border-black/60 bg-accent px-6 py-3 text-sm font-black uppercase tracking-widest text-on-accent hover:bg-accent-hover"
           >
             Back to Home
           </Link>
           <Link
             href="/wiki"
-            className="px-6 py-3 border border-white/20 hover:border-white/40 text-white rounded-lg transition-colors font-['NotoSans']"
+            className="pixel-press pixel-bevel-iron flex min-h-11 flex-1 items-center justify-center border-2 border-black/60 px-6 py-3 text-sm font-black uppercase tracking-widest text-parchment hover:text-accent"
           >
             Explore Wiki
           </Link>
         </div>
-      </div>
+      </Panel>
     </div>
   );
 }

@@ -1,15 +1,28 @@
 "use client";
 
+/* The dashboard's monthly plot, drawn as a hand-cut chart rather than a smooth
+   one: square bar corners (`rx="5"` is gone — SVG `rx` is an attribute, so the
+   global border-radius reset never touched it), mitred joins on the revenue
+   line, and square dots instead of circles.
+
+   Revenue was `#60a5fa`, a second saturated accent competing with gold for the
+   eye. It reads as parchment now: gold is the transaction bars, bone-white is
+   the revenue trace, and the legend states which is which so the pairing does
+   not rest on colour. Colours come from the theme tokens via CSS variables —
+   SVG `fill`/`stroke` cannot take a Tailwind class, but it can take a var(). */
+
 interface MonthlyChartProps {
   categories: string[];
   transactions: number[];
   revenue: number[];
 }
 
-const GOLD = "#ffc032";
-const BLUE = "#60a5fa";
-const GRID = "rgba(255,255,255,0.08)";
-const TEXT = "rgba(255,255,255,0.48)";
+const GOLD = "var(--color-accent)";
+const TRACE = "var(--color-parchment)";
+const PLATE = "var(--color-slate)";
+const GRID = "color-mix(in srgb, var(--color-parchment) 14%, transparent)";
+const AXIS = "color-mix(in srgb, var(--color-parchment) 26%, transparent)";
+const TEXT = "var(--color-parchment-dim)";
 
 const VIEWBOX_WIDTH = 720;
 const VIEWBOX_HEIGHT = 320;
@@ -42,7 +55,7 @@ export default function MonthlyChart({ categories, transactions, revenue }: Mont
 
   if (points.length === 0) {
     return (
-      <div className="flex h-80 items-center justify-center rounded-xl border border-white/10 bg-white/[0.02] text-sm text-white/45">
+      <div className="flex h-80 items-center justify-center border-2 border-black/60 bg-surface-2 text-sm text-fg-muted">
         No monthly data available.
       </div>
     );
@@ -64,19 +77,27 @@ export default function MonthlyChart({ categories, transactions, revenue }: Mont
   const gridLines = [0, 0.25, 0.5, 0.75, 1];
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-end gap-4 text-xs text-white/60">
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-end gap-4 text-xs text-parchment-dim">
         <div className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: GOLD }} />
-          Transactions
+          <span
+            className="h-3 w-3 border border-black/60"
+            style={{ backgroundColor: GOLD }}
+            aria-hidden="true"
+          />
+          Transactions (bars)
         </div>
         <div className="flex items-center gap-2">
-          <span className="h-0.5 w-5 rounded-full" style={{ backgroundColor: BLUE }} />
-          Revenue
+          <span
+            className="h-0.5 w-5"
+            style={{ backgroundColor: TRACE }}
+            aria-hidden="true"
+          />
+          Revenue (line)
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.02]">
+      <div className="overflow-hidden border-2 border-black/60 bg-surface-2">
         <svg
           role="img"
           aria-label="Monthly transactions and revenue chart"
@@ -84,8 +105,6 @@ export default function MonthlyChart({ categories, transactions, revenue }: Mont
           className="h-80 w-full"
           preserveAspectRatio="none"
         >
-          <rect width={VIEWBOX_WIDTH} height={VIEWBOX_HEIGHT} fill="transparent" />
-
           {gridLines.map((ratio) => {
             const y = PADDING.top + CHART_HEIGHT * ratio;
             const transactionValue = maxTransactions * (1 - ratio);
@@ -99,7 +118,7 @@ export default function MonthlyChart({ categories, transactions, revenue }: Mont
                   x2={PADDING.left + CHART_WIDTH}
                   y2={y}
                   stroke={GRID}
-                  strokeDasharray="4 6"
+                  strokeDasharray="3 5"
                 />
                 <text x={PADDING.left - 10} y={y + 4} textAnchor="end" fill={TEXT} fontSize="11">
                   {formatNumber(transactionValue)}
@@ -116,7 +135,8 @@ export default function MonthlyChart({ categories, transactions, revenue }: Mont
             y1={PADDING.top + CHART_HEIGHT}
             x2={PADDING.left + CHART_WIDTH}
             y2={PADDING.top + CHART_HEIGHT}
-            stroke="rgba(255,255,255,0.14)"
+            stroke={AXIS}
+            strokeWidth="2"
           />
 
           {points.map((point, index) => {
@@ -126,15 +146,9 @@ export default function MonthlyChart({ categories, transactions, revenue }: Mont
 
             return (
               <g key={`${point.label}-${index}`}>
-                <rect
-                  x={x}
-                  y={y}
-                  width={barWidth}
-                  height={barHeight}
-                  rx="5"
-                  fill={GOLD}
-                  opacity="0.84"
-                />
+                {/* Hard 2px shadow on the bar, matching the pixel shadow scale */}
+                <rect x={x + 3} y={y + 3} width={barWidth} height={barHeight} fill="rgb(0 0 0 / 0.5)" />
+                <rect x={x} y={y} width={barWidth} height={barHeight} fill={GOLD} />
                 <text
                   x={xFor(index)}
                   y={VIEWBOX_HEIGHT - 22}
@@ -148,15 +162,23 @@ export default function MonthlyChart({ categories, transactions, revenue }: Mont
             );
           })}
 
-          <path d={revenuePath} fill="none" stroke={BLUE} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d={revenuePath}
+            fill="none"
+            stroke={TRACE}
+            strokeWidth="3"
+            strokeLinecap="square"
+            strokeLinejoin="miter"
+          />
           {points.map((point, index) => (
-            <circle
+            <rect
               key={`revenue-${point.label}-${index}`}
-              cx={xFor(index)}
-              cy={yForRevenue(point.revenue)}
-              r="4"
-              fill="#111111"
-              stroke={BLUE}
+              x={xFor(index) - 4}
+              y={yForRevenue(point.revenue) - 4}
+              width="8"
+              height="8"
+              fill={PLATE}
+              stroke={TRACE}
               strokeWidth="2.5"
             />
           ))}

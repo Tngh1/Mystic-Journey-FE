@@ -5,164 +5,357 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   User, Coins, Gem, Zap, Heart, Swords, Shield, Gauge,
-  Target, Sparkles, Trophy, Skull, Star, AlertCircle, Loader2,
+  Target, Sparkles, Trophy, Skull, AlertCircle, Activity, ScrollText,
 } from "lucide-react";
+import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import ProfileSidebar from "@/components/ui/ProfileSidebar";
+import Panel from "@/components/ui/Panel";
+import Banner from "@/components/ui/Banner";
+import Tapestry, { type TapestryDye } from "@/components/ui/Tapestry";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { getPlayerProfileById } from "@/lib/api/player-profiles";
+import { CLASSES } from "@/lib/data/classes";
 import type { PlayerProfileWithStats } from "@/lib/types";
 
-const classColors: Record<string, string> = {
-  Knight: "text-red-400",
-  Mage: "text-purple-400",
-  Archer: "text-green-400",
-};
+/* The character sheet as a woven hanging, not a scribe's charter.
 
-function StatRow({ icon: Icon, color, label, value }: { icon: LucideIcon; color: string; label: string; value: string | number }) {
+   The charter version was a parchment leaf using the wiki's own `BookStatTable`,
+   which was the problem: the account pages looked like another page of the item
+   codex. They are the one part of the portal about the *player*, so they get the
+   one material nothing else uses — cloth. Every block here is a `Tapestry`: iron
+   rod, dyed weave, gold thread couched inside the hem, fringe along the foot.
+
+   The class the hero plays picks the dye, so a knight's sheet and a mage's are
+   different hangings rather than the same card with a different badge. */
+
+/* Ten discrete blocks — a smooth bar is the wrong idiom for pixel art. The value
+   is always printed beside it, so meaning never rests on colour, and the empty
+   run is a dark thread because this is cloth, not paper. */
+function Meter({ value, max, tint }: { value: number; max: number; tint: string }) {
+  const filled = max > 0 ? Math.round((Math.min(Math.max(value, 0), max) / max) * 10) : 0;
   return (
-    <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-[#0d0d0d] border border-white/10">
-      <Icon className={`w-4 h-4 shrink-0 ${color}`} />
-      <span className="text-xs text-white/50">{label}</span>
-      <span className="text-sm font-semibold text-white ml-auto tabular-nums">{value}</span>
+    <span className="flex w-20 shrink-0 gap-0.5" aria-hidden="true">
+      {Array.from({ length: 10 }, (_, i) => (
+        <span
+          key={i}
+          className="h-2 flex-1 border border-black/50"
+          style={{ backgroundColor: i < filled ? tint : "rgb(0 0 0 / 0.35)" }}
+        />
+      ))}
+    </span>
+  );
+}
+
+/* A value cell carrying both the meter and the reading. `tabular-nums` keeps the
+   figures from shifting as they change. */
+function Gauged({ value, max, tint }: { value: number; max: number; tint: string }) {
+  return (
+    <span className="flex items-center justify-end gap-2">
+      <Meter value={value} max={max} tint={tint} />
+      <span className="tabular-nums">{value}/{max}</span>
+    </span>
+  );
+}
+
+/* One embroidered line: label in thread on the left, figure on the right. The
+   rules are the weft showing through, so they are black at low alpha rather than
+   a border colour of their own. */
+function ThreadRow({
+  label,
+  value,
+  icon,
+  last,
+}: {
+  label: string;
+  value: ReactNode;
+  icon?: ReactNode;
+  last?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center justify-between gap-3 px-3 py-2 ${last ? "" : "border-b border-black/35"}`}
+    >
+      <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-parchment-dim">
+        {icon}
+        {label}
+      </span>
+      <span className="text-sm font-bold text-parchment">{value}</span>
     </div>
   );
 }
 
+/* One hanging of the sheet: a titled tapestry holding embroidered lines. */
+function SheetHanging({
+  title,
+  icon: Icon,
+  rows,
+  dye,
+  className = "",
+}: {
+  title: string;
+  icon: LucideIcon;
+  rows: { label: string; value: ReactNode; icon?: ReactNode }[];
+  dye: TapestryDye;
+  className?: string;
+}) {
+  return (
+    <Tapestry
+      as="section"
+      dye={dye}
+      title={title}
+      titleAs="h3"
+      icon={<Icon className="h-4 w-4 text-accent" aria-hidden="true" />}
+      bodyClassName="p-2"
+      className={className}
+    >
+      <div className="border-2 border-black/50 bg-black/25 shadow-[inset_2px_2px_0_rgb(0_0_0_/_0.4)]">
+        {rows.map((r, i) => (
+          <ThreadRow key={r.label} {...r} last={i === rows.length - 1} />
+        ))}
+      </div>
+    </Tapestry>
+  );
+}
+
+const thread = "h-3.5 w-3.5 text-parchment-dim";
+
 export default function ProfilePage() {
   const { user, isLoading } = useAuth();
   const [data, setData] = useState<PlayerProfileWithStats | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const profileId = user?.playerProfileId;
 
   useEffect(() => {
-    if (isLoading) return;
-    if (!user?.playerProfileId) {
-      setLoading(false);
-      return;
-    }
+    if (isLoading || !profileId) return;
     let mounted = true;
-    setLoading(true);
-    setError(null);
-    getPlayerProfileById(user.playerProfileId)
-      .then((res) => { if (mounted) setData(res); })
-      .catch((e) => { if (mounted) setError(e instanceof Error ? e.message : "Failed to load profile."); })
-      .finally(() => { if (mounted) setLoading(false); });
+    getPlayerProfileById(profileId)
+      .then((res) => { if (mounted) { setData(res); setError(null); } })
+      .catch((e) => { if (mounted) setError(e instanceof Error ? e.message : "Failed to load profile."); });
     return () => { mounted = false; };
-  }, [isLoading, user?.playerProfileId]);
+  }, [isLoading, profileId]);
+
+  /* Derived rather than a third state: an account with no character never starts
+     a request, so a `loading` flag would have to be switched off synchronously
+     inside the effect — which is the cascading-render pattern React warns on. */
+  const loading = Boolean(profileId) && !data && !error;
 
   if (isLoading) return null;
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-black pt-32 pb-20 flex items-center justify-center px-4">
-        <div className="text-center bg-[#111111] border border-white/10 rounded-xl p-10 max-w-md w-full">
-          <h2 className="text-2xl font-bold text-white mb-4">Not Authenticated</h2>
-          <p className="text-white/60 mb-8">Please log in to view your profile.</p>
-          <Link href="/login" className="inline-block px-6 py-3 bg-[#ffc032] hover:bg-[#ffd04c] text-[#111] rounded-xl transition-colors font-semibold w-full cursor-pointer">
-            Log In Now
+      <div className="flex min-h-dvh items-center justify-center px-4 pb-16 pt-[88px] md:pt-[112px]">
+        <Panel material="iron" rivets className="w-full max-w-md p-8 text-center">
+          <h1 className="text-2xl font-bold text-fg">Not Authenticated</h1>
+          <p className="mt-3 text-sm text-fg-muted">
+            Sign in to see your hanging.
+          </p>
+          <Link
+            href="/login"
+            className="pixel-press mt-6 flex h-11 w-full items-center justify-center bg-accent text-sm font-black uppercase tracking-widest text-on-accent shadow-md transition-colors hover:bg-accent-hover"
+          >
+            Log In
           </Link>
-        </div>
+        </Panel>
       </div>
     );
   }
 
   const stats = data?.stats;
-  const xpClass = classColors[data?.playerClass ?? ""] ?? "text-[#ffc032]";
+  const cls = CLASSES.find((c) => c.name === data?.playerClass);
+  /* The hero's order dyes their own cloth; an account with no character yet gets
+     the house colour. `bannerTone` covers tones Tapestry has no dye for (gold,
+     gilt, iron), hence the narrowing. */
+  const dye: TapestryDye =
+    cls && (["royal", "crimson", "pine", "arcane", "ember"] as const).includes(
+      cls.bannerTone as TapestryDye,
+    )
+      ? (cls.bannerTone as TapestryDye)
+      : "royal";
 
   return (
-    <div className="min-h-screen bg-black text-gray-300 font-['BeVietnamPro'] pt-24 pb-20">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-8">
+    <div className="min-h-dvh pb-16 pt-[88px] md:pt-[112px]">
+      <div className="mx-auto flex max-w-[1200px] flex-col gap-6 px-4 md:flex-row md:gap-8 lg:px-6">
         <ProfileSidebar />
 
-        <main className="flex-1 md:pl-8">
-          <div className="mb-5 flex items-center gap-3">
-            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">
-              <User className="w-3.5 h-3.5" /> Character
+        <main className="min-w-0 flex-1">
+          <div className="mb-6 flex items-center gap-3">
+            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.34em] text-accent">
+              <ScrollText className="h-3.5 w-3.5" aria-hidden="true" />
+              Character
             </span>
-            <span className="h-px w-12 bg-linear-to-r from-[#ffc032]/60 to-transparent" />
+            <span className="h-0.5 flex-1 bg-line" aria-hidden="true" />
           </div>
-          <h1 className="text-4xl font-extrabold text-white mb-2">Character Profile</h1>
-          <p className="text-white/60 text-sm mb-10">Your hero&apos;s stats and progression.</p>
+          <h1 className="text-3xl font-bold text-fg md:text-4xl">Character Sheet</h1>
+          <p className="mt-2 text-sm text-fg-muted">
+            Your hero, woven as the heralds have them.
+          </p>
 
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 text-[#ffc032] animate-spin" />
-            </div>
-          ) : !user.playerProfileId || !data ? (
-            <div className="bg-[#111111] border border-white/10 rounded-2xl p-10 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center mx-auto mb-4">
-                <AlertCircle className="w-8 h-8 text-yellow-400" />
+            /* The hanging's own shape held open while it loads, so nothing jumps
+               when the numbers arrive. `aria-busy` is on the region and the rows
+               are decorative, so a screen reader hears the status line, not
+               seventeen blank threads. */
+            <div className="mt-8 space-y-6" aria-busy="true">
+              <p role="status" className="sr-only">Loading your character sheet…</p>
+              <Tapestry dye="royal" bodyClassName="p-4">
+                <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-5" aria-hidden="true">
+                  <span className="h-20 w-20 shrink-0 border-2 border-accent-deep/40 bg-black/40" />
+                  <span className="w-full space-y-2">
+                    <span className="block h-7 w-48 bg-parchment/10" />
+                    <span className="block h-5 w-32 bg-parchment/8" />
+                  </span>
+                </div>
+              </Tapestry>
+              <div className="grid gap-6 md:grid-cols-2">
+                {[9, 4, 4].map((rows, g) => (
+                  <Tapestry
+                    key={g}
+                    dye="royal"
+                    bodyClassName="p-2"
+                    className={g === 0 ? "md:row-span-2" : ""}
+                  >
+                    <div className="border-2 border-black/50 bg-black/25" aria-hidden="true">
+                      {Array.from({ length: rows }, (_, r) => (
+                        <div
+                          key={r}
+                          className={`flex items-center justify-between px-3 py-2 ${r > 0 ? "border-t border-black/35" : ""}`}
+                        >
+                          <span className="h-3 w-20 bg-parchment/10" />
+                          <span className="h-3 w-10 bg-parchment/10" />
+                        </div>
+                      ))}
+                    </div>
+                  </Tapestry>
+                ))}
               </div>
-              <h2 className="text-xl font-bold text-white mb-2">No Character Yet</h2>
-              <p className="text-white/50 text-sm max-w-md mx-auto">
-                {error ?? "This account hasn't created a character. Start the game to create your hero."}
+            </div>
+          ) : error ? (
+            /* A failed request is not an empty account, and the two need
+               different actions: this one can be retried. */
+            <Panel material="iron" rivets className="mt-8 p-10 text-center" role="alert">
+              <AlertCircle className="mx-auto mb-4 h-12 w-12 text-accent" aria-hidden="true" />
+              <h2 className="text-xl font-bold text-fg">Hanging Unreadable</h2>
+              <p className="mx-auto mt-2 max-w-md text-sm text-fg-muted">{error}</p>
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="pixel-press mx-auto mt-6 flex h-11 items-center justify-center bg-accent px-5 text-sm font-black uppercase tracking-widest text-on-accent shadow-md transition-colors hover:bg-accent-hover"
+              >
+                Try Again
+              </button>
+            </Panel>
+          ) : !data ? (
+            <Panel material="iron" rivets className="mt-8 p-10 text-center">
+              <Swords className="mx-auto mb-4 h-12 w-12 text-accent" aria-hidden="true" />
+              <h2 className="text-xl font-bold text-fg">No Character Yet</h2>
+              <p className="mx-auto mt-2 max-w-md text-sm text-fg-muted">
+                This account hasn&apos;t created a hero. Install the game and the
+                weavers will start your hanging on your first step into the forest.
               </p>
-            </div>
+              <Link
+                href="/download"
+                className="pixel-press mx-auto mt-6 flex h-11 w-fit items-center justify-center bg-accent px-5 text-sm font-black uppercase tracking-widest text-on-accent shadow-md transition-colors hover:bg-accent-hover"
+              >
+                Get the Game
+              </Link>
+            </Panel>
           ) : (
-            <div className="space-y-8">
-              {/* Hero header */}
-              <div className="flex items-center gap-5 bg-[#111111] border border-white/10 rounded-2xl p-6">
-                <div className="w-20 h-20 rounded-2xl bg-[#0d0d0d] border-2 border-[#ffc032]/40 flex items-center justify-center overflow-hidden shrink-0">
-                  {data.avatarUrl ? (
-                    <Image src={data.avatarUrl} alt={data.displayName} width={80} height={80} className="object-cover w-full h-full" />
-                  ) : (
-                    <User className="w-9 h-9 text-[#ffc032]" />
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <h2 className="text-2xl font-bold text-white truncate">{data.displayName}</h2>
-                  <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                    <span className={`text-sm font-semibold ${xpClass}`}>{data.playerClass}</span>
-                    <span className="inline-flex items-center gap-1 text-[#ffc032] font-bold text-sm">
-                      <Star className="w-3.5 h-3.5" /> Level {data.level}
-                    </span>
-                    <span className="text-white/40 text-xs">{data.experiencePoints.toLocaleString()} XP</span>
+            <div className="mt-8 space-y-6">
+              {/* The great hanging: the hero named in thread, portrait on an iron
+                  plate so a transparent sprite has something solid under it. */}
+              <Tapestry dye={dye} bodyClassName="p-4 md:p-5">
+                <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:gap-5 sm:text-left">
+                  <span className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden border-2 border-accent-deep/60 bg-black/50 shadow-[inset_2px_2px_0_rgb(0_0_0_/_0.45)]">
+                    {data.avatarUrl ? (
+                      <Image
+                        src={data.avatarUrl}
+                        alt=""
+                        width={80}
+                        height={80}
+                        className="pixelated h-full w-full object-cover"
+                      />
+                    ) : (
+                      <User className="h-9 w-9 text-parchment-dim" aria-hidden="true" />
+                    )}
+                  </span>
+
+                  <div className="min-w-0">
+                    <h2 className="truncate text-2xl font-black text-parchment md:text-3xl">
+                      {data.displayName}
+                    </h2>
+                    <div className="mt-2 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                      <Banner tone="iron" pennant={false}>{data.playerClass}</Banner>
+                      <Banner tone="gilt" pennant={false}>Level {data.level}</Banner>
+                      <span className="text-xs tabular-nums text-parchment-dim">
+                        {data.experiencePoints.toLocaleString()} XP
+                      </span>
+                    </div>
                   </div>
                 </div>
+              </Tapestry>
+
+              {/* Combat is the tall hanging, so it takes a column of its own and
+                  the two short ones stack beside it. */}
+              <div className="grid gap-6 md:grid-cols-2">
+                {stats && (
+                  <SheetHanging
+                    title="Combat"
+                    icon={Swords}
+                    dye={dye}
+                    className="md:row-span-2"
+                    rows={[
+                      {
+                        label: "HP",
+                        icon: <Heart className={thread} aria-hidden="true" />,
+                        value: <Gauged value={stats.currentHp} max={stats.maxHp} tint="#b9503c" />,
+                      },
+                      { label: "ATK", icon: <Swords className={thread} aria-hidden="true" />, value: stats.atk },
+                      { label: "DEF", icon: <Shield className={thread} aria-hidden="true" />, value: stats.def },
+                      { label: "Move Speed", icon: <Gauge className={thread} aria-hidden="true" />, value: stats.moveSpeed },
+                      { label: "Atk Speed", icon: <Gauge className={thread} aria-hidden="true" />, value: stats.attackSpeed },
+                      { label: "Crit Rate", icon: <Target className={thread} aria-hidden="true" />, value: `${stats.critRate}%` },
+                      { label: "Crit DMG", icon: <Zap className={thread} aria-hidden="true" />, value: `${stats.critDamage}%` },
+                      { label: "DMG Bonus", icon: <Activity className={thread} aria-hidden="true" />, value: `${stats.damageBonus}%` },
+                      { label: "Skill Points", icon: <Sparkles className={thread} aria-hidden="true" />, value: stats.skillPoints },
+                    ]}
+                  />
+                )}
+
+                <SheetHanging
+                  title="Resources"
+                  icon={Coins}
+                  dye={dye}
+                  rows={[
+                    { label: "Gold", icon: <Coins className={thread} aria-hidden="true" />, value: Number(data.gold).toLocaleString() },
+                    { label: "Gems", icon: <Gem className={thread} aria-hidden="true" />, value: Number(data.gems).toLocaleString() },
+                    {
+                      label: "Energy",
+                      icon: <Zap className={thread} aria-hidden="true" />,
+                      value: <Gauged value={data.energy} max={data.maxEnergy} tint="#5a806a" />,
+                    },
+                    { label: "Corruption", icon: <Sparkles className={thread} aria-hidden="true" />, value: data.corruptionLevel },
+                  ]}
+                />
+
+                {stats && (
+                  <SheetHanging
+                    title="Battle Record"
+                    icon={Trophy}
+                    dye={dye}
+                    rows={[
+                      { label: "Wins", icon: <Trophy className={thread} aria-hidden="true" />, value: stats.totalWins },
+                      { label: "Losses", icon: <Shield className={thread} aria-hidden="true" />, value: stats.totalLosses },
+                      { label: "Kills", icon: <Swords className={thread} aria-hidden="true" />, value: stats.totalKills },
+                      { label: "Deaths", icon: <Skull className={thread} aria-hidden="true" />, value: stats.totalDeaths },
+                    ]}
+                  />
+                )}
               </div>
 
-              {/* Resources */}
-              <section>
-                <h3 className="text-sm font-bold uppercase tracking-wider text-white/40 mb-3">Resources</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <StatRow icon={Coins} color="text-yellow-400" label="Gold" value={Number(data.gold).toLocaleString()} />
-                  <StatRow icon={Gem} color="text-blue-400" label="Gems" value={Number(data.gems).toLocaleString()} />
-                  <StatRow icon={Zap} color="text-green-400" label="Energy" value={`${data.energy}/${data.maxEnergy}`} />
-                  <StatRow icon={Sparkles} color="text-purple-400" label="Corruption" value={data.corruptionLevel} />
-                </div>
-              </section>
-
-              {/* Combat stats */}
-              {stats && (
-                <section>
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-white/40 mb-3">Combat Stats</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    <StatRow icon={Heart} color="text-red-400" label="HP" value={`${stats.currentHp}/${stats.maxHp}`} />
-                    <StatRow icon={Swords} color="text-orange-400" label="ATK" value={stats.atk} />
-                    <StatRow icon={Shield} color="text-blue-400" label="DEF" value={stats.def} />
-                    <StatRow icon={Gauge} color="text-cyan-400" label="Move Speed" value={stats.moveSpeed} />
-                    <StatRow icon={Gauge} color="text-teal-400" label="Atk Speed" value={stats.attackSpeed} />
-                    <StatRow icon={Target} color="text-pink-400" label="Crit Rate" value={`${stats.critRate}%`} />
-                    <StatRow icon={Zap} color="text-yellow-400" label="Crit DMG" value={`${stats.critDamage}%`} />
-                    <StatRow icon={Swords} color="text-red-300" label="DMG Bonus" value={`${stats.damageBonus}%`} />
-                    <StatRow icon={Sparkles} color="text-[#ffc032]" label="Skill Points" value={stats.skillPoints} />
-                  </div>
-                </section>
-              )}
-
-              {/* Record */}
-              {stats && (
-                <section>
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-white/40 mb-3">Battle Record</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <StatRow icon={Trophy} color="text-green-400" label="Wins" value={stats.totalWins} />
-                    <StatRow icon={Shield} color="text-red-400" label="Losses" value={stats.totalLosses} />
-                    <StatRow icon={Swords} color="text-orange-400" label="Kills" value={stats.totalKills} />
-                    <StatRow icon={Skull} color="text-white/60" label="Deaths" value={stats.totalDeaths} />
-                  </div>
-                </section>
-              )}
+              <p className="text-center text-[10px] tracking-wider text-fg-subtle">
+                Hanging № {data.playerProfileId}
+              </p>
             </div>
           )}
         </main>

@@ -23,50 +23,59 @@ import {
 } from "lucide-react";
 import { useSidebar } from "@/lib/contexts/SidebarContext";
 
+/* The armoury rack: a steel plate down the left edge with the sections stamped
+   into it. Was a #0F0F0F slab with `rounded-[10px]` rows and hardcoded
+   #3A3A3A / #272727 / #AAAAAA greys — the radius fought the global reset and
+   none of the greys were tokens.
+
+   The active row is the one place gold appears here. Everything else is iron or
+   parchment, so the current location stands out without a second accent
+   competing with the page's own CTA. */
+
 const menuGroups = [
   {
     title: "Main",
     items: [
-      { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", hasNotification: false },
+      { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
     ],
   },
   {
     title: "User Management",
     items: [
-      { icon: Users, label: "Manage Accounts", href: "/manage-accounts", hasNotification: true },
-      { icon: ShieldCheck, label: "Manage Admins", href: "/manage-admins", hasNotification: false },
+      { icon: Users, label: "Manage Accounts", href: "/manage-accounts" },
+      { icon: ShieldCheck, label: "Manage Admins", href: "/manage-admins" },
     ],
   },
   {
     title: "Game Entities",
     items: [
-      { icon: Package, label: "Manage Items", href: "/manage-items", hasNotification: false },
-      { icon: Ghost, label: "Manage Monsters", href: "/manage-monsters", hasNotification: false },
-      { icon: Swords, label: "Manage Dungeon", href: "/manage-dungeons", hasNotification: false },
+      { icon: Package, label: "Manage Items", href: "/manage-items" },
+      { icon: Ghost, label: "Manage Monsters", href: "/manage-monsters" },
+      { icon: Swords, label: "Manage Dungeon", href: "/manage-dungeons" },
     ],
   },
   {
     title: "Economy & Shop",
     items: [
-      { icon: ShoppingCart, label: "Manage Shop", href: "/manage-shop", hasNotification: false },
-      { icon: Gift, label: "Manage Gacha Pools", href: "/manage-gacha-pools", hasNotification: true },
-      { icon: CreditCard, label: "Manage Transaction", href: "/manage-transactions", hasNotification: false },
+      { icon: ShoppingCart, label: "Manage Shop", href: "/manage-shop" },
+      { icon: Gift, label: "Manage Gacha Pools", href: "/manage-gacha-pools" },
+      { icon: CreditCard, label: "Manage Transaction", href: "/manage-transactions" },
     ],
   },
   {
     title: "Game Systems",
     items: [
-      { icon: Scroll, label: "Manage Quest", href: "/manage-quests", hasNotification: false },
-      { icon: Trophy, label: "Manage Achievement", href: "/manage-achievements", hasNotification: false },
-      { icon: CalendarDays, label: "Daily Login Rewards", href: "/manage-daily-login", hasNotification: false },
+      { icon: Scroll, label: "Manage Quest", href: "/manage-quests" },
+      { icon: Trophy, label: "Manage Achievement", href: "/manage-achievements" },
+      { icon: CalendarDays, label: "Daily Login Rewards", href: "/manage-daily-login" },
     ],
   },
   {
     title: "Communications",
     items: [
-      { icon: FileText, label: "Manage Content", href: "/manage-content", hasNotification: false },
-      { icon: FolderOpen, label: "Manage Category", href: "/manage-category-content", hasNotification: false },
-      { icon: Mail, label: "Manage Mailbox", href: "/manage-mailbox", hasNotification: true },
+      { icon: FileText, label: "Manage Content", href: "/manage-content" },
+      { icon: FolderOpen, label: "Manage Category", href: "/manage-category-content" },
+      { icon: Mail, label: "Manage Mailbox", href: "/manage-mailbox" },
     ],
   },
 ];
@@ -76,63 +85,60 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <>
-      {/* Header */}
-      <div className="h-14 px-4 flex items-center justify-between">
-        <Link href="/" className="relative w-28 h-8" onClick={onNavigate}>
+      {/* Crest plate — a wood-dark strip so the logo reads as a nailed-on sign */}
+      <div className="flex h-16 shrink-0 items-center justify-between border-b-2 border-black/60 bg-iron-dark px-4">
+        <Link href="/" className="relative h-9 w-28" onClick={onNavigate} aria-label="Mystic Journey home">
           <Image
-            src="/images/logo/logo.png"
-            alt="Mystic Journey Logo"
+            src="/images/logo/logo.webp"
+            alt="Mystic Journey"
             fill
-            className="object-contain"
+            className="pixelated object-contain"
             priority
           />
         </Link>
         {onNavigate && (
           <button
             onClick={onNavigate}
-            className="lg:hidden w-10 h-10 flex items-center justify-center text-white hover:bg-[#272727] rounded-[10px] transition-colors duration-200 cursor-pointer"
+            className="pixel-press flex h-11 w-11 cursor-pointer items-center justify-center border-2 border-black/60 bg-iron text-parchment transition-colors hover:text-accent lg:hidden"
             aria-label="Close menu"
           >
-            <X className="w-5 h-5" />
+            <X className="h-5 w-5" />
           </button>
         )}
       </div>
 
-      {/* Navigation */}
-      <nav className="px-2 py-2 flex-1 overflow-y-auto">
-        {menuGroups.map((group, idx) => (
-          <div key={idx} className="mb-4">
-            <h3 className="px-3 mb-1 text-xs font-medium text-[#AAAAAA]">
+      {/* Sections */}
+      <nav className="flex-1 overflow-y-auto px-2 py-3">
+        {menuGroups.map((group) => (
+          <div key={group.title} className="mb-4">
+            <h3 className="mb-1.5 flex items-center gap-2 px-2 text-[10px] font-black uppercase tracking-[0.2em] text-accent-deep">
               {group.title}
+              <span className="h-0.5 flex-1 bg-iron-light/40" aria-hidden="true" />
             </h3>
             <ul className="space-y-0.5">
-              {group.items.map((item, itemIdx) => {
+              {group.items.map((item) => {
                 const isActive = pathname === item.href;
                 const Icon = item.icon;
                 return (
-                  <li key={itemIdx}>
+                  <li key={item.href}>
                     <Link
                       href={item.href}
                       onClick={onNavigate}
+                      aria-current={isActive ? "page" : undefined}
                       className={[
-                        "h-10 px-3 rounded-[10px] flex items-center gap-3 transition-colors duration-200 group cursor-pointer",
+                        "flex h-11 items-center gap-3 border-2 px-2.5 transition-colors",
                         isActive
-                          ? "bg-[#3A3A3A] text-white"
-                          : "bg-transparent text-white hover:bg-[#272727]",
+                          ? "border-accent bg-accent/15 text-accent"
+                          : "border-transparent text-parchment hover:border-iron-light hover:bg-iron-light/12 hover:text-accent",
                       ].join(" ")}
                     >
-                      <Icon
-                        className={[
-                          "w-6 h-6 shrink-0",
-                          isActive ? "text-white" : "text-white",
-                        ].join(" ")}
-                      />
+                      {/* Active also carries a bar, so the state is not colour alone */}
                       <span
-                        className={[
-                          "text-sm truncate",
-                          isActive ? "font-semibold" : "font-normal",
-                        ].join(" ")}
-                      >
+                        className={`h-6 w-0.5 shrink-0 ${isActive ? "bg-accent" : "bg-transparent"}`}
+                        aria-hidden="true"
+                      />
+                      <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                      <span className={`truncate text-sm ${isActive ? "font-bold" : "font-normal"}`}>
                         {item.label}
                       </span>
                     </Link>
@@ -152,20 +158,21 @@ export default function AdminSideBar() {
 
   return (
     <>
-      {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-60 min-h-screen bg-[#0F0F0F] border-r border-white/10 flex-col fixed left-0 top-0 h-full">
+      {/* Desktop */}
+      <aside className="pixel-bevel-plate fixed left-0 top-0 hidden h-full min-h-screen w-64 flex-col border-r-2 border-black/60 lg:flex">
         <SidebarContent />
       </aside>
 
-      {/* Mobile drawer */}
+      {/* Mobile drawer. The backdrop blur is the sanctioned one: it means the
+          layer behind is dismissed. */}
       {isOpen && (
-        <div className="lg:hidden fixed inset-0 z-50">
+        <div className="fixed inset-0 z-50 lg:hidden">
           <div
-            className="absolute inset-0 bg-black/60"
+            className="absolute inset-0 bg-black/70 backdrop-blur-[2px]"
             onClick={close}
             aria-hidden="true"
           />
-          <aside className="absolute left-0 top-0 h-full w-60 max-w-[85vw] bg-[#0F0F0F] border-r border-white/10 flex flex-col animate-in slide-in-from-left">
+          <aside className="pixel-bevel absolute left-0 top-0 flex h-full w-64 max-w-[85vw] flex-col border-r-2 border-black/60">
             <SidebarContent onNavigate={close} />
           </aside>
         </div>

@@ -1,193 +1,159 @@
-import { FileText, AlertTriangle, Gavel, ArrowRight } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Gavel } from "lucide-react";
 import Link from "next/link";
+import MoonHeader from "@/components/ui/MoonHeader";
+import { Scroll, Clause, Provisions, Note } from "@/components/ui/LegalScroll";
+
+/* The terms as a charter on parchment — see components/ui/LegalScroll. Every
+   word below is the copy the page already carried; only the surface it is
+   written on changed. */
+
+const REGISTRATION = [
+  "You must be at least 13 years of age to create an account. Users under 18 require parental consent.",
+  "You are solely responsible for maintaining the confidentiality of your login credentials.",
+  "One account per player. Sharing or selling accounts is strictly prohibited.",
+  "You agree to provide accurate and complete information during registration.",
+];
+
+const PROHIBITED = [
+  {
+    title: "Cheating & Exploits",
+    text: "Using hacks, bots, macros, game bugs, or any third-party software to gain unfair advantage.",
+  },
+  {
+    title: "Harassment & Abuse",
+    text: "Hate speech, discrimination, threats, doxxing, or any form of bullying directed at other players.",
+  },
+  {
+    title: "Real Money Trading",
+    text: "Selling, buying, or trading in-game currency, items, or accounts for real currency.",
+  },
+  {
+    title: "Impersonation",
+    text: "Pretending to be staff members, other players, or affiliated organizations.",
+  },
+];
+
+const PROPERTY = [
+  "All game content, including characters, artwork, music, and story, is the property of Mystic Journey.",
+  "You may not copy, modify, distribute, or create derivative works based on game content.",
+  "Streaming or posting gameplay is permitted for personal, non-commercial purposes with attribution.",
+];
+
+const TERMINATION = [
+  "We may terminate or suspend accounts that violate these Terms immediately and without prior notice.",
+  "Terminated accounts forfeit all virtual items, currency, and access to the game.",
+  "You may request account deletion at any time by contacting support.",
+];
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen pt-32 pb-20 px-4">
-      <div className="max-w-[1200px] mx-auto">
-        <div className="bg-[#111111] border border-white/10 rounded-3xl p-8 md:p-12">
-          <div className="flex items-center gap-4 mb-8 border-b border-white/10 pb-8">
-            <div className="w-16 h-16 rounded-2xl bg-[#ffc032]/20 flex items-center justify-center text-[#ffc032]">
-              <FileText className="w-8 h-8" />
-            </div>
-            <div>
-              <div className="mb-2 flex items-center gap-3">
-                <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.34em] text-[#ffc032]">
-                  <Gavel className="w-3.5 h-3.5" /> Legal
-                </span>
-                <span className="h-px w-12 bg-linear-to-r from-[#ffc032]/60 to-transparent" />
-              </div>
-              <h1 className="text-4xl font-bold text-white mb-2">Terms &amp; Conditions</h1>
-              <p className="text-white/60">Last updated: July 8, 2026</p>
-            </div>
-          </div>
+    <div className="min-h-dvh pt-[88px] pb-16 md:pt-[112px]">
+      <MoonHeader eyebrow="Legal" icon={Gavel} title="Terms &amp; Conditions">
+        Last updated: July 8, 2026
+      </MoonHeader>
 
-          <div className="space-y-8 text-white/80 leading-relaxed">
-            <section>
-              <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
-                <span className="text-[#ffc032]">1.</span> Acceptance of Terms
-              </h2>
-              <p className="bg-[#0d0d0d] p-4 rounded-xl border border-white/10">
-                Welcome to Mystic Journey. By downloading, installing, or using our game, you agree to be bound by these Terms & Conditions. If you do not agree to these terms, please do not use our services. Your continued use of the game constitutes acceptance of any updates or modifications to these terms.
-              </p>
-            </section>
+      <Scroll>
+        <Clause n={1} title="Acceptance of Terms">
+          <Note>
+            Welcome to Mystic Journey. By downloading, installing, or using our game, you agree to be
+            bound by these Terms &amp; Conditions. If you do not agree to these terms, please do not
+            use our services. Your continued use of the game constitutes acceptance of any updates or
+            modifications to these terms.
+          </Note>
+        </Clause>
 
-            <section>
-              <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
-                <span className="text-[#ffc032]">2.</span> Account Registration
-              </h2>
-              <ul className="space-y-3 pl-4">
-                <li className="flex gap-3">
-                  <ArrowRight className="w-5 h-5 text-[#ffc032] shrink-0 mt-0.5" />
-                  <span>You must be at least 13 years of age to create an account. Users under 18 require parental consent.</span>
-                </li>
-                <li className="flex gap-3">
-                  <ArrowRight className="w-5 h-5 text-[#ffc032] shrink-0 mt-0.5" />
-                  <span>You are solely responsible for maintaining the confidentiality of your login credentials.</span>
-                </li>
-                <li className="flex gap-3">
-                  <ArrowRight className="w-5 h-5 text-[#ffc032] shrink-0 mt-0.5" />
-                  <span>One account per player. Sharing or selling accounts is strictly prohibited.</span>
-                </li>
-                <li className="flex gap-3">
-                  <ArrowRight className="w-5 h-5 text-[#ffc032] shrink-0 mt-0.5" />
-                  <span>You agree to provide accurate and complete information during registration.</span>
-                </li>
-              </ul>
-            </section>
+        <Clause n={2} title="Account Registration">
+          <Provisions items={REGISTRATION} />
+        </Clause>
 
-            <section>
-              <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
-                <span className="text-[#ffc032]">3.</span> Prohibited Conduct
-              </h2>
-              <p className="mb-4">
-                To maintain a fair and enjoyable environment for all adventurers, the following activities are strictly forbidden and may result in account suspension or permanent ban:
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-[#0d0d0d] p-4 rounded-xl border border-red-500/30">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle className="w-5 h-5 text-red-400" />
-                    <h3 className="font-semibold text-red-400">Cheating & Exploits</h3>
-                  </div>
-                  <p className="text-sm">Using hacks, bots, macros, game bugs, or any third-party software to gain unfair advantage.</p>
-                </div>
-                <div className="bg-[#0d0d0d] p-4 rounded-xl border border-red-500/30">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle className="w-5 h-5 text-red-400" />
-                    <h3 className="font-semibold text-red-400">Harassment & Abuse</h3>
-                  </div>
-                  <p className="text-sm">Hate speech, discrimination, threats, doxxing, or any form of bullying directed at other players.</p>
-                </div>
-                <div className="bg-[#0d0d0d] p-4 rounded-xl border border-red-500/30">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle className="w-5 h-5 text-red-400" />
-                    <h3 className="font-semibold text-red-400">Real Money Trading</h3>
-                  </div>
-                  <p className="text-sm">Selling, buying, or trading in-game currency, items, or accounts for real currency.</p>
-                </div>
-                <div className="bg-[#0d0d0d] p-4 rounded-xl border border-red-500/30">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle className="w-5 h-5 text-red-400" />
-                    <h3 className="font-semibold text-red-400">Impersonation</h3>
-                  </div>
-                  <p className="text-sm">Pretending to be staff members, other players, or affiliated organizations.</p>
-                </div>
-              </div>
-            </section>
+        <Clause n={3} title="Prohibited Conduct">
+          <p>
+            To maintain a fair and enjoyable environment for all adventurers, the following
+            activities are strictly forbidden and may result in account suspension or permanent ban:
+          </p>
+          {/* Four struck-out warrants. The old cards used red-500 borders and
+              red-400 headings — colour alone doing the warning. Here the danger
+              tone stays on the sigil plate and the heading is ink, so the warning
+              survives a greyscale print, and every plate carries the icon. */}
+          <ul className="grid gap-3 pt-1 sm:grid-cols-2">
+            {PROHIBITED.map(({ title, text }) => (
+              <li
+                key={title}
+                className="border-2 border-on-parchment/25 bg-parchment-dim/50 p-4 shadow-[3px_3px_0_rgb(59_42_23_/_0.20)]"
+              >
+                <h3 className="flex items-center gap-2.5 text-sm font-black uppercase tracking-[0.1em] text-on-parchment">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center border-2 border-black/50 bg-heraldry-crimson text-parchment">
+                    <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+                  </span>
+                  {title}
+                </h3>
+                <p className="mt-2 text-[13px] leading-snug">{text}</p>
+              </li>
+            ))}
+          </ul>
+        </Clause>
 
-            <section>
-              <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
-                <span className="text-[#ffc032]">4.</span> Virtual Items & Currency
-              </h2>
-              <p className="bg-[#0d0d0d] p-4 rounded-xl border border-white/10">
-                All in-game items, currency, characters, and achievements are virtual goods owned by Mystic Journey and licensed to you for use within the game. These virtual goods have no real-world value and cannot be exchanged for cash. We reserve the right to modify, remove, or reset virtual items at any time without compensation.
-              </p>
-            </section>
+        <Clause n={4} title="Virtual Items & Currency">
+          <Note>
+            All in-game items, currency, characters, and achievements are virtual goods owned by
+            Mystic Journey and licensed to you for use within the game. These virtual goods have no
+            real-world value and cannot be exchanged for cash. We reserve the right to modify,
+            remove, or reset virtual items at any time without compensation.
+          </Note>
+        </Clause>
 
-            <section>
-              <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
-                <span className="text-[#ffc032]">5.</span> Intellectual Property
-              </h2>
-              <ul className="space-y-3 pl-4">
-                <li className="flex gap-3">
-                  <ArrowRight className="w-5 h-5 text-[#ffc032] shrink-0 mt-0.5" />
-                  <span>All game content, including characters, artwork, music, and story, is the property of Mystic Journey.</span>
-                </li>
-                <li className="flex gap-3">
-                  <ArrowRight className="w-5 h-5 text-[#ffc032] shrink-0 mt-0.5" />
-                  <span>You may not copy, modify, distribute, or create derivative works based on game content.</span>
-                </li>
-                <li className="flex gap-3">
-                  <ArrowRight className="w-5 h-5 text-[#ffc032] shrink-0 mt-0.5" />
-                  <span>Streaming or posting gameplay is permitted for personal, non-commercial purposes with attribution.</span>
-                </li>
-              </ul>
-            </section>
+        <Clause n={5} title="Intellectual Property">
+          <Provisions items={PROPERTY} />
+        </Clause>
 
-            <section>
-              <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
-                <span className="text-[#ffc032]">6.</span> Service Availability
-              </h2>
-              <p className="bg-[#0d0d0d] p-4 rounded-xl border border-white/10">
-                Mystic Journey may experience downtime for maintenance, updates, or unforeseen circumstances. We do not guarantee uninterrupted service. We reserve the right to modify, suspend, or discontinue any aspect of the game at any time with or without notice.
-              </p>
-            </section>
+        <Clause n={6} title="Service Availability">
+          <Note>
+            Mystic Journey may experience downtime for maintenance, updates, or unforeseen
+            circumstances. We do not guarantee uninterrupted service. We reserve the right to modify,
+            suspend, or discontinue any aspect of the game at any time with or without notice.
+          </Note>
+        </Clause>
 
-            <section>
-              <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
-                <span className="text-[#ffc032]">7.</span> Account Termination
-              </h2>
-              <ul className="space-y-3 pl-4">
-                <li className="flex gap-3">
-                  <ArrowRight className="w-5 h-5 text-[#ffc032] shrink-0 mt-0.5" />
-                  <span>We may terminate or suspend accounts that violate these Terms immediately and without prior notice.</span>
-                </li>
-                <li className="flex gap-3">
-                  <ArrowRight className="w-5 h-5 text-[#ffc032] shrink-0 mt-0.5" />
-                  <span>Terminated accounts forfeit all virtual items, currency, and access to the game.</span>
-                </li>
-                <li className="flex gap-3">
-                  <ArrowRight className="w-5 h-5 text-[#ffc032] shrink-0 mt-0.5" />
-                  <span>You may request account deletion at any time by contacting support.</span>
-                </li>
-              </ul>
-            </section>
+        <Clause n={7} title="Account Termination">
+          <Provisions items={TERMINATION} />
+        </Clause>
 
-            <section>
-              <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
-                <span className="text-[#ffc032]">8.</span> Limitation of Liability
-              </h2>
-              <p className="bg-[#0d0d0d] p-4 rounded-xl border border-white/10">
-                To the fullest extent permitted by law, Mystic Journey shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of or inability to use the game. Your use of the game is at your sole risk.
-              </p>
-            </section>
+        <Clause n={8} title="Limitation of Liability">
+          <Note>
+            To the fullest extent permitted by law, Mystic Journey shall not be liable for any
+            indirect, incidental, special, consequential, or punitive damages resulting from your use
+            of or inability to use the game. Your use of the game is at your sole risk.
+          </Note>
+        </Clause>
 
-            <section>
-              <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
-                <span className="text-[#ffc032]">9.</span> Governing Law
-              </h2>
-              <p className="bg-[#0d0d0d] p-4 rounded-xl border border-white/10">
-                These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which Mystic Journey operates, without regard to its conflict of law provisions. Any disputes shall be resolved through binding arbitration or in the courts of competent jurisdiction.
-              </p>
-            </section>
+        <Clause n={9} title="Governing Law">
+          <Note>
+            These Terms shall be governed by and construed in accordance with the laws of the
+            jurisdiction in which Mystic Journey operates, without regard to its conflict of law
+            provisions. Any disputes shall be resolved through binding arbitration or in the courts
+            of competent jurisdiction.
+          </Note>
+        </Clause>
 
-            <section>
-              <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
-                <span className="text-[#ffc032]">10.</span> Contact
-              </h2>
-              <p className="bg-[#0d0d0d] p-4 rounded-xl border border-white/10">
-                For questions regarding these Terms & Conditions, please reach out to our support team at legal@mysticjourney.game or use the in-game help center.
-              </p>
-            </section>
+        <Clause n={10} title="Contact">
+          <Note>
+            For questions regarding these Terms &amp; Conditions, please reach out to our support team
+            at legal@mysticjourney.game or use the in-game help center.
+          </Note>
+        </Clause>
+      </Scroll>
 
-            <div className="pt-8 mt-8 border-t border-white/10 flex justify-center">
-              <Link href="/register" className="text-[#ffc032] hover:text-[#ffd04c] font-semibold transition-colors flex items-center gap-2">
-                <ArrowRight className="w-4 h-4 rotate-180" />
-                Return to Registration
-              </Link>
-            </div>
-          </div>
-        </div>
+      {/* The way back sits below the sheet, on the dark ground, where gold is the
+          one thing meaning "act on this" — inside the parchment it would be
+          1.7:1 and unreadable. */}
+      <div className="flex justify-center px-4">
+        <Link
+          href="/register"
+          className="pixel-press flex min-h-11 items-center gap-2 border-2 border-accent bg-transparent px-5 text-sm font-black uppercase tracking-widest text-accent shadow-[3px_3px_0_rgb(0_0_0_/_0.5)] hover:bg-accent hover:text-on-accent"
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          Return to Registration
+        </Link>
       </div>
     </div>
   );
