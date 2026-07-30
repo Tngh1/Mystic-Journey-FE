@@ -271,22 +271,6 @@ export interface AddMonsterDropRequest {
   isActive?: boolean;
 }
 
-export interface MonsterSpawnResponse {
-  monsterSpawnId: number;
-  monsterId: number;
-  monsterName: string;
-  monsterType: string;
-  mapName: string;
-  regionName?: string;
-  location?: string;
-  spawnCount: number;
-  respawnSeconds: number;
-  dungeonId?: number;
-  dungeonName?: string;
-  isDungeonRepeatable: boolean;
-  isActive: boolean;
-}
-
 /* ─── Dungeon ────────────────────────────────────────────────────────────── */
 
 export interface DungeonConfigResponse {

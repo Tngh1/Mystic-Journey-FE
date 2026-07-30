@@ -1,6 +1,6 @@
 import { get, put } from "./client";
-import type { MonsterResponse, MonsterDetailResponse, MonsterSpawnResponse, UpdateMonsterRequest, PagedResponse } from "@/lib/types";
-export type { MonsterResponse, MonsterDetailResponse, MonsterSpawnResponse, UpdateMonsterRequest, PagedResponse } from "@/lib/types";
+import type { MonsterResponse, MonsterDetailResponse, UpdateMonsterRequest, PagedResponse } from "@/lib/types";
+export type { MonsterResponse, MonsterDetailResponse, UpdateMonsterRequest, PagedResponse } from "@/lib/types";
 
 export const getById = async (id: number): Promise<MonsterDetailResponse> => {
   return get<MonsterDetailResponse>(`/api/monsters/${id}`);
@@ -20,8 +20,4 @@ export const getAll = async (
 
 export const update = async (id: number, data: UpdateMonsterRequest): Promise<MonsterResponse> => {
   return put<MonsterResponse>(`/api/monsters/${id}`, data);
-};
-
-export const getSpawnsByMonster = async (monsterId: number): Promise<MonsterSpawnResponse[]> => {
-  return get<MonsterSpawnResponse[]>(`/api/monsters/${monsterId}/spawns`);
 };

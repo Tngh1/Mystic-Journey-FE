@@ -1,6 +1,6 @@
 /* Presentation data for the three playable orders: art, heraldry and lore.
    The *numbers* are not here — base stats come live from
-   `GET /api/characters/class-configs` via `lib/hooks/useClassConfigs.ts`.
+   `GET /api/wiki/classes` via `lib/hooks/useClassConfigs.ts`.
 
    They used to be duplicated in this file and had already drifted from the
    backend seed (Knight ATK was 30 here against 50 in the DB), which is exactly
