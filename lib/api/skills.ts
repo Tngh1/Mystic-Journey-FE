@@ -1,4 +1,4 @@
-import { del, get, post, put } from "./client";
+import { get, put } from "./client";
 
 export interface SkillResponse {
   skillId: number;
@@ -31,14 +31,6 @@ export async function getSkillById(id: number) {
   return get<SkillResponse>(`/api/skills/${id}`);
 }
 
-export async function createSkill(data: Partial<SkillResponse>) {
-  return post<SkillResponse>("/api/skills", data);
-}
-
 export async function updateSkill(id: number, data: Partial<SkillResponse>) {
   return put<SkillResponse>(`/api/skills/${id}`, data);
-}
-
-export async function deleteSkill(id: number) {
-  return del<void>(`/api/skills/${id}`);
 }

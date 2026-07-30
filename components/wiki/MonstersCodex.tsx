@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { ArrowLeft, Ghost, X, LayoutGrid, Search } from "lucide-react";
-import { getAll, getById, type MonsterResponse } from "@/lib/api/monsters";
+import { getWikiMonsters, getWikiMonster, type MonsterResponse } from "@/lib/api/wiki";
 import PageLoader from "@/components/ui/PageLoader";
 import BookSpread, {
   BookTab,
@@ -144,10 +144,11 @@ export default function MonstersCodex({ initialMonsterId }: { initialMonsterId?:
 
   useEffect(() => {
     let mounted = true;
-    getAll(1, 1000)
+    getWikiMonsters({ page: 1, pageSize: 1000 })
       .then((res) => {
         if (mounted) {
-          setAllMonsters(res.items.filter((m) => m.isActive));
+          // BE đã lọc isActive: true, không cần lọc lại ở client.
+          setAllMonsters(res.items);
           setError(null);
         }
       })
@@ -160,7 +161,7 @@ export default function MonstersCodex({ initialMonsterId }: { initialMonsterId?:
     if (!initialMonsterId || allMonsters.length === 0) return;
     if (allMonsters.some((m) => m.monsterId === initialMonsterId)) return;
     let mounted = true;
-    getById(initialMonsterId)
+    getWikiMonster(initialMonsterId)
       .then((res) => { if (mounted) setOrphan(res); })
       .catch(() => {});
     return () => { mounted = false; };

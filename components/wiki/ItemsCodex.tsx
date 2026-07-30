@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { ArrowLeft, Package, X, LayoutGrid, Search } from "lucide-react";
-import { getAll, getById, type ItemResponse } from "@/lib/api/items";
+import { getWikiItems, getWikiItem, type ItemResponse } from "@/lib/api/wiki";
 import PageLoader from "@/components/ui/PageLoader";
 import BookSpread, {
   BookTab,
@@ -163,7 +163,7 @@ export default function ItemsCodex({ initialItemId }: { initialItemId?: number }
 
   useEffect(() => {
     let mounted = true;
-    getAll(1, 1000, { isActive: true })
+    getWikiItems({ page: 1, pageSize: 1000 })
       .then((res) => { if (mounted) { setAllItems(res.items); setError(null); } })
       .catch((e) => { if (mounted) setError(e instanceof Error ? e.message : "Failed to load items."); })
       .finally(() => { if (mounted) setLoading(false); });
@@ -174,7 +174,7 @@ export default function ItemsCodex({ initialItemId }: { initialItemId?: number }
     if (!initialItemId || allItems.length === 0) return;
     if (allItems.some((i) => i.itemId === initialItemId)) return;
     let mounted = true;
-    getById(initialItemId)
+    getWikiItem(initialItemId)
       .then((res) => { if (mounted) setOrphan(res); })
       .catch(() => { /* the not-found leaf below covers it */ });
     return () => { mounted = false; };

@@ -5,7 +5,7 @@ import {
   Ghost, Swords, Shield, HeartPulse, Skull, Sparkles,
   Coins, Award, Package, Quote, Zap, Gauge,
 } from "lucide-react";
-import { getById, type MonsterDetailResponse, type MonsterResponse } from "@/lib/api/monsters";
+import { getWikiMonster, type MonsterDetailResponse, type MonsterResponse } from "@/lib/api/wiki";
 import { BookStatTable, BookPageTitle } from "@/components/ui/BookSpread";
 import Banner from "@/components/ui/Banner";
 
@@ -69,7 +69,7 @@ export default function MonsterLeaf({ monster }: { monster: MonsterResponse }) {
 
   useEffect(() => {
     let mounted = true;
-    getById(monster.monsterId)
+    getWikiMonster(monster.monsterId)
       .then((res) => { if (mounted) setDetail(res); })
       .catch(() => {});
     return () => { mounted = false; };
