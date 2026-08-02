@@ -1,10 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Shield, Mail, Crown } from "lucide-react";
+import { Shield, Mail, Crown, Loader2 } from "lucide-react";
 import type { AccountAdminResponse } from "@/lib/api/admin-accounts";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
-import { useState } from "react";
+import { useAuth } from "@/lib/contexts/AuthContext";
 import AdminTable from "@/components/ui/AdminTable";
 import PageHeader from "@/components/ui/PageHeader";
 import FilterSortBar from "@/components/ui/FilterSortBar";
@@ -91,10 +92,20 @@ const columns = [
 
 export default function ManageAdminsPage() {
   const router = useRouter();
+  const { user, isLoading: authLoading } = useAuth();
+  const normalizedRole = user?.role?.toLowerCase() ?? "";
+  const isSuperAdmin = normalizedRole === "superadmin" || normalizedRole === "super admin";
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [sortBy, setSortBy] = useState("accountId");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  useEffect(() => {
+    if (!authLoading && !isSuperAdmin) {
+      router.replace("/dashboard");
+    }
+  }, [authLoading, isSuperAdmin, router]);
 
   const buildParams = (overrides: Record<string, string | number | boolean | undefined> = {}) => ({
     roleName: "Admin",
@@ -141,6 +152,14 @@ export default function ManageAdminsPage() {
     setPage(1);
     setParams(buildParams({ sortBy: value, sortOrder: nextOrder }));
   };
+
+  if (authLoading || !isSuperAdmin) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-[#ffc032]" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Save, Eye, EyeOff, UserCheck, ShieldCheck, CircleCheck } from 'lucide-react';
 import { getById, update, AccountAdminResponse } from '@/lib/api/admin-accounts';
 import { showSuccessAlert, showErrorAlert } from '@/lib/utils/swal';
+import { useAuth } from '@/lib/contexts/AuthContext';
 import FormHeader from '@/components/form/FormHeader';
 import FormSection from '@/components/form/FormSection';
 import FormField from '@/components/form/FormField';
@@ -22,10 +23,20 @@ function EditAdminContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const accountId = searchParams.get('id');
+  const { user, isLoading: authLoading } = useAuth();
+  const normalizedRole = user?.role?.toLowerCase() ?? '';
+  const isSuperAdmin = normalizedRole === 'superadmin' || normalizedRole === 'super admin';
 
   const [fetching, setFetching] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!authLoading && !isSuperAdmin) {
+      router.replace('/dashboard');
+    }
+  }, [authLoading, isSuperAdmin, router]);
+  
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [userName, setUserName] = useState('');

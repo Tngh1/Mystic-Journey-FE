@@ -22,6 +22,7 @@ import {
   CalendarDays,
 } from "lucide-react";
 import { useSidebar } from "@/lib/contexts/SidebarContext";
+import { useAuth } from "@/lib/contexts/AuthContext";
 
 /* The armoury rack: a steel plate down the left edge with the sections stamped
    into it. Was a #0F0F0F slab with `rounded-[10px]` rows and hardcoded
@@ -82,6 +83,9 @@ const menuGroups = [
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const normalizedRole = user?.role?.toLowerCase() ?? "";
+  const isSuperAdmin = normalizedRole === "superadmin" || normalizedRole === "super admin";
 
   return (
     <>
@@ -109,45 +113,56 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
       {/* Sections */}
       <nav className="flex-1 overflow-y-auto px-2 py-3">
-        {menuGroups.map((group) => (
-          <div key={group.title} className="mb-4">
-            <h3 className="mb-1.5 flex items-center gap-2 px-2 text-[10px] font-black uppercase tracking-[0.2em] text-accent-deep">
-              {group.title}
-              <span className="h-0.5 flex-1 bg-iron-light/40" aria-hidden="true" />
-            </h3>
-            <ul className="space-y-0.5">
-              {group.items.map((item) => {
-                const isActive = pathname === item.href;
-                const Icon = item.icon;
-                return (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      onClick={onNavigate}
-                      aria-current={isActive ? "page" : undefined}
-                      className={[
-                        "flex h-11 items-center gap-3 border-2 px-2.5 transition-colors",
-                        isActive
-                          ? "border-accent bg-accent/15 text-accent"
-                          : "border-transparent text-parchment hover:border-iron-light hover:bg-iron-light/12 hover:text-accent",
-                      ].join(" ")}
-                    >
-                      {/* Active also carries a bar, so the state is not colour alone */}
-                      <span
-                        className={`h-6 w-0.5 shrink-0 ${isActive ? "bg-accent" : "bg-transparent"}`}
-                        aria-hidden="true"
-                      />
-                      <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-                      <span className={`truncate text-sm ${isActive ? "font-bold" : "font-normal"}`}>
-                        {item.label}
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
+        {menuGroups.map((group) => {
+          const visibleItems = group.items.filter((item) => {
+            if (item.href === "/manage-admins") {
+              return isSuperAdmin;
+            }
+            return true;
+          });
+
+          if (visibleItems.length === 0) return null;
+
+          return (
+            <div key={group.title} className="mb-4">
+              <h3 className="mb-1.5 flex items-center gap-2 px-2 text-[10px] font-black uppercase tracking-[0.2em] text-accent-deep">
+                {group.title}
+                <span className="h-0.5 flex-1 bg-iron-light/40" aria-hidden="true" />
+              </h3>
+              <ul className="space-y-0.5">
+                {visibleItems.map((item) => {
+                  const isActive = pathname === item.href;
+                  const Icon = item.icon;
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={onNavigate}
+                        aria-current={isActive ? "page" : undefined}
+                        className={[
+                          "flex h-11 items-center gap-3 border-2 px-2.5 transition-colors",
+                          isActive
+                            ? "border-accent bg-accent/15 text-accent"
+                            : "border-transparent text-parchment hover:border-iron-light hover:bg-iron-light/12 hover:text-accent",
+                        ].join(" ")}
+                      >
+                        {/* Active also carries a bar, so the state is not colour alone */}
+                        <span
+                          className={`h-6 w-0.5 shrink-0 ${isActive ? "bg-accent" : "bg-transparent"}`}
+                          aria-hidden="true"
+                        />
+                        <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                        <span className={`truncate text-sm ${isActive ? "font-bold" : "font-normal"}`}>
+                          {item.label}
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        })}
       </nav>
     </>
   );
