@@ -1,23 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { QuestResponse } from "@/lib/api/quests";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import {
   Activity,
   CheckCircle2,
-  Gift,
   MapPin,
   MessageSquare,
   Plus,
   Scroll,
   Target,
-  XCircle,
-  Edit2,
 } from "lucide-react";
 import AdminTable from "@/components/ui/AdminTable";
 import FilterSortBar from "@/components/ui/FilterSortBar";
+import QuestDetailPanel from "./_components/QuestDetailPanel";
 
 const TYPE_THEMES: Record<string, { text: string; bg: string; border: string }> = {
   Main: { text: "text-[#ffc032]", bg: "bg-[#ffc032]/10", border: "border-[#ffc032]/30" },
@@ -94,6 +92,7 @@ function getRewardText(quest: QuestResponse) {
 
 export default function ManageQuestsPage() {
   const router = useRouter();
+  const detailRef = useRef<HTMLDivElement>(null);
 
   const [filterType, setFilterType] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
@@ -102,6 +101,13 @@ export default function ManageQuestsPage() {
   const [sortBy, setSortBy] = useState("questId");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [selectedQuestId, setSelectedQuestId] = useState<number | null>(null);
+
+  // Auto-scroll to detail panel when a quest is selected
+  useEffect(() => {
+    if (selectedQuestId !== null && detailRef.current) {
+      detailRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [selectedQuestId]);
 
   const buildParams = (overrides: Partial<QueryState> = {}) => {
     const next = {
@@ -414,77 +420,13 @@ export default function ManageQuestsPage() {
         emptyHint="Try another search term or filter."
       />
 
-      {/* Selected Quest Inspector Drawer */}
+      {/* Quest Detail Panel */}
       {selectedQuest && (
-        <div className="rounded-2xl border border-white/10 bg-[#111111] p-6 animate-in fade-in-0 duration-200">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between border-b border-white/10 pb-4">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className={`rounded-md border px-2 py-0.5 text-xs font-bold uppercase tracking-wider ${TYPE_THEMES[selectedQuest.type]?.bg || "bg-white/10"} ${TYPE_THEMES[selectedQuest.type]?.text || "text-white"} ${TYPE_THEMES[selectedQuest.type]?.border || "border-white/10"}`}>
-                  {selectedQuest.type} Quest
-                </span>
-                <span className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-xs font-semibold text-white/70">
-                  {selectedQuest.defaultStatus}
-                </span>
-                {selectedQuest.isActive ? (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-400">
-                    <CheckCircle2 className="h-3.5 w-3.5" /> Active
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-400">
-                    <XCircle className="h-3.5 w-3.5" /> Inactive
-                  </span>
-                )}
-              </div>
-              <h2 className="mt-2 text-xl font-bold text-white">{selectedQuest.title}</h2>
-              <p className="mt-2 max-w-4xl text-sm leading-relaxed text-white/60 italic">
-                &ldquo;{selectedQuest.description || "No description provided."}&rdquo;
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => router.push(`/manage-quests/update?id=${selectedQuest.questId}`)}
-              className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#ffc032] px-4 text-sm font-semibold text-[#111] transition-colors hover:bg-[#ffd04c]"
-            >
-              <Edit2 className="h-4 w-4" />
-              Edit Quest
-            </button>
-          </div>
-
-          <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-              <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white/40">
-                <MapPin className="h-4 w-4 text-[#ffc032]" />
-                World & Location
-              </div>
-              <p className="text-sm font-bold text-white">{selectedQuest.mapName}</p>
-              <p className="mt-1 text-xs text-white/45">{selectedQuest.regionName || "No sub-region"}</p>
-              {selectedQuest.questGiverName && (
-                <div className="mt-3 pt-2 border-t border-white/5 text-xs text-purple-300">
-                  NPC Giver: <strong>{selectedQuest.questGiverName}</strong>
-                </div>
-              )}
-            </div>
-
-            <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-              <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white/40">
-                <Target className="h-4 w-4 text-red-400" />
-                Objective Goal
-              </div>
-              <p className="text-sm font-bold text-red-300">{getObjectiveText(selectedQuest)}</p>
-              <p className="mt-1 text-xs text-white/45">Required level {selectedQuest.requiredLevel}</p>
-            </div>
-
-            <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-              <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white/40">
-                <Gift className="h-4 w-4 text-green-400" />
-                Reward Breakdown
-              </div>
-              <p className="text-sm font-bold text-emerald-300">{getRewardText(selectedQuest)}</p>
-              <p className="mt-1 text-xs text-white/45">Auto NPCDialogue LinkedQuestId #{selectedQuest.questId}</p>
-            </div>
-          </div>
+        <div ref={detailRef} className="scroll-mt-6">
+          <QuestDetailPanel
+            quest={selectedQuest}
+            onClose={() => setSelectedQuestId(null)}
+          />
         </div>
       )}
     </div>
