@@ -1,4 +1,4 @@
-import { get, put, del } from "./client";
+import { get, put } from "./client";
 import type { ItemResponse, UpdateItemRequest, PagedResponse } from "@/lib/types";
 export type { ItemResponse, UpdateItemRequest, PagedResponse } from "@/lib/types";
 
@@ -21,8 +21,4 @@ export const getAll = async (
 
 export const update = async (id: number, data: UpdateItemRequest): Promise<ItemResponse> => {
   return put<ItemResponse>(`/api/items/${id}`, data);
-};
-
-export const remove = async (id: number): Promise<void> => {
-  await del(`/api/items/${id}`);
 };

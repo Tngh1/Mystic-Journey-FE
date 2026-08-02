@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getClassConfigs, type ClassConfigResponse } from "@/lib/api/characters";
+import { getWikiClasses, type ClassConfigResponse } from "@/lib/api/wiki";
 
 /**
- * The class stat lines, live from `GET /api/characters/class-configs`.
+ * The class stat lines, live from `GET /api/wiki/classes`.
  *
  * Both wiki class pages read the same table, so the fetch lives here rather than
  * twice — and `loading` is derived, not a third state, so nothing has to be
@@ -16,7 +16,7 @@ export function useClassConfigs() {
 
   useEffect(() => {
     let mounted = true;
-    getClassConfigs()
+    getWikiClasses()
       .then((res) => { if (mounted) { setConfigs(res); setError(null); } })
       .catch((e) => {
         if (mounted) setError(e instanceof Error ? e.message : "Failed to load class stats.");

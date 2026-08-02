@@ -7,6 +7,7 @@ import {
   Crown, Coins, Gem, Users,
 } from "lucide-react";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
+import { useAuth } from "@/lib/contexts/AuthContext";
 import { showSuccessAlert, showErrorAlert } from "@/lib/utils/swal";
 import apiClient from "@/lib/api/client";
 import type { PlayerProfileResponse, PlayerStatsResponse } from "@/lib/types";
@@ -57,6 +58,10 @@ function formatDate(dateString: string | null) {
 }
 
 export default function ManageAccountsPage() {
+  const { user } = useAuth();
+  const normalizedRole = user?.role?.toLowerCase() ?? "";
+  const isSuperAdmin = normalizedRole === "superadmin" || normalizedRole === "super admin";
+
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
   const [sortBy, setSortBy] = useState("accountId");
@@ -304,12 +309,17 @@ export default function ManageAccountsPage() {
             label: "All Roles",
             value: selectedRole,
             onChange: (v) => handleFilterChange("role", v),
-            options: [
-              { value: "Super Admin", label: "Super Admin" },
-              { value: "Admin", label: "Admin" },
-              { value: "Player", label: "Player" },
-              { value: "Guest", label: "Guest" },
-            ],
+            options: isSuperAdmin
+              ? [
+                  { value: "Super Admin", label: "Super Admin" },
+                  { value: "Admin", label: "Admin" },
+                  { value: "Player", label: "Player" },
+                  { value: "Guest", label: "Guest" },
+                ]
+              : [
+                  { value: "Player", label: "Player" },
+                  { value: "Guest", label: "Guest" },
+                ],
           },
         ]}
       />

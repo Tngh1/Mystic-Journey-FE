@@ -9,7 +9,7 @@ import {
   Sparkles, Clock, Lock, Gauge, Target, Layers, Footprints, Crosshair,
   Percent, TrendingUp, AlertCircle, Fingerprint, ChevronRight,
 } from "lucide-react";
-import { getSkills, type SkillResponse } from "@/lib/api/skills";
+import { getWikiSkills, type SkillResponse } from "@/lib/api/wiki";
 import { getClassBySlug, CLASSES } from "@/lib/data/classes";
 import { useClassConfigs, findConfig } from "@/lib/hooks/useClassConfigs";
 
@@ -119,7 +119,7 @@ export default function ClassDetailPage() {
 
   useEffect(() => {
     let mounted = true;
-    getSkills(1, 1000)
+    getWikiSkills({ page: 1, pageSize: 1000 })
       .then((res) => { if (mounted) { setSkills(res.items); setSkillsError(null); } })
       .catch((e) => {
         if (mounted) setSkillsError(e instanceof Error ? e.message : "Failed to load skills.");

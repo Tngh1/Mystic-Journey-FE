@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { ArrowLeft, Zap, X, LayoutGrid, Search } from "lucide-react";
-import { getSkills, getSkillById, type SkillResponse } from "@/lib/api/skills";
+import { getWikiSkills, getWikiSkill, type SkillResponse } from "@/lib/api/wiki";
 import PageLoader from "@/components/ui/PageLoader";
 import BookSpread, {
   BookTab,
@@ -131,10 +131,11 @@ export default function SkillsCodex({ initialSkillId }: { initialSkillId?: numbe
 
   useEffect(() => {
     let mounted = true;
-    getSkills(1, 1000)
+    getWikiSkills({ page: 1, pageSize: 1000 })
       .then((res) => {
         if (mounted) {
-          setAllSkills(res.items.filter((s) => s.isActive));
+          // BE đã lọc isActive: true, không cần lọc lại ở client.
+          setAllSkills(res.items);
           setError(null);
         }
       })
@@ -147,7 +148,7 @@ export default function SkillsCodex({ initialSkillId }: { initialSkillId?: numbe
     if (!initialSkillId || allSkills.length === 0) return;
     if (allSkills.some((s) => s.skillId === initialSkillId)) return;
     let mounted = true;
-    getSkillById(initialSkillId)
+    getWikiSkill(initialSkillId)
       .then((res) => { if (mounted) setOrphan(res); })
       .catch(() => {});
     return () => { mounted = false; };

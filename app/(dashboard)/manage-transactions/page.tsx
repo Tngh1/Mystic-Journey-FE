@@ -2,13 +2,14 @@
 
 import { PurchaseHistoryResponse } from "@/lib/api/purchase-histories";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
-import { CreditCard, Search } from "lucide-react";
+import { CreditCard, Search, X } from "lucide-react";
 import AdminTable from "@/components/ui/AdminTable";
 import { useState } from "react";
 
 export default function ManageTransactionsPage() {
   const [sortBy, setSortBy] = useState("purchaseHistoryId");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [selectedTransaction, setSelectedTransaction] = useState<PurchaseHistoryResponse | null>(null);
 
   const {
     data: transactions,
@@ -41,7 +42,7 @@ export default function ManageTransactionsPage() {
     if (currency === "USD") {
       return `$${Number(price).toFixed(2)}`;
     }
-    return `${Number(price).toLocaleString()} ${currency}`;
+    return `${Number(price).toLocaleString()}`;
   };
 
   const getCurrencyBadge = (currency: string) => {
@@ -60,7 +61,21 @@ export default function ManageTransactionsPage() {
   const columns = [
     { key: "purchaseHistoryId", label: "ID", sortable: true },
     { key: "playerName", label: "Player Name", sortable: true },
-    { key: "itemName", label: "Item Name", sortable: true },
+    { 
+      key: "itemName", 
+      label: "Item", 
+      sortable: true,
+      render: (val: string, item: PurchaseHistoryResponse) => (
+        <div className="flex items-center gap-3">
+          {item.itemIconUrl ? (
+            <img src={item.itemIconUrl} alt={val} className="w-8 h-8 rounded object-cover border border-white/10 shrink-0 bg-[#111]" />
+          ) : (
+            <div className="w-8 h-8 rounded bg-white/5 border border-white/10 shrink-0" />
+          )}
+          <span className="font-medium">{val}</span>
+        </div>
+      )
+    },
     { key: "quantity", label: "Quantity", sortable: true },
     {
       key: "totalPrice",
@@ -140,7 +155,80 @@ export default function ManageTransactionsPage() {
         sortBy={sortBy}
         sortOrder={sortOrder}
         onSort={handleSortChange}
+        onRowClick={(item) => setSelectedTransaction(item)}
       />
+
+      {/* Transaction Detail Modal */}
+      {selectedTransaction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-[#111111] border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="p-4 border-b border-white/10 flex justify-between items-center bg-[#151515]">
+              <h2 className="text-lg font-bold text-white">Transaction Detail</h2>
+              <button
+                onClick={() => setSelectedTransaction(null)}
+                className="p-1 text-gray-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-6">
+              {/* Item Info */}
+              <div className="flex items-center gap-4 bg-white/5 p-4 rounded-xl border border-white/5">
+                {selectedTransaction.itemIconUrl ? (
+                  <img src={selectedTransaction.itemIconUrl} alt={selectedTransaction.itemName || ""} className="w-16 h-16 rounded-lg object-cover bg-black border border-white/10" />
+                ) : (
+                  <div className="w-16 h-16 rounded-lg bg-black border border-white/10" />
+                )}
+                <div>
+                  <h3 className="text-lg font-bold text-[#ffc032]">{selectedTransaction.itemName}</h3>
+                  <p className="text-sm text-gray-400">Shop Item ID: #{selectedTransaction.shopItemId}</p>
+                </div>
+              </div>
+
+              {/* Details List */}
+              <div className="space-y-4 text-sm">
+                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                  <span className="text-gray-400">Transaction ID</span>
+                  <span className="font-mono text-white">#{selectedTransaction.purchaseHistoryId}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                  <span className="text-gray-400">Player</span>
+                  <span className="text-white font-medium">{selectedTransaction.playerName} <span className="text-xs text-gray-500">(#{selectedTransaction.playerProfileId})</span></span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                  <span className="text-gray-400">Quantity</span>
+                  <span className="text-white font-bold">x{selectedTransaction.quantity}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                  <span className="text-gray-400">Total Price</span>
+                  <span className="text-[#ffc032] font-bold text-base">{formatPrice(selectedTransaction.totalPrice, selectedTransaction.currency)}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                  <span className="text-gray-400">Currency</span>
+                  {getCurrencyBadge(selectedTransaction.currency)}
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-400">Date</span>
+                  <span className="text-white">{formatDate(selectedTransaction.purchasedAt)}</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-white/10 flex justify-end bg-[#151515]">
+              <button
+                onClick={() => setSelectedTransaction(null)}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors cursor-pointer text-sm font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

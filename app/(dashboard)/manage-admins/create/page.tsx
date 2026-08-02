@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Save, Loader2, Eye, EyeOff, UserPlus, ShieldCheck, CircleCheck } from 'lucide-react';
 import { create } from '@/lib/api/admin-accounts';
+import { useAuth } from '@/lib/contexts/AuthContext';
 import FormHeader from '@/components/form/FormHeader';
 import FormSection from '@/components/form/FormSection';
 import FormField from '@/components/form/FormField';
@@ -19,10 +20,20 @@ const ROLE_OPTIONS = [
 
 export default function CreateAdminPage() {
   const router = useRouter();
+  const { user, isLoading: authLoading } = useAuth();
+  const normalizedRole = user?.role?.toLowerCase() ?? '';
+  const isSuperAdmin = normalizedRole === 'superadmin' || normalizedRole === 'super admin';
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && !isSuperAdmin) {
+      router.replace('/dashboard');
+    }
+  }, [authLoading, isSuperAdmin, router]);
 
   const [formData, setFormData] = useState({
     userName: '',
@@ -32,6 +43,14 @@ export default function CreateAdminPage() {
     roleId: 2,
     isActive: true,
   });
+
+  if (authLoading || !isSuperAdmin) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-[#ffc032]" />
+      </div>
+    );
+  }
 
   const handleChange = <K extends keyof typeof formData>(field: K, value: (typeof formData)[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

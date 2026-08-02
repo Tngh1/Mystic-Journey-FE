@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -14,39 +14,32 @@ import {
   Scroll,
   Target,
   XCircle,
+  Edit2,
 } from "lucide-react";
 import AdminTable from "@/components/ui/AdminTable";
 import FilterSortBar from "@/components/ui/FilterSortBar";
 
-const typeColors: Record<string, string> = {
-  Main: "text-blue-400",
-  Side: "text-purple-400",
-  Daily: "text-green-400",
-  Event: "text-orange-400",
+const TYPE_THEMES: Record<string, { text: string; bg: string; border: string }> = {
+  Main: { text: "text-[#ffc032]", bg: "bg-[#ffc032]/10", border: "border-[#ffc032]/30" },
+  Side: { text: "text-purple-300", bg: "bg-purple-500/10", border: "border-purple-500/30" },
+  Daily: { text: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/30" },
+  Event: { text: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/30" },
 };
 
-const statusColors: Record<string, string> = {
-  NotStarted: "text-gray-400",
-  InProgress: "text-yellow-400",
-  Completed: "text-green-400",
-  Claimed: "text-blue-400",
-  Failed: "text-red-400",
-};
-
-const objectiveColors: Record<string, string> = {
-  Explore: "text-cyan-400",
-  Defeat: "text-red-400",
-  Collect: "text-amber-400",
-  Talk: "text-purple-400",
-  OpenChest: "text-yellow-400",
-  Interact: "text-teal-400",
+const OBJECTIVE_THEMES: Record<string, { text: string; bg: string }> = {
+  Explore: { text: "text-cyan-300", bg: "bg-cyan-500/10" },
+  Defeat: { text: "text-red-400", bg: "bg-red-500/10" },
+  Collect: { text: "text-amber-300", bg: "bg-amber-500/10" },
+  Talk: { text: "text-purple-300", bg: "bg-purple-500/10" },
+  OpenChest: { text: "text-yellow-300", bg: "bg-yellow-500/10" },
+  Interact: { text: "text-teal-300", bg: "bg-teal-500/10" },
 };
 
 const QUEST_TYPES = [
-  { value: "Main", label: "Main" },
-  { value: "Side", label: "Side" },
-  { value: "Daily", label: "Daily" },
-  { value: "Event", label: "Event" },
+  { value: "Main", label: "Main Story" },
+  { value: "Side", label: "Side Quest" },
+  { value: "Daily", label: "Daily Quest" },
+  { value: "Event", label: "Event Quest" },
 ];
 
 const ACTIVE_FILTERS = [
@@ -56,6 +49,7 @@ const ACTIVE_FILTERS = [
 
 const MAP_FILTERS = [
   { value: "ElfForest", label: "ElfForest" },
+  { value: "AutumnPumpkin", label: "AutumnPumpkin" },
   { value: "AutumnTown", label: "AutumnTown" },
   { value: "FrozenMountain", label: "FrozenMountain" },
   { value: "AbandonedCastle", label: "AbandonedCastle" },
@@ -73,7 +67,7 @@ type QueryState = {
 function getObjectiveText(quest: QuestResponse) {
   const target = quest.objectiveTarget || quest.objectiveLocation || "No target";
   const amount = quest.targetAmount > 1 ? ` x${quest.targetAmount}` : "";
-  return `${quest.objectiveType}${amount} - ${target}`;
+  return `${quest.objectiveType}${amount} — ${target}`;
 }
 
 function getRewardText(quest: QuestResponse) {
@@ -88,7 +82,7 @@ function getRewardText(quest: QuestResponse) {
     : [quest.rewardSkillName || (quest.rewardSkillId ? `Skill #${quest.rewardSkillId}` : "")].filter(Boolean);
 
   const rewards = [
-    quest.rewardExperience > 0 ? `${quest.rewardExperience} EXP` : "",
+    quest.rewardExperience > 0 ? `${quest.rewardExperience} XP` : "",
     quest.rewardGold > 0 ? `${quest.rewardGold} Gold` : "",
     quest.rewardGems > 0 ? `${quest.rewardGems} Gems` : "",
     ...itemRewards,
@@ -97,98 +91,6 @@ function getRewardText(quest: QuestResponse) {
 
   return rewards.length > 0 ? rewards.join(" + ") : "No reward";
 }
-
-const columns = [
-  { key: "questId", label: "ID", sortable: true },
-  {
-    key: "title",
-    label: "Quest",
-    sortable: true,
-    render: (_val: string, row: QuestResponse) => (
-      <div className="max-w-[360px]">
-        <p className="truncate font-semibold text-white">{row.title}</p>
-        <p className="mt-1 truncate text-xs text-white/45">
-          {row.description || "No description"}
-        </p>
-      </div>
-    ),
-  },
-  {
-    key: "type",
-    label: "Type",
-    sortable: true,
-    render: (val: string) => (
-      <span className={`font-semibold ${typeColors[val] || "text-gray-300"}`}>{val}</span>
-    ),
-  },
-  {
-    key: "mapName",
-    label: "World",
-    sortable: true,
-    render: (_val: string, row: QuestResponse) => (
-      <div className="max-w-[220px]">
-        <p className="truncate text-white/80">{row.mapName}</p>
-        <p className="mt-1 truncate text-xs text-white/40">{row.regionName || "No region"}</p>
-      </div>
-    ),
-  },
-  {
-    key: "questGiverName",
-    label: "NPC",
-    sortable: true,
-    render: (_val: string | null, row: QuestResponse) => (
-      <div className="max-w-[180px]">
-        <p className="truncate text-white/80">{row.questGiverName || "Unassigned"}</p>
-        <p className="mt-1 truncate text-xs text-purple-300/70">
-          LinkedQuestId #{row.questId}
-        </p>
-      </div>
-    ),
-  },
-  {
-    key: "objectiveType",
-    label: "Objective",
-    sortable: true,
-    render: (_val: string, row: QuestResponse) => (
-      <div className="max-w-[240px]">
-        <p className={`truncate text-xs font-semibold ${objectiveColors[row.objectiveType] || "text-gray-300"}`}>
-          {getObjectiveText(row)}
-        </p>
-        <p className="mt-1 truncate text-xs text-white/40">
-          {row.defaultStatus}
-        </p>
-      </div>
-    ),
-  },
-  {
-    key: "rewardExperience",
-    label: "Rewards",
-    sortable: true,
-    render: (_val: number, row: QuestResponse) => (
-      <span className="block max-w-[260px] truncate text-xs text-amber-300/90">
-        {getRewardText(row)}
-      </span>
-    ),
-  },
-  {
-    key: "requiredLevel",
-    label: "Req",
-    sortable: true,
-    render: (val: number) => (
-      <span className="text-xs font-semibold text-white/70">Lv. {val}</span>
-    ),
-  },
-  {
-    key: "isActive",
-    label: "Active",
-    sortable: true,
-    render: (val: boolean) => (
-      <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${val ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
-        {val ? "Active" : "Inactive"}
-      </span>
-    ),
-  },
-];
 
 export default function ManageQuestsPage() {
   const router = useRouter();
@@ -248,7 +150,7 @@ export default function ManageQuestsPage() {
 
     return [
       {
-        label: "Total Results",
+        label: "Total Quests",
         value: totalCount,
         icon: Scroll,
         tone: "text-[#ffc032]",
@@ -258,18 +160,18 @@ export default function ManageQuestsPage() {
         label: "Active On Page",
         value: activeCount,
         icon: CheckCircle2,
-        tone: "text-green-400",
-        bg: "bg-green-500/10",
+        tone: "text-emerald-400",
+        bg: "bg-emerald-500/10",
       },
       {
-        label: "Main On Page",
+        label: "Main Story",
         value: mainCount,
         icon: Target,
-        tone: "text-blue-400",
-        bg: "bg-blue-500/10",
+        tone: "text-sky-400",
+        bg: "bg-sky-500/10",
       },
       {
-        label: "NPC Linked",
+        label: "NPC Giver Linked",
         value: npcLinkedCount,
         icon: MessageSquare,
         tone: "text-purple-400",
@@ -310,16 +212,115 @@ export default function ManageQuestsPage() {
     setParams(buildParams({ sortBy: value, sortOrder: nextOrder }));
   };
 
+  const columns = [
+    { key: "questId", label: "ID", sortable: true },
+    {
+      key: "title",
+      label: "Quest Title & Flow",
+      sortable: true,
+      render: (_val: string, row: QuestResponse) => (
+        <div className="max-w-[360px]">
+          <p className="truncate font-bold text-white group-hover:text-[#ffc032] transition-colors">{row.title}</p>
+          <p className="mt-1 truncate text-xs text-white/45">
+            {row.description || "No journal story prompt"}
+          </p>
+        </div>
+      ),
+    },
+    {
+      key: "type",
+      label: "Category",
+      sortable: true,
+      render: (val: string) => {
+        const theme = TYPE_THEMES[val] || TYPE_THEMES.Main;
+        return (
+          <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${theme.bg} ${theme.text} ${theme.border}`}>
+            {val}
+          </span>
+        );
+      },
+    },
+    {
+      key: "mapName",
+      label: "Map Location",
+      sortable: true,
+      render: (_val: string, row: QuestResponse) => (
+        <div className="max-w-[200px]">
+          <p className="truncate text-xs font-bold text-white/80 flex items-center gap-1">
+            <MapPin className="h-3 w-3 text-[#ffc032]" />
+            {row.mapName}
+          </p>
+          <p className="mt-0.5 truncate text-[11px] text-white/40">{row.regionName || "Entire Region"}</p>
+        </div>
+      ),
+    },
+    {
+      key: "questGiverName",
+      label: "NPC Giver",
+      sortable: true,
+      render: (_val: string | null, row: QuestResponse) => (
+        <div className="max-w-[160px]">
+          <p className="truncate text-xs font-semibold text-purple-200">{row.questGiverName || "System Auto"}</p>
+          <p className="mt-0.5 text-[10px] text-white/40">LinkedQuest #{row.questId}</p>
+        </div>
+      ),
+    },
+    {
+      key: "objectiveType",
+      label: "Objective Target",
+      sortable: true,
+      render: (_val: string, row: QuestResponse) => {
+        const objTheme = OBJECTIVE_THEMES[row.objectiveType] || { text: "text-white", bg: "bg-white/5" };
+        return (
+          <div className="max-w-[220px]">
+            <span className={`inline-flex rounded-md px-2 py-0.5 text-xs font-bold ${objTheme.bg} ${objTheme.text}`}>
+              {getObjectiveText(row)}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      key: "rewardExperience",
+      label: "Rewards",
+      sortable: true,
+      render: (_val: number, row: QuestResponse) => (
+        <span className="block max-w-[240px] truncate font-mono text-xs font-semibold text-emerald-300">
+          {getRewardText(row)}
+        </span>
+      ),
+    },
+    {
+      key: "requiredLevel",
+      label: "Level",
+      sortable: true,
+      render: (val: number) => (
+        <span className="text-xs font-bold text-white/70">Lv.{val}</span>
+      ),
+    },
+    {
+      key: "isActive",
+      label: "Status",
+      sortable: true,
+      render: (val: boolean) => (
+        <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold ${val ? "border-green-500/30 bg-green-500/10 text-green-400" : "border-red-500/30 bg-red-500/10 text-red-400"}`}>
+          {val ? "Active" : "Inactive"}
+        </span>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-6">
+      {/* Top Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-[#ffc032] to-[#ff8c00]">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffc032] to-[#ff8c00]">
             <Scroll className="h-7 w-7 text-[#111]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-[#ffc032]">Manage Quests</h1>
-            <p className="text-sm text-gray-500">Tune quest flow, rewards, NPC giver, and objective routing.</p>
+            <h1 className="text-2xl font-bold text-white">Manage Quests & Story Flow</h1>
+            <p className="text-sm text-white/45">Configure main story lines, NPC dialogue links, objectives, and quest rewards.</p>
           </div>
         </div>
 
@@ -344,6 +345,7 @@ export default function ManageQuestsPage() {
         </div>
       </div>
 
+      {/* Metrics */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {summaryCards.map((card) => {
           const Icon = card.icon;
@@ -363,12 +365,13 @@ export default function ManageQuestsPage() {
         })}
       </div>
 
+      {/* Filters */}
       <FilterSortBar
-        search={{ placeholder: "Search title, target, NPC...", value: search, onChange: handleSearch }}
+        search={{ placeholder: "Search quest title, target, NPC...", value: search, onChange: handleSearch }}
         filters={[
           {
             key: "type",
-            label: "All Types",
+            label: "All Categories",
             value: filterType,
             onChange: handleFilterTypeChange,
             options: QUEST_TYPES,
@@ -382,7 +385,7 @@ export default function ManageQuestsPage() {
           },
           {
             key: "map",
-            label: "All Maps",
+            label: "All Worlds",
             value: filterMap,
             onChange: handleFilterMapChange,
             options: MAP_FILTERS,
@@ -390,8 +393,9 @@ export default function ManageQuestsPage() {
         ]}
       />
 
+      {/* Admin Table */}
       <AdminTable
-        title="Quests"
+        title="Quests List"
         columns={columns}
         data={quests}
         loading={loading}
@@ -407,74 +411,78 @@ export default function ManageQuestsPage() {
         sortOrder={sortOrder}
         onSort={handleSortChange}
         emptyTitle="No quests found"
-        emptyHint="Try another search, type, status, or map filter."
+        emptyHint="Try another search term or filter."
       />
 
+      {/* Selected Quest Inspector Drawer */}
       {selectedQuest && (
-        <div className="rounded-2xl border border-white/10 bg-[#111111] p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="rounded-2xl border border-white/10 bg-[#111111] p-6 animate-in fade-in-0 duration-200">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between border-b border-white/10 pb-4">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <span className={`text-xs font-bold uppercase tracking-wider ${typeColors[selectedQuest.type] || "text-white/60"}`}>
-                  {selectedQuest.type}
+                <span className={`rounded-md border px-2 py-0.5 text-xs font-bold uppercase tracking-wider ${TYPE_THEMES[selectedQuest.type]?.bg || "bg-white/10"} ${TYPE_THEMES[selectedQuest.type]?.text || "text-white"} ${TYPE_THEMES[selectedQuest.type]?.border || "border-white/10"}`}>
+                  {selectedQuest.type} Quest
                 </span>
-                <span className={`text-xs font-semibold ${statusColors[selectedQuest.defaultStatus] || "text-white/50"}`}>
+                <span className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-xs font-semibold text-white/70">
                   {selectedQuest.defaultStatus}
                 </span>
                 {selectedQuest.isActive ? (
                   <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-400">
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    Active
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Active
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-400">
-                    <XCircle className="h-3.5 w-3.5" />
-                    Inactive
+                    <XCircle className="h-3.5 w-3.5" /> Inactive
                   </span>
                 )}
               </div>
               <h2 className="mt-2 text-xl font-bold text-white">{selectedQuest.title}</h2>
-              <p className="mt-2 max-w-4xl text-sm leading-6 text-white/55">
-                {selectedQuest.description || "No description"}
+              <p className="mt-2 max-w-4xl text-sm leading-relaxed text-white/60 italic">
+                &ldquo;{selectedQuest.description || "No description provided."}&rdquo;
               </p>
             </div>
+
             <button
               type="button"
               onClick={() => router.push(`/manage-quests/update?id=${selectedQuest.questId}`)}
-              className="inline-flex h-10 shrink-0 items-center justify-center rounded-xl bg-[#ffc032] px-4 text-sm font-semibold text-[#111] transition-colors hover:bg-[#ffd04c]"
+              className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#ffc032] px-4 text-sm font-semibold text-[#111] transition-colors hover:bg-[#ffd04c]"
             >
+              <Edit2 className="h-4 w-4" />
               Edit Quest
             </button>
           </div>
 
-          <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-              <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/40">
-                <MapPin className="h-4 w-4" />
-                World
+          <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+              <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white/40">
+                <MapPin className="h-4 w-4 text-[#ffc032]" />
+                World & Location
               </div>
-              <p className="text-sm font-semibold text-white">{selectedQuest.mapName}</p>
-              <p className="mt-1 text-xs text-white/45">{selectedQuest.regionName || "No region"}</p>
+              <p className="text-sm font-bold text-white">{selectedQuest.mapName}</p>
+              <p className="mt-1 text-xs text-white/45">{selectedQuest.regionName || "No sub-region"}</p>
+              {selectedQuest.questGiverName && (
+                <div className="mt-3 pt-2 border-t border-white/5 text-xs text-purple-300">
+                  NPC Giver: <strong>{selectedQuest.questGiverName}</strong>
+                </div>
+              )}
             </div>
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-              <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/40">
-                <Target className="h-4 w-4" />
-                Objective
+
+            <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+              <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white/40">
+                <Target className="h-4 w-4 text-red-400" />
+                Objective Goal
               </div>
-              <p className={`text-sm font-semibold ${objectiveColors[selectedQuest.objectiveType] || "text-white"}`}>
-                {getObjectiveText(selectedQuest)}
-              </p>
+              <p className="text-sm font-bold text-red-300">{getObjectiveText(selectedQuest)}</p>
               <p className="mt-1 text-xs text-white/45">Required level {selectedQuest.requiredLevel}</p>
             </div>
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-              <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/40">
-                <Gift className="h-4 w-4" />
-                Reward
+
+            <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+              <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white/40">
+                <Gift className="h-4 w-4 text-green-400" />
+                Reward Breakdown
               </div>
-              <p className="text-sm font-semibold text-amber-300">{getRewardText(selectedQuest)}</p>
-              <p className="mt-1 text-xs text-purple-300/70">
-                NPCDialogue LinkedQuestId #{selectedQuest.questId}
-              </p>
+              <p className="text-sm font-bold text-emerald-300">{getRewardText(selectedQuest)}</p>
+              <p className="mt-1 text-xs text-white/45">Auto NPCDialogue LinkedQuestId #{selectedQuest.questId}</p>
             </div>
           </div>
         </div>
