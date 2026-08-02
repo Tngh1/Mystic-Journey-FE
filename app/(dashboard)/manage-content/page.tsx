@@ -2,11 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { FileText, Globe, GlobeLock, Image as ImageIcon, Edit2 } from 'lucide-react';
-import { ContentResponse } from "@/lib/api/contents";
+import { useEffect, useState } from "react";
+import { getCategories, ContentResponse, CategoryResponse } from "@/lib/api/contents";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import apiClient from "@/lib/api/client";
-import { useState } from "react";
-import { showErrorAlert } from "@/lib/utils/swal";
+import { showErrorAlert, showSuccessAlert } from "@/lib/utils/swal";
 import AdminTable from "@/components/ui/AdminTable";
 import PageHeader from "@/components/ui/PageHeader";
 import FilterSortBar from "@/components/ui/FilterSortBar";
@@ -22,16 +22,28 @@ function formatDate(dateString: string): string {
 export default function ManageContentPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [categories, setCategories] = useState<CategoryResponse[]>([]);
   const [sortBy, setSortBy] = useState('contentId');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [togglingId, setTogglingId] = useState<number | null>(null);
 
-  const buildParams = (overrides: Record<string, string | number | boolean | undefined> = {}) => ({
-    ...(searchTerm ? { search: searchTerm } : {}),
-    sortBy,
-    sortOrder,
-    ...overrides,
-  });
+  useEffect(() => {
+    getCategories()
+      .then((res) => setCategories(Array.isArray(res) ? res : []))
+      .catch(console.error);
+  }, []);
+
+  const buildParams = (overrides: Record<string, string | number | boolean | undefined> = {}) => {
+    const catVal = overrides.categoryId !== undefined ? overrides.categoryId : (selectedCategory ? Number(selectedCategory) : undefined);
+    return {
+      ...(searchTerm ? { search: searchTerm } : {}),
+      ...(catVal !== undefined ? { categoryId: catVal } : {}),
+      sortBy,
+      sortOrder,
+      ...overrides,
+    };
+  };
 
   const {
     data: contents,
@@ -56,6 +68,12 @@ export default function ManageContentPage() {
     setParams(buildParams({ search: value || undefined }));
   };
 
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value);
+    setPage(1);
+    setParams(buildParams({ categoryId: value ? Number(value) : undefined }));
+  };
+
   const handleSortChange = (value: string) => {
     const nextOrder = sortBy === value ? (sortOrder === 'asc' ? 'desc' : 'asc') : 'asc';
     setSortBy(value);
@@ -78,6 +96,10 @@ export default function ManageContentPage() {
       } else {
         await apiClient.post(`/api/contents/${content.contentId}/publish`, {});
       }
+      await showSuccessAlert(
+        "Success!",
+        content.isPublished ? "Content unpublished successfully." : "Content published successfully."
+      );
       refresh();
     } catch (err) {
       await showErrorAlert(
@@ -195,6 +217,15 @@ export default function ManageContentPage() {
 
       <FilterSortBar
         search={{ placeholder: "Filter by title...", icon: FileText, value: searchTerm, onChange: handleSearch }}
+        filters={[
+          {
+            key: "category",
+            label: "All Categories",
+            options: categories.map((c) => ({ value: String(c.categoryContentId), label: c.name })),
+            value: selectedCategory,
+            onChange: handleCategoryChange,
+          },
+        ]}
       />
 
       <AdminTable

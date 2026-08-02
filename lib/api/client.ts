@@ -101,6 +101,58 @@ export async function del<T = unknown>(path: string, params?: Record<string, unk
 
 /* ─── Error helpers ──────────────────────────────────────────────────────── */
 
+const STATUS_TEXT_MAP: Record<number, string> = {
+  400: "Invalid request. Please check your input parameters.",
+  401: "Unauthorized access. Please log in to continue.",
+  403: "Access denied. You do not have permission to access this resource.",
+  404: "The requested resource was not found.",
+  405: "Method not allowed for this request.",
+  408: "Request timeout. Please check your network connection and try again.",
+  409: "A conflict occurred with the current state of the resource.",
+  413: "Payload too large. Please upload a smaller file.",
+  422: "Unprocessable entity. Please verify your data input.",
+  429: "Too many requests. Please wait a moment and try again.",
+  500: "Internal server error. Please try again later.",
+  502: "Bad gateway. Received an invalid response from upstream server.",
+  503: "Service unavailable. The server is temporarily offline.",
+  504: "Gateway timeout. The server took too long to respond.",
+};
+
+export function sanitizeErrorMessage(msg: string | undefined, status?: number): string {
+  if (!msg || typeof msg !== "string") {
+    return status && STATUS_TEXT_MAP[status] ? STATUS_TEXT_MAP[status] : "An unexpected error occurred.";
+  }
+
+  const trimmed = msg.trim();
+
+  // If message is purely digits (e.g. "404", "401", "500")
+  if (/^\d{3}$/.test(trimmed)) {
+    const code = parseInt(trimmed, 10);
+    return STATUS_TEXT_MAP[code] ?? "An unexpected error occurred.";
+  }
+
+  // If message matches raw status code patterns (e.g. "Request failed with status code 404")
+  if (
+    /request failed with status code/i.test(trimmed) ||
+    /status code \d{3}/i.test(trimmed) ||
+    /error \d{3}/i.test(trimmed) ||
+    /^\d{3}\s+/i.test(trimmed) ||
+    /^http\s+\d{3}/i.test(trimmed)
+  ) {
+    if (status && STATUS_TEXT_MAP[status]) {
+      return STATUS_TEXT_MAP[status];
+    }
+    const match = trimmed.match(/\b([45]\d{2})\b/);
+    if (match) {
+      const code = parseInt(match[1], 10);
+      if (STATUS_TEXT_MAP[code]) return STATUS_TEXT_MAP[code];
+    }
+    return "An unexpected server error occurred.";
+  }
+
+  return trimmed;
+}
+
 export class ApiError extends Error {
   code?: string;
   status?: number;
@@ -115,16 +167,27 @@ export class ApiError extends Error {
 export function normalizeError(error: unknown): ApiError {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<ApiEnvelope<unknown>>;
+    const status = axiosError.response?.status;
     const body = axiosError.response?.data;
-    return new ApiError(
-      body?.message || axiosError.message || "An error occurred.",
-      body?.errorCode,
-      axiosError.response?.status
-    );
+
+    let rawMsg: string | undefined;
+    if (typeof body === "object" && body !== null && "message" in body && typeof body.message === "string") {
+      rawMsg = body.message;
+    } else if (typeof body === "string") {
+      rawMsg = body;
+    } else {
+      rawMsg = axiosError.message;
+    }
+
+    const cleanMessage = sanitizeErrorMessage(rawMsg, status);
+    return new ApiError(cleanMessage, body?.errorCode, status);
   }
+
   if (error instanceof Error) {
-    return new ApiError(error.message);
+    const cleanMessage = sanitizeErrorMessage(error.message);
+    return new ApiError(cleanMessage);
   }
+
   return new ApiError("An unexpected error occurred.");
 }
 

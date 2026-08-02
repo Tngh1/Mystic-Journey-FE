@@ -32,6 +32,7 @@ import type {
 } from "@/lib/types";
 import type { ItemResponse } from "@/lib/api/items";
 import { normalizeError } from "@/lib/api/client";
+import { showSuccessAlert, showErrorAlert } from "@/lib/utils/swal";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const MONTH_NAMES = [
@@ -423,10 +424,13 @@ function RewardFormModal({
         };
         await createDailyLoginReward(payload);
       }
+      await showSuccessAlert("Success!", existing ? "Daily login reward updated successfully." : "Daily login reward created successfully.");
       onSaved();
       onClose();
     } catch (err) {
-      setError(normalizeError(err).message);
+      const msg = normalizeError(err).message;
+      setError(msg);
+      await showErrorAlert("Error", msg);
     } finally {
       setSubmitting(false);
     }
@@ -726,11 +730,14 @@ export default function ManageDailyLoginPage() {
     setDeleting(true);
     try {
       await deleteDailyLoginReward(deleteTarget.dailyLoginRewardId);
+      await showSuccessAlert("Deleted!", "Daily login reward deleted successfully.");
       showToast("Reward deleted!", "success");
       setDeleteTarget(null);
       void fetchRewards();
     } catch (err) {
-      showToast(normalizeError(err).message, "error");
+      const msg = normalizeError(err).message;
+      showToast(msg, "error");
+      await showErrorAlert("Error", msg);
     } finally {
       setDeleting(false);
     }

@@ -36,7 +36,7 @@ import {
 import { getById, update, publish, getCategories, createBlock, updateBlock, removeBlock, ContentDetailResponse, CategoryResponse, BlockResponse } from '@/lib/api/contents';
 import { uploadImageToCloudinary, uploadImageWithCleanup } from '@/lib/api/cloudinary';
 import EditableTextBlock from '@/components/ui/EditableTextBlock';
-import { showConfirmAlert, showErrorAlert } from '@/lib/utils/swal';
+import { showConfirmAlert, showErrorAlert, showSuccessAlert } from '@/lib/utils/swal';
 import ImageUploader from '@/components/ui/ImageUploader';
 
 interface FormData {
@@ -304,10 +304,19 @@ function UpdateContentContent() {
       ]);
       setContent(contentData);
       setCategories(categoriesData.filter((c: CategoryResponse) => c.isActive));
-      // Load existing blocks — all treated as non-new, clean
-      setAllBlocks((contentData.blocks || [])
-        .sort((a, b) => a.sortOrder - b.sortOrder)
-        .map(b => ({ ...b, isDirty: false, isNew: false })));
+      setAllBlocks(
+        (contentData.blocks || [])
+          .sort((a, b) => a.sortOrder - b.sortOrder)
+          .map((b: BlockResponse, index) => {
+            const localB = b as LocalBlock;
+            return {
+              ...b,
+              tempId: localB.tempId || (b.blockContentId ? `block-${b.blockContentId}` : `block-existing-${index}-${Date.now()}`),
+              isDirty: false,
+              isNew: false,
+            };
+          })
+      );
       // Save original thumbnail URL for cleanup
       setOriginalThumbnailUrl(contentData.thumbnailUrl || "");
       setFormData({
@@ -332,8 +341,9 @@ function UpdateContentContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contentId]);
 
-  // Stable key for a block: string tempId for new blocks, numeric blockContentId for existing ones
-  const getBlockKey = (b: LocalBlock): string => String(b.tempId ?? b.blockContentId);
+  // Stable key for a block: string tempId for new/existing blocks, fallback to unique string
+  const getBlockKey = (b: LocalBlock, index?: number): string =>
+    b.tempId || (b.blockContentId ? `block-${b.blockContentId}` : `block-idx-${index ?? 0}`);
 
   const collectEditorContent = () =>
     allBlocks.map(b => {
@@ -445,13 +455,12 @@ function UpdateContentContent() {
         throw new Error(message);
       }
 
+      await showSuccessAlert('Success!', 'Content updated successfully.');
       router.push('/manage-content');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to update content';
       setError(message);
-      if (/category is inactive/i.test(message)) {
-        await showErrorAlert('Cannot Publish Content', message);
-      }
+      await showErrorAlert('Error', message);
     } finally {
       setSubmitting(false);
     }
@@ -667,8 +676,8 @@ function UpdateContentContent() {
                     onChange={(e) => handleChange('categoryId', Number(e.target.value))}
                     className="w-full px-4 py-2 bg-[#222] border border-[#333] rounded-lg text-white focus:outline-none focus:border-[#ffc032]"
                   >
-                    {categories.map((cat) => (
-                      <option key={cat.categoryContentId} value={cat.categoryContentId}>
+                    {categories.map((cat, idx) => (
+                      <option key={`cat-${cat.categoryContentId ?? idx}`} value={cat.categoryContentId}>
                         {cat.name}
                       </option>
                     ))}

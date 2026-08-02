@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Save, Loader2, FolderTree, Image as ImageIcon } from 'lucide-react';
 import { createCategory } from '@/lib/api/contents';
+import { showSuccessAlert, showErrorAlert } from '@/lib/utils/swal';
 import ImageUploader from '@/components/ui/ImageUploader';
 import { uploadImageToCloudinary } from '@/lib/api/cloudinary';
 import FormHeader from '@/components/form/FormHeader';
@@ -65,9 +66,12 @@ export default function CreateCategoryContentPage() {
         iconUrl,
         isActive: formData.isActive,
       });
+      await showSuccessAlert('Success!', 'Category created successfully.');
       router.push('/manage-category-content');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create category');
+      const msg = err instanceof Error ? err.message : 'Failed to create category';
+      setError(msg);
+      await showErrorAlert('Error', msg);
     } finally {
       setLoading(false);
     }

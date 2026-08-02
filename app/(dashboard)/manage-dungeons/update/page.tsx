@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getById, update, DungeonConfigResponse } from "@/lib/api/dungeons";
+import { showSuccessAlert, showErrorAlert } from "@/lib/utils/swal";
 import { Save, Loader2, Swords } from "lucide-react";
 import FormHeader from "@/components/form/FormHeader";
 import FormSection from "@/components/form/FormSection";
@@ -71,9 +72,12 @@ export default function EditDungeonPage() {
         energyCost: formData.energyCost,
         isActive: formData.isActive,
       });
+      await showSuccessAlert("Success!", "Dungeon updated successfully.");
       router.push("/manage-dungeons");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to update dungeon");
+      const msg = err instanceof Error ? err.message : "Failed to update dungeon";
+      setError(msg);
+      await showErrorAlert("Error", msg);
     } finally {
       setLoading(false);
     }

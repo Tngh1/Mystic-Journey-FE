@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Save, Eye, EyeOff, UserCheck, ShieldCheck, CircleCheck } from 'lucide-react';
 import { getById, update, AccountAdminResponse } from '@/lib/api/admin-accounts';
+import { showSuccessAlert, showErrorAlert } from '@/lib/utils/swal';
 import FormHeader from '@/components/form/FormHeader';
 import FormSection from '@/components/form/FormSection';
 import FormField from '@/components/form/FormField';
@@ -99,12 +100,15 @@ function EditAdminContent() {
 
       await update(Number(accountId), payload);
       setSuccess(true);
+      await showSuccessAlert('Success!', 'Account updated successfully.');
 
       setTimeout(() => {
         router.push('/manage-admins');
       }, 1500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update account');
+      const msg = err instanceof Error ? err.message : 'Failed to update account';
+      setError(msg);
+      await showErrorAlert('Error', msg);
     } finally {
       setSaving(false);
     }

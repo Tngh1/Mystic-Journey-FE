@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ShoppingBag } from "lucide-react";
 import { create } from "@/lib/api/shop-items";
+import { showSuccessAlert, showErrorAlert } from "@/lib/utils/swal";
 import type { CreateShopItemRequest } from "@/lib/types";
 import FormHeader from "@/components/form/FormHeader";
 import ShopItemForm from "../_components/ShopItemForm";
@@ -18,9 +19,12 @@ export default function CreateShopItemPage() {
       setLoading(true);
       setError(null);
       await create(payload);
+      await showSuccessAlert("Success!", "Shop item created successfully.");
       router.push("/manage-shop");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to create shop item");
+      const msg = err instanceof Error ? err.message : "Failed to create shop item";
+      setError(msg);
+      await showErrorAlert("Error", msg);
     } finally {
       setLoading(false);
     }

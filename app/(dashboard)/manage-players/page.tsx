@@ -6,7 +6,7 @@ import { Loader2, User, Ban, CheckCircle, Edit2 } from 'lucide-react';
 import { PlayerProfileResponse } from '@/lib/api/player-profiles';
 import { banPlayer, unbanPlayer } from '@/lib/api/admin-accounts';
 import { usePagedQuery } from '@/lib/hooks/usePagedQuery';
-import { showSuccessAlert, showErrorAlert } from '@/lib/utils/swal';
+import { showSuccessAlert, showErrorAlert, showConfirmAlert } from '@/lib/utils/swal';
 import AdminTable from '@/components/ui/AdminTable';
 import PageHeader from '@/components/ui/PageHeader';
 import FilterSortBar from '@/components/ui/FilterSortBar';
@@ -77,10 +77,20 @@ export default function ManagePlayersPage() {
 
   const handleBan = async (player: PlayerProfileResponse) => {
     if (player.playerProfileId == null || player.accountId == null) return;
+
+    const currentlyBanned = isBanned(player);
+    const actionTitle = currentlyBanned ? 'Unban Player' : 'Ban Player';
+    const actionMessage = currentlyBanned
+      ? `Are you sure you want to unban player "${player.displayName}"?`
+      : `Are you sure you want to ban player "${player.displayName}"?`;
+    const confirmButtonText = currentlyBanned ? 'Yes, Unban Player' : 'Yes, Ban Player';
+
+    const confirm = await showConfirmAlert(actionTitle, actionMessage, confirmButtonText, 'Cancel');
+    if (!confirm.isConfirmed) return;
+
     try {
       setBanningId(player.playerProfileId);
-      const banned = isBanned(player);
-      if (banned) {
+      if (currentlyBanned) {
         await unbanPlayer(player.accountId);
         setBannedAccountIds((prev) => {
           const next = new Set(prev);

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { create, getNpcOptions } from "@/lib/api/quests";
+import { showSuccessAlert, showErrorAlert } from "@/lib/utils/swal";
 import { getAll as getItems } from "@/lib/api/items";
 import { getAll as getMonsters } from "@/lib/api/monsters";
 import { getSkills, type SkillResponse } from "@/lib/api/skills";
@@ -464,9 +465,12 @@ export default function CreateQuestPage() {
         dialogueIsActive: Boolean(formData.dialogueContent.trim()),
         isActive: formData.isActive,
       });
+      await showSuccessAlert("Success!", "Quest created successfully.");
       router.push("/manage-quests");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to create quest");
+      const msg = err instanceof Error ? err.message : "Failed to create quest";
+      setError(msg);
+      await showErrorAlert("Error", msg);
     } finally {
       setLoading(false);
     }

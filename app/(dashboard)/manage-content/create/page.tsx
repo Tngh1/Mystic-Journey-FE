@@ -34,7 +34,7 @@ import {
 import { createWithBlocks, getCategories, CategoryResponse } from '@/lib/api/contents';
 import { uploadImageToCloudinary } from '@/lib/api/cloudinary';
 import EditableTextBlock from '@/components/ui/EditableTextBlock';
-import { showConfirmAlert } from '@/lib/utils/swal';
+import { showConfirmAlert, showSuccessAlert, showErrorAlert } from '@/lib/utils/swal';
 import ImageUploader from '@/components/ui/ImageUploader';
 import FormHeader from '@/components/form/FormHeader';
 import FormSection from '@/components/form/FormSection';
@@ -372,9 +372,12 @@ export default function CreateContentPage() {
         })),
       });
 
+      await showSuccessAlert('Success!', 'Content created successfully.');
       router.push('/manage-content');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create content');
+      const msg = err instanceof Error ? err.message : 'Failed to create content';
+      setError(msg);
+      await showErrorAlert('Error', msg);
     } finally {
       setLoading(false);
     }
@@ -492,9 +495,9 @@ export default function CreateContentPage() {
                     onChange={(e) => handleChange('categoryId', Number(e.target.value))}
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors cursor-pointer"
                   >
-                    {categories.length === 0 && <option value={0}>No categories available</option>}
-                    {categories.map((cat) => (
-                      <option key={cat.categoryContentId} value={cat.categoryContentId} className="bg-[#111111]">
+                    {categories.length === 0 && <option key="no-cat" value={0}>No categories available</option>}
+                    {categories.map((cat, idx) => (
+                      <option key={`cat-${cat.categoryContentId ?? idx}`} value={cat.categoryContentId} className="bg-[#111111]">
                         {cat.name}
                       </option>
                     ))}

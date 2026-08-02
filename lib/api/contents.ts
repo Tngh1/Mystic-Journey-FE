@@ -19,10 +19,11 @@ export const getBlocks = async (contentId: number): Promise<BlockResponse[]> => 
   return detail?.blocks ?? [];
 };
 
-export const getAll = async (page = 1, pageSize = 100, filters?: { search?: string; isPublished?: boolean }): Promise<PagedResponse<ContentResponse>> => {
+export const getAll = async (page = 1, pageSize = 100, filters?: { search?: string; isPublished?: boolean; categoryId?: number }): Promise<PagedResponse<ContentResponse>> => {
   const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
   if (filters?.search) params.set("search", filters.search);
   if (filters?.isPublished !== undefined) params.set("isPublished", String(filters.isPublished));
+  if (filters?.categoryId !== undefined) params.set("categoryId", String(filters.categoryId));
   return get<PagedResponse<ContentResponse>>(`/api/contents?${params}`);
 };
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { create, addBannerItem } from "@/lib/api/gacha-banners";
+import { showSuccessAlert, showErrorAlert } from "@/lib/utils/swal";
 import { getAll as getAllItems } from "@/lib/api/items";
 import type { ItemResponse } from "@/lib/api/items";
 import { Save, Gift, Plus, Trash2, Star } from "lucide-react";
@@ -140,9 +141,12 @@ export default function CreateGachaBannerPage() {
         });
       }
 
+      await showSuccessAlert("Success!", "Gacha banner created successfully.");
       router.push("/manage-gacha-pools");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to create gacha banner.");
+      const msg = err instanceof Error ? err.message : "Failed to create gacha banner.";
+      setError(msg);
+      await showErrorAlert("Error", msg);
     } finally {
       setLoading(false);
     }

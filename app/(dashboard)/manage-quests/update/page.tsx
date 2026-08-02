@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getById, update, getNpcOptions } from "@/lib/api/quests";
+import { showSuccessAlert, showErrorAlert } from "@/lib/utils/swal";
 import type { QuestResponse } from "@/lib/api/quests";
 import { getAll as getItems } from "@/lib/api/items";
 import { getAll as getMonsters } from "@/lib/api/monsters";
@@ -521,9 +522,12 @@ export default function EditQuestPage() {
         dialogueIsActive: Boolean(formData.dialogueContent.trim()),
         isActive: formData.isActive,
       });
+      await showSuccessAlert("Success!", "Quest updated successfully.");
       router.push("/manage-quests");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to update quest");
+      const msg = err instanceof Error ? err.message : "Failed to update quest";
+      setError(msg);
+      await showErrorAlert("Error", msg);
     } finally {
       setLoading(false);
     }

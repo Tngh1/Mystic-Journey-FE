@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getById, update, addBannerItem, removeBannerItem } from "@/lib/api/gacha-banners";
+import { showSuccessAlert, showErrorAlert, showConfirmAlert } from "@/lib/utils/swal";
 import type { GachaBannerDetailResponse, GachaBannerItemResponse } from "@/lib/api/gacha-banners";
 import { getAll as getAllItems } from "@/lib/api/items";
 import type { ItemResponse } from "@/lib/api/items";
@@ -108,9 +109,12 @@ export default function EditGachaBannerPage() {
         startAt: formData.startAt,
         endAt: formData.endAt,
       });
+      await showSuccessAlert("Success!", "Gacha banner updated successfully.");
       router.push("/manage-gacha-pools");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to update gacha banner");
+      const msg = err instanceof Error ? err.message : "Failed to update gacha banner";
+      setError(msg);
+      await showErrorAlert("Error", msg);
     } finally {
       setLoading(false);
     }
@@ -130,8 +134,11 @@ export default function EditGachaBannerPage() {
       setBannerItems((prev) => [...prev, newItem]);
       setAddItemForm({ itemId: "", dropRate: "10", isFeatured: false });
       setAddItemOpen(false);
+      await showSuccessAlert("Success!", "Item added to banner successfully.");
     } catch (err: unknown) {
-      setAddItemError(err instanceof Error ? err.message : "Failed to add item");
+      const msg = err instanceof Error ? err.message : "Failed to add item";
+      setAddItemError(msg);
+      await showErrorAlert("Error", msg);
     } finally {
       setAddItemLoading(false);
     }
@@ -139,12 +146,21 @@ export default function EditGachaBannerPage() {
 
   const handleRemoveItem = async (bannerItemId: number) => {
     if (!bannerId) return;
-    if (!confirm("Remove this item from the banner?")) return;
+    const confirm = await showConfirmAlert(
+      "Remove Item",
+      "Are you sure you want to remove this item from the banner?",
+      "Remove",
+      "Cancel"
+    );
+    if (!confirm.isConfirmed) return;
     try {
       await removeBannerItem(Number(bannerId), bannerItemId);
       setBannerItems((prev) => prev.filter((i) => i.gachaBannerItemId !== bannerItemId));
+      await showSuccessAlert("Removed!", "Item removed from banner successfully.");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to remove item");
+      const msg = err instanceof Error ? err.message : "Failed to remove item";
+      setError(msg);
+      await showErrorAlert("Error", msg);
     }
   };
 

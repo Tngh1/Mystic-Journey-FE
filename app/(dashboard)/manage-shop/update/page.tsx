@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, ShoppingBag } from "lucide-react";
 import { getById, update } from "@/lib/api/shop-items";
+import { showSuccessAlert, showErrorAlert } from "@/lib/utils/swal";
 import type { CreateShopItemRequest, ShopItemResponse } from "@/lib/types";
 import FormHeader from "@/components/form/FormHeader";
 import FormAlert from "@/components/form/FormAlert";
@@ -35,9 +36,12 @@ export default function EditShopItemPage() {
       setLoading(true);
       setError(null);
       await update(Number(shopItemId), payload);
+      await showSuccessAlert("Success!", "Shop item updated successfully.");
       router.push("/manage-shop");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to update shop item");
+      const msg = err instanceof Error ? err.message : "Failed to update shop item";
+      setError(msg);
+      await showErrorAlert("Error", msg);
     } finally {
       setLoading(false);
     }
