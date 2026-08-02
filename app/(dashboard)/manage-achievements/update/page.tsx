@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getById, update, AchievementResponse } from "@/lib/api/achievements";
+import { showSuccessAlert, showErrorAlert } from "@/lib/utils/swal";
 import { Save, Loader2, Trophy, Image as ImageIcon } from "lucide-react";
 import ImageUploader from "@/components/ui/ImageUploader";
 import { uploadImageWithCleanup } from "@/lib/api/cloudinary";
@@ -98,9 +99,12 @@ export default function EditAchievementPage() {
         rewardQuantity: formData.rewardQuantity,
         isActive: formData.isActive,
       });
+      await showSuccessAlert("Success!", "Achievement updated successfully.");
       router.push("/manage-achievements");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to update achievement");
+      const msg = err instanceof Error ? err.message : "Failed to update achievement";
+      setError(msg);
+      await showErrorAlert("Error", msg);
     } finally {
       setLoading(false);
     }

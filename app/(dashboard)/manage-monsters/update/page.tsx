@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getById, update, MonsterResponse } from "@/lib/api/monsters";
+import { showSuccessAlert, showErrorAlert } from "@/lib/utils/swal";
 import { uploadImageWithCleanup } from "@/lib/api/cloudinary";
 import { Save, Loader2, Skull, Image as ImageIcon } from "lucide-react";
 import ImageUploader from "@/components/ui/ImageUploader";
@@ -96,9 +97,12 @@ export default function EditMonsterPage() {
         goldReward: formData.goldReward,
         imageUrl: finalImageUrl,
       });
+      await showSuccessAlert("Success!", "Monster updated successfully.");
       router.push("/manage-monsters");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to update monster");
+      const msg = err instanceof Error ? err.message : "Failed to update monster";
+      setError(msg);
+      await showErrorAlert("Error", msg);
     } finally {
       setLoading(false);
     }

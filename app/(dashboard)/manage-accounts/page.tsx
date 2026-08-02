@@ -8,8 +8,8 @@ import {
 } from "lucide-react";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import { useAuth } from "@/lib/contexts/AuthContext";
-import { showSuccessAlert, showErrorAlert } from "@/lib/utils/swal";
-import apiClient from "@/lib/api/client";
+import { showSuccessAlert, showErrorAlert, showConfirmAlert } from "@/lib/utils/swal";
+import apiClient, { get } from "@/lib/api/client";
 import type { PlayerProfileResponse, PlayerStatsResponse } from "@/lib/types";
 import AdminTable from "@/components/ui/AdminTable";
 import PageHeader from "@/components/ui/PageHeader";
@@ -25,6 +25,8 @@ interface AccountWithPlayer {
   lastLogin: string | null;
   playerProfileId: number | null;
   playerDisplayName: string | null;
+  playerClass: string | null;
+  playerLevel: number | null;
 }
 
 const ROLE_CONFIG: Record<
@@ -121,9 +123,20 @@ export default function ManageAccountsPage() {
 
   const handleBan = async (account: AccountWithPlayer) => {
     if (!account.accountId) return;
+
+    const isBanning = account.isActive;
+    const actionTitle = isBanning ? "Ban Account" : "Unban Account";
+    const actionMessage = isBanning
+      ? `Are you sure you want to ban account "${account.userName}"? The player will be logged out and cannot access the game.`
+      : `Are you sure you want to unban account "${account.userName}"? The player will regain access to the game.`;
+    const confirmButtonText = isBanning ? "Yes, Ban Account" : "Yes, Unban Account";
+
+    const confirm = await showConfirmAlert(actionTitle, actionMessage, confirmButtonText, "Cancel");
+    if (!confirm.isConfirmed) return;
+
     try {
       setBanningId(account.accountId);
-      if (account.isActive) {
+      if (isBanning) {
         await apiClient.post(`/api/adminaccounts/${account.accountId}/ban`);
         await showSuccessAlert("Banned!", `Account "${account.userName}" has been banned.`);
       } else {
@@ -148,14 +161,12 @@ export default function ManageAccountsPage() {
 
     setLoadingProfile(true);
     try {
-      const [profileRes, statsRes] = await Promise.all([
-        apiClient.get<PlayerProfileResponse>(`/api/playerprofiles/${account.playerProfileId}`),
-        apiClient
-          .get<PlayerStatsResponse>(`/api/playerprofiles/${account.playerProfileId}/stats`)
-          .catch(() => null),
+      const [profileData, statsData] = await Promise.all([
+        get<PlayerProfileResponse>(`/api/playerprofiles/${account.playerProfileId}`),
+        get<PlayerStatsResponse>(`/api/playerprofiles/${account.playerProfileId}/stats`).catch(() => null),
       ]);
-      setPlayerProfile(profileRes.data);
-      setPlayerStats(statsRes?.data ?? null);
+      setPlayerProfile(profileData);
+      setPlayerStats(statsData);
     } catch (err) {
       setProfileError(err instanceof Error ? err.message : "Failed to load player profile.");
     } finally {
@@ -216,20 +227,42 @@ export default function ManageAccountsPage() {
     },
     {
       key: "playerProfileId",
-      label: "Profile",
+      label: "Character & Class",
       sortable: false,
-      render: (_: unknown, account: AccountWithPlayer) =>
-        account.playerProfileId ? (
-          <span className="inline-flex items-center gap-1.5 text-xs text-green-400 font-semibold">
-            <CheckCircle className="w-3 h-3" />
-            {account.playerDisplayName || "Active"}
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1.5 text-xs text-yellow-400 font-semibold">
-            <AlertCircle className="w-3 h-3" />
-            No Profile
-          </span>
-        ),
+      render: (_: unknown, account: AccountWithPlayer) => {
+        if (!account.playerProfileId) {
+          return (
+            <span className="inline-flex items-center gap-1.5 text-xs text-yellow-400 font-semibold">
+              <AlertCircle className="w-3.5 h-3.5" />
+              No Character
+            </span>
+          );
+        }
+        const clsName = account.playerClass || "Knight";
+        const clsCfg = CLASS_CONFIG[clsName] ?? CLASS_CONFIG["Knight"];
+
+        return (
+          <div className="flex flex-col gap-1 min-w-0">
+            <span className="text-sm font-semibold text-white truncate flex items-center gap-1.5">
+              <CheckCircle className="w-3.5 h-3.5 text-green-400 shrink-0" />
+              {account.playerDisplayName || "Active"}
+            </span>
+            <div className="flex items-center gap-1.5 text-xs flex-wrap">
+              <span
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${clsCfg.bg} ${clsCfg.color} ${clsCfg.border}`}
+              >
+                <span>{clsCfg.emoji}</span>
+                {clsName}
+              </span>
+              {account.playerLevel != null && (
+                <span className="text-[#ffc032] font-semibold text-[11px]">
+                  Lv. {account.playerLevel}
+                </span>
+              )}
+            </div>
+          </div>
+        );
+      },
     },
     {
       key: "isActive",
@@ -421,7 +454,7 @@ export default function ManageAccountsPage() {
                           {playerProfile.playerClass}
                         </span>
                         <span className="text-[#ffc032] font-semibold text-sm">
-                          Lv. {playerProfile.level}
+                          Lv. {playerProfile.level ?? 1}
                         </span>
                         {!viewingAccount.isActive && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-500/15 text-red-400 border border-red-500/30">
@@ -441,7 +474,7 @@ export default function ManageAccountsPage() {
                         Gold
                       </p>
                       <p className="text-lg font-bold text-yellow-400">
-                        {Number(playerProfile.gold).toLocaleString()}
+                        {Number(playerProfile.gold ?? 0).toLocaleString()}
                       </p>
                     </div>
                     <div className="bg-[#111] border border-white/10 rounded-xl p-3 space-y-1">
@@ -450,7 +483,7 @@ export default function ManageAccountsPage() {
                         Gems
                       </p>
                       <p className="text-lg font-bold text-blue-400">
-                        {Number(playerProfile.gems).toLocaleString()}
+                        {Number(playerProfile.gems ?? 0).toLocaleString()}
                       </p>
                     </div>
                     <div className="bg-[#111] border border-white/10 rounded-xl p-3 space-y-1">
@@ -459,7 +492,7 @@ export default function ManageAccountsPage() {
                         Energy
                       </p>
                       <p className="text-lg font-bold text-green-400">
-                        {playerProfile.energy}
+                        {playerProfile.energy ?? 0}
                       </p>
                     </div>
                   </div>

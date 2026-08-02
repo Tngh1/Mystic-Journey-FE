@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Save, FolderTree, Image as ImageIcon } from 'lucide-react';
 import { updateCategory, getCategories, CategoryResponse } from '@/lib/api/contents';
+import { showSuccessAlert, showErrorAlert } from '@/lib/utils/swal';
 import ImageUploader from '@/components/ui/ImageUploader';
 import { uploadImageWithCleanup } from '@/lib/api/cloudinary';
 import FormHeader from '@/components/form/FormHeader';
@@ -99,9 +100,12 @@ function UpdateCategoryContentContent() {
         iconUrl: finalIconUrl,
         isActive: formData.isActive,
       });
+      await showSuccessAlert('Success!', 'Category updated successfully.');
       router.push('/manage-category-content');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update category');
+      const msg = err instanceof Error ? err.message : 'Failed to update category';
+      setError(msg);
+      await showErrorAlert('Error', msg);
     } finally {
       setSubmitting(false);
     }

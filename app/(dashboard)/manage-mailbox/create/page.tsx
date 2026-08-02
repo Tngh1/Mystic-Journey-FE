@@ -27,6 +27,7 @@ import {
 import FormHeader from "@/components/form/FormHeader";
 import FormAlert from "@/components/form/FormAlert";
 import { sendByList, sendBroadcast } from "@/lib/api/mailboxes";
+import { showSuccessAlert, showErrorAlert } from "@/lib/utils/swal";
 import type { SendMailboxByListIdRequest, SendMailboxToAllRequest } from "@/lib/api/mailboxes";
 import { getAll as getAllSimple } from "@/lib/api/items";
 import { getAll as getAllPlayers, getPlayerProfileById } from "@/lib/api/player-profiles";
@@ -334,9 +335,12 @@ export default function SendMailPage() {
         await sendByList(buildPayload() as SendMailboxByListIdRequest);
       }
       setSuccess(true);
+      await showSuccessAlert("Success!", "Mailbox sent successfully.");
       setTimeout(() => router.push("/manage-mailbox"), 1500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send mailbox. Please try again.");
+      const msg = err instanceof Error ? err.message : "Failed to send mailbox. Please try again.";
+      setError(msg);
+      await showErrorAlert("Error", msg);
     } finally {
       setSubmitting(false);
     }

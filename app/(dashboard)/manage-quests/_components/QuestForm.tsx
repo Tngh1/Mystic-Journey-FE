@@ -424,7 +424,7 @@ export default function QuestForm({
           </FormSection>
 
           {/* NPC & Dialogue Section */}
-          <FormSection title="NPC Quest Giver & Dialogue" icon={MessageSquare} iconColor="text-purple-400">
+          <FormSection title="NPC Quest Giver & Dialogue" icon={MessageSquare}>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField label="Quest Giver NPC" htmlFor="questGiverName">
                 <SelectInput
@@ -460,7 +460,7 @@ export default function QuestForm({
           </FormSection>
 
           {/* Objectives Section */}
-          <FormSection title="Objective Config" icon={Target} iconColor="text-red-400">
+          <FormSection title="Objective Config" icon={Target}>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField label="Objective Type" htmlFor="objectiveType" required>
                 <SelectInput
@@ -525,7 +525,7 @@ export default function QuestForm({
           </FormSection>
 
           {/* Rewards Section */}
-          <FormSection title="Rewards & Loot Config" icon={Gift} iconColor="text-green-400">
+          <FormSection title="Rewards & Loot Config" icon={Gift}>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               <FormField label="Experience Points" htmlFor="rewardExperience">
                 <TextInput

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getById, update, ItemResponse } from "@/lib/api/items";
+import { showSuccessAlert, showErrorAlert } from "@/lib/utils/swal";
 import { uploadImageWithCleanup } from "@/lib/api/cloudinary";
 import { Save, Loader2, Package, Shield, Image as ImageIcon } from "lucide-react";
 import ImageUploader from "@/components/ui/ImageUploader";
@@ -140,9 +141,12 @@ export default function EditItemPage() {
         bonusCritDamage: formData.bonusCritDamage || undefined,
         iconUrl: finalIconUrl,
       });
+      await showSuccessAlert("Success!", "Item updated successfully.");
       router.push("/manage-items");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to update item");
+      const msg = err instanceof Error ? err.message : "Failed to update item";
+      setError(msg);
+      await showErrorAlert("Error", msg);
     } finally {
       setLoading(false);
     }

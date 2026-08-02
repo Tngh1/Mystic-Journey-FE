@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Save, Loader2, Eye, EyeOff, UserPlus, ShieldCheck, CircleCheck } from 'lucide-react';
 import { create } from '@/lib/api/admin-accounts';
+import { showSuccessAlert, showErrorAlert } from '@/lib/utils/swal';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import FormHeader from '@/components/form/FormHeader';
 import FormSection from '@/components/form/FormSection';
@@ -75,12 +76,15 @@ export default function CreateAdminPage() {
 
       await create(payload);
       setSuccess(true);
+      await showSuccessAlert('Success!', 'Account created successfully.');
 
       setTimeout(() => {
         router.push('/manage-admins');
       }, 1500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create account');
+      const msg = err instanceof Error ? err.message : 'Failed to create account';
+      setError(msg);
+      await showErrorAlert('Error', msg);
     } finally {
       setLoading(false);
     }
