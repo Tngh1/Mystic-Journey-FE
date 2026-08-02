@@ -409,15 +409,17 @@ function UpdateContentContent() {
         isPublished: formData.isPublished,
       });
 
-      // 2. Delete queued blocks
-      await Promise.all(deletedBlockIds.map((id) => removeBlock(id)));
+      // 2. Delete queued blocks (only existing valid block IDs)
+      await Promise.all(
+        deletedBlockIds.filter((id) => id > 0).map((id) => removeBlock(id))
+      );
 
-      // 3. Reorder existing blocks by sortOrder, then write all changes
-      //    in parallel: existing blocks (all, since reorder may have shifted
-      //    positions) and new blocks.  One failure doesn't block the others.
+      // 3. Reorder blocks by sortOrder, then write changes.
+      // Existing blocks in DB have blockContentId > 0 and isNew !== true.
+      // New blocks (or blocks with blockContentId <= 0) must call createBlock.
       const updateOps = finalBlocks
         .map((b, i) => ({ ...b, sortOrder: i + 1 }))
-        .filter((b) => !b.isNew)
+        .filter((b) => !b.isNew && b.blockContentId > 0)
         .map((b) =>
           updateBlock(b.blockContentId, {
             contentData: b.contentData || undefined,
@@ -431,7 +433,7 @@ function UpdateContentContent() {
 
       const createOps = finalBlocks
         .map((b, i) => ({ b, sortOrder: i + 1 }))
-        .filter(({ b }) => b.isNew)
+        .filter(({ b }) => b.isNew || !b.blockContentId || b.blockContentId <= 0)
         .map(({ b, sortOrder }) =>
           createBlock({
             contentId: content.contentId,
@@ -535,7 +537,7 @@ function UpdateContentContent() {
   const handleDeleteBlock = (id: string) => {
     const block = allBlocks.find(b => getBlockKey(b) === id);
     setAllBlocks(prev => prev.filter(b => getBlockKey(b) !== id));
-    if (block && !block.isNew) {
+    if (block && !block.isNew && block.blockContentId > 0) {
       setDeletedBlockIds(prev => [...prev, block.blockContentId]);
       editorContentGetters.current.delete(String(block.blockContentId));
     } else if (block?.tempId) {
