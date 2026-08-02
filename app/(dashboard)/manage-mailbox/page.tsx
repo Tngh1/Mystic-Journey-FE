@@ -123,7 +123,6 @@ export default function ManageMailboxPage() {
     });
 
   const [selectedMailbox, setSelectedMailbox] = useState<MailboxResponse | null>(null);
-  const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [toastMsg, setToastMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const activeFiltersCount = [search, filterRead, filterClaimed].filter(
@@ -148,35 +147,6 @@ export default function ManageMailboxPage() {
     }
   };
 
-  const handleClaim = async () => {
-    if (!selectedMailbox || selectedMailbox.isClaimed) return;
-    try {
-      setActionLoading(selectedMailbox.mailboxId);
-      const updated = await claimReward(selectedMailbox.mailboxId);
-      setSelectedMailbox(updated);
-      refresh();
-      showToast("success", "Reward claimed!");
-    } catch (err) {
-      showToast("error", err instanceof Error ? err.message : "Failed to claim reward.");
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleDelete = async (mailbox: MailboxResponse) => {
-    if (!confirm(`Delete mailbox "${mailbox.title}"?`)) return;
-    try {
-      setActionLoading(mailbox.mailboxId);
-      await remove(mailbox.mailboxId, mailbox.playerProfileId);
-      if (selectedMailbox?.mailboxId === mailbox.mailboxId) setSelectedMailbox(null);
-      showToast("success", "Mailbox deleted.");
-      refresh();
-    } catch (err) {
-      showToast("error", err instanceof Error ? err.message : "Failed to delete mailbox.");
-    } finally {
-      setActionLoading(null);
-    }
-  };
 
   const clearAllFilters = () => {
     setSearch("");
@@ -414,7 +384,6 @@ export default function ManageMailboxPage() {
           {selectedMailbox ? (() => {
             const typeConfig = MAILBOX_TYPE_CONFIG[selectedMailbox.type] ?? MAILBOX_TYPE_CONFIG["System"];
             const TypeIcon = typeConfig.icon;
-            const isActing = actionLoading === selectedMailbox.mailboxId;
             const hasReward =
               Number(selectedMailbox.attachedGold) > 0 ||
               Number(selectedMailbox.attachedGems) > 0 ||
