@@ -6,12 +6,9 @@ import {
   Mail,
   Plus,
   Search,
-  Trash2,
   Package,
   Eye,
-  Loader2,
   X,
-  CheckCircle2,
   AlertCircle,
   Star,
   Gift,
@@ -19,7 +16,7 @@ import {
   Zap,
   Filter,
 } from "lucide-react";
-import { MailboxResponse, markAsRead, claimReward, remove } from "@/lib/api/mailboxes";
+import { MailboxResponse, markAsRead } from "@/lib/api/mailboxes";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import AdminTable from "@/components/ui/AdminTable";
 
@@ -126,7 +123,6 @@ export default function ManageMailboxPage() {
     });
 
   const [selectedMailbox, setSelectedMailbox] = useState<MailboxResponse | null>(null);
-  const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [toastMsg, setToastMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const activeFiltersCount = [search, filterRead, filterClaimed].filter(
@@ -151,35 +147,6 @@ export default function ManageMailboxPage() {
     }
   };
 
-  const handleClaim = async () => {
-    if (!selectedMailbox || selectedMailbox.isClaimed) return;
-    try {
-      setActionLoading(selectedMailbox.mailboxId);
-      const updated = await claimReward(selectedMailbox.mailboxId);
-      setSelectedMailbox(updated);
-      refresh();
-      showToast("success", "Reward claimed!");
-    } catch (err) {
-      showToast("error", err instanceof Error ? err.message : "Failed to claim reward.");
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleDelete = async (mailbox: MailboxResponse) => {
-    if (!confirm(`Delete mailbox "${mailbox.title}"?`)) return;
-    try {
-      setActionLoading(mailbox.mailboxId);
-      await remove(mailbox.mailboxId, mailbox.playerProfileId);
-      if (selectedMailbox?.mailboxId === mailbox.mailboxId) setSelectedMailbox(null);
-      showToast("success", "Mailbox deleted.");
-      refresh();
-    } catch (err) {
-      showToast("error", err instanceof Error ? err.message : "Failed to delete mailbox.");
-    } finally {
-      setActionLoading(null);
-    }
-  };
 
   const clearAllFilters = () => {
     setSearch("");
@@ -417,7 +384,6 @@ export default function ManageMailboxPage() {
           {selectedMailbox ? (() => {
             const typeConfig = MAILBOX_TYPE_CONFIG[selectedMailbox.type] ?? MAILBOX_TYPE_CONFIG["System"];
             const TypeIcon = typeConfig.icon;
-            const isActing = actionLoading === selectedMailbox.mailboxId;
             const hasReward =
               Number(selectedMailbox.attachedGold) > 0 ||
               Number(selectedMailbox.attachedGems) > 0 ||
@@ -524,45 +490,11 @@ export default function ManageMailboxPage() {
                           ) : null
                         )}
                     </div>
-                    {!selectedMailbox.isClaimed && (
-                      <button
-                        onClick={handleClaim}
-                        disabled={isActing}
-                        className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-500/15 hover:bg-green-500/25 text-green-400 border border-green-500/30 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                      >
-                        {isActing ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <CheckCircle2 className="w-4 h-4" />
-                        )}
-                        Claim Reward
-                      </button>
-                    )}
+
                   </div>
                 )}
 
-                {/* Actions */}
-                <div className="pt-2 flex gap-2">
-                  <button
-                    onClick={() => handleDelete(selectedMailbox)}
-                    disabled={isActing}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                  >
-                    {isActing ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="w-4 h-4" />
-                    )}
-                    Delete
-                  </button>
-                  <Link
-                    href="/manage-mailbox/create"
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#ffc032]/10 hover:bg-[#ffc032]/20 text-[#ffc032] border border-[#ffc032]/30 rounded-xl text-sm font-medium transition-all cursor-pointer"
-                  >
-                    <Plus className="w-4 h-4" />
-                    New Mailbox
-                  </Link>
-                </div>
+
               </div>
             );
           })() : (
