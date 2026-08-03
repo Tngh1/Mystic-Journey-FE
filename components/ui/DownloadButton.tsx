@@ -24,6 +24,22 @@ export default function DownloadButton({
 }: DownloadButtonProps) {
   const [checked, setChecked] = useState(false);
 
+  const handleDownload = () => {
+    if (!checked) {
+      setChecked(true);
+      if (href.startsWith("http")) {
+        window.open(href, "_blank", "noopener,noreferrer");
+      } else {
+        const link = document.createElement("a");
+        link.href = href;
+        link.download = "MysticJourney_v1.0.zip";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      }
+    }
+  };
+
   return (
     <div className={`db-container ${className}`.trim()}>
       <label className="db-label">
@@ -31,7 +47,7 @@ export default function DownloadButton({
           type="checkbox"
           className="db-input"
           checked={checked}
-          onChange={(e) => setChecked(e.target.checked)}
+          onChange={handleDownload}
         />
         <span className="db-circle">
           <svg
@@ -54,7 +70,8 @@ export default function DownloadButton({
         <span className="db-title">{idleLabel}</span>
         <a
           className="db-title db-title--done"
-          href={checked ? href : undefined}
+          href={href}
+          download="MysticJourney_v1.0.zip"
           tabIndex={checked ? 0 : -1}
           aria-hidden={!checked}
           {...anchorProps}

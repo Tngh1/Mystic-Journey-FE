@@ -24,10 +24,10 @@ import Panel from "@/components/ui/Panel";
 const DOWNLOAD = {
   platform: "Windows (PC)",
   icon: Monitor,
-  version: "v2.4.1",
-  size: "4.8 GB",
-  releaseDate: "Jun 15, 2026",
-  href: "/downloads/MysticJourney-Setup-2.4.1.exe",
+  version: "v1.0",
+  size: "ZIP Archive",
+  releaseDate: "Aug 3, 2026",
+  href: "https://drive.google.com/uc?export=download&id=1acBCh4BpaVLNbgYc7ajVeX1aIKjnWEtd",
   requirements: ["Windows 10 (64-bit) or later", "8 GB RAM minimum", "20 GB available space"],
 };
 
