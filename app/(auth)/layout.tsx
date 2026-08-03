@@ -51,6 +51,7 @@ export default function AuthLayout({ children }: Readonly<{ children: ReactNode 
               src="/images/logo/logo.webp"
               alt="Mystic Journey"
               fill
+              sizes="112px"
               className="pixelated object-contain"
               priority
             />

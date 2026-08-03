@@ -22,7 +22,7 @@ interface StoryChapter {
 }
 
 /* Story summaries follow the main-quest seed in the game database
-   (Quests 1–31, MysticJourneyDbContext) — introduction only, no spoilers
+   (Quests 1–46, MysticJourneyDbContext) — introduction only, no spoilers
    beyond what the quest log itself reveals. */
 const CHAPTERS: StoryChapter[] = [
   {
@@ -50,7 +50,7 @@ const CHAPTERS: StoryChapter[] = [
     title: "The Frozen Kingdom",
     subtitle: "Where the codex left its mark",
     location: "Frozen Mountain",
-    content: `Queen Roselyn Aurora receives you in a hall of ice. Her kingdom still stands, but barely — ice slimes overrun the snow fields, and ice dragons circle the mountain shrine where the priest Zephyr keeps his rites.\n\nEarn the Queen's trust and Zephyr will tell you what the kingdom buried: the codex's mark lies inside the forbidden zone, behind boundary stones only the warden Roland may open.\n\nRoland's secret is heavier still. The kingdom hid the codex itself here, and forged a stone golem to guard it. Destroy the guardian, and the second Seal Book is yours.`,
+    content: `Cedric meets you on the snow fields, where farmers hold borrowed spears against ice slimes. Clear their fields and he will trust you with a name before Queen Roselyn Aurora.\n\nThe Queen sends you to Zephyr, a priest who has studied the vanished Seal Books for thirty years. After you break the strange control driving the ice dragons, he reveals his suspicion: the codex was corrupted rather than born evil, and the truth lies in the forbidden north.\n\nBeyond Roland's boundary wait a stone golem and the fairy who never abandoned him. They were not forged as monsters. The golem once protected ordinary people, then imprisoned himself when the darkness twisted him. Defeat the tragic guardians, recover the third Seal Book, and carry their true story back into the world.`,
     Icon: Snowflake,
     cloth: "bg-heraldry-royal",
     realm: "frozen",
@@ -58,9 +58,9 @@ const CHAPTERS: StoryChapter[] = [
   {
     id: 4,
     title: "The Castle of the Dead",
-    subtitle: "Two seals remain",
+    subtitle: "The final seal",
     location: "Abandoned Castle",
-    content: `The trail of the seals ends at a ruined castle where skeletons still keep watch, held back by a single Valiant Warrior fighting alone in the valley.\n\nIn the drowned village of Tide-Knell, a girl named Natalie asks a strange favour: dig beside the old well and lift out the skull buried there. The skull is hers. Lay her to rest beneath the ivy tree, and she gives you the key she died holding.\n\nThat key opens the way to a deserted island where one elf guard still stands his post over a sealed crypt. Below waits the UnderKing — and the last two Seal Books are his.`,
+    content: `The trail of the final Seal Book reaches Tide-Knell, where Natalie's father still fights the risen bones of neighbours he could not save.\n\nNatalie's lonely wish opened the old seal beneath the well. Recover her remains and her father's memories, then lay her beneath the ivy tree. Her Mystic Key opens the bridge to the deserted island.\n\nThere the Elf Guard and Brother Cael preserve the truth of King Aderyn: he accepted the curse and imprisoned himself so the wider world would be spared. Free the hero beneath the UnderKing's crown, recover the fourth Seal Book, and take the road home.`,
     Icon: Castle,
     cloth: "bg-heraldry-arcane",
     realm: "castle",
@@ -70,7 +70,7 @@ const CHAPTERS: StoryChapter[] = [
     title: "The Origin Tree",
     subtitle: "The homecoming",
     location: "Elf Forest",
-    content: `All four Seal Books are in your pack, and a portal carries you home — to a forest worse than you left it.\n\nLyra opens the rite at the Origin Tree and steps back: the seals must be set by the one who won them. Place the four books on the tree, break the curse, and watch the forest wake green around you.\n\nBut when you speak with Lyra one last time, she leaves you with a warning instead of a farewell. The codex had a master. And that story is not finished.`,
+    content: `All four Seal Books are in your pack, and a portal carries you home — to a forest worse than you left it. Lyra knows the seals can close the wound, but the living tree first needs an uncorrupted memory.\n\nReturn to Elder Rowan and gather three White Flowers from the clearing where your journey began. He brews one last healing draught, joining the lives saved in Chapter One to the four books won across the other realms.\n\nSet the draught and the Seal Books upon the Origin Tree. The curse breaks and the forest wakes green — but Lyra's farewell carries a warning. The codex was corrupted by a master whose presence is still somewhere beyond the woods.`,
     Icon: Sprout,
     cloth: "bg-heraldry-crimson",
     realm: "forest",
