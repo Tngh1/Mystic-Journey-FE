@@ -131,7 +131,14 @@ export default function EditGachaBannerPage() {
         dropRate: Number(addItemForm.dropRate),
         isFeatured: addItemForm.isFeatured,
       });
-      setBannerItems((prev) => [...prev, newItem]);
+      const matched = items.find((i) => i.itemId === newItem.itemId);
+      const enrichedItem: GachaBannerItemResponse = {
+        ...newItem,
+        itemName: newItem.itemName ?? matched?.name ?? null,
+        itemIconUrl: newItem.itemIconUrl ?? matched?.iconUrl ?? null,
+        itemRarity: newItem.itemRarity ?? matched?.rarity ?? null,
+      };
+      setBannerItems((prev) => [...prev, enrichedItem]);
       setAddItemForm({ itemId: "", dropRate: "10", isFeatured: false });
       setAddItemOpen(false);
       await showSuccessAlert("Success!", "Item added to banner successfully.");
@@ -350,22 +357,26 @@ export default function EditGachaBannerPage() {
         ) : (
           <div className="divide-y divide-white/5">
             {bannerItems.map((item) => {
-              const rarityClass = item.itemRarity ? (RARITY_CHIP[item.itemRarity] ?? RARITY_CHIP.Common) : RARITY_CHIP.Common;
+              const matchedItem = items.find((i) => i.itemId === item.itemId);
+              const name = item.itemName ?? matchedItem?.name ?? `Item #${item.itemId}`;
+              const rarity = item.itemRarity ?? matchedItem?.rarity ?? "Unknown";
+              const iconUrl = item.itemIconUrl ?? matchedItem?.iconUrl;
+              const rarityClass = RARITY_CHIP[rarity] ?? RARITY_CHIP.Common;
               return (
                 <div key={item.gachaBannerItemId} className="flex items-center gap-4 px-5 py-3 hover:bg-white/5 transition-colors group">
-                  {item.itemIconUrl ? (
-                    <img src={item.itemIconUrl} alt={item.itemName ?? ""} className="w-10 h-10 rounded-lg object-cover border border-white/10 shrink-0" />
+                  {iconUrl ? (
+                    <img src={iconUrl} alt={name} className="w-10 h-10 rounded-lg object-cover border border-white/10 shrink-0" />
                   ) : (
                     <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
                       <Gift className="w-5 h-5 text-white/30" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-white truncate">{item.itemName ?? `Item #${item.itemId}`}</p>
+                    <p className="text-sm font-semibold text-white truncate">{name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${rarityClass}`}>
                         <Star className="w-3 h-3" />
-                        {item.itemRarity ?? "Unknown"}
+                        {rarity}
                       </span>
                       {item.isFeatured && (
                         <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-[#ffc032]/15 text-[#ffc032] border border-[#ffc032]/30">
