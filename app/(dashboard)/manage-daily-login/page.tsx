@@ -42,15 +42,16 @@ const MONTH_NAMES = [
 const TOTAL_DAYS = 31;
 
 // ── Reward type config ────────────────────────────────────────────────────────
-const REWARD_TYPES = ["Gold", "Gems", "Energy", "Item"] as const;
+const REWARD_TYPES = ["Gold", "Gems", "EXP", "Item"] as const;
 type RewardType = (typeof REWARD_TYPES)[number];
 
 const rewardConfig: Record<
-  RewardType,
+  string,
   { label: string; icon: React.ReactNode; color: string; bg: string; border: string }
 > = {
   Gold:   { label: "Gold",   icon: <Coins className="w-4 h-4" />,   color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/30" },
   Gems:   { label: "Gems",   icon: <Gem className="w-4 h-4" />,     color: "text-cyan-400",   bg: "bg-cyan-500/10",   border: "border-cyan-500/30"   },
+  EXP:    { label: "EXP",    icon: <Zap className="w-4 h-4" />,     color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/30" },
   Energy: { label: "Energy", icon: <Zap className="w-4 h-4" />,     color: "text-green-400",  bg: "bg-green-500/10",  border: "border-green-500/30"  },
   Item:   { label: "Item",   icon: <Package className="w-4 h-4" />, color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/30" },
 };
@@ -207,7 +208,7 @@ interface DayCardProps {
 
 function DayCard({ dayNumber, reward, viewMode, onEdit, onDelete }: DayCardProps) {
   const hasReward = reward && reward.isActive && reward.rewardType !== "None";
-  const cfg = hasReward ? rewardConfig[reward.rewardType as RewardType] : null;
+  const cfg = hasReward ? (rewardConfig[reward.rewardType] ?? rewardConfig.EXP) : null;
 
   // Trong tab tháng: ô "fallback from default" = reward.isDefault=true
   const isFallback = viewMode === "month" && hasReward && reward?.isDefault;
@@ -447,7 +448,7 @@ function RewardFormModal({
 
   if (!isOpen) return null;
 
-  const cfg = rewardConfig[form.rewardType];
+  const cfg = rewardConfig[form.rewardType] ?? rewardConfig.EXP;
 
   return (
     <>

@@ -118,6 +118,8 @@ export interface PlayerProfileResponse {
   corruptionLevel: number;
   createdAt: string;
   updatedAt: string | null;
+  /** Ban = Account.IsActive == false trên BE. Nguồn duy nhất cho trạng thái ban. */
+  isBanned: boolean;
 }
 
 export interface PlayerStatsResponse {

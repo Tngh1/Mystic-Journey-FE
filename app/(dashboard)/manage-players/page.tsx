@@ -24,8 +24,6 @@ export default function ManagePlayersPage() {
   const [sortBy, setSortBy] = useState('playerProfileId');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [banningId, setBanningId] = useState<number | null>(null);
-  // Theo dõi accounts bị ban locally (vì PlayerProfileResponse không trả isBanned).
-  const [bannedAccountIds, setBannedAccountIds] = useState<Set<number>>(new Set());
 
   const buildParams = (overrides: Record<string, string | number | boolean | undefined> = {}) => ({
     ...(searchTerm ? { search: searchTerm } : {}),
@@ -52,9 +50,6 @@ export default function ManagePlayersPage() {
     params: buildParams(),
   });
 
-  const isBanned = (player: PlayerProfileResponse) =>
-    player.accountId != null && bannedAccountIds.has(player.accountId);
-
   const handleSearch = (keyword: string) => {
     setSearchTerm(keyword);
     setPage(1);
@@ -78,7 +73,7 @@ export default function ManagePlayersPage() {
   const handleBan = async (player: PlayerProfileResponse) => {
     if (player.playerProfileId == null || player.accountId == null) return;
 
-    const currentlyBanned = isBanned(player);
+    const currentlyBanned = player.isBanned;
     const actionTitle = currentlyBanned ? 'Unban Player' : 'Ban Player';
     const actionMessage = currentlyBanned
       ? `Are you sure you want to unban player "${player.displayName}"?`
@@ -92,17 +87,12 @@ export default function ManagePlayersPage() {
       setBanningId(player.playerProfileId);
       if (currentlyBanned) {
         await unbanPlayer(player.accountId);
-        setBannedAccountIds((prev) => {
-          const next = new Set(prev);
-          next.delete(player.accountId!);
-          return next;
-        });
         await showSuccessAlert('Unbanned!', `${player.displayName} has been unbanned.`);
       } else {
         await banPlayer(player.accountId);
-        setBannedAccountIds((prev) => new Set(prev).add(player.accountId!));
         await showSuccessAlert('Banned!', `${player.displayName} has been banned.`);
       }
+      // refresh() đọc lại isBanned từ BE — không cần state ban cục bộ (state đó mất khi F5).
       refresh();
     } catch (err) {
       await showErrorAlert('Error', err instanceof Error ? err.message : 'Action failed.');
@@ -164,8 +154,8 @@ export default function ManagePlayersPage() {
       label: 'Status',
       sortable: false,
       render: (_: unknown, player: PlayerProfileResponse) => (
-        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${isBanned(player) ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>
-          {isBanned(player) ? 'Banned' : 'Active'}
+        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${player.isBanned ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>
+          {player.isBanned ? 'Banned' : 'Active'}
         </span>
       ),
     },
@@ -180,15 +170,15 @@ export default function ManagePlayersPage() {
             onClick={() => handleBan(player)}
             disabled={banningId === player.playerProfileId}
             className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
-              isBanned(player)
+              player.isBanned
                 ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20'
                 : 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
             }`}
-            title={isBanned(player) ? 'Unban' : 'Ban'}
+            title={player.isBanned ? 'Unban' : 'Ban'}
           >
             {banningId === player.playerProfileId ? (
               <Loader2 className="w-4 h-4 animate-spin" />
-            ) : isBanned(player) ? (
+            ) : player.isBanned ? (
               <CheckCircle className="w-4 h-4" />
             ) : (
               <Ban className="w-4 h-4" />
