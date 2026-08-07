@@ -1,7 +1,4 @@
-import { get, handleApiError } from "./client";
-import type {
-  CloudinaryUploadResult,
-} from "@/lib/types";
+import type { CloudinaryUploadResult } from "@/lib/types";
 
 export function validateCloudinaryConfig() {
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
@@ -102,7 +99,11 @@ export async function uploadImageWithCleanup(
       try {
         await deleteImageFromCloudinary(oldPublicId);
       } catch (error) {
-        console.warn("[Cloudinary] Failed to delete old image:", error);
+        // Không throw: xoá ảnh cũ thất bại chỉ làm rác trên Cloudinary, chặn
+        // luôn việc upload ảnh mới thì người dùng mất cả thao tác cập nhật.
+        // Nhưng phải log ở mức error — console.warn trước đây đã che một lỗi
+        // 404 thật (route handler chưa tồn tại) trong suốt thời gian dài.
+        console.error("[Cloudinary] Failed to delete old image:", oldPublicId, error);
       }
     }
   }
