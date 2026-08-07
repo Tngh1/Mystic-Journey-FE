@@ -10,6 +10,7 @@ import {
   Eye,
   X,
   AlertCircle,
+  CheckCircle2,
   Star,
   Gift,
   Crown,
