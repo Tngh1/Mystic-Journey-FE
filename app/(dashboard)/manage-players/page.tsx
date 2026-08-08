@@ -81,7 +81,7 @@ export default function ManagePlayersPage() {
     const confirmButtonText = currentlyBanned ? 'Yes, Unban Player' : 'Yes, Ban Player';
 
     const confirm = await showConfirmAlert(actionTitle, actionMessage, confirmButtonText, 'Cancel');
-    if (!confirm.isConfirmed) return;
+    if (!confirm) return;
 
     try {
       setBanningId(player.playerProfileId);

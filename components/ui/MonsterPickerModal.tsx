@@ -11,6 +11,9 @@ interface MonsterPickerModalProps {
   onSelect: (monster: MonsterResponse) => void;
   selectedMonsterName?: string | null;
   title?: string;
+  subtitle?: string;
+  includeType?: string;
+  excludeType?: string;
 }
 
 export default function MonsterPickerModal({
@@ -19,6 +22,9 @@ export default function MonsterPickerModal({
   onSelect,
   selectedMonsterName,
   title = "Select Monster Target",
+  subtitle = "Pick a monster from the list",
+  includeType,
+  excludeType,
 }: MonsterPickerModalProps) {
   const [monsters, setMonsters] = useState<MonsterResponse[]>([]);
   const [loading, setLoading] = useState(false);
@@ -28,7 +34,12 @@ export default function MonsterPickerModal({
   useEffect(() => {
     if (!isOpen) return;
     getAllMonsters(1, 500)
-      .then((res) => setMonsters(res.items ?? []))
+      .then((res) => {
+        let items = res.items ?? [];
+        if (includeType) items = items.filter(m => m.type === includeType);
+        if (excludeType) items = items.filter(m => m.type !== excludeType);
+        setMonsters(items);
+      })
       .catch(() => setMonsters([]))
       .finally(() => setLoading(false));
   }, [isOpen]);
@@ -62,10 +73,11 @@ export default function MonsterPickerModal({
             </div>
             <div>
               <h2 className="text-lg font-bold text-white">{title}</h2>
-              <p className="text-xs text-white/50">Pick a monster for Defeat objective targets</p>
+              <p className="text-xs text-white/50">{subtitle}</p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-white/40 hover:bg-white/10 hover:text-white transition-colors"
           >
@@ -87,9 +99,10 @@ export default function MonsterPickerModal({
           </div>
 
           <div className="flex flex-wrap gap-1.5 text-xs">
-            {monsterTypes.map((type) => (
+            {!includeType && monsterTypes.length > 2 && monsterTypes.map((type) => (
               <button
                 key={type}
+                type="button"
                 onClick={() => setSelectedType(type)}
                 className={`rounded-lg px-3 py-1.5 font-medium transition-all ${
                   selectedType === type
@@ -177,6 +190,7 @@ export default function MonsterPickerModal({
         <div className="flex items-center justify-between border-t border-white/10 bg-[#161616] px-6 py-3 text-xs text-white/40">
           <span>Showing {filteredMonsters.length} of {monsters.length} monsters</span>
           <button
+            type="button"
             onClick={onClose}
             className="rounded-lg border border-white/10 px-4 py-2 font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-colors"
           >

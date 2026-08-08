@@ -159,7 +159,7 @@ export default function EditGachaBannerPage() {
       "Remove",
       "Cancel"
     );
-    if (!confirm.isConfirmed) return;
+    if (!confirm) return;
     try {
       await removeBannerItem(Number(bannerId), bannerItemId);
       setBannerItems((prev) => prev.filter((i) => i.gachaBannerItemId !== bannerItemId));

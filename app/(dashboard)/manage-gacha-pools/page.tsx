@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -101,13 +101,6 @@ export default function ManageGachaPoolsPage() {
           >
             <History className="w-4 h-4" />
             Pull History
-          </button>
-          <button
-            onClick={() => router.push("/manage-gacha-pools/create")}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-xl bg-[#ffc032] text-[#111] hover:bg-[#ffd04c] transition-colors cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            Create Banner
           </button>
         </div>
       </div>

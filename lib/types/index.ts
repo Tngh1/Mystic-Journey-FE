@@ -273,6 +273,39 @@ export interface AddMonsterDropRequest {
   isActive?: boolean;
 }
 
+export interface MonsterSpawnResponse {
+  monsterSpawnId: number;
+  monsterId: number;
+  monsterName: string;
+  monsterType: string;
+  mapName: string;
+  regionName: string | null;
+  location: string | null;
+  spawnCount: number;
+  respawnSeconds: number;
+  dungeonId: number | null;
+  dungeonName: string | null;
+  isDungeonRepeatable: boolean;
+  isActive: boolean;
+  monster: MonsterResponse;
+}
+
+export interface CreateMonsterSpawnRequest {
+  monsterId: number;
+  mapName: string;
+  regionName?: string;
+  location?: string;
+  spawnCount?: number;
+  respawnSeconds?: number;
+  dungeonId?: number;
+  isActive?: boolean;
+}
+
+export interface UpdateMonsterSpawnRequest {
+  spawnCount: number;
+  respawnSeconds: number;
+}
+
 /* ─── Dungeon ────────────────────────────────────────────────────────────── */
 
 export interface DungeonConfigResponse {
@@ -287,6 +320,28 @@ export interface DungeonConfigResponse {
   energyCost: number;
   chestId: number | null;
   isActive: boolean;
+  possibleDrops?: ChestItemResponse[];
+}
+
+export interface ChestItemResponse {
+  chestItemId: number;
+  chestId: number;
+  itemId: number;
+  itemName?: string;
+  itemIconUrl?: string;
+  itemRarity?: string;
+  quantityMin: number;
+  quantityMax: number;
+  dropRate: number;
+  isGuaranteed: boolean;
+}
+
+export interface CreateChestItemRequest {
+  itemId: number;
+  quantityMin?: number;
+  quantityMax?: number;
+  dropRate?: number;
+  isGuaranteed?: boolean;
 }
 
 export interface UpdateDungeonConfigRequest {

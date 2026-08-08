@@ -413,7 +413,7 @@ export default function EditableTextBlock({
                   'Delete',
                   'Cancel'
                 );
-                if (result.isConfirmed) {
+                if (result) {
                   onDelete(id);
                 }
               }}
