@@ -23,13 +23,13 @@ export default function AdminTopBar() {
   const [loggingOut, setLoggingOut] = useState(false);
 
   const handleLogout = async () => {
-    const { isConfirmed } = await showConfirmAlert(
-      "Leave the Keep?",
-      "You will need to sign in again to reach the dashboard.",
-      "Log Out",
-      "Stay"
+    const confirm = await showConfirmAlert(
+      "Confirm Logout",
+      "Are you sure you want to log out?",
+      "Logout",
+      "Cancel"
     );
-    if (!isConfirmed) return;
+    if (!confirm) return;
     try {
       setLoggingOut(true);
       await logout();

@@ -85,4 +85,4 @@ export const showConfirmAlert = (
        outside click already resolves to it. */
     reverseButtons: true,
     focusCancel: true,
-  });
+  }).then((res) => res.isConfirmed);

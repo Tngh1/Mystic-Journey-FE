@@ -141,7 +141,7 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
                   'Delete',
                   'Cancel'
                 );
-                if (result.isConfirmed) {
+                if (result) {
                   onDelete(block.tempId);
                 }
               }}

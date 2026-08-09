@@ -72,6 +72,7 @@ export default function ItemPickerModal({
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-white/40 hover:bg-white/10 hover:text-white transition-colors"
           >
@@ -98,6 +99,7 @@ export default function ItemPickerModal({
               {["All", "Weapon", "Armor", "Consumable", "Material", "QuestItem"].map((type) => (
                 <button
                   key={type}
+                  type="button"
                   onClick={() => setSelectedType(type)}
                   className={`rounded-lg px-3 py-1.5 font-medium transition-all ${
                     selectedType === type
@@ -213,6 +215,7 @@ export default function ItemPickerModal({
         <div className="flex items-center justify-between border-t border-white/10 bg-[#161616] px-6 py-3 text-xs text-white/40">
           <span>Showing {filteredItems.length} of {items.length} items</span>
           <button
+            type="button"
             onClick={onClose}
             className="rounded-lg border border-white/10 px-4 py-2 font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-colors"
           >

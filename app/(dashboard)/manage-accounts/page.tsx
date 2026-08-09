@@ -132,7 +132,7 @@ export default function ManageAccountsPage() {
     const confirmButtonText = isBanning ? "Yes, Ban Account" : "Yes, Unban Account";
 
     const confirm = await showConfirmAlert(actionTitle, actionMessage, confirmButtonText, "Cancel");
-    if (!confirm.isConfirmed) return;
+    if (!confirm) return;
 
     try {
       setBanningId(account.accountId);
