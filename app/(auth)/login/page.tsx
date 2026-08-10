@@ -23,8 +23,18 @@ export default function LoginPage() {
       const me = await login(email, password);
       await showSuccessAlert("Welcome back!", "Login successful. Redirecting...");
 
-      const adminRoles = ["Admin", "SuperAdmin"];
-      const destination = adminRoles.includes(me.role) ? "/dashboard" : "/";
+      // Admin is the only non-Player role: the BE seeds just Player/Admin and
+      // every [Authorize] there is Roles = "Admin". SuperAdmin was removed, so
+      // don't reintroduce a branch for it here.
+      const home = me.role === "Admin" ? "/dashboard" : "/";
+
+      // proxy.ts parks the blocked path in ?redirect= when it bounces a guest.
+      // Read it here rather than with useSearchParams so the page keeps
+      // prerendering without a Suspense boundary. Only same-origin paths are
+      // honoured: a leading "//" or "https://evil" would make this an open
+      // redirect, and the param is attacker-controlled.
+      const wanted = new URLSearchParams(window.location.search).get("redirect");
+      const destination = wanted?.startsWith("/") && !wanted.startsWith("//") ? wanted : home;
       router.push(destination);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Invalid credentials. Please try again.";

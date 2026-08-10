@@ -307,20 +307,12 @@ const FORM_TEST_CASES = [
     payload: { campaignName: 'Summer Login', totalDays: 7, startDate: '2026-08-31', endDate: '2026-08-01' },
     expectedValidation: 'End date must be after start date',
     status: 'Passed'
-  },
-
-  // ── F22: Admin Creation Validation ─────────────────────────────────────────
-  {
-    tcId: 'TC_ADM_002_001',
-    feature: 'F22_AdminManagement',
-    formName: 'Create Admin Account Form',
-    type: 'A', // Abnormal
-    scenario: 'Invalid Role specified (role = "InvalidRole")',
-    payload: { email: 'admin_test@example.com', username: 'admin_test', password: 'Password123!', role: 'InvalidRole' },
-    expectedValidation: 'Invalid role specified',
-    status: 'Passed'
   }
 ];
+
+/* F22_AdminManagement has no form left to validate: POST/PUT /api/adminaccounts
+   were removed from the BE along with the SuperAdmin role, so there is no role
+   field for an "invalid role" case to exercise. */
 
 function runValidationTests() {
   console.log(`======================================================================`);

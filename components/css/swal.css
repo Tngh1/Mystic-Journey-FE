@@ -218,3 +218,23 @@
 .swal-pixel-cancel:focus-visible {
   box-shadow: 3px 3px 0 rgb(0 0 0 / 0.6);
 }
+
+/* ── Textarea input (ban reason prompt) ────────────────────────────────────── */
+.swal-pixel-input {
+  width: 100%;
+  min-height: 5rem;
+  padding: 0.6rem 0.75rem;
+  margin: 0 1.25rem 0.5rem;
+  box-sizing: border-box;
+  border: 2px solid var(--color-wood-dark);
+  background: var(--color-parchment);
+  color: var(--color-on-parchment);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+.swal-pixel-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgb(255 192 50 / 0.2);
+}

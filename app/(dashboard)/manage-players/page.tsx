@@ -6,7 +6,7 @@ import { Loader2, User, Ban, CheckCircle, Edit2 } from 'lucide-react';
 import { PlayerProfileResponse } from '@/lib/api/player-profiles';
 import { banPlayer, unbanPlayer } from '@/lib/api/admin-accounts';
 import { usePagedQuery } from '@/lib/hooks/usePagedQuery';
-import { showSuccessAlert, showErrorAlert, showConfirmAlert } from '@/lib/utils/swal';
+import { showSuccessAlert, showErrorAlert, showConfirmAlert, showBanReasonPrompt } from '@/lib/utils/swal';
 import AdminTable from '@/components/ui/AdminTable';
 import PageHeader from '@/components/ui/PageHeader';
 import FilterSortBar from '@/components/ui/FilterSortBar';
@@ -74,14 +74,21 @@ export default function ManagePlayersPage() {
     if (player.playerProfileId == null || player.accountId == null) return;
 
     const currentlyBanned = player.isBanned;
-    const actionTitle = currentlyBanned ? 'Unban Player' : 'Ban Player';
-    const actionMessage = currentlyBanned
-      ? `Are you sure you want to unban player "${player.displayName}"?`
-      : `Are you sure you want to ban player "${player.displayName}"?`;
-    const confirmButtonText = currentlyBanned ? 'Yes, Unban Player' : 'Yes, Ban Player';
 
-    const confirm = await showConfirmAlert(actionTitle, actionMessage, confirmButtonText, 'Cancel');
-    if (!confirm) return;
+    // Ban thì hỏi lý do (player đọc được khi đăng nhập); unban chỉ cần xác nhận.
+    let banReason: string | null = null;
+    if (currentlyBanned) {
+      const confirm = await showConfirmAlert(
+        'Unban Player',
+        `Are you sure you want to unban player "${player.displayName}"?`,
+        'Yes, Unban Player',
+        'Cancel'
+      );
+      if (!confirm) return;
+    } else {
+      banReason = await showBanReasonPrompt(player.displayName);
+      if (banReason === null) return;
+    }
 
     try {
       setBanningId(player.playerProfileId);
@@ -89,7 +96,7 @@ export default function ManagePlayersPage() {
         await unbanPlayer(player.accountId);
         await showSuccessAlert('Unbanned!', `${player.displayName} has been unbanned.`);
       } else {
-        await banPlayer(player.accountId);
+        await banPlayer(player.accountId, banReason || undefined);
         await showSuccessAlert('Banned!', `${player.displayName} has been banned.`);
       }
       // refresh() đọc lại isBanned từ BE — không cần state ban cục bộ (state đó mất khi F5).

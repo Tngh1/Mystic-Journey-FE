@@ -1,12 +1,12 @@
-# Mystic Journey Frontend Web Testing Guide (22 Features)
+# Mystic Journey Frontend Web Testing Guide (21 Features)
 
-This directory contains test scripts and specifications for testing both **Page Routes** and **Input Data Validation Forms** across all 22 Web Management Features in `Mystic-Journey-FE`.
+This directory contains test scripts and specifications for testing both **Page Routes** and **Input Data Validation Forms** across the 21 Web Management Features in `Mystic-Journey-FE` (F01–F21; F22 was dropped, xem cuối mục 1).
 
 ---
 
 ## 1. Kiểm thử dữ liệu đầu vào Forms (Input Data Validation Test)
 
-Chạy kiểm thử tự động toàn bộ 4 loại dạng dữ liệu nhập vào (**[N] Normal**, **[A] Abnormal / Invalid**, **[B] Boundary / Biên**, **[E] Empty / Null**) trên tất cả các Form quản trị của 22 Feature:
+Chạy kiểm thử tự động toàn bộ 4 loại dạng dữ liệu nhập vào (**[N] Normal**, **[A] Abnormal / Invalid**, **[B] Boundary / Biên**, **[E] Empty / Null**) trên tất cả các Form quản trị:
 
 ```bash
 cd d:\DHFPT\Đồ Án\Project\Mystic-Journey-FE
@@ -29,13 +29,17 @@ npm run test:forms
 13. **F17 Quest Form**: Target count = 0 empty boundary [E].
 14. **F19 Mail Form**: Empty subject & body [E].
 15. **F20 Daily Login Campaign**: End date before start date abnormal [A].
-16. **F22 Admin Form**: Invalid role abnormal [A].
+
+> **F22 Admin Management không còn form nào để kiểm thử.** BE đã bỏ `POST/PUT
+> /api/adminaccounts` cùng role `SuperAdmin`, nên `/manage-admins` đã xoá và tài
+> khoản Admin chỉ cấp trực tiếp trong DB.
 
 ---
 
 ## 2. Kiểm thử đường dẫn trang (Route & Page Test)
 
-Chạy kiểm thử kết nối và truy cập 22 trang quản trị giao diện web:
+Chạy kiểm thử kết nối và truy cập các trang quản trị giao diện web (phiên khách:
+trang public phải trả 200, trang gated phải 307 về `/login`):
 
 ```bash
 npm run test:e2e
@@ -51,11 +55,11 @@ npm run test:e2e
    ```
 2. **Mở trình duyệt**:
    Truy cập: [http://localhost:3000](http://localhost:3000)
-3. Các trang tính năng tương ứng 22 Feature:
+3. Các trang tính năng tương ứng từng Feature:
    - `/login` - Đăng nhập (F02)
    - `/register` - Đăng ký (F01)
    - `/forgot-password` - Quên mật khẩu (F03)
-   - `/change-password` - Đổi mật khẩu (F04)
+   - `/account/security` - Đổi mật khẩu (F04) — không có route `/change-password`
    - `/dashboard` - Tổng quan & Thống kê (F06, F21)
    - `/manage-accounts` - Hồ sơ (F07)
    - `/manage-players` - Quản lý người chơi (F08)
@@ -71,4 +75,3 @@ npm run test:e2e
    - `/manage-achievements` - Quản lý Thành tựu (F18)
    - `/manage-mailbox` - Quản lý Hộp thư (F19)
    - `/manage-daily-login` - Quản lý Điểm danh (F20)
-   - `/manage-admins` - Quản lý Admin (F22)
