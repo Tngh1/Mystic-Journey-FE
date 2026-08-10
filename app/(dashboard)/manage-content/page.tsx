@@ -170,12 +170,6 @@ export default function ManageContentPage() {
       ),
     },
     {
-      key: 'createdByName',
-      label: 'Created By',
-      sortable: true,
-      render: (val: string) => <span className="text-sm text-gray-400">{val || 'Unknown'}</span>,
-    },
-    {
       key: 'createdAt',
       label: 'Created',
       sortable: true,

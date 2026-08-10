@@ -78,7 +78,6 @@ export interface AccountAdminResponse {
   isActive: boolean;
   banReason: string | null;
   createdAt: string;
-  lastLogin: string | null;
   playerProfileId: number | null;
   playerDisplayName: string | null;
 }
@@ -653,7 +652,6 @@ export interface ContentResponse {
   categoryId: number | null;
   categoryName: string | null;
   isPublished: boolean;
-  createdByName: string;
   createdAt: string;
   updatedAt: string | null;
   publishedAt: string | null;

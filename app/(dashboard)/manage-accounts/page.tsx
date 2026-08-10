@@ -22,7 +22,6 @@ interface AccountWithPlayer {
   isActive: boolean;
   banReason: string | null;
   createdAt: string;
-  lastLogin: string | null;
   playerProfileId: number | null;
   playerDisplayName: string | null;
   playerClass: string | null;
@@ -285,14 +284,6 @@ export default function ManageAccountsPage() {
             </p>
           )}
         </div>
-      ),
-    },
-    {
-      key: "lastLogin",
-      label: "Last Login",
-      sortable: true,
-      render: (val: string | null) => (
-        <p className="text-xs text-gray-500">{formatDate(val)}</p>
       ),
     },
     {

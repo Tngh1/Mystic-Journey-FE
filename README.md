@@ -152,8 +152,7 @@ Dashboard tại `/dashboard`, yêu cầu role `Admin`.
 | Module | Route | Chức năng |
 |---|---|---|
 | Dashboard | `/dashboard` | Biểu đồ thống kê (ApexCharts) |
-| Accounts | `/manage-accounts` | Danh sách tài khoản, ban/unban |
-| Players | `/manage-players` | Danh sách, sửa profile |
+| Accounts | `/manage-accounts` | Danh sách tài khoản, xem profile, ban/unban |
 | Items | `/manage-items` | CRUD + equipment stats |
 | Monsters | `/manage-monsters` | CRUD + drop table |
 | Dungeons | `/manage-dungeons` | CRUD dungeon config |

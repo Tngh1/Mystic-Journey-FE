@@ -7,7 +7,6 @@ import { X } from "lucide-react";
 import {
   LayoutDashboard,
   Users,
-  User,
   FileText,
   Package,
   Ghost,
@@ -43,7 +42,6 @@ const menuGroups = [
     title: "User Management",
     items: [
       { icon: Users, label: "Manage Accounts", href: "/manage-accounts" },
-      { icon: User, label: "Manage Players", href: "/manage-players" },
     ],
   },
   {
