@@ -5,10 +5,9 @@ import { getStats } from "@/lib/api/dashboard";
 import PageLoader from "@/components/ui/PageLoader";
 import {
   Users, UserCircle, Package, Ghost, Activity,
-  BarChart3, LayoutDashboard, Wifi, WifiOff, AlertCircle,
+  LayoutDashboard, Wifi, WifiOff, AlertCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import MonthlyChart from "@/components/ui/MonthlyChart";
 import OnlinePlayersChart, { type OnlineSample } from "@/components/ui/OnlinePlayersChart";
 import Panel from "@/components/ui/Panel";
 import PageHeader from "@/components/ui/PageHeader";
@@ -149,10 +148,6 @@ export default function DashboardPage() {
     );
   }
 
-  const topMonths = stats.monthlyStats.slice(0, 6);
-  // Chart reads left→right as oldest→newest (table shows newest first).
-  const chartData = [...topMonths].reverse();
-
   const liveStats: StatTileData[] = [
     { label: "Players Online", value: stats.onlinePlayers.toLocaleString(), icon: Wifi, tone: "success" },
     { label: "Players Offline", value: stats.offlinePlayers.toLocaleString(), icon: WifiOff, tone: "default" },
@@ -191,9 +186,6 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Where the three zeroed Economy tiles were. Revenue is charted in Monthly
-          Overview below, so the space goes to the one number on this page that
-          actually moves. */}
       <Panel material="plate" as="section" className="overflow-hidden">
         <div className="flex items-center gap-2.5 border-b-2 border-black/60 bg-iron-dark px-5 py-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center border-2 border-black/60 bg-iron text-parchment shadow-sm">
@@ -207,27 +199,6 @@ export default function DashboardPage() {
           <OnlinePlayersChart samples={samples} />
         </div>
       </Panel>
-
-      {topMonths.length > 0 && (
-        <Panel material="plate" as="section" className="overflow-hidden">
-          <div className="flex items-center gap-2.5 border-b-2 border-black/60 bg-iron-dark px-5 py-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center border-2 border-black/60 bg-iron text-parchment shadow-sm">
-              <BarChart3 className="h-4 w-4" aria-hidden="true" />
-            </span>
-            <h2 className="text-xs font-black uppercase tracking-[0.15em] text-accent">
-              Monthly Overview
-            </h2>
-          </div>
-          <div className="p-5">
-            <MonthlyChart
-              categories={chartData.map((m) => m.month)}
-              transactions={chartData.map((m) => m.count)}
-              revenue={chartData.map((m) => m.amount)}
-            />
-          </div>
-        </Panel>
-      )}
-
     </div>
   );
 }

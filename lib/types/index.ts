@@ -517,6 +517,8 @@ export interface GachaBannerResponse {
   name: string;
   type: string;
   pullCost: number;
+  /** Ticket item dùng để pull. BR-053/BR-136: không dùng Gold/Gem/Energy. */
+  costItemId: number | null;
   pityLimit: number;
   isActive: boolean;
   startAt: string;
@@ -541,6 +543,7 @@ export interface UpdateGachaBannerRequest {
   name?: string;
   type?: string;
   pullCost?: number;
+  costItemId?: number | null;
   pityLimit?: number;
   isActive?: boolean;
   startAt?: string;
@@ -557,6 +560,7 @@ export interface CreateGachaBannerRequest {
   name: string;
   type: string;
   pullCost: number;
+  costItemId: number | null;
   pityLimit: number;
   isActive: boolean;
   startAt: string;
@@ -734,12 +738,6 @@ export interface CreateContentBlockItem {
 
 /* ─── Dashboard ──────────────────────────────────────────────────────────── */
 
-export interface MonthlyStat {
-  month: string;
-  count: number;
-  amount: number;
-}
-
 export interface DashboardStatsResponse {
   totalPlayers: number;
   totalAccounts: number;
@@ -749,7 +747,6 @@ export interface DashboardStatsResponse {
   totalMonsters: number;
   totalTransactions: number;
   totalRevenue: number;
-  monthlyStats: MonthlyStat[];
 }
 
 /* ─── Purchase / Sale ─────────────────────────────────────────────────────── */
