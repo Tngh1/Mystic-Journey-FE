@@ -6,10 +6,10 @@ import { useState } from "react";
 import { MailQuestion } from "lucide-react";
 import AuthField from "@/components/ui/AuthField";
 import AuthFrame from "@/components/ui/AuthFrame";
-import { forgotPassword } from "@/lib/api/auth";
+import { forgetPassword } from "@/lib/api/auth";
 import { showErrorAlert } from "@/lib/utils/swal";
 
-export default function ForgotPasswordPage() {
+export default function ForgetPasswordPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +19,7 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
 
     try {
-      await forgotPassword(email);
+      await forgetPassword(email);
       router.push(`/reset-password?email=${encodeURIComponent(email)}`);
     } catch (err: unknown) {
       await showErrorAlert("Error", err instanceof Error ? err.message : "Failed to send reset code. Please try again.");
@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
     <AuthFrame
       eyebrow="Courier"
       icon={MailQuestion}
-      title="Forgot Password"
+      title="Forget Password"
       lede="Name the address on your record and a reset code will be sent by courier."
       footer={
         <>

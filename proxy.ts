@@ -12,7 +12,7 @@ import type { NextRequest } from "next/server";
    fail-closed. */
 const protectedRoutes = ["/dashboard", "/manage-", "/account"];
 
-const guestRoutes = ["/login", "/register", "/forgot-password", "/reset-password"];
+const guestRoutes = ["/login", "/register", "/forget-password", "/reset-password"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

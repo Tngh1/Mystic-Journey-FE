@@ -48,8 +48,8 @@ export const verifyEmail = async (data: VerifyEmailRequest): Promise<void> => {
 };
 
 // ── Quên mật khẩu ─────────────────────────────────────────
-export const forgotPassword = async (email: string): Promise<void> => {
-  await post("/api/auth/forgot-password", { email });
+export const forgetPassword = async (email: string): Promise<void> => {
+  await post("/api/auth/forget-password", { email });
 };
 
 // ── Đặt lại mật khẩu ─────────────────────────────────────

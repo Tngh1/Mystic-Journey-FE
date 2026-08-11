@@ -184,12 +184,13 @@ export default function SendMailPage() {
     );
   }, [form.attachedGold, form.attachedGems, selectedItems]);
 
-  // Effective quantity for an item (blank/invalid → 1, clamped to maxStack).
+  // Effective quantity for an item (blank/invalid → 1, clamped to maxStack & 99).
   const getItemQuantity = (itemId: number): number => {
     const raw = Number(itemQuantities[itemId]);
     if (!raw || raw < 1) return 1;
     const item = selectedItems.find((s) => s.itemId === itemId);
-    const max = item?.maxStack && item.maxStack > 0 ? item.maxStack : Infinity;
+    const maxStack = item?.maxStack && item.maxStack > 0 ? item.maxStack : 99;
+    const max = Math.min(maxStack, 99);
     return Math.min(raw, max);
   };
 
@@ -303,6 +304,23 @@ export default function SendMailPage() {
       if (!form.content.trim()) {
         setError("Mailbox content is required.");
         return false;
+      }
+    }
+    if (activeStep === 3) {
+      if (Number(form.attachedGold) > 9999) {
+        setError("Gold amount cannot exceed 9999.");
+        return false;
+      }
+      if (Number(form.attachedGems) > 9999) {
+        setError("Gems amount cannot exceed 9999.");
+        return false;
+      }
+      for (const item of selectedItems) {
+        const qty = getItemQuantity(item.itemId);
+        if (qty > 99) {
+          setError(`Item quantity for '${item.name}' cannot exceed 99.`);
+          return false;
+        }
       }
     }
     setError(null);
@@ -764,7 +782,7 @@ export default function SendMailPage() {
                   <div>
                     <label className="flex items-center gap-1.5 text-xs font-medium text-gray-400 mb-2 uppercase tracking-wide">
                       <Coins className="w-3.5 h-3.5 text-yellow-400" />
-                      Gold Amount
+                      Gold Amount (Max 9999)
                     </label>
                     <input
                       type="number"
@@ -772,14 +790,15 @@ export default function SendMailPage() {
                       value={form.attachedGold}
                       onChange={handleChange}
                       min="0"
-                      placeholder="0"
+                      max="9999"
+                      placeholder="0 (max 9999)"
                       className="w-full px-4 py-3 bg-[#111] border border-white/10 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
                     />
                   </div>
                   <div>
                     <label className="flex items-center gap-1.5 text-xs font-medium text-gray-400 mb-2 uppercase tracking-wide">
                       <Gem className="w-3.5 h-3.5 text-blue-400" />
-                      Gems Amount
+                      Gems Amount (Max 9999)
                     </label>
                     <input
                       type="number"
@@ -787,7 +806,8 @@ export default function SendMailPage() {
                       value={form.attachedGems}
                       onChange={handleChange}
                       min="0"
-                      placeholder="0"
+                      max="9999"
+                      placeholder="0 (max 9999)"
                       className="w-full px-4 py-3 bg-[#111] border border-white/10 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors"
                     />
                   </div>
@@ -996,9 +1016,9 @@ export default function SendMailPage() {
                               }))
                             }
                             min="1"
-                            max={item.maxStack > 0 ? item.maxStack : undefined}
-                            placeholder="1"
-                            className="w-24 px-3 py-2 bg-[#0d0d0d] border border-white/10 rounded-lg text-white text-center placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors shrink-0"
+                            max={item.maxStack > 0 ? Math.min(item.maxStack, 99) : 99}
+                            placeholder="1 (max 99)"
+                            className="w-28 px-3 py-2 bg-[#0d0d0d] border border-white/10 rounded-lg text-white text-center placeholder-gray-600 focus:outline-none focus:border-[#ffc032] transition-colors shrink-0"
                           />
                         </div>
                       ))}
