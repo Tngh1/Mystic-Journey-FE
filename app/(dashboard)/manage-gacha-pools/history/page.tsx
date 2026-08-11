@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { GachaPullHistoryResponse, getPlayerGachaStats } from "@/lib/api/gacha-banners";
 import { banPlayer } from "@/lib/api/admin-accounts";
+import { showSuccessAlert, showErrorAlert, showBanReasonPrompt } from "@/lib/utils/swal";
 import type { PlayerGachaStatsResponse } from "@/lib/types";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import { History, Star, ShieldAlert } from "lucide-react";
@@ -181,15 +182,16 @@ function PlayerStatsModal({ playerProfileId, onClose }: { playerProfileId: numbe
 
   const handleBan = async () => {
     if (!stats) return;
-    if (!confirm(`Are you sure you want to ban ${stats.playerName}?`)) return;
-    
+    const banReason = await showBanReasonPrompt(stats.playerName);
+    if (banReason === null) return;
+
     setBanning(true);
     try {
-      await banPlayer(stats.accountId);
-      alert(`Account of ${stats.playerName} has been banned successfully.`);
+      await banPlayer(stats.accountId, banReason || undefined);
+      await showSuccessAlert("Banned!", `${stats.playerName} has been banned.`);
       onClose();
-    } catch (err: any) {
-      alert(`Failed to ban account: ${err.message}`);
+    } catch (err) {
+      await showErrorAlert("Error", err instanceof Error ? err.message : "Failed to ban account.");
     } finally {
       setBanning(false);
     }

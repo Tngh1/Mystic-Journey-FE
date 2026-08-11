@@ -29,19 +29,23 @@ const ICONS = {
 /* Shared shell. `buttonsStyling: false` hands the buttons to our own CSS —
    otherwise the library writes inline background-color from
    confirmButtonColor and wins on specificity. */
-const base = (danger = false): SweetAlertOptions => ({
-  buttonsStyling: false,
-  customClass: {
-    container: "swal-pixel-container",
-    popup: "swal-pixel-popup",
-    icon: "swal-pixel-icon",
-    title: "swal-pixel-title",
-    htmlContainer: "swal-pixel-text",
-    actions: "swal-pixel-actions",
-    confirmButton: `swal-pixel-confirm${danger ? " swal-pixel-danger" : ""}`,
-    cancelButton: "swal-pixel-cancel",
-  },
-});
+/* `satisfies` thay vì annotate: vẫn kiểm tra kiểu, nhưng giữ kiểu suy ra đủ hẹp
+   để spread được vào dialog có `input` (SweetAlertOptions là union theo loại
+   input, nên spread giá trị đã annotate sẽ vỡ ở nhánh inputValidator). */
+const base = (danger = false) =>
+  ({
+    buttonsStyling: false,
+    customClass: {
+      container: "swal-pixel-container",
+      popup: "swal-pixel-popup",
+      icon: "swal-pixel-icon",
+      title: "swal-pixel-title",
+      htmlContainer: "swal-pixel-text",
+      actions: "swal-pixel-actions",
+      confirmButton: `swal-pixel-confirm${danger ? " swal-pixel-danger" : ""}`,
+      cancelButton: "swal-pixel-cancel",
+    },
+  }) satisfies SweetAlertOptions;
 
 export const showSuccessAlert = (title: string, message: string) =>
   Swal.fire({
@@ -86,3 +90,26 @@ export const showConfirmAlert = (
     reverseButtons: true,
     focusCancel: true,
   }).then((res) => res.isConfirmed);
+
+/* Prompt nhập lý do ban — trả về lý do (có thể rỗng) hoặc null nếu huỷ.
+   Lý do này người chơi sẽ đọc được khi đăng nhập, nên nó là nội dung đối mặt
+   người dùng, không phải ghi chú nội bộ. */
+export const showBanReasonPrompt = (userName: string): Promise<string | null> => {
+  const shell = base(true);
+  return Swal.fire({
+    ...shell,
+    title: `Ban "${userName}"`,
+    text: "This reason is shown to the player when they try to log in. Leave blank for none.",
+    input: "textarea",
+    inputPlaceholder: "e.g. Cheating, harassment, …",
+    inputAttributes: { maxlength: "500", "aria-label": "Ban reason" },
+    customClass: { ...shell.customClass, input: "swal-pixel-input" },
+    icon: "warning",
+    iconHtml: ICONS.warning,
+    showCancelButton: true,
+    confirmButtonText: "Ban Account",
+    cancelButtonText: "Cancel",
+    reverseButtons: true,
+    focusCancel: true,
+  }).then((res) => (res.isConfirmed ? (res.value ?? "") : null));
+};

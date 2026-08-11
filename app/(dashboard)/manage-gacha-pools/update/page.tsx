@@ -52,10 +52,18 @@ export default function EditGachaBannerPage() {
     getAllItems(1, 1000).then(res => setItems(res.items)).catch(console.error);
   }, []);
 
+  // BR-053 / BR-136: pull chỉ nhận ticket item.
+  // Loại Currency (Gold / Gem / Exp) khỏi danh sách để admin không cấu hình
+  // banner trừ tiền thay vì trừ ticket. BE cũng chặn lại lần nữa.
+  const ticketItems = items.filter(
+    (i) => i.isActive && i.type?.toLowerCase() !== "currency"
+  );
+
   const [formData, setFormData] = useState({
     name: "",
     type: "Standard",
     pullCost: 100,
+    costItemId: "",
     pityLimit: 100,
     isActive: true,
     startAt: "",
@@ -75,6 +83,7 @@ export default function EditGachaBannerPage() {
           name: banner.name,
           type: banner.type,
           pullCost: banner.pullCost,
+          costItemId: banner.costItemId != null ? String(banner.costItemId) : "",
           pityLimit: banner.pityLimit,
           isActive: banner.isActive,
           startAt: formatDate(banner.startAt),
@@ -97,6 +106,11 @@ export default function EditGachaBannerPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!bannerId) return;
+    // BR-053 / BR-136: banner có phí pull buộc phải có ticket item.
+    if (formData.pullCost > 0 && !formData.costItemId) {
+      setError("Please select a ticket item. A gacha pull cannot be paid with Gold, Gem or Energy.");
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -104,6 +118,7 @@ export default function EditGachaBannerPage() {
         name: formData.name,
         type: formData.type,
         pullCost: formData.pullCost,
+        costItemId: formData.costItemId ? Number(formData.costItemId) : null,
         pityLimit: formData.pityLimit,
         isActive: formData.isActive,
         startAt: formData.startAt,
@@ -212,13 +227,32 @@ export default function EditGachaBannerPage() {
             />
           </FormField>
 
-          <FormField label="Pull Cost" htmlFor="pullCost" hint="Gems" required>
+          <FormField label="Pull Cost" htmlFor="pullCost" hint="Số ticket cần cho 1 lần pull" required>
             <TextInput
               id="pullCost"
               type="number"
               value={formData.pullCost}
               onChange={(e) => handleChange("pullCost", Number(e.target.value))}
               min="1"
+              required
+            />
+          </FormField>
+
+          <FormField
+            label="Ticket Item"
+            htmlFor="costItemId"
+            hint="Gacha chỉ nhận ticket. Không dùng được Gold / Gem / Exp."
+            required
+          >
+            <SelectInput
+              id="costItemId"
+              placeholder="Chọn ticket item..."
+              options={ticketItems.map((item) => ({
+                value: item.itemId,
+                label: `${item.name} (${item.rarity})`,
+              }))}
+              value={formData.costItemId}
+              onChange={(e) => handleChange("costItemId", e.target.value)}
               required
             />
           </FormField>

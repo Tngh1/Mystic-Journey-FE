@@ -132,35 +132,54 @@ npm run build
 npm run lint
 ```
 
+### 5. Test
+```bash
+npm run test:e2e     # smoke test route: cần dev server đang chạy
+npm run test:forms   # validation của các form
+```
+
+`test:e2e` gọi từng route bằng phiên khách (không cookie) và kiểm tra đúng thứ
+route đó phải trả về: trang public → 200, trang trong `protectedRoutes` → 307 về
+`/login`. Nó chỉ xác nhận route được gate đúng và trang render được, chưa kiểm
+tra nội dung sau khi đăng nhập.
+
 ---
 
 ## Admin Panel
 
-Dashboard tại `/dashboard`, yêu cầu role `Admin` hoặc `SuperAdmin`.
+Dashboard tại `/dashboard`, yêu cầu role `Admin`.
 
-| Module | Chức năng |
-|---|---|
-| Players | Danh sách, sửa profile |
-| Admins | Tạo/sửa tài khoản admin |
-| Items | CRUD + equipment stats |
-| Monsters | CRUD + drop table |
-| Dungeons | CRUD dungeon config |
-| Shop | CRUD shop item |
-| Gacha Pools | CRUD banner + tỉ lệ |
-| Quests | CRUD quest |
-| Achievements | CRUD achievement |
-| Mailbox | Gửi mail cá nhân & broadcast kèm phần thưởng |
-| Content | CMS bài viết |
-| Game Config | Cấu hình game runtime |
-| Transactions | Lịch sử mua hàng |
-| Dashboard | Biểu đồ thống kê (ApexCharts) |
+| Module | Route | Chức năng |
+|---|---|---|
+| Dashboard | `/dashboard` | Biểu đồ thống kê (ApexCharts) |
+| Accounts | `/manage-accounts` | Danh sách tài khoản, xem profile, ban/unban |
+| Items | `/manage-items` | CRUD + equipment stats |
+| Monsters | `/manage-monsters` | CRUD + drop table |
+| Dungeons | `/manage-dungeons` | CRUD dungeon config |
+| Shop | `/manage-shop` | CRUD shop item |
+| Gacha Pools | `/manage-gacha-pools` | CRUD banner + tỉ lệ |
+| Transactions | `/manage-transactions` | Lịch sử mua hàng |
+| Quests | `/manage-quests` | CRUD quest |
+| Achievements | `/manage-achievements` | CRUD achievement |
+| Daily Login | `/manage-daily-login` | Cấu hình phần thưởng đăng nhập |
+| Content | `/manage-content` | CMS bài viết |
+| Category | `/manage-category-content` | CRUD category cho bài viết |
+| Mailbox | `/manage-mailbox` | Gửi mail cá nhân & broadcast kèm phần thưởng |
+
+Không có màn tạo/sửa tài khoản Admin — xem Role System bên dưới.
 
 ---
 
 ## Role System
 
+BE chỉ seed hai role (`MysticJourneyDbContext`), và cả 54 endpoint admin đều
+dùng `[Authorize(Roles = "Admin")]`.
+
 | Role | Mô tả |
 |---|---|
 | `Player` | Người chơi thông thường |
 | `Admin` | Toàn quyền tính năng & cài đặt game |
-| `SuperAdmin` | Toàn quyền hệ thống, kể cả quản lý tài khoản |
+
+`SuperAdmin` đã bỏ cùng với đường tạo/nâng quyền Admin (`POST/PUT
+/api/adminaccounts`). Tài khoản Admin giờ cấp trực tiếp trong DB — đừng thêm lại
+nhánh role này ở FE.

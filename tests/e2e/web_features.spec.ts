@@ -1,6 +1,6 @@
 /**
- * Mystic Journey Web App - 22 Feature E2E Test Suite Specification
- * Maps to Report5_Web_Test_Cases.xlsx features F01 - F22
+ * Mystic Journey Web App - Feature E2E Test Suite Specification
+ * Maps to Report5_Web_Test_Cases.xlsx features F01 - F21 (F22 dropped, see below)
  */
 
 export interface TestFeatureRoute {
@@ -15,7 +15,9 @@ export const WEB_FEATURE_ROUTES: TestFeatureRoute[] = [
   { featureId: 1, featureCode: "F01_Register", title: "Register", route: "/register", expectedSelectors: ["input[name='email']", "input[name='password']", "button[type='submit']"] },
   { featureId: 2, featureCode: "F02_Login", title: "Login", route: "/login", expectedSelectors: ["input[name='email']", "input[name='password']", "button[type='submit']"] },
   { featureId: 3, featureCode: "F03_ForgotPwd", title: "Forgot Password", route: "/forgot-password", expectedSelectors: ["input[name='email']", "button[type='submit']"] },
-  { featureId: 4, featureCode: "F04_ChangePwd", title: "Change Password", route: "/change-password", expectedSelectors: ["input[name='oldPassword']", "input[name='newPassword']"] },
+  /* There is no /change-password route: it is a panel on the gated account
+     security page. The old path 404s. */
+  { featureId: 4, featureCode: "F04_ChangePwd", title: "Change Password", route: "/account/security", expectedSelectors: ["input[name='oldPassword']", "input[name='newPassword']"] },
   { featureId: 5, featureCode: "F05_Logout", title: "Logout", route: "/dashboard", expectedSelectors: ["button[data-testid='logout-btn']", "a[href='/login']"] },
   { featureId: 6, featureCode: "F06_GameInfo", title: "View Game Info", route: "/dashboard", expectedSelectors: ["div", "main"] },
   { featureId: 7, featureCode: "F07_ViewProfile", title: "View Profile", route: "/manage-accounts", expectedSelectors: ["main", "table"] },
@@ -32,6 +34,9 @@ export const WEB_FEATURE_ROUTES: TestFeatureRoute[] = [
   { featureId: 18, featureCode: "F18_AchievementManagement", title: "Achievement Management", route: "/manage-achievements", expectedSelectors: ["main", "table"] },
   { featureId: 19, featureCode: "F19_MailManagement", title: "Mail Management", route: "/manage-mailbox", expectedSelectors: ["main", "table"] },
   { featureId: 20, featureCode: "F20_DailyLoginManagement", title: "Daily Login Management", route: "/manage-daily-login", expectedSelectors: ["main", "table"] },
-  { featureId: 21, featureCode: "F21_Statistics", title: "Statistics Dashboard", route: "/dashboard", expectedSelectors: ["main"] },
-  { featureId: 22, featureCode: "F22_AdminManagement", title: "Admin Management", route: "/manage-admins", expectedSelectors: ["main", "table"] }
+  { featureId: 21, featureCode: "F21_Statistics", title: "Statistics Dashboard", route: "/dashboard", expectedSelectors: ["main"] }
 ];
+
+/* F22_AdminManagement has no route. Creating/elevating admins was removed from
+   the BE (POST/PUT /api/adminaccounts) along with the SuperAdmin role, so
+   /manage-admins was deleted and would 404 here. */

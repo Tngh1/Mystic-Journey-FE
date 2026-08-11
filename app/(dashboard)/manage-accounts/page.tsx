@@ -4,11 +4,10 @@ import { useState, useCallback } from "react";
 import {
   Loader2, UserCog, Eye, Ban, CheckCircle, AlertCircle, X,
   Sword, Shield, Target, Heart, Zap, Trophy, Calendar, Activity,
-  Crown, Coins, Gem, Users,
+  Coins, Gem, Users,
 } from "lucide-react";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
-import { useAuth } from "@/lib/contexts/AuthContext";
-import { showSuccessAlert, showErrorAlert, showConfirmAlert } from "@/lib/utils/swal";
+import { showSuccessAlert, showErrorAlert, showConfirmAlert, showBanReasonPrompt } from "@/lib/utils/swal";
 import apiClient, { get } from "@/lib/api/client";
 import type { PlayerProfileResponse, PlayerStatsResponse } from "@/lib/types";
 import AdminTable from "@/components/ui/AdminTable";
@@ -21,19 +20,21 @@ interface AccountWithPlayer {
   email: string;
   roleName: string;
   isActive: boolean;
+  banReason: string | null;
   createdAt: string;
-  lastLogin: string | null;
   playerProfileId: number | null;
   playerDisplayName: string | null;
   playerClass: string | null;
   playerLevel: number | null;
 }
 
+/* Không còn "Super Admin": role đã bỏ ở BE. Admin vẫn giữ trong bảng tra vì
+   BE trả về roleName thật, và nếu DB còn hàng Admin cũ thì vẫn cần render được
+   thay vì rơi về badge Player gây hiểu sai. */
 const ROLE_CONFIG: Record<
   string,
-  { icon: typeof Crown; color: string; bg: string; border: string }
+  { icon: typeof Shield; color: string; bg: string; border: string }
 > = {
-  "Super Admin": { icon: Crown, color: "text-purple-400", bg: "bg-purple-500/15", border: "border-purple-500/30" },
   Admin: { icon: Shield, color: "text-red-400", bg: "bg-red-500/15", border: "border-red-500/30" },
   Player: { icon: UserCog, color: "text-blue-400", bg: "bg-blue-500/15", border: "border-blue-500/30" },
   Guest: { icon: Users, color: "text-gray-400", bg: "bg-gray-500/15", border: "border-gray-500/30" },
@@ -60,12 +61,7 @@ function formatDate(dateString: string | null) {
 }
 
 export default function ManageAccountsPage() {
-  const { user } = useAuth();
-  const normalizedRole = user?.role?.toLowerCase() ?? "";
-  const isSuperAdmin = normalizedRole === "superadmin" || normalizedRole === "super admin";
-
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [selectedRole, setSelectedRole] = useState("");
   const [sortBy, setSortBy] = useState("accountId");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [banningId, setBanningId] = useState<number | null>(null);
@@ -76,9 +72,9 @@ export default function ManageAccountsPage() {
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
 
+  // Không gửi roleName: BE đã khoá danh sách ở Player và bỏ hẳn tham số đó.
   const buildParams = (overrides: Record<string, string | number | boolean | undefined> = {}) => ({
     ...(searchKeyword.trim() ? { search: searchKeyword.trim() } : {}),
-    ...(selectedRole ? { roleName: selectedRole } : {}),
     sortBy,
     sortOrder,
     ...overrides,
@@ -107,12 +103,6 @@ export default function ManageAccountsPage() {
     setParams(buildParams({ search: value.trim() || undefined }));
   };
 
-  const handleFilterChange = (_key: string, value: string) => {
-    setSelectedRole(value);
-    setPage(1);
-    setParams(buildParams({ roleName: value || undefined }));
-  };
-
   const handleSortChange = (value: string) => {
     const nextOrder = sortBy === value ? (sortOrder === "asc" ? "desc" : "asc") : "asc";
     setSortBy(value);
@@ -125,29 +115,41 @@ export default function ManageAccountsPage() {
     if (!account.accountId) return;
 
     const isBanning = account.isActive;
-    const actionTitle = isBanning ? "Ban Account" : "Unban Account";
-    const actionMessage = isBanning
-      ? `Are you sure you want to ban account "${account.userName}"? The player will be logged out and cannot access the game.`
-      : `Are you sure you want to unban account "${account.userName}"? The player will regain access to the game.`;
-    const confirmButtonText = isBanning ? "Yes, Ban Account" : "Yes, Unban Account";
 
-    const confirm = await showConfirmAlert(actionTitle, actionMessage, confirmButtonText, "Cancel");
-    if (!confirm) return;
+    if (isBanning) {
+      // Prompt nhập lý do — null nghĩa là admin đã huỷ
+      const reason = await showBanReasonPrompt(account.userName);
+      if (reason === null) return;
 
-    try {
-      setBanningId(account.accountId);
-      if (isBanning) {
-        await apiClient.post(`/api/adminaccounts/${account.accountId}/ban`);
+      try {
+        setBanningId(account.accountId);
+        await apiClient.post(`/api/adminaccounts/${account.accountId}/ban`, { banReason: reason || null });
         await showSuccessAlert("Banned!", `Account "${account.userName}" has been banned.`);
-      } else {
+      } catch (err) {
+        await showErrorAlert("Error", err instanceof Error ? err.message : "Action failed.");
+      } finally {
+        setBanningId(null);
+        refresh();
+      }
+    } else {
+      const confirm = await showConfirmAlert(
+        "Unban Account",
+        `Are you sure you want to unban "${account.userName}"? The player will regain access to the game.`,
+        "Yes, Unban Account",
+        "Cancel"
+      );
+      if (!confirm) return;
+
+      try {
+        setBanningId(account.accountId);
         await apiClient.post(`/api/adminaccounts/${account.accountId}/unban`);
         await showSuccessAlert("Unbanned!", `Account "${account.userName}" has been unbanned.`);
+      } catch (err) {
+        await showErrorAlert("Error", err instanceof Error ? err.message : "Action failed.");
+      } finally {
+        setBanningId(null);
+        refresh();
       }
-      refresh();
-    } catch (err) {
-      await showErrorAlert("Error", err instanceof Error ? err.message : "Action failed.");
-    } finally {
-      setBanningId(null);
     }
   };
 
@@ -268,21 +270,20 @@ export default function ManageAccountsPage() {
       key: "isActive",
       label: "Status",
       sortable: true,
-      render: (val: boolean) => (
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
-          val ? "bg-green-500/15 text-green-400 border-green-500/30" : "bg-red-500/15 text-red-400 border-red-500/30"
-        }`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${val ? "bg-green-400" : "bg-red-400"}`} />
-          {val ? "Active" : "Banned"}
-        </span>
-      ),
-    },
-    {
-      key: "lastLogin",
-      label: "Last Login",
-      sortable: true,
-      render: (val: string | null) => (
-        <p className="text-xs text-gray-500">{formatDate(val)}</p>
+      render: (val: boolean, account: AccountWithPlayer) => (
+        <div className="flex flex-col gap-1 min-w-0">
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border w-fit ${
+            val ? "bg-green-500/15 text-green-400 border-green-500/30" : "bg-red-500/15 text-red-400 border-red-500/30"
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${val ? "bg-green-400" : "bg-red-400"}`} />
+            {val ? "Active" : "Banned"}
+          </span>
+          {!val && account.banReason && (
+            <p className="text-[11px] text-gray-500 truncate max-w-[180px]" title={account.banReason}>
+              {account.banReason}
+            </p>
+          )}
+        </div>
       ),
     },
     {
@@ -334,27 +335,10 @@ export default function ManageAccountsPage() {
         icon={UserCog}
       />
 
+      {/* Chỉ còn ô tìm kiếm: danh sách luôn là Player nên select role không lọc
+          được gì. `filters` là prop optional của FilterSortBar. */}
       <FilterSortBar
         search={{ placeholder: "Search by username or email...", icon: UserCog, value: searchKeyword, onChange: handleSearch }}
-        filters={[
-          {
-            key: "role",
-            label: "All Roles",
-            value: selectedRole,
-            onChange: (v) => handleFilterChange("role", v),
-            options: isSuperAdmin
-              ? [
-                  { value: "Super Admin", label: "Super Admin" },
-                  { value: "Admin", label: "Admin" },
-                  { value: "Player", label: "Player" },
-                  { value: "Guest", label: "Guest" },
-                ]
-              : [
-                  { value: "Player", label: "Player" },
-                  { value: "Guest", label: "Guest" },
-                ],
-          },
-        ]}
       />
 
       <AdminTable

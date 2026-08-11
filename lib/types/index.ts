@@ -76,28 +76,15 @@ export interface AccountAdminResponse {
   email: string;
   roleName: string;
   isActive: boolean;
+  banReason: string | null;
   createdAt: string;
-  lastLogin: string | null;
   playerProfileId: number | null;
   playerDisplayName: string | null;
 }
 
-export interface CreateAdminAccountRequest {
-  userName: string;
-  email: string;
-  password: string;
-  roleId: number;
-  displayName?: string;
-  playerClass?: string;
-}
-
-export interface UpdateAdminAccountRequest {
-  fullName?: string;
-  email?: string;
-  roleId?: number;
-  isActive?: boolean;
-  newPassword?: string;
-}
+/* CreateAdminAccountRequest / UpdateAdminAccountRequest đã bỏ cùng endpoint
+   POST/PUT /api/adminaccounts. Cả hai đều mang `roleId` — tức là đường nâng
+   quyền — nên không để lại dạng type mồ côi cho người sau nối lại. */
 
 /* ─── Player ─────────────────────────────────────────────────────────────── */
 
@@ -530,6 +517,8 @@ export interface GachaBannerResponse {
   name: string;
   type: string;
   pullCost: number;
+  /** Ticket item dùng để pull. BR-053/BR-136: không dùng Gold/Gem/Energy. */
+  costItemId: number | null;
   pityLimit: number;
   isActive: boolean;
   startAt: string;
@@ -554,6 +543,7 @@ export interface UpdateGachaBannerRequest {
   name?: string;
   type?: string;
   pullCost?: number;
+  costItemId?: number | null;
   pityLimit?: number;
   isActive?: boolean;
   startAt?: string;
@@ -570,6 +560,7 @@ export interface CreateGachaBannerRequest {
   name: string;
   type: string;
   pullCost: number;
+  costItemId: number | null;
   pityLimit: number;
   isActive: boolean;
   startAt: string;
@@ -665,7 +656,6 @@ export interface ContentResponse {
   categoryId: number | null;
   categoryName: string | null;
   isPublished: boolean;
-  createdByName: string;
   createdAt: string;
   updatedAt: string | null;
   publishedAt: string | null;
@@ -748,12 +738,6 @@ export interface CreateContentBlockItem {
 
 /* ─── Dashboard ──────────────────────────────────────────────────────────── */
 
-export interface MonthlyStat {
-  month: string;
-  count: number;
-  amount: number;
-}
-
 export interface DashboardStatsResponse {
   totalPlayers: number;
   totalAccounts: number;
@@ -763,7 +747,6 @@ export interface DashboardStatsResponse {
   totalMonsters: number;
   totalTransactions: number;
   totalRevenue: number;
-  monthlyStats: MonthlyStat[];
 }
 
 /* ─── Purchase / Sale ─────────────────────────────────────────────────────── */

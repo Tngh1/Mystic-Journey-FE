@@ -7,12 +7,10 @@ import { X } from "lucide-react";
 import {
   LayoutDashboard,
   Users,
-  User,
   FileText,
   Package,
   Ghost,
   Gift,
-  ShieldCheck,
   ShoppingCart,
   CreditCard,
   Swords,
@@ -23,7 +21,6 @@ import {
   CalendarDays,
 } from "lucide-react";
 import { useSidebar } from "@/lib/contexts/SidebarContext";
-import { useAuth } from "@/lib/contexts/AuthContext";
 
 /* The armoury rack: a steel plate down the left edge with the sections stamped
    into it. Was a #0F0F0F slab with `rounded-[10px]` rows and hardcoded
@@ -45,8 +42,6 @@ const menuGroups = [
     title: "User Management",
     items: [
       { icon: Users, label: "Manage Accounts", href: "/manage-accounts" },
-      { icon: User, label: "Manage Players", href: "/manage-players" },
-      { icon: ShieldCheck, label: "Manage Admins", href: "/manage-admins" },
     ],
   },
   {
@@ -85,9 +80,6 @@ const menuGroups = [
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const { user } = useAuth();
-  const normalizedRole = user?.role?.toLowerCase() ?? "";
-  const isSuperAdmin = normalizedRole === "superadmin" || normalizedRole === "super admin";
 
   return (
     <>
@@ -116,15 +108,6 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       {/* Sections */}
       <nav className="flex-1 overflow-y-auto px-2 py-3">
         {menuGroups.map((group) => {
-          const visibleItems = group.items.filter((item) => {
-            if (item.href === "/manage-admins") {
-              return isSuperAdmin;
-            }
-            return true;
-          });
-
-          if (visibleItems.length === 0) return null;
-
           return (
             <div key={group.title} className="mb-4">
               <h3 className="mb-1.5 flex items-center gap-2 px-2 text-[10px] font-black uppercase tracking-[0.2em] text-accent-deep">
@@ -132,7 +115,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 <span className="h-0.5 flex-1 bg-iron-light/40" aria-hidden="true" />
               </h3>
               <ul className="space-y-0.5">
-                {visibleItems.map((item) => {
+                {group.items.map((item) => {
                   const isActive = pathname === item.href;
                   const Icon = item.icon;
                   return (

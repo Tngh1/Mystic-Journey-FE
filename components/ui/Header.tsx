@@ -18,12 +18,6 @@ const DESKTOP_NAV = [
   { label: "Wiki", href: "/wiki" },
 ];
 
-const ROLE_NAMES: Record<string, string> = {
-  Player: "Player",
-  Admin: "Admin",
-  SuperAdmin: "SuperAdmin",
-};
-
 export default function Header() {
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -131,7 +125,7 @@ export default function Header() {
                     <p className="truncate text-sm font-bold text-fg">{user.userName}</p>
                     <p className="truncate text-xs text-fg-muted">@{user.userName}</p>
                     <Banner tone="gold" pennant={false} className="mt-2">
-                      {ROLE_NAMES[user.role] || user.role}
+                      {user.role}
                     </Banner>
                   </div>
                   <div className="py-1">
@@ -221,7 +215,7 @@ export default function Header() {
                       <p className="truncate text-xs text-fg-muted">@{user.userName}</p>
                     </div>
                     <Banner tone="gold" pennant={false} className="ml-auto">
-                      {ROLE_NAMES[user.role] || user.role}
+                      {user.role}
                     </Banner>
                   </div>
                   <Link

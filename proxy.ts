@@ -1,22 +1,16 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const protectedRoutes = [
-  "/dashboard",
-  "/manage-achievements",
-  "/manage-admins",
-  "/manage-content",
-  "/manage-dungeons",
-  "/manage-gacha-pools",
-  "/manage-items",
-  "/manage-mailbox",
-  "/manage-monsters",
-  "/manage-players",
-  "/manage-quests",
-  "/manage-shop",
-  "/manage-transactions",
-  "/account",
-];
+/* Every admin screen lives at /manage-*, and no public route starts with that
+   prefix, so one prefix covers the whole (dashboard) group.
+
+   This was an explicit list of 12 routes, and it had drifted: /manage-accounts,
+   /manage-category-content and /manage-daily-login were added later and never
+   listed, so guests could load three admin pages. (/manage-category-content
+   does not match a /manage-content prefix either.) Enumerating is fail-open —
+   a new page is public until someone remembers this file. The prefix is
+   fail-closed. */
+const protectedRoutes = ["/dashboard", "/manage-", "/account"];
 
 const guestRoutes = ["/login", "/register", "/forgot-password", "/reset-password"];
 
