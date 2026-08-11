@@ -17,7 +17,7 @@ interface AuthFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "cl
 
 /* One ruled slot in a gate ledger: chiselled recess, gold rule when focused,
    danger rule when the value is refused. Used by every /login /register
-   /forgot-password /reset-password field so the four pages stay identical. */
+   /forget-password /reset-password field so the four pages stay identical. */
 export default function AuthField({
   label,
   reveal,

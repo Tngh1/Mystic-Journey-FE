@@ -85,7 +85,7 @@ function ResetPasswordForm() {
     e.preventDefault();
 
     if (!email) {
-      await showErrorAlert("Error", "Email is required. Please go back to Forgot Password.");
+      await showErrorAlert("Error", "Email is required. Please go back to Forget Password.");
       return;
     }
 
@@ -133,10 +133,10 @@ function ResetPasswordForm() {
       >
         <div role="alert">
           <Link
-            href="/forgot-password"
+            href="/forget-password"
             className="pixel-press flex min-h-11 w-full items-center justify-center border-2 border-accent bg-accent text-sm font-black uppercase tracking-widest text-on-accent shadow-md hover:bg-accent-hover"
           >
-            Back to Forgot Password
+            Back to Forget Password
           </Link>
         </div>
       </AuthFrame>
