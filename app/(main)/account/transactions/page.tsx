@@ -11,34 +11,32 @@ import type { PurchaseHistoryResponse } from "@/lib/api/purchase-histories";
 export default function UserTransactionsPage() {
   const { user, isLoading } = useAuth();
   const [transactions, setTransactions] = useState<PurchaseHistoryResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isLoading) return;
-    if (!user?.playerProfileId) {
-      setLoading(false);
-      return;
-    }
+    if (!user?.playerProfileId) return;
 
     let mounted = true;
-    setLoading(true);
-    setError(null);
-
-    getByPlayerId(user.playerProfileId)
-      .then((res) => {
+    void Promise.resolve().then(async () => {
+      if (!mounted) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await getByPlayerId(user.playerProfileId!);
         if (mounted) {
-          // Sort by date descending
-          const sorted = res.sort((a, b) => new Date(b.purchasedAt).getTime() - new Date(a.purchasedAt).getTime());
+          const sorted = res.sort(
+            (a, b) => new Date(b.purchasedAt).getTime() - new Date(a.purchasedAt).getTime()
+          );
           setTransactions(sorted);
         }
-      })
-      .catch((e) => {
+      } catch (e) {
         if (mounted) setError(e instanceof Error ? e.message : "Failed to load transactions.");
-      })
-      .finally(() => {
+      } finally {
         if (mounted) setLoading(false);
-      });
+      }
+    });
 
     return () => { mounted = false; };
   }, [isLoading, user?.playerProfileId]);
@@ -103,7 +101,7 @@ export default function UserTransactionsPage() {
               </div>
               <h2 className="text-xl font-bold text-white mb-2">No Character Yet</h2>
               <p className="text-white/50 text-sm max-w-md mx-auto">
-                This account hasn't created a character. Start the game to create your hero.
+                This account hasn&apos;t created a character. Start the game to create your hero.
               </p>
             </div>
           ) : error ? (
@@ -119,7 +117,7 @@ export default function UserTransactionsPage() {
               </div>
               <h3 className="text-xl font-bold text-white mb-2">No Purchases Found</h3>
               <p className="text-gray-400 text-sm max-w-sm mx-auto">
-                You haven't bought any items from the shop yet. Your transactions will appear here.
+                You haven&apos;t bought any items from the shop yet. Your transactions will appear here.
               </p>
             </div>
           ) : (

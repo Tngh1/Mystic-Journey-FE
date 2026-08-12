@@ -355,7 +355,22 @@ interface RewardFormModalProps {
   onSaved: () => void;
 }
 
+function createRewardForm(existing?: DailyLoginRewardResponse): RewardFormData {
+  return existing
+    ? {
+        rewardType: existing.rewardType as RewardType,
+        rewardValue: existing.rewardValue,
+        rewardItemId: existing.rewardItemId ?? null,
+        rewardItemName: existing.rewardItemName ?? null,
+        rewardItemIconUrl: null,
+        rewardItemQuantity: existing.rewardItemQuantity,
+        isActive: existing.isActive,
+      }
+    : DEFAULT_FORM;
+}
+
 function RewardFormModal({
+
   isOpen,
   dayNumber,
   viewState,
@@ -363,29 +378,10 @@ function RewardFormModal({
   onClose,
   onSaved,
 }: RewardFormModalProps) {
-  const [form, setForm] = useState<RewardFormData>(DEFAULT_FORM);
+  const [form, setForm] = useState<RewardFormData>(() => createRewardForm(existing));
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showItemPicker, setShowItemPicker] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      setForm(
-        existing
-          ? {
-              rewardType: existing.rewardType as RewardType,
-              rewardValue: existing.rewardValue,
-              rewardItemId: existing.rewardItemId ?? null,
-              rewardItemName: existing.rewardItemName ?? null,
-              rewardItemIconUrl: null,
-              rewardItemQuantity: existing.rewardItemQuantity,
-              isActive: existing.isActive,
-            }
-          : DEFAULT_FORM
-      );
-      setError(null);
-    }
-  }, [isOpen, existing]);
 
   const isCreating = !existing;
   const isDefaultMode = viewState.mode === "default";
@@ -898,6 +894,7 @@ export default function ManageDailyLoginPage() {
         isOpen={formOpen}
         dayNumber={selectedDay}
         viewState={view}
+        key={`${formOpen}-${selectedDay}-${editingReward?.dailyLoginRewardId ?? "new"}`}
         existing={editingReward}
         onClose={() => {
           setFormOpen(false);

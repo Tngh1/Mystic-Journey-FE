@@ -97,7 +97,9 @@ export default function EditGachaBannerPage() {
       .finally(() => setFetching(false));
   }, [bannerId]);
 
-  useEffect(() => { loadBanner(); }, [loadBanner]);
+  useEffect(() => {
+    void Promise.resolve().then(loadBanner);
+  }, [loadBanner]);
 
   const handleChange = <K extends keyof typeof formData>(field: K, value: (typeof formData)[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

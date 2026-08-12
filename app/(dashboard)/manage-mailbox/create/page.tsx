@@ -112,8 +112,8 @@ export default function SendMailPage() {
     const asId = Number(q);
     const isIdQuery = q !== "" && Number.isInteger(asId) && asId > 0;
 
-    setLoadingPlayers(true);
     const handle = setTimeout(() => {
+      setLoadingPlayers(true);
       if (isIdQuery) {
         getPlayerProfileById(asId)
           .then((p) => {
@@ -141,11 +141,6 @@ export default function SendMailPage() {
 
     return () => clearTimeout(handle);
   }, [playerSearch, playerPage]);
-
-  // Reset to page 1 whenever the search text changes.
-  useEffect(() => {
-    setPlayerPage(1);
-  }, [playerSearch]);
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -554,6 +549,7 @@ export default function SendMailPage() {
                             value={playerSearch}
                             onChange={(e) => {
                               setPlayerSearch(e.target.value);
+                              setPlayerPage(1);
                               setShowPlayerDropdown(true);
                             }}
                             onFocus={() => setShowPlayerDropdown(true)}

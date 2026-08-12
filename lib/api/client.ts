@@ -11,12 +11,12 @@ const apiClient = axios.create({
 
 let isRefreshing = false;
 let refreshQueue: Array<{
-  resolve: (token: string) => void;
+  resolve: () => void;
   reject: (err: unknown) => void;
 }> = [];
 
-function processRefreshQueue(token: string) {
-  refreshQueue.forEach((cb) => cb.resolve(token));
+function processRefreshQueue() {
+  refreshQueue.forEach((cb) => cb.resolve());
   refreshQueue = [];
 }
 
@@ -30,7 +30,11 @@ apiClient.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as (AxiosRequestConfig & { _retry?: boolean }) | undefined;
 
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+    const isRefreshRequest = originalRequest?.url?.includes("/api/auth/refresh-token") ?? false;
+
+    // A failed refresh must reject normally. Retrying the refresh request through its own
+    // queue deadlocks session hydration and leaves the header permanently unauthenticated.
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isRefreshRequest) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           refreshQueue.push({
@@ -45,13 +49,13 @@ apiClient.interceptors.response.use(
 
       try {
         await apiClient.post("/api/auth/refresh-token");
-        processRefreshQueue("");
-        isRefreshing = false;
+        processRefreshQueue();
         return apiClient(originalRequest);
       } catch (refreshErr) {
         processRefreshError(refreshErr);
-        isRefreshing = false;
         return Promise.reject(new ApiError("Session expired. Please log in again."));
+      } finally {
+        isRefreshing = false;
       }
     }
 

@@ -19,7 +19,7 @@ const DESKTOP_NAV = [
 ];
 
 export default function Header() {
-  const { user, logout } = useAuth();
+  const { user, isLoading, logout } = useAuth();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -93,7 +93,13 @@ export default function Header() {
 
         {/* Right Side - User Menu or Login Button */}
         <div className="hidden md:block">
-          {user ? (
+          {isLoading ? (
+            <div
+              className="h-11 w-28 animate-pulse border-2 border-heraldry-royal/30 bg-heraldry-royal/10"
+              aria-label="Checking login session"
+              role="status"
+            />
+          ) : user ? (
             <div className="relative">
               <button
                 type="button"
@@ -204,7 +210,11 @@ export default function Header() {
               </Link>
             ))}
             <div className="pt-4">
-              {user ? (
+              {isLoading ? (
+                <p className="px-2 py-3 text-sm text-fg-muted" role="status">
+                  Checking session...
+                </p>
+              ) : user ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-3 pb-2">
                     <span className="pixel-bevel-gold flex h-10 w-10 items-center justify-center border-2 border-black/60 bg-accent text-sm font-black text-on-accent">

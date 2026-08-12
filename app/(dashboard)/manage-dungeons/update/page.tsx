@@ -78,7 +78,7 @@ export default function EditDungeonPage() {
   }, [dungeonId]);
 
   useEffect(() => {
-    loadDungeonData();
+    void Promise.resolve().then(loadDungeonData);
   }, [loadDungeonData]);
 
   const handleChange = <K extends keyof typeof formData>(field: K, value: (typeof formData)[K]) => {
@@ -542,7 +542,7 @@ export default function EditDungeonPage() {
             ))}
             {chestItems.length === 0 && (
               <div className="col-span-full py-8 text-center text-white/40 border border-dashed border-white/10 rounded-xl">
-                No items in this dungeon's chest yet.
+                No items in this dungeon&apos;s chest yet.
               </div>
             )}
           </div>
