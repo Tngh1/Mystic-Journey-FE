@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Activity, Loader2, Save, Sparkles, Swords } from "lucide-react";
+import { Activity, Image as ImageIcon, Loader2, Save, Sparkles, Swords } from "lucide-react";
+import ImageUploader from "@/components/ui/ImageUploader";
 import FormActions from "@/components/form/FormActions";
 import FormAlert from "@/components/form/FormAlert";
 import FormField from "@/components/form/FormField";
@@ -10,6 +11,7 @@ import FormHeader from "@/components/form/FormHeader";
 import { Checkbox, SelectInput, TextArea, TextInput } from "@/components/form/FormInput";
 import FormSection from "@/components/form/FormSection";
 import { getSkillById, updateSkill, type UpdateSkillRequest } from "@/lib/api/skills";
+import { uploadImageWithCleanup } from "@/lib/api/cloudinary";
 import { showErrorAlert, showSuccessAlert } from "@/lib/utils/swal";
 
 const SKILL_TYPES = ["Active", "Passive", "Buff", "Debuff"].map((value) => ({ value, label: value }));
@@ -20,6 +22,7 @@ const CLASS_REQUIREMENTS = ["Knight", "Archer", "Mage", "All"].map((value) => ({
 const EMPTY_FORM: UpdateSkillRequest = {
   name: "",
   description: "",
+  imageUrl: null,
   type: "Active",
   damageType: "Physical",
   targetType: "SingleTarget",
@@ -41,6 +44,8 @@ export default function UpdateSkillPage() {
   const validId = Number.isInteger(skillId) && skillId > 0;
 
   const [formData, setFormData] = useState<UpdateSkillRequest>(EMPTY_FORM);
+  const [image, setImage] = useState<string | File | null>(null);
+  const [originalImageUrl, setOriginalImageUrl] = useState("");
   const [fetching, setFetching] = useState(validId);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(
@@ -52,9 +57,12 @@ export default function UpdateSkillPage() {
 
     getSkillById(skillId)
       .then((skill) => {
+        setImage(skill.imageUrl);
+        setOriginalImageUrl(skill.imageUrl ?? "");
         setFormData({
           name: skill.name,
           description: skill.description,
+          imageUrl: skill.imageUrl,
           type: skill.type,
           damageType: skill.damageType,
           targetType: skill.targetType,
@@ -85,10 +93,17 @@ export default function UpdateSkillPage() {
     setSaving(true);
     setError(null);
     try {
+      let imageUrl = typeof image === "string" ? image || null : null;
+      if (image instanceof File) {
+        const result = await uploadImageWithCleanup(image, originalImageUrl);
+        imageUrl = result.secureUrl;
+      }
+
       await updateSkill(skillId, {
         ...formData,
         name: formData.name.trim(),
         description: formData.description?.trim() || null,
+        imageUrl,
       });
       await showSuccessAlert("Success!", "Skill updated successfully.");
       router.push("/manage-skills");
@@ -183,6 +198,14 @@ export default function UpdateSkillPage() {
           onChange={(event) => change("isActive", event.target.checked)}
           label="Skill is active and available in-game"
           disabled={!validId}
+        />
+      </FormSection>
+
+      <FormSection title="Skill Image" icon={ImageIcon}>
+        <ImageUploader
+          value={image}
+          onChange={setImage}
+          label="Skill Image"
         />
       </FormSection>
 

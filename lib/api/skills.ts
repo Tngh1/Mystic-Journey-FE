@@ -4,6 +4,7 @@ export interface SkillResponse {
   skillId: number;
   name: string;
   description: string | null;
+  imageUrl: string | null;
   type: string;
   damageType: string;
   targetType: string;
