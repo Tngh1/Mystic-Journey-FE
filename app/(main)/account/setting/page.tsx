@@ -95,7 +95,7 @@ export default function AccountSettingPage() {
             href="/login"
             className="pixel-press flex min-h-11 w-full items-center justify-center border-2 border-accent bg-accent text-sm font-black uppercase tracking-widest text-on-accent shadow-md hover:bg-accent-hover"
           >
-            Log In
+            Login
           </Link>
         </Panel>
       </div>

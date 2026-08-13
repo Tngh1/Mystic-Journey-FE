@@ -11,12 +11,12 @@ const apiClient = axios.create({
 
 let isRefreshing = false;
 let refreshQueue: Array<{
-  resolve: (token: string) => void;
+  resolve: () => void;
   reject: (err: unknown) => void;
 }> = [];
 
-function processRefreshQueue(token: string) {
-  refreshQueue.forEach((cb) => cb.resolve(token));
+function processRefreshQueue() {
+  refreshQueue.forEach((cb) => cb.resolve());
   refreshQueue = [];
 }
 
@@ -30,7 +30,11 @@ apiClient.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as (AxiosRequestConfig & { _retry?: boolean }) | undefined;
 
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+    const isRefreshRequest = originalRequest?.url?.includes("/api/auth/refresh-token") ?? false;
+
+    // A failed refresh must reject normally. Retrying the refresh request through its own
+    // queue deadlocks session hydration and leaves the header permanently unauthenticated.
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isRefreshRequest) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           refreshQueue.push({
@@ -45,13 +49,13 @@ apiClient.interceptors.response.use(
 
       try {
         await apiClient.post("/api/auth/refresh-token");
-        processRefreshQueue("");
-        isRefreshing = false;
+        processRefreshQueue();
         return apiClient(originalRequest);
       } catch (refreshErr) {
         processRefreshError(refreshErr);
+        return Promise.reject(new ApiError("Session expired. Please login again."));
+      } finally {
         isRefreshing = false;
-        return Promise.reject(new ApiError("Session expired. Please log in again."));
       }
     }
 
@@ -103,7 +107,7 @@ export async function del<T = unknown>(path: string, params?: Record<string, unk
 
 const STATUS_TEXT_MAP: Record<number, string> = {
   400: "Invalid request. Please check your input parameters.",
-  401: "Unauthorized access. Please log in to continue.",
+  401: "Unauthorized access. Please login to continue.",
   403: "Access denied. You do not have permission to access this resource.",
   404: "The requested resource was not found.",
   405: "Method not allowed for this request.",

@@ -204,7 +204,7 @@ export default function CreateQuestPage() {
   useEffect(() => {
     let mounted = true;
 
-    Promise.all([getItems(), getSkills(1, 1000), getMonsters(1, 1000)])
+    Promise.all([getItems(), getSkills({ page: 1, pageSize: 1000 }), getMonsters(1, 1000)])
       .then(([itemsRes, skillsRes, monstersRes]) => {
         if (!mounted) return;
         setItemOptions(itemsRes.items);

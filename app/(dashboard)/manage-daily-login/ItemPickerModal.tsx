@@ -61,15 +61,13 @@ export default function ItemPickerModal({ isOpen, onClose, onSelect, selectedIte
     }
   }, [isOpen, fetchItems]);
 
-  // Reset on close
-  useEffect(() => {
-    if (!isOpen) {
-      setSearch("");
-      setFilterType("");
-      setFilterRarity("");
-      setPage(1);
-    }
-  }, [isOpen]);
+  const handleClose = () => {
+    setSearch("");
+    setFilterType("");
+    setFilterRarity("");
+    setPage(1);
+    onClose();
+  };
 
   if (!isOpen) return null;
 
@@ -96,7 +94,7 @@ export default function ItemPickerModal({ isOpen, onClose, onSelect, selectedIte
           </div>
           <button
             id="item-picker-close"
-            onClick={onClose}
+            onClick={handleClose}
             className="w-8 h-8 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
@@ -166,7 +164,7 @@ export default function ItemPickerModal({ isOpen, onClose, onSelect, selectedIte
                   <button
                     key={item.itemId}
                     id={`item-picker-item-${item.itemId}`}
-                    onClick={() => { onSelect(item); onClose(); }}
+                    onClick={() => { onSelect(item); handleClose(); }}
                     className={[
                       "flex items-center gap-3 p-3 rounded-xl border text-left transition-all duration-150 cursor-pointer group",
                       isSelected

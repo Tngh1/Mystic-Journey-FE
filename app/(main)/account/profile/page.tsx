@@ -154,7 +154,7 @@ export default function ProfilePage() {
             href="/login"
             className="pixel-press mt-6 flex h-11 w-full items-center justify-center bg-accent text-sm font-black uppercase tracking-widest text-on-accent shadow-md transition-colors hover:bg-accent-hover"
           >
-            Log In
+            Login
           </Link>
         </Panel>
       </div>

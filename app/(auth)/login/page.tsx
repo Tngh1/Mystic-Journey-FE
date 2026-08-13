@@ -48,7 +48,7 @@ export default function LoginPage() {
     <AuthFrame
       eyebrow="Gatehouse"
       icon={KeyRound}
-      title="Log In"
+      title="Login"
       lede="Sign the register to continue your journey."
       footer={
         <>
@@ -60,7 +60,7 @@ export default function LoginPage() {
       }
     >
       {/* Straight on the cloth — the banner is already the surface. */}
-      <form onSubmit={handleSubmit} aria-label="Log in" className="space-y-4">
+      <form onSubmit={handleSubmit} aria-label="Login" className="space-y-4">
         <AuthField
           label="Email or Username"
           id="email"
@@ -97,7 +97,7 @@ export default function LoginPage() {
           disabled={isLoading}
           className="pixel-press flex min-h-11 w-full cursor-pointer items-center justify-center border-2 border-accent bg-accent text-sm font-black uppercase tracking-widest text-on-accent shadow-md hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isLoading ? "Signing in…" : "Log In"}
+          {isLoading ? "Signing in…" : "Login"}
         </button>
       </form>
     </AuthFrame>
