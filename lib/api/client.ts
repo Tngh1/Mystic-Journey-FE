@@ -53,7 +53,7 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshErr) {
         processRefreshError(refreshErr);
-        return Promise.reject(new ApiError("Session expired. Please log in again."));
+        return Promise.reject(new ApiError("Session expired. Please login again."));
       } finally {
         isRefreshing = false;
       }
@@ -107,7 +107,7 @@ export async function del<T = unknown>(path: string, params?: Record<string, unk
 
 const STATUS_TEXT_MAP: Record<number, string> = {
   400: "Invalid request. Please check your input parameters.",
-  401: "Unauthorized access. Please log in to continue.",
+  401: "Unauthorized access. Please login to continue.",
   403: "Access denied. You do not have permission to access this resource.",
   404: "The requested resource was not found.",
   405: "Method not allowed for this request.",

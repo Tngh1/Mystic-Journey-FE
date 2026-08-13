@@ -99,7 +99,7 @@ export const showBanReasonPrompt = (userName: string): Promise<string | null> =>
   return Swal.fire({
     ...shell,
     title: `Ban "${userName}"`,
-    text: "This reason is shown to the player when they try to log in. Leave blank for none.",
+    text: "This reason is shown to the player when they try to login. Leave blank for none.",
     input: "textarea",
     inputPlaceholder: "e.g. Cheating, harassment, …",
     inputAttributes: { maxlength: "500", "aria-label": "Ban reason" },

@@ -48,9 +48,9 @@ export default function UserTransactionsPage() {
       <div className="min-h-screen bg-black pt-32 pb-20 flex items-center justify-center px-4">
         <div className="text-center bg-[#111111] border border-white/10 rounded-xl p-10 max-w-md w-full">
           <h2 className="text-2xl font-bold text-white mb-4">Not Authenticated</h2>
-          <p className="text-white/60 mb-8">Please log in to view your profile.</p>
+          <p className="text-white/60 mb-8">Please login to view your profile.</p>
           <Link href="/login" className="inline-block px-6 py-3 bg-[#ffc032] hover:bg-[#ffd04c] text-[#111] rounded-xl transition-colors font-semibold w-full cursor-pointer">
-            Log In Now
+            Login Now
           </Link>
         </div>
       </div>

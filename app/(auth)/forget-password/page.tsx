@@ -38,7 +38,7 @@ export default function ForgetPasswordPage() {
         <>
           Remember your password?{" "}
           <Link href="/login" className="font-bold text-accent hover:text-accent-hover">
-            Log In
+            Login
           </Link>
         </>
       }
