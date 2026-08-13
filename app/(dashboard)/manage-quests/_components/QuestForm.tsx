@@ -179,7 +179,7 @@ export default function QuestForm({
 
   useEffect(() => {
     let mounted = true;
-    Promise.all([getItems(1, 1000), getSkills(1, 1000), getMonsters(1, 1000)])
+    Promise.all([getItems(1, 1000), getSkills({ page: 1, pageSize: 1000 }), getMonsters(1, 1000)])
       .then(([itemsRes, skillsRes, monstersRes]) => {
         if (!mounted) return;
         setItems(itemsRes.items);

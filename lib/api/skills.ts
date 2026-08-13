@@ -17,13 +17,36 @@ export interface SkillResponse {
   isActive: boolean;
 }
 
-export async function getSkills(page = 1, pageSize = 50) {
+export type UpdateSkillRequest = Omit<SkillResponse, "skillId">;
+
+export interface SkillListParams {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  type?: string;
+  isActive?: boolean;
+}
+
+export async function getSkills({
+  page = 1,
+  pageSize = 50,
+  search,
+  type,
+  isActive,
+}: SkillListParams = {}) {
+  const query = new URLSearchParams({
+    page: String(page),
+    pageSize: String(pageSize),
+  });
+
+  if (search) query.set("search", search);
+  if (type) query.set("type", type);
+  if (isActive !== undefined) query.set("isActive", String(isActive));
+
   const res = await get<{
     items: SkillResponse[];
     totalCount: number;
-    page: number;
-    pageSize: number;
-  }>(`/api/skills?page=${page}&pageSize=${pageSize}`);
+  }>(`/api/skills?${query.toString()}`);
   return res;
 }
 
@@ -31,6 +54,6 @@ export async function getSkillById(id: number) {
   return get<SkillResponse>(`/api/skills/${id}`);
 }
 
-export async function updateSkill(id: number, data: Partial<SkillResponse>) {
+export async function updateSkill(id: number, data: UpdateSkillRequest) {
   return put<SkillResponse>(`/api/skills/${id}`, data);
 }

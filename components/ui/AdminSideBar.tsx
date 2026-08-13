@@ -19,6 +19,7 @@ import {
   Mail,
   FolderOpen,
   CalendarDays,
+  Sparkles,
 } from "lucide-react";
 import { useSidebar } from "@/lib/contexts/SidebarContext";
 
@@ -48,6 +49,7 @@ const menuGroups = [
     title: "Game Entities",
     items: [
       { icon: Package, label: "Manage Items", href: "/manage-items" },
+      { icon: Sparkles, label: "Manage Skills", href: "/manage-skills" },
       { icon: Ghost, label: "Manage Monsters", href: "/manage-monsters" },
       { icon: Swords, label: "Manage Dungeon", href: "/manage-dungeons" },
     ],
