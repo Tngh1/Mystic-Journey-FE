@@ -1,9 +1,10 @@
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000";
-
 const apiClient = axios.create({
-  baseURL: BASE_URL,
+  // Keep auth requests on the FE origin. Next rewrites /backend to the .NET
+  // API, so its HttpOnly cookies are stored for the FE host and are also
+  // visible to proxy.ts when it protects dashboard routes.
+  baseURL: "/backend",
   headers: { "Content-Type": "application/json" },
   withCredentials: true,
   timeout: 15000,
