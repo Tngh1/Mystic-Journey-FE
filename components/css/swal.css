@@ -221,7 +221,9 @@
 
 /* ── Textarea input (ban reason prompt) ────────────────────────────────────── */
 .swal-pixel-input {
-  width: 100%;
+  /* Account for the horizontal margins so the textarea stays inside the
+     popup on both desktop and narrow mobile viewports. */
+  width: calc(100% - 2.5rem);
   min-height: 5rem;
   padding: 0.6rem 0.75rem;
   margin: 0 1.25rem 0.5rem;

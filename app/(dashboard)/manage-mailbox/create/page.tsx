@@ -311,9 +311,14 @@ export default function SendMailPage() {
         return false;
       }
       for (const item of selectedItems) {
-        const qty = getItemQuantity(item.itemId);
-        if (qty > 99) {
-          setError(`Item quantity for '${item.name}' cannot exceed 99.`);
+        // Validate the user-entered value before getItemQuantity clamps it to
+        // the payload range; otherwise values above 99 would be silently sent
+        // as 99 and never reach the error path.
+        const enteredQuantity = Number(itemQuantities[item.itemId]);
+        if (enteredQuantity > 99) {
+          const message = `Item quantity for '${item.name}' cannot exceed 99.`;
+          setError(message);
+          void showErrorAlert("Invalid item quantity", message);
           return false;
         }
       }
