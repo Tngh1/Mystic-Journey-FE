@@ -310,10 +310,9 @@ export default function ContentDetailPage() {
   const hasToc = headings.length > 0;
 
   return (
-    /* Full-height column, `mt-auto` on the body and no bottom padding: a short
-       notice sinks to the bottom of the page so the board stands in the
-       footer's turf strip instead of floating over empty sky. */
-    <div className="flex min-h-dvh flex-col pt-[88px] md:pt-[112px]">
+    /* Full-height column: the notice board settles onto the footer's turf,
+       with a higher stacking layer so its lower brace and legs remain visible. */
+    <div className="relative z-10 flex min-h-dvh flex-col pt-[88px] md:pt-[112px]">
       <div className="mx-auto mt-auto w-full max-w-[1200px] px-4 pt-8 md:px-6">
         <div
           className={`grid gap-6 lg:gap-8 ${
@@ -463,7 +462,7 @@ export default function ContentDetailPage() {
             </BoardFrame>
           </article>
 
-          <aside className="hidden xl:block">
+          <aside className="hidden xl:block xl:-translate-y-8">
             <RecentPosts currentContentId={content.contentId} />
           </aside>
         </div>
