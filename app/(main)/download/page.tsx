@@ -28,25 +28,23 @@ const DOWNLOAD = {
   size: "ZIP Archive",
   releaseDate: "Aug 3, 2026",
   href: "https://drive.google.com/uc?export=download&id=1acBCh4BpaVLNbgYc7ajVeX1aIKjnWEtd",
-  requirements: ["Windows 10 (64-bit) or later", "8 GB RAM minimum", "20 GB available space"],
+  requirements: ["Windows 7, Windows 10, or later", "4 GB RAM minimum", "2 GB available space"],
 };
 
 const SYSTEM_REQUIREMENTS = {
   minimum: [
-    { label: "OS", value: "Windows 10 (64-bit)" },
-    { label: "Processor", value: "Intel i5-6600 / AMD Ryzen 5 1500X" },
-    { label: "Memory", value: "8 GB RAM" },
-    { label: "Graphics", value: "NVIDIA GTX 960 / AMD Radeon RX 460" },
-    { label: "Storage", value: "20 GB available space" },
-    { label: "DirectX", value: "Version 11" },
+    { label: "CPU", value: "Core i3 3220 or above" },
+    { label: "RAM", value: "4 GB or above" },
+    { label: "GPU", value: "Intel HD Graphics 4000 / AMD Radeon HD6000 or above" },
+    { label: "Operating System", value: "Windows 7, Windows 10, or later" },
+    { label: "Storage", value: "2 GB available space" },
   ],
   recommended: [
-    { label: "OS", value: "Windows 11 (64-bit)" },
-    { label: "Processor", value: "Intel i7-9700K / AMD Ryzen 5 3600X" },
-    { label: "Memory", value: "16 GB RAM" },
-    { label: "Graphics", value: "NVIDIA RTX 2060 / AMD Radeon RX 5700" },
-    { label: "Storage", value: "SSD with 20 GB available space" },
-    { label: "DirectX", value: "Version 12" },
+    { label: "CPU", value: "Core i5 6500 or above" },
+    { label: "RAM", value: "8 GB or above" },
+    { label: "GPU", value: "NVIDIA GTX 950 / AMD Radeon 580 or above" },
+    { label: "Operating System", value: "Windows 10 and Windows 11" },
+    { label: "Storage", value: "4 GB SSD available space" },
   ],
 };
 
@@ -324,13 +322,13 @@ export default function DownloadPage() {
           <RequirementSign
             side="left"
             id="req-min"
-            title="Minimum"
+            title="Minimal configuration"
             specs={SYSTEM_REQUIREMENTS.minimum}
           />
           <RequirementSign
             side="right"
             id="req-rec"
-            title="Recommended"
+            title="Recommended configuration"
             featured
             specs={SYSTEM_REQUIREMENTS.recommended}
           />
