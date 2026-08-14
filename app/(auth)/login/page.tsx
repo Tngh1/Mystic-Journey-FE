@@ -7,7 +7,7 @@ import { KeyRound } from "lucide-react";
 import AuthField from "@/components/ui/AuthField";
 import AuthFrame from "@/components/ui/AuthFrame";
 import { useAuth } from "@/lib/contexts/AuthContext";
-import { showErrorAlert, showSuccessAlert } from "@/lib/utils/swal";
+import { showErrorAlert } from "@/lib/utils/swal";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -21,7 +21,6 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const me = await login(email, password);
-      await showSuccessAlert("Welcome back!", "Login successful. Redirecting...");
 
       // Admin is the only non-Player role: the BE seeds just Player/Admin and
       // every [Authorize] there is Roles = "Admin". SuperAdmin was removed, so
@@ -35,7 +34,7 @@ export default function LoginPage() {
       // redirect, and the param is attacker-controlled.
       const wanted = new URLSearchParams(window.location.search).get("redirect");
       const destination = wanted?.startsWith("/") && !wanted.startsWith("//") ? wanted : home;
-      router.push(destination);
+      router.replace(destination);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Invalid credentials. Please try again.";
       await showErrorAlert("Login Failed", message);
