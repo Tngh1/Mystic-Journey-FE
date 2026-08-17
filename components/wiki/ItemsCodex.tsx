@@ -19,19 +19,6 @@ import {
   type ItemRarity,
 } from "@/lib/data/rarity";
 
-/* One tome for the whole item codex: the verso is the index of entries, the
-   recto is the entry you have open. /wiki/items and /wiki/items/[id] both render
-   this — the deep link only differs in which entry starts open, so there is no
-   second layout to keep in step.
-
-   Type filters are the tabs on the cover edge, as in the game's own book UI, and
-   the pager sits on the leather under the gutter because turning a page moves
-   the whole spread, not one leaf. */
-
-/* Twelve tiles divides evenly by both grid widths below (3 across on a phone, 4
-   from `sm` up), so a page never ends in a ragged short row. Three rows of four
-   is also what fits the fixed leaf height without the index scrolling at a
-   desktop size — see `leafHeight` on the spread. */
 const PAGE_SIZE = 12;
 
 const TYPE_TABS = [
@@ -49,12 +36,9 @@ const SORTS = [
   { key: "value", label: "Base Value" },
 ] as const;
 
-/* One tile in the index grid, laid out as the game's own item panel: a square
-   plate with the name printed under it. The whole tile is the hit area and it is
-   never below the 44px touch floor, since the plate alone clears it.
-
-   The open entry is inked in deep gold — never the CTA gold, which on a page
-   would read as something to act on. */
+// Renders the index entry reusable UI component.
+// Features: binds user interaction event listeners.
+// Returns the styled JSX element.
 function IndexEntry({
   item,
   active,
@@ -84,7 +68,6 @@ function IndexEntry({
         ].join(" ")}
       >
         {item.iconUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={item.iconUrl}
             alt=""
@@ -97,7 +80,7 @@ function IndexEntry({
           </span>
         )}
 
-        {/* Hairline tier ring */}
+
         <span
           className="pointer-events-none absolute inset-0 border opacity-70"
           style={{ borderColor: `${m.hex}aa` }}
@@ -139,28 +122,34 @@ function IndexEntry({
   );
 }
 
+// Renders the items codex reusable UI component.
+// Returns the styled JSX element.
 export default function ItemsCodex({ initialItemId }: { initialItemId?: number }) {
   const [allItems, setAllItems] = useState<ItemResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);  // Initialize loading flag as active on first render
   const [error, setError] = useState<string | null>(null);
 
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  // Supported item types: Weapon, Armor, Consumable, Material, QuestItem, or Currency; the type controls filtering, stacking, and usage behavior.
   const [type, setType] = useState<string>("All");
+  // Supported rarity values: Common, Uncommon, Rare, Epic, Legendary, or Mythic; rarity controls quality, visuals, and sorting priority.
   const [rarity, setRarity] = useState<ItemRarity | "all">("all");
   const [sort, setSort] = useState<(typeof SORTS)[number]["key"]>("rarity");
   const [page, setPage] = useState(1);
 
   const [selectedId, setSelectedId] = useState<number | null>(initialItemId ?? null);
-  /* A deep link can name an entry the list does not carry (the list is active
-     entries only). Fetch that one on its own rather than showing an empty leaf. */
   const [orphan, setOrphan] = useState<ItemResponse | null>(null);
 
+  // Debounce the current input, update debounced search and page, and cancel the pending timer before the effect reruns or unmounts.
   useEffect(() => {
-    const t = setTimeout(() => { setDebouncedSearch(searchInput); setPage(1); }, 300);
+    // Helper function executing t.
+    // Processes input parameters and returns the calculated result.
+    const t = setTimeout(() => { setDebouncedSearch(searchInput); setPage(1); }, 300);  // Reset to first page after filter/search change
     return () => clearTimeout(t);
   }, [searchInput]);
 
+  // Load wiki items when the dependencies change, update all items, error, and loading, and ignore stale callbacks after unmount.
   useEffect(() => {
     let mounted = true;
     getWikiItems({ page: 1, pageSize: 1000 })
@@ -170,17 +159,22 @@ export default function ItemsCodex({ initialItemId }: { initialItemId?: number }
     return () => { mounted = false; };
   }, []);
 
+  // Load wiki item when the dependencies change, update orphan, and ignore stale callbacks after unmount.
   useEffect(() => {
     if (!initialItemId || allItems.length === 0) return;
     if (allItems.some((i) => i.itemId === initialItemId)) return;
     let mounted = true;
     getWikiItem(initialItemId)
       .then((res) => { if (mounted) setOrphan(res); })
-      .catch(() => { /* the not-found leaf below covers it */ });
+      .catch(() => {
+      });
     return () => { mounted = false; };
   }, [initialItemId, allItems]);
 
+  // Filter the source collection with the current search and category values, then apply the selected ordering before returning the visible results.
   const filtered = useMemo(() => {
+    // Helper function executing q.
+    // Processes input parameters and returns the calculated result.
     const q = allItems.filter((i) => {
       if (debouncedSearch && !i.name.toLowerCase().includes(debouncedSearch.toLowerCase())) return false;
       if (type !== "All" && i.type !== type) return false;
@@ -198,12 +192,11 @@ export default function ItemsCodex({ initialItemId }: { initialItemId?: number }
     });
   }, [allItems, debouncedSearch, type, rarity, sort]);
 
-  /* Clamping here rather than in an effect: a filter that shrinks the list past
-     the current page would otherwise render one empty frame before correcting. */
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
   const pageItems = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
+  // Count the loaded records by their category key and return a lookup used to render filter totals.
   const typeCounts = useMemo(() => {
     const c: Record<string, number> = { All: allItems.length };
     allItems.forEach((i) => { c[i.type] = (c[i.type] ?? 0) + 1; });
@@ -216,6 +209,7 @@ export default function ItemsCodex({ initialItemId }: { initialItemId?: number }
     ?? pageItems[0]
     ?? null;
 
+  // Helper function executing open entry.
   function openEntry(id: number) {
     setSelectedId(id);
     if (typeof window !== "undefined") {
@@ -266,7 +260,7 @@ export default function ItemsCodex({ initialItemId }: { initialItemId?: number }
             <BookTab
               key={t.key}
               active={type === t.key}
-              onClick={() => { setType(t.key); setPage(1); }}
+              onClick={() => { setType(t.key); setPage(1); }}  // Reset to first page after filter/search change
               label={t.label}
               count={typeCounts[t.key] ?? 0}
               icon={
@@ -285,7 +279,7 @@ export default function ItemsCodex({ initialItemId }: { initialItemId?: number }
                 {type === "All" ? "All Entries" : typeLabel(type)}
               </BookPageTitle>
 
-              {/* Enhanced Fantasy Search Input */}
+
               <div className="mt-4 flex items-center gap-2 border-2 border-wood/50 bg-wood/10 px-3 shadow-inner focus-within:border-accent-deep">
                 <Search className="h-4 w-4 shrink-0 text-on-parchment/50" />
                 <input
@@ -308,10 +302,10 @@ export default function ItemsCodex({ initialItemId }: { initialItemId?: number }
                 )}
               </div>
 
-              {/* Rarity filter pills */}
+
               <div className="mt-3 flex flex-wrap gap-1">
                 <button
-                  onClick={() => { setRarity("all"); setPage(1); }}
+                  onClick={() => { setRarity("all"); setPage(1); }}  // Reset to first page after filter/search change
                   aria-pressed={rarity === "all"}
                   className={[
                     "cursor-pointer border px-2 py-1 text-[11px] transition-colors",
@@ -325,7 +319,7 @@ export default function ItemsCodex({ initialItemId }: { initialItemId?: number }
                 {RARITY_KEYS.map((r) => (
                   <button
                     key={r}
-                    onClick={() => { setRarity(r); setPage(1); }}
+                    onClick={() => { setRarity(r); setPage(1); }}  // Reset to first page after filter/search change
                     aria-pressed={rarity === r}
                     className={[
                       "flex cursor-pointer items-center gap-1.5 border px-2 py-1 text-[11px] transition-colors",
@@ -344,7 +338,7 @@ export default function ItemsCodex({ initialItemId }: { initialItemId?: number }
                 ))}
               </div>
 
-              {/* Index Scroll Region */}
+
               <div className="mt-4 min-h-0 flex-1 overflow-y-auto">
                 {pageItems.length === 0 ? (
                   <div className="py-14 text-center">
@@ -368,7 +362,7 @@ export default function ItemsCodex({ initialItemId }: { initialItemId?: number }
                 )}
               </div>
 
-              {/* Verso Footer */}
+
               <div className="mt-auto border-t border-wood/30 pt-3">
                 <div className="flex items-center justify-between text-[11px] text-on-parchment/65">
                   <span>{filtered.length} matching entries</span>
@@ -376,7 +370,7 @@ export default function ItemsCodex({ initialItemId }: { initialItemId?: number }
                 </div>
                 {hasFilters && (
                   <button
-                    onClick={() => { setSearchInput(""); setType("All"); setRarity("all"); setPage(1); }}
+                    onClick={() => { setSearchInput(""); setType("All"); setRarity("all"); setPage(1); }}  // Reset to first page after filter/search change
                     className="mt-2 flex h-9 w-full cursor-pointer items-center justify-center gap-2 border border-wood/50 bg-wood/5 text-xs text-on-parchment/80 transition-colors hover:border-accent-deep hover:text-accent-deep"
                   >
                     <X className="h-3.5 w-3.5" aria-hidden="true" />

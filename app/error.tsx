@@ -5,10 +5,8 @@ import Link from "next/link";
 import FaceAnimation from "@/components/ui/FaceAnimation";
 import Panel from "@/components/ui/Panel";
 
-/* Matches not-found.tsx: stone ground, wood board, gold for the recovery action.
-   The message keeps error.message so the recovery path is specific (error-clarity,
-   error-recovery), and "Try again" comes first because reset() is cheaper for the
-   user than losing their place. */
+// Renders the error reusable UI component.
+// Returns the styled JSX element.
 export default function Error({
   error,
   reset,
@@ -16,6 +14,7 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  // Synchronize the derived component state whenever this effect's dependency values change.
   useEffect(() => {
     console.error(error);
   }, [error]);

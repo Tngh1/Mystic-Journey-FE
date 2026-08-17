@@ -9,37 +9,33 @@ import AuthFrame from "@/components/ui/AuthFrame";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { showErrorAlert } from "@/lib/utils/swal";
 
+// Renders the login page view component.
+// Returns the JSX element hierarchy for the page view.
 export default function LoginPage() {
-  const { login } = useAuth();
-  const router = useRouter();
+  const { login } = useAuth();  // Pull login function from AuthContext
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);  // Track async submission loading state
 
+  // Renders the handle submit view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+    e.preventDefault();  // Prevent default HTML form submission and page reload
+    setIsLoading(true);  // Disable submit button to prevent duplicate requests
     try {
-      const me = await login(email, password);
+      const me = await login(email, password);  // Submit credentials and receive authenticated user profile
 
-      // Admin is the only non-Player role: the BE seeds just Player/Admin and
-      // every [Authorize] there is Roles = "Admin". SuperAdmin was removed, so
-      // don't reintroduce a branch for it here.
-      const home = me.role === "Admin" ? "/dashboard" : "/";
+      const home = me.role === "Admin" ? "/dashboard" : "/";  // Redirect admin users to dashboard, regular users to home
 
-      // proxy.ts parks the blocked path in ?redirect= when it bounces a guest.
-      // Read it here rather than with useSearchParams so the page keeps
-      // prerendering without a Suspense boundary. Only same-origin paths are
-      // honoured: a leading "//" or "https://evil" would make this an open
-      // redirect, and the param is attacker-controlled.
-      const wanted = new URLSearchParams(window.location.search).get("redirect");
+      const wanted = new URLSearchParams(window.location.search).get("redirect");  // Restore intended destination from redirect query parameter
       const destination = wanted?.startsWith("/") && !wanted.startsWith("//") ? wanted : home;
-      router.replace(destination);
+      router.replace(destination);  // Navigate to destination and replace login entry in history
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Invalid credentials. Please try again.";
-      await showErrorAlert("Login Failed", message);
+      await showErrorAlert("Login Failed", message);  // Display styled error alert dialog to the user
     } finally {
-      setIsLoading(false);
+      setIsLoading(false);  // Re-enable submit button after operation completes
     }
   };
 
@@ -58,7 +54,7 @@ export default function LoginPage() {
         </>
       }
     >
-      {/* Straight on the cloth — the banner is already the surface. */}
+
       <form onSubmit={handleSubmit} aria-label="Login" className="space-y-4">
         <AuthField
           label="Email or Username"

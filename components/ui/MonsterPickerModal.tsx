@@ -16,6 +16,9 @@ interface MonsterPickerModalProps {
   excludeType?: string;
 }
 
+// Renders monster picker modal modal/form component.
+// Workflow: manages form field values and validation feedback state; triggers lifecycle callbacks upon dismissal or success.
+// Returns the interactive form JSX element.
 export default function MonsterPickerModal({
   isOpen,
   onClose,
@@ -27,10 +30,11 @@ export default function MonsterPickerModal({
   excludeType,
 }: MonsterPickerModalProps) {
   const [monsters, setMonsters] = useState<MonsterResponse[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);  // Initialize boolean flag as inactive
   const [search, setSearch] = useState("");
   const [selectedType, setSelectedType] = useState("All");
 
+  // Load all monsters when the dependencies change, update monsters and loading, and ignore stale callbacks after unmount.
   useEffect(() => {
     if (!isOpen) return;
     getAllMonsters(1, 500)
@@ -44,6 +48,8 @@ export default function MonsterPickerModal({
       .finally(() => setLoading(false));
   }, [isOpen]);
 
+  // Helper function executing filtered monsters.
+  // Processes input parameters and returns the calculated result.
   const filteredMonsters = useMemo(() => {
     return monsters.filter((m) => {
       const matchesSearch =
@@ -55,7 +61,11 @@ export default function MonsterPickerModal({
     });
   }, [monsters, search, selectedType]);
 
+  // Helper function executing monster types.
+  // Processes input parameters and returns the calculated result.
   const monsterTypes = useMemo(() => {
+    // Helper function executing types.
+    // Processes input parameters and returns the calculated result.
     const types = Array.from(new Set(monsters.map((m) => m.type))).filter(Boolean);
     return ["All", ...types];
   }, [monsters]);
@@ -65,7 +75,6 @@ export default function MonsterPickerModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in-0 duration-200">
       <div className="relative flex h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#111111] shadow-2xl shadow-black/80">
-        {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 px-6 py-4 bg-white/[0.02]">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 text-red-400">
@@ -85,7 +94,6 @@ export default function MonsterPickerModal({
           </button>
         </div>
 
-        {/* Filter Controls */}
         <div className="space-y-3 border-b border-white/10 bg-[#161616] p-4">
           <div className="relative">
             <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
@@ -116,7 +124,6 @@ export default function MonsterPickerModal({
           </div>
         </div>
 
-        {/* Monster Grid */}
         <div className="flex-1 overflow-y-auto p-4">
           {loading ? (
             <div className="flex h-64 items-center justify-center gap-3 text-white/40">
@@ -146,7 +153,6 @@ export default function MonsterPickerModal({
                         : "border-white/10 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.05]"
                     }`}
                   >
-                    {/* Thumbnail */}
                     <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-red-500/30 bg-red-500/10">
                       {monster.imageUrl ? (
                         <img
@@ -159,7 +165,6 @@ export default function MonsterPickerModal({
                       )}
                     </div>
 
-                    {/* Monster details */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 text-[10px] text-red-400 font-bold uppercase">
                         <span>Lv. {monster.level}</span>
@@ -186,7 +191,6 @@ export default function MonsterPickerModal({
           )}
         </div>
 
-        {/* Footer */}
         <div className="flex items-center justify-between border-t border-white/10 bg-[#161616] px-6 py-3 text-xs text-white/40">
           <span>Showing {filteredMonsters.length} of {monsters.length} monsters</span>
           <button

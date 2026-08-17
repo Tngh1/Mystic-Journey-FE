@@ -1,34 +1,18 @@
 import type { HTMLAttributes, ReactNode } from "react";
 
-/* The chapter board on /story, rebuilt as the realm it describes.
-
-   Every chapter used to sit in the same oak Panel, so the four realms were told
-   apart by a 16px glyph and a cloth colour. Now the whole enclosure changes: the
-   Elf Forest chapters are read under a canopy between two bark trunks standing in
-   soil; Autumn Pumpkin is read inside the gourd, ribbed rind on both sides and
-   the stem overhead; Frozen Mountain is a pillar of ice with peaks on top and
-   icicles hanging under them; Abandoned Castle is a battlemented curtain wall
-   between two towers with the gate at its foot.
-
-   Each frame is the same three parts — crown, two rails, base — so the reading
-   surface inside is identical everywhere and only the enclosure differs. All of
-   it is stacked hard-edged courses in existing tokens: nothing curves, nothing
-   blurs, and the structure is aria-hidden because the location and level are
-   already stated in text inside. */
 
 export type Realm = "forest" | "pumpkin" | "frozen" | "castle";
 
 const OUTLINE = "border-black/60";
 
-/** One course of the crown or base: a band with the system's black outline. */
+// Renders the course reusable UI component.
+// Returns the styled JSX element.
 function Course({ w, h, fill, extra = "" }: { w: string; h: string; fill: string; extra?: string }) {
   return <span className={`block border-2 ${OUTLINE} ${w} ${h} ${fill} ${extra}`} />;
 }
 
-/* ── Elf Forest ──────────────────────────────────────────────────────────
-   Canopy stepping out to the full width of the board, bark trunks down both
-   sides, roots in the soil under it. */
 
+// Helper function executing forest.
 const forest = {
   fill: "bg-heraldry-pine",
   Crown: () => (
@@ -40,7 +24,6 @@ const forest = {
       <Course w="w-full" h="h-4" fill="bg-heraldry-pine" />
     </div>
   ),
-  /** Bark: oak lit on one side, shadowed on the other, with knots down it. */
   Rail: () => (
     <span
       className={`flex w-5 shrink-0 flex-col items-center justify-around border-x-2 ${OUTLINE} bg-wood shadow-[inset_2px_0_0_var(--color-wood-light),inset_-2px_0_0_var(--color-wood-dark)] sm:w-7`}
@@ -60,13 +43,10 @@ const forest = {
   ),
 };
 
-/* ── Autumn Pumpkin ──────────────────────────────────────────────────────
-   Read from inside the gourd: stem and leaf overhead, ribbed rind down both
-   sides, the shell closing under it. Terracotta, not gold — gold on this site
-   means "act on this", and the page's one gold thing is Play Now. */
 
 const RIND = "shadow-[inset_0_3px_0_rgb(255_255_255_/_0.12),inset_0_-3px_0_rgb(0_0_0_/_0.25)]";
 
+// Helper function executing pumpkin.
 const pumpkin = {
   fill: "bg-heraldry-ember",
   Crown: () => (
@@ -78,7 +58,6 @@ const pumpkin = {
       <Course w="w-full" h="h-4" fill="bg-clay" extra={RIND} />
     </div>
   ),
-  /** The rind, ribbed by two sunk bands so the wall reads as a curved shell. */
   Rail: () => (
     <span
       className={`w-5 shrink-0 border-x-2 ${OUTLINE} bg-clay shadow-[inset_4px_0_0_var(--color-clay-light),inset_-4px_0_0_var(--color-clay-dark)] sm:w-7`}
@@ -94,11 +73,8 @@ const pumpkin = {
   ),
 };
 
-/* ── Frozen Mountain ────────────────────────────────────────────────────
-   A pillar of ice: snow peaks on top, a row of icicles hanging under the cap,
-   ice columns down the sides, and a drift banked at the foot. The icicles are a
-   repeating gradient so the row tiles at any width instead of assuming one. */
 
+// Helper function executing frozen.
 const frozen = {
   fill: "bg-heraldry-royal",
   Crown: () => (
@@ -107,7 +83,6 @@ const frozen = {
       <Course w="w-2/5" h="h-3" fill="bg-cloud" />
       <Course w="w-3/4" h="h-3" fill="bg-cloud-shade" />
       <Course w="w-full" h="h-4" fill="bg-cloud-deep" />
-      {/* Icicles, hanging off the cap. */}
       <span
         className="block h-3 w-full bg-[repeating-linear-gradient(90deg,var(--color-cloud)_0_6px,transparent_6px_18px)]"
       />
@@ -128,11 +103,8 @@ const frozen = {
   ),
 };
 
-/* ── Abandoned Castle ───────────────────────────────────────────────────
-   Curtain wall between two towers: merlons along the wall-walk, arrow slits down
-   each tower, and the gate standing open in the plinth. Merlons tile by
-   gradient for the same reason the icicles do. */
 
+// Helper function executing castle.
 const castle = {
   fill: "bg-stone",
   Crown: () => (
@@ -143,7 +115,6 @@ const castle = {
       <Course w="w-full" h="h-5" fill="bg-stone-light" />
     </div>
   ),
-  /** A tower, with slits punched down it. */
   Rail: () => (
     <span
       className={`flex w-5 shrink-0 flex-col items-center justify-around border-x-2 ${OUTLINE} bg-stone-light shadow-[inset_3px_0_0_rgb(255_255_255_/_0.08),inset_-3px_0_0_rgb(0_0_0_/_0.35)] sm:w-7`}
@@ -157,14 +128,19 @@ const castle = {
   Base: () => (
     <div className="flex flex-col items-center" aria-hidden="true">
       <Course w="w-full" h="h-5" fill="bg-stone-light" />
-      {/* The gate, standing open. */}
       <Course w="w-16" h="h-4" fill="bg-iron-dark" />
     </div>
   ),
 };
 
+// Renders the frames reusable UI component.
+// Features: renders child component slots dynamically.
+// Returns the styled JSX element.
 const FRAMES = { forest, pumpkin, frozen, castle } as const;
 
+// Renders the chapter frame reusable UI component.
+// Features: renders child component slots dynamically.
+// Returns the styled JSX element.
 export default function ChapterFrame({
   realm,
   children,

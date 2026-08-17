@@ -3,14 +3,6 @@
 import React from "react";
 import type { LucideIcon } from "lucide-react";
 
-/* A panel of the form: a steel plate with a dark title strip, matching the ledger
-   AdminTable hangs beside it. Plate rather than wood — the admin keep is rolled
-   steel on a forge floor.
-
-   The `iconColor` prop is gone. Callers were passing `text-purple-400`,
-   `text-red-400`, `text-sky-300`, `text-emerald-300` and one raw `#ffc032` —
-   nine competing accents for a plate that carries no meaning, on a system where
-   gold alone says "act on this". The plate is iron now, everywhere. */
 
 interface FormSectionProps {
   title: string;
@@ -18,9 +10,12 @@ interface FormSectionProps {
   icon?: LucideIcon;
   actions?: React.ReactNode;
   children: React.ReactNode;
+  // Supported player classes: Knight, Archer, or Mage; the class selects base stats, compatible skills, skins, and combat scaling.
   className?: string;
 }
 
+// Renders form section modal/form component.
+// Returns the interactive form JSX element.
 export default function FormSection({
   title,
   subtitle,

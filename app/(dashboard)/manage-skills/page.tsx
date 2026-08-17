@@ -10,9 +10,13 @@ import type { SkillResponse } from "@/lib/api/skills";
 
 const SKILL_TYPES = ["Active", "Passive", "Buff", "Debuff"];
 
+// Renders the manage skills page view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 export default function ManageSkillsPage() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
   const [search, setSearch] = useState("");
+  // Supported skill types: Active, Passive, Buff, or Debuff; the type controls activation and effect presentation.
   const [type, setType] = useState("");
   const [status, setStatus] = useState("");
 
@@ -29,14 +33,17 @@ export default function ManageSkillsPage() {
     refresh,
   } = usePagedQuery<SkillResponse>({ endpoint: "/api/skills", pageSize: 10 });
 
+  // Renders the apply filters view component.
+  // Returns the JSX element hierarchy for the page view.
   const applyFilters = (next: { search?: string; type?: string; status?: string }) => {
     const nextSearch = next.search ?? search;
     const nextType = next.type ?? type;
     const nextStatus = next.status ?? status;
 
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams({
       search: nextSearch || undefined,
+      // Supported skill types: Active, Passive, Buff, or Debuff; the type controls activation and effect presentation.
       type: nextType || undefined,
       isActive: nextStatus === "" ? undefined : nextStatus === "true",
     });
@@ -173,7 +180,7 @@ export default function ManageSkillsPage() {
         emptyHint="Try changing the search text or filters."
         serverSide
         pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
-        onUpdate={(skill) => router.push(`/manage-skills/update?id=${skill.skillId}`)}
+        onUpdate={(skill) => router.push(`/manage-skills/update?id=${skill.skillId}`)}  // Navigate to the next page and push to history stack
         idField="skillId"
       />
     </div>

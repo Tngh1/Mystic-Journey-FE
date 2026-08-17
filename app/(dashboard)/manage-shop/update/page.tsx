@@ -10,16 +10,20 @@ import FormHeader from "@/components/form/FormHeader";
 import FormAlert from "@/components/form/FormAlert";
 import ShopItemForm from "../_components/ShopItemForm";
 
+// Renders the edit shop item page view component.
+// Key functionality: manages local UI state, pagination, and filter values; fetches asynchronous page data on initial load and parameter changes.
+// Returns the JSX element hierarchy for the page view.
 export default function EditShopItemPage() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
   const searchParams = useSearchParams();
   const shopItemId = searchParams.get("id");
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);  // Initialize boolean flag as inactive
   const [fetching, setFetching] = useState(Boolean(shopItemId));
   const [shopItem, setShopItem] = useState<ShopItemResponse | null>(null);
   const [error, setError] = useState<string | null>(shopItemId ? null : "Shop item id is missing.");
 
+  // Load by id when the dependencies change, update shop item, error, and fetching, and ignore stale callbacks after unmount.
   useEffect(() => {
     if (!shopItemId) return;
 
@@ -29,6 +33,9 @@ export default function EditShopItemPage() {
       .finally(() => setFetching(false));
   }, [shopItemId]);
 
+  // Renders the handle submit view component.
+  // Key functionality: displays interactive alert dialogues for user actions.
+  // Returns the JSX element hierarchy for the page view.
   const handleSubmit = async (payload: CreateShopItemRequest) => {
     if (!shopItemId) return;
 
@@ -36,12 +43,12 @@ export default function EditShopItemPage() {
       setLoading(true);
       setError(null);
       await update(Number(shopItemId), payload);
-      await showSuccessAlert("Success!", "Shop item updated successfully.");
-      router.push("/manage-shop");
+      await showSuccessAlert("Success!", "Shop item updated successfully.");  // Display styled success alert dialog to the user
+      router.push("/manage-shop");  // Navigate to the next page and push to history stack
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to update shop item";
       setError(msg);
-      await showErrorAlert("Error", msg);
+      await showErrorAlert("Error", msg);  // Display styled error alert dialog to the user
     } finally {
       setLoading(false);
     }
@@ -83,7 +90,7 @@ export default function EditShopItemPage() {
         loading={loading}
         error={error}
         onDismissError={() => setError(null)}
-        onCancel={() => router.push("/manage-shop")}
+        onCancel={() => router.push("/manage-shop")}  // Navigate to the next page and push to history stack
         onSubmit={handleSubmit}
       />
     </div>

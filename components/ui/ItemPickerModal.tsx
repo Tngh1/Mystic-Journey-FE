@@ -22,6 +22,9 @@ interface ItemPickerModalProps {
   title?: string;
 }
 
+// Renders item picker modal modal/form component.
+// Workflow: manages form field values and validation feedback state; triggers lifecycle callbacks upon dismissal or success.
+// Returns the interactive form JSX element.
 export default function ItemPickerModal({
   isOpen,
   onClose,
@@ -30,11 +33,12 @@ export default function ItemPickerModal({
   title = "Select Game Item",
 }: ItemPickerModalProps) {
   const [items, setItems] = useState<ItemResponse[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);  // Initialize boolean flag as inactive
   const [search, setSearch] = useState("");
   const [selectedType, setSelectedType] = useState("All");
   const [selectedRarity, setSelectedRarity] = useState("All");
 
+  // Load all items when the dependencies change, update items and loading, and ignore stale callbacks after unmount.
   useEffect(() => {
     if (!isOpen) return;
     getAllItems(1, 500, { isActive: true })
@@ -43,6 +47,7 @@ export default function ItemPickerModal({
       .finally(() => setLoading(false));
   }, [isOpen]);
 
+  // Filter the source collection with the current search and category values, then apply the selected ordering before returning the visible results.
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
       const matchesSearch =
@@ -60,7 +65,6 @@ export default function ItemPickerModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in-0 duration-200">
       <div className="relative flex h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#111111] shadow-2xl shadow-black/80">
-        {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-white/10 px-6 py-4 bg-white/[0.02]">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ffc032]/10 text-[#ffc032]">
@@ -80,7 +84,6 @@ export default function ItemPickerModal({
           </button>
         </div>
 
-        {/* Filter Controls */}
         <div className="space-y-3 border-b border-white/10 bg-[#161616] p-4">
           <div className="relative">
             <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
@@ -94,7 +97,6 @@ export default function ItemPickerModal({
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-            {/* Type tabs */}
             <div className="flex flex-wrap gap-1.5">
               {["All", "Weapon", "Armor", "Consumable", "Material", "QuestItem"].map((type) => (
                 <button
@@ -112,7 +114,6 @@ export default function ItemPickerModal({
               ))}
             </div>
 
-            {/* Rarity selector */}
             <div className="flex items-center gap-1.5">
               <Filter className="h-3.5 w-3.5 text-white/40" />
               <select
@@ -133,7 +134,6 @@ export default function ItemPickerModal({
           </div>
         </div>
 
-        {/* Item List Grid */}
         <div className="flex-1 overflow-y-auto p-4">
           {loading ? (
             <div className="flex h-64 items-center justify-center gap-3 text-white/40">
@@ -165,7 +165,6 @@ export default function ItemPickerModal({
                         : "border-white/10 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.05]"
                     }`}
                   >
-                    {/* Item Thumbnail */}
                     <div className={`relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border ${theme.border} ${theme.bg}`}>
                       {item.iconUrl ? (
                         <img
@@ -178,7 +177,6 @@ export default function ItemPickerModal({
                       )}
                     </div>
 
-                    {/* Item Info */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
                         <span className={`text-[10px] font-bold uppercase tracking-wider ${theme.text}`}>
@@ -198,7 +196,6 @@ export default function ItemPickerModal({
                       </div>
                     </div>
 
-                    {/* Selected Indicator */}
                     {isSelected && (
                       <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#ffc032] text-[#111]">
                         <Check className="h-4 w-4 stroke-[3]" />
@@ -211,7 +208,6 @@ export default function ItemPickerModal({
           )}
         </div>
 
-        {/* Modal Footer */}
         <div className="flex items-center justify-between border-t border-white/10 bg-[#161616] px-6 py-3 text-xs text-white/40">
           <span>Showing {filteredItems.length} of {items.length} items</span>
           <button

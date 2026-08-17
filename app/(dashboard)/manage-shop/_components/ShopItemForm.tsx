@@ -24,6 +24,7 @@ const SECTION_OPTIONS = [
 type ShopFormData = {
   itemId: number;
   shopSection: string;
+  // Supported currencies: Gold or Gems; the selected currency determines which player balance is charged or credited.
   currency: string;
   price: number;
   stock: number;
@@ -47,6 +48,7 @@ type ShopItemFormProps = {
 const EMPTY_FORM: ShopFormData = {
   itemId: 0,
   shopSection: "Fixed",
+  // Supported currencies: Gold or Gems; the selected currency determines which player balance is charged or credited.
   currency: "Gold",
   price: 0,
   stock: -1,
@@ -57,12 +59,15 @@ const EMPTY_FORM: ShopFormData = {
   isActive: true,
 };
 
+// Parse the trimmed input as a number and return the fallback when it is blank or not finite.
 function toNumber(value: string, fallback = 0) {
   if (value.trim() === "") return fallback;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+// Helper function executing to date time local.
+// Processes input parameters and returns the calculated result.
 function toDateTimeLocal(value?: string | null) {
   if (!value) return "";
   const date = new Date(value);
@@ -71,11 +76,14 @@ function toDateTimeLocal(value?: string | null) {
   return local.toISOString().slice(0, 16);
 }
 
+// Helper function executing form from initial.
+// Processes input parameters and returns the calculated result.
 function formFromInitial(initialData?: ShopItemResponse | null): ShopFormData {
   if (!initialData) return EMPTY_FORM;
   return {
     itemId: initialData.itemId,
     shopSection: initialData.shopSection || "Fixed",
+    // Supported currencies: Gold or Gems; the selected currency determines which player balance is charged or credited.
     currency: initialData.currency || "Gold",
     price: initialData.price ?? 0,
     stock: initialData.stock ?? -1,
@@ -87,20 +95,28 @@ function formFromInitial(initialData?: ShopItemResponse | null): ShopFormData {
   };
 }
 
+// Helper function executing to iso or null.
+// Processes input parameters and returns the calculated result.
 function toIsoOrNull(value: string) {
   return value ? new Date(value).toISOString() : null;
 }
 
+// Helper function executing format currency.
+// Processes input parameters and returns the calculated result.
 function formatCurrency(value: number, currency: string) {
   return `${value.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${currency}`;
 }
 
+// Helper function executing stock label.
+// Processes input parameters and returns the calculated result.
 function stockLabel(stock: number) {
   if (stock < 0) return "Unlimited";
   if (stock === 0) return "Sold out";
   return stock.toLocaleString();
 }
 
+// Helper function executing availability label.
+// Processes input parameters and returns the calculated result.
 function availabilityLabel(formData: ShopFormData) {
   const now = Date.now();
   const from = formData.availableFrom ? new Date(formData.availableFrom).getTime() : null;
@@ -113,6 +129,9 @@ function availabilityLabel(formData: ShopFormData) {
   return "Live";
 }
 
+// Renders shop item form modal/form component.
+// Workflow: manages form field values and validation feedback state; validates user input and processes submission payload.
+// Returns the interactive form JSX element.
 export default function ShopItemForm({
   mode,
   initialData,
@@ -124,9 +143,10 @@ export default function ShopItemForm({
 }: ShopItemFormProps) {
   const [formData, setFormData] = useState<ShopFormData>(() => formFromInitial(initialData));
   const [items, setItems] = useState<ItemResponse[]>([]);
-  const [loadingItems, setLoadingItems] = useState(true);
+  const [loadingItems, setLoadingItems] = useState(true);  // Initialize loading flag as active on first render
   const [localError, setLocalError] = useState<string | null>(null);
 
+  // Load all items when the dependencies change, update items and loading items, and ignore stale callbacks after unmount.
   useEffect(() => {
     let mounted = true;
 
@@ -148,12 +168,15 @@ export default function ShopItemForm({
     };
   }, []);
 
+  // Process the supplied values: maps the input discriminator to the corresponding domain value and fallback and maps each record into the output shape.
   const selectedItem = useMemo(
     () => items.find((item) => item.itemId === formData.itemId),
     [formData.itemId, items],
   );
 
+  // Helper function executing item options.
   const itemOptions = useMemo(() => {
+    // Helper function executing options.
     const options = items.map((item) => ({
       value: String(item.itemId),
       label: `${item.name} #${item.itemId} - ${item.type}${item.rarity ? ` / ${item.rarity}` : ""}`,
@@ -171,10 +194,13 @@ export default function ShopItemForm({
 
   const alertMessage = localError || error;
 
+  // Event handler for handle change.
   const handleChange = <K extends keyof ShopFormData>(field: K, value: ShopFormData[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Helper function executing validate.
+  // Processes input parameters and returns the calculated result.
   const validate = () => {
     if (formData.itemId <= 0) return "Choose an item before saving.";
     if (!SECTION_OPTIONS.some((section) => section.value === formData.shopSection)) return "Shop section must be Fixed or DailyDeal.";
@@ -188,6 +214,7 @@ export default function ShopItemForm({
     return null;
   };
 
+  // Event handler for handle submit.
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const validation = validate();
@@ -200,6 +227,7 @@ export default function ShopItemForm({
     await onSubmit({
       itemId: formData.itemId,
       shopSection: formData.shopSection,
+      // Supported currencies: Gold or Gems; the selected currency determines which player balance is charged or credited.
       currency: formData.currency,
       price: Math.max(0, formData.price),
       stock: Math.max(-1, Math.floor(formData.stock)),

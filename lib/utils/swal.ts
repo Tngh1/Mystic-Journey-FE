@@ -1,23 +1,12 @@
 import Swal, { type SweetAlertOptions } from "sweetalert2";
 
-/* The app's dialog box, as a carved wooden plank rather than SweetAlert's
-   default white card.
- *
- * Everything visual now lives in `components/css/swal.css`, keyed off the
- * `swal-pixel-*` classes below. This file used to set `background: "#18181b"`,
- * `confirmButtonColor: "#ffc032"` and `popup: "rounded-2xl"` on every call —
- * three raw hexes the design system forbids, a colour that duplicated
- * `--color-accent`, and a radius the global reset then had to fight. Colours
- * belong to the tokens; this module only decides *which* dialog is being shown.
- */
 
-/* Lucide glyphs as markup, since `iconHtml` takes a string and cannot take a
-   React element. Same four icons the components import, hand-inlined: Check,
-   X, TriangleAlert, Info. Stroke geometry copied verbatim from the package so
-   they stay identical to the rest of the UI. */
+// Wrap the supplied SVG path fragments in the shared 26px icon markup used by alert dialogs.
 const glyph = (paths: string) =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true">${paths}</svg>`;
 
+// Renders the icons reusable UI component.
+// Returns the styled JSX element.
 const ICONS = {
   success: glyph('<path d="M20 6 9 17l-5-5"/>'),
   error: glyph('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'),
@@ -26,12 +15,7 @@ const ICONS = {
   ),
 } as const;
 
-/* Shared shell. `buttonsStyling: false` hands the buttons to our own CSS —
-   otherwise the library writes inline background-color from
-   confirmButtonColor and wins on specificity. */
-/* `satisfies` thay vì annotate: vẫn kiểm tra kiểu, nhưng giữ kiểu suy ra đủ hẹp
-   để spread được vào dialog có `input` (SweetAlertOptions là union theo loại
-   input, nên spread giá trị đã annotate sẽ vỡ ở nhánh inputValidator). */
+// Build the shared SweetAlert options, including pixel-theme classes and the danger confirmation style when requested.
 const base = (danger = false) =>
   ({
     buttonsStyling: false,
@@ -47,8 +31,9 @@ const base = (danger = false) =>
     },
   }) satisfies SweetAlertOptions;
 
+// Helper function executing show success alert.
 export const showSuccessAlert = (title: string, message: string) =>
-  Swal.fire({
+  Swal.fire({  // Display SweetAlert2 confirmation or notification dialog
     ...base(),
     title,
     text: message,
@@ -57,8 +42,9 @@ export const showSuccessAlert = (title: string, message: string) =>
     confirmButtonText: "Onward",
   });
 
+// Helper function executing show error alert.
 export const showErrorAlert = (title: string, message: string) =>
-  Swal.fire({
+  Swal.fire({  // Display SweetAlert2 confirmation or notification dialog
     ...base(),
     title,
     text: message,
@@ -67,16 +53,14 @@ export const showErrorAlert = (title: string, message: string) =>
     confirmButtonText: "Try Again",
   });
 
+// Show a warning SweetAlert with cancel and confirm actions, then return whether the user confirmed the operation.
 export const showConfirmAlert = (
   title: string,
   message: string,
   confirmText: string = "Yes",
   cancelText: string = "Cancel"
 ) =>
-  Swal.fire({
-    /* Destructive confirms wear crimson, not the gold reserved for "act on
-       this" — and the button keeps its explicit verb, so the meaning is never
-       carried by colour alone. */
+  Swal.fire({  // Display SweetAlert2 confirmation or notification dialog
     ...base(true),
     title,
     text: message,
@@ -85,18 +69,14 @@ export const showConfirmAlert = (
     showCancelButton: true,
     confirmButtonText: confirmText,
     cancelButtonText: cancelText,
-    /* Cancel first: the safe choice sits where the eye lands, and Escape or an
-       outside click already resolves to it. */
     reverseButtons: true,
     focusCancel: true,
   }).then((res) => res.isConfirmed);
 
-/* Prompt nhập lý do ban — trả về lý do (có thể rỗng) hoặc null nếu huỷ.
-   Lý do này người chơi sẽ đọc được khi đăng nhập, nên nó là nội dung đối mặt
-   người dùng, không phải ghi chú nội bộ. */
+// Open a warning textarea prompt for the ban reason and return the entered text, an empty string, or null when cancelled.
 export const showBanReasonPrompt = (userName: string): Promise<string | null> => {
   const shell = base(true);
-  return Swal.fire({
+  return Swal.fire({  // Display SweetAlert2 confirmation or notification dialog
     ...shell,
     title: `Ban "${userName}"`,
     text: "This reason is shown to the player when they try to login. Leave blank for none.",

@@ -4,17 +4,6 @@ import React from "react";
 import type { LucideIcon } from "lucide-react";
 import Panel from "@/components/ui/Panel";
 
-/* The board a manage-* screen hangs at the top: a gilt sigil plate, the title,
-   and the counts on steel tiles beneath.
-
-   The old version had a `rounded-2xl` gradient sigil, `iconGradient` as a prop
-   (a per-page gradient string — five ways to be off-system), and five tones each
-   built from a raw hex. Tones now map to heraldic cloth, and each one carries a
-   plate beside the number so the reading never rests on colour alone.
-
-   The tiles are `plate`, not the Panel default: the admin keep is rolled steel on
-   a forge floor, and a wood tile there was the last of the wiki's furniture left
-   in the dashboard. */
 
 export interface PageHeaderStat {
   label: string;
@@ -42,7 +31,6 @@ interface PageHeaderProps {
 
 type Tone = NonNullable<PageHeaderStat["tone"]>;
 
-/* Cloth for the plate, ink for the number. Both clear 4.5:1 on wood. */
 const TONE_PLATE: Record<Tone, string> = {
   default: "bg-iron text-parchment",
   primary: "bg-accent text-on-accent",
@@ -59,6 +47,9 @@ const TONE_VALUE: Record<Tone, string> = {
   danger: "text-danger",
 };
 
+// Renders the page header reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes; binds user interaction event listeners.
+// Returns the styled JSX element.
 export default function PageHeader({
   title,
   subtitle,

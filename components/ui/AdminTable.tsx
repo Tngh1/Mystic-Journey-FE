@@ -1,15 +1,6 @@
 import React, { useState } from "react";
 import { Plus, Search, Edit2, Trash2, Inbox, AlertCircle, Loader2, ArrowUp, ArrowDown, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
 
-/* The ledger every manage-* screen writes into: a steel-plate register with a
-   dark head strip, parchment-dim column labels and gold only on the one Create
-   action. Plate, not wood — the admin keep is rolled steel on a forge floor;
-   the wood belongs to the wiki.
-
-   Was a `rounded-2xl` #111111 card with `rounded-lg` rows, `rounded-full` empty
-   /error medallions and #ffc032 / #1e1e1e / #252525 hardcoded throughout. The
-   pager's bare "←" / "→" glyphs are now Lucide chevrons in 44px hit areas — the
-   old ones were 27px and below the touch floor. */
 
 interface Column<T extends object> {
   key: string;
@@ -51,6 +42,9 @@ interface AdminTableProps<T extends object> {
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
+// Renders the admin table reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes; binds user interaction event listeners.
+// Returns the styled JSX element.
 export default function AdminTable<T extends object>({
   title,
   columns,
@@ -97,6 +91,7 @@ export default function AdminTable<T extends object>({
   const endIndex = serverSide && pagination ? totalItems : Math.min(startIndex + currentPageSize, totalItems);
   const currentData = serverSide && pagination ? data : filteredData.slice(startIndex, endIndex);
 
+  // Event handler for handle page change.
   const handlePageChange = (page: number) => {
     const newPage = Math.max(1, Math.min(page, totalPages));
     if (serverSide && pagination) {
@@ -106,6 +101,8 @@ export default function AdminTable<T extends object>({
     }
   };
 
+  // Helper function executing get sort icon.
+  // Processes input parameters and returns the calculated result.
   const getSortIcon = (key: string) => {
     if (sortBy !== key) {
       return <ArrowUpDown className="h-3 w-3 text-parchment-dim/60" aria-hidden="true" />;
@@ -119,6 +116,8 @@ export default function AdminTable<T extends object>({
 
   const columnCount = columns.length + (onUpdate || onDelete ? 1 : 0);
 
+  // Helper function executing render body.
+  // Processes input parameters and returns the calculated result.
   const renderBody = () => {
     if (error) {
       return (
@@ -194,8 +193,6 @@ export default function AdminTable<T extends object>({
           className={[
             "group border-b border-iron-light/20 transition-colors hover:bg-iron-light/12",
             onRowClick ? "cursor-pointer" : "",
-            /* Selected also gets a gold left edge, so the row is not marked by
-               fill alone. */
             isSelected ? "bg-accent/12 shadow-[inset_3px_0_0_var(--color-accent)]" : "",
           ].join(" ")}
         >
@@ -239,7 +236,6 @@ export default function AdminTable<T extends object>({
 
   return (
     <div className="pixel-bevel-plate overflow-hidden border-2 border-black/60">
-      {/* Head strip */}
       <div className="flex flex-col justify-between gap-3 border-b-2 border-black/60 bg-iron-dark px-4 py-3 sm:flex-row sm:items-center">
         <h2 className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-accent">
           {title}
@@ -273,7 +269,6 @@ export default function AdminTable<T extends object>({
         </div>
       </div>
 
-      {/* Register */}
       <div className="overflow-x-auto">
         <table className="w-full text-left">
           <thead className="sticky top-0 z-10 bg-iron-dark/95">
@@ -311,7 +306,6 @@ export default function AdminTable<T extends object>({
         </table>
       </div>
 
-      {/* Foot strip / pager */}
       {!error && totalItems > 0 && (
         <div className="flex flex-col items-center justify-between gap-3 border-t-2 border-black/60 bg-iron-dark px-4 py-2.5 sm:flex-row">
           <p className="text-[11px] tabular-nums text-parchment-dim">

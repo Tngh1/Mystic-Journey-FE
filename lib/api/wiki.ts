@@ -4,20 +4,11 @@ import type { SkillResponse } from "./skills";
 import type { ClassConfigResponse } from "./characters";
 import type { MonsterResponse, MonsterDetailResponse, PagedResponse } from "@/lib/types";
 
-/* The public codex client — every call here hits `WikiController`
-   (`/api/wiki/*`), which is `[AllowAnonymous]` end to end. A visitor who has
-   never logged in must be able to read the wiki, so the wiki pages must not
-   touch the `/api/items`, `/api/skills`, `/api/monsters` or `/api/characters`
-   routes: those are the dashboard's, and they now require Admin/SuperAdmin.
-
-   Only two shapes exist, matching the sequence diagram: a paged List and a
-   Detail by id. The BE pins `isActive: true` on every list, so there is no
-   `isActive` parameter to pass — drafts are never public. */
 
 export type { ItemResponse, SkillResponse, ClassConfigResponse, MonsterResponse, MonsterDetailResponse };
 
-/** Shared query builder. Empty values are dropped rather than sent blank, so
- *  the BE's `string.IsNullOrEmpty` filter checks behave as intended. */
+
+// Build query parameters from the supplied filters, omit unset values, and append the serialized query to the API endpoint.
 function query(params: Record<string, string | number | undefined>) {
   const qs = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
@@ -35,39 +26,37 @@ export interface WikiListParams {
   sortOrder?: "asc" | "desc";
 }
 
-// ── Classes ──────────────────────────────────────────────────────────
-// Unpaged: there are three classes, and the stat ceilings are computed across
-// the whole set (see lib/hooks/useClassConfigs).
+// Fetches character class encyclopedic definitions and base scaling stats.
 export async function getWikiClasses() {
-  return get<ClassConfigResponse[]>("/api/wiki/classes");
+  return get<ClassConfigResponse[]>("/api/wiki/classes"); // GET /api/wiki/classes
 }
 
-// ── Monsters ─────────────────────────────────────────────────────────
+// Retrieves public bestiary monster encyclopedia entries with search and sort support.
 export async function getWikiMonsters(params: WikiListParams = {}) {
-  return get<PagedResponse<MonsterResponse>>(`/api/wiki/monsters?${query({ ...params })}`);
+  return get<PagedResponse<MonsterResponse>>(`/api/wiki/monsters?${query({ ...params })}`); // GET /api/wiki/monsters
 }
 
+// Fetches public bestiary detail card by monster ID.
 export async function getWikiMonster(id: number) {
-  return get<MonsterDetailResponse>(`/api/wiki/monsters/${id}`);
+  return get<MonsterDetailResponse>(`/api/wiki/monsters/${id}`); // Query monster encyclopedia details
 }
 
-// ── Items ────────────────────────────────────────────────────────────
+// Retrieves public items encyclopedia with rarity filter.
 export async function getWikiItems(params: WikiListParams & { rarity?: string } = {}) {
-  return get<PagedResponse<ItemResponse>>(`/api/wiki/items?${query({ ...params })}`);
+  return get<PagedResponse<ItemResponse>>(`/api/wiki/items?${query({ ...params })}`); // GET /api/wiki/items
 }
 
+// Fetches single item card and lore from public encyclopedia.
 export async function getWikiItem(id: number) {
-  return get<ItemResponse>(`/api/wiki/items/${id}`);
+  return get<ItemResponse>(`/api/wiki/items/${id}`); // Query item card
 }
 
-// ── Skills ───────────────────────────────────────────────────────────
-// No sortBy/sortOrder: WikiRepository.GetSkillsPaged always orders by
-// UnlockLevel then Name (the unlock path a codex reads by), so there is
-// nothing to pass. Any other order the page needs is applied client-side.
+// Retrieves public skill compendium entries.
 export async function getWikiSkills(params: Omit<WikiListParams, "sortBy" | "sortOrder"> = {}) {
-  return get<PagedResponse<SkillResponse>>(`/api/wiki/skills?${query({ ...params })}`);
+  return get<PagedResponse<SkillResponse>>(`/api/wiki/skills?${query({ ...params })}`); // GET /api/wiki/skills
 }
 
+// Fetches detailed skill scaling ratios from public encyclopedia.
 export async function getWikiSkill(id: number) {
-  return get<SkillResponse>(`/api/wiki/skills/${id}`);
+  return get<SkillResponse>(`/api/wiki/skills/${id}`); // Query skill card
 }

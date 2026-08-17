@@ -40,6 +40,9 @@ const TYPE_BORDER_COLOR: Record<string, string> = {
   Boss: "#ef4444",
 };
 
+// Renders the monster index entry reusable UI component.
+// Features: binds user interaction event listeners.
+// Returns the styled JSX element.
 function MonsterIndexEntry({
   monster,
   active,
@@ -76,7 +79,6 @@ function MonsterIndexEntry({
         }}
       >
         {monster.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={monster.imageUrl}
             alt=""
@@ -89,14 +91,14 @@ function MonsterIndexEntry({
           </span>
         )}
 
-        {/* Type color hairline ring */}
+
         <span
           className="pointer-events-none absolute inset-0 border opacity-70"
           style={{ borderColor: `${accentColor}aa` }}
           aria-hidden="true"
         />
 
-        {/* Level badge */}
+
         <span className="absolute bottom-0.5 right-0.5 bg-black/80 px-1 py-0.2 text-[8px] font-black text-amber-300 border border-amber-500/40 rounded-xs">
           Lvl {monster.level}
         </span>
@@ -123,13 +125,16 @@ function MonsterIndexEntry({
   );
 }
 
+// Renders the monsters codex reusable UI component.
+// Returns the styled JSX element.
 export default function MonstersCodex({ initialMonsterId }: { initialMonsterId?: number }) {
   const [allMonsters, setAllMonsters] = useState<MonsterResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);  // Initialize loading flag as active on first render
   const [error, setError] = useState<string | null>(null);
 
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  // Supported monster types: Normal, Elite, or Boss; the type controls presentation and encounter behavior.
   const [type, setType] = useState<string>("All");
   const [sort, setSort] = useState<(typeof SORTS)[number]["key"]>("level");
   const [page, setPage] = useState(1);
@@ -137,17 +142,20 @@ export default function MonstersCodex({ initialMonsterId }: { initialMonsterId?:
   const [selectedId, setSelectedId] = useState<number | null>(initialMonsterId ?? null);
   const [orphan, setOrphan] = useState<MonsterResponse | null>(null);
 
+  // Debounce the current input, update debounced search and page, and cancel the pending timer before the effect reruns or unmounts.
   useEffect(() => {
-    const t = setTimeout(() => { setDebouncedSearch(searchInput); setPage(1); }, 300);
+    // Helper function executing t.
+    // Processes input parameters and returns the calculated result.
+    const t = setTimeout(() => { setDebouncedSearch(searchInput); setPage(1); }, 300);  // Reset to first page after filter/search change
     return () => clearTimeout(t);
   }, [searchInput]);
 
+  // Load wiki monsters when the dependencies change, update all monsters, error, and loading, and ignore stale callbacks after unmount.
   useEffect(() => {
     let mounted = true;
     getWikiMonsters({ page: 1, pageSize: 1000 })
       .then((res) => {
         if (mounted) {
-          // BE đã lọc isActive: true, không cần lọc lại ở client.
           setAllMonsters(res.items);
           setError(null);
         }
@@ -157,6 +165,7 @@ export default function MonstersCodex({ initialMonsterId }: { initialMonsterId?:
     return () => { mounted = false; };
   }, []);
 
+  // Load wiki monster when the dependencies change, update orphan, and ignore stale callbacks after unmount.
   useEffect(() => {
     if (!initialMonsterId || allMonsters.length === 0) return;
     if (allMonsters.some((m) => m.monsterId === initialMonsterId)) return;
@@ -167,7 +176,10 @@ export default function MonstersCodex({ initialMonsterId }: { initialMonsterId?:
     return () => { mounted = false; };
   }, [initialMonsterId, allMonsters]);
 
+  // Filter the source collection with the current search and category values, then apply the selected ordering before returning the visible results.
   const filtered = useMemo(() => {
+    // Helper function executing q.
+    // Processes input parameters and returns the calculated result.
     const q = allMonsters.filter((m) => {
       if (debouncedSearch && !m.name.toLowerCase().includes(debouncedSearch.toLowerCase())) return false;
       const normType = BE_TYPE_MAP[m.type] ?? m.type;
@@ -186,6 +198,7 @@ export default function MonstersCodex({ initialMonsterId }: { initialMonsterId?:
   const safePage = Math.min(page, totalPages);
   const pageItems = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
+  // Count the loaded records by their category key and return a lookup used to render filter totals.
   const typeCounts = useMemo(() => {
     const c: Record<string, number> = { All: allMonsters.length };
     allMonsters.forEach((m) => {
@@ -201,6 +214,7 @@ export default function MonstersCodex({ initialMonsterId }: { initialMonsterId?:
     ?? pageItems[0]
     ?? null;
 
+  // Helper function executing open entry.
   function openEntry(id: number) {
     setSelectedId(id);
     if (typeof window !== "undefined") {
@@ -251,7 +265,7 @@ export default function MonstersCodex({ initialMonsterId }: { initialMonsterId?:
             <BookTab
               key={t.key}
               active={type === t.key}
-              onClick={() => { setType(t.key); setPage(1); }}
+              onClick={() => { setType(t.key); setPage(1); }}  // Reset to first page after filter/search change
               label={t.label}
               count={typeCounts[t.key] ?? 0}
               icon={
@@ -270,7 +284,7 @@ export default function MonstersCodex({ initialMonsterId }: { initialMonsterId?:
                 {type === "All" ? "All Monsters" : `${type} Monsters`}
               </BookPageTitle>
 
-              {/* Search Input */}
+
               <div className="mt-4 flex items-center gap-2 border-2 border-wood/50 bg-wood/10 px-3 shadow-inner focus-within:border-accent-deep">
                 <Search className="h-4 w-4 shrink-0 text-on-parchment/50" />
                 <input
@@ -293,7 +307,7 @@ export default function MonstersCodex({ initialMonsterId }: { initialMonsterId?:
                 )}
               </div>
 
-              {/* Monster Index Grid */}
+
               <div className="mt-4 min-h-0 flex-1 overflow-y-auto">
                 {pageItems.length === 0 ? (
                   <div className="py-14 text-center">
@@ -317,7 +331,7 @@ export default function MonstersCodex({ initialMonsterId }: { initialMonsterId?:
                 )}
               </div>
 
-              {/* Footer */}
+
               <div className="mt-auto border-t border-wood/30 pt-3">
                 <div className="flex items-center justify-between text-[11px] text-on-parchment/65">
                   <span>{filtered.length} matching monsters</span>
@@ -325,7 +339,7 @@ export default function MonstersCodex({ initialMonsterId }: { initialMonsterId?:
                 </div>
                 {hasFilters && (
                   <button
-                    onClick={() => { setSearchInput(""); setType("All"); setPage(1); }}
+                    onClick={() => { setSearchInput(""); setType("All"); setPage(1); }}  // Reset to first page after filter/search change
                     className="mt-2 flex h-9 w-full cursor-pointer items-center justify-center gap-2 border border-wood/50 bg-wood/5 text-xs text-on-parchment/80 transition-colors hover:border-accent-deep hover:text-accent-deep"
                   >
                     <X className="h-3.5 w-3.5" aria-hidden="true" />

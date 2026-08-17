@@ -5,24 +5,9 @@ import Link from "next/link";
 import { Play, ChevronDown } from "lucide-react";
 import AnimatedButton from "@/components/ui/AnimatedButton";
 
-/* The wordmark, carved rather than glossed.
-
-   It used to be an SVG drawn in Comic Sans with a four-stop sunset gradient, a
-   white gloss overlay, two feDropShadow glows and gaussian-blurred sparkles —
-   five things this system forbids in one element, and the loudest modern-web
-   tell on the landing page. It is now real text in the display face with hard
-   zero-blur offsets: gold face, an accent-deep step below it (the same lit-top /
-   shadowed-bottom logic as pixel-bevel), then wood and black steps that read as
-   the letter's cast shadow on the wall behind it.
-
-   Being real text also means the h1 is the wordmark, so the sr-only duplicate
-   heading that used to sit beside the aria-hidden SVG is gone. */
 const WORDMARK_SHADOW =
   "[text-shadow:0_4px_0_var(--color-accent-deep),4px_4px_0_var(--color-wood-dark),8px_8px_0_rgb(0_0_0_/_0.55)]";
 
-/* Glare as detached pixel blocks, the same trick sun.svg uses for its corona:
-   a blur would be a soft halo, a hard square reads as a sprite's sparkle.
-   Percentages so they stay pinned to the wordmark at every breakpoint. */
 const STARS = [
   { top: "4%", left: "6%", size: "h-2 w-2" },
   { top: "-2%", left: "48%", size: "h-1.5 w-1.5" },
@@ -31,6 +16,9 @@ const STARS = [
   { top: "88%", left: "72%", size: "h-2 w-2" },
 ];
 
+// Renders the mystic title reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes.
+// Returns the styled JSX element.
 const MysticTitle = () => (
   <div className="relative mx-auto w-full max-w-[36rem] select-none">
     <span aria-hidden="true">
@@ -56,12 +44,12 @@ const MysticTitle = () => (
   </div>
 );
 
+// Renders the hero section reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes; binds user interaction event listeners.
+// Returns the styled JSX element.
 export default function HeroSection() {
   return (
     <section className="relative w-full min-h-dvh flex items-center justify-center overflow-hidden">
-      {/* Video Banner Background — decorative, so it is hidden from screen
-          readers and skipped for users who ask for reduced motion (the poster
-          frame stands in as a still image). */}
       <div className="absolute inset-0 z-0" aria-hidden="true">
         <Image
           src="/images/ui/hero-banner.webp"
@@ -82,19 +70,13 @@ export default function HeroSection() {
         >
           <source src="/videos/Banner.mp4" type="video/mp4" />
         </video>
-        {/* Layered scrims for text legibility, plus a CRT scanline pass that
-            ties the live-action banner back to the pixel-art UI. */}
         <div className="absolute inset-0 bg-black/45" />
         <div className="absolute inset-0 bg-linear-to-b from-black/60 via-transparent to-black/75" />
         <div className="pixel-scanlines absolute inset-0 opacity-40 mix-blend-multiply" />
       </div>
 
-      {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center px-4 text-center max-w-5xl mx-auto w-full pt-16">
 
-        {/* Eyebrow — hard 2px rules rather than the gradients that used to fade
-            out at both ends; a gradient is the one thing a pixel rule can't be.
-            SectionHeading does the same on the h2s below. */}
         <div className="mb-6 flex items-center gap-3" aria-hidden="true">
           <span className="h-0.5 w-6 bg-accent" />
           <span className="h-0.5 w-2 bg-accent" />
@@ -105,19 +87,14 @@ export default function HeroSection() {
           <span className="h-0.5 w-6 bg-accent" />
         </div>
 
-        {/* The wordmark IS the page h1 now that it is real text, so the document
-            outline starts at level 1 here before the section h2s. */}
         <MysticTitle />
 
-        {/* Tagline */}
         <p className="mt-6 max-w-xl text-base md:text-lg text-white/80 leading-relaxed">
           Wake with no memory in a cursed forest. Hunt the four Seal Books
           across four realms, and heal the Origin Tree before the curse
           devours it.
         </p>
 
-        {/* CTAs — one primary action (gold fill) + secondary trailer.
-            Square frame + offset shadow that sinks on press: no pill, no zoom. */}
         <div className="mt-9 flex flex-col sm:flex-row items-center gap-4">
           <Link
             href="/download"
@@ -126,14 +103,6 @@ export default function HeroSection() {
             <Play className="w-4 h-4 fill-current" aria-hidden="true" />
             Play Now
           </Link>
-          {/* The handler used to be `console.log("Watch Trailer")` — a button
-              that did nothing. The banner clip the hero already ships is the
-              trailer, so it opens that rather than a placeholder. Kept a
-              <button> + window.open instead of wrapping AnimatedButton in a
-              Link: an <a> around a <button> is two nested interactive elements
-              and screen readers announce it twice.
-              // ponytail: same file for both roles — swap the href when a real
-              // long-form trailer is cut, ideally to a lightbox. */}
           <AnimatedButton
             size="lg"
             onClick={() => window.open("/videos/Banner.mp4", "_blank", "noopener,noreferrer")}
@@ -143,7 +112,6 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* Scroll cue */}
       <a
         href="#about"
         aria-label="Scroll to learn more"
@@ -153,7 +121,6 @@ export default function HeroSection() {
         <ChevronDown className="w-5 h-5" aria-hidden="true" />
       </a>
 
-      {/* Bottom fade */}
       <div className="absolute bottom-0 left-0 w-full h-40 bg-linear-to-t from-black to-transparent pointer-events-none" />
     </section>
   );

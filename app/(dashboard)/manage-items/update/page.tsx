@@ -42,20 +42,26 @@ const SLOTS = [
   { value: "Necklace", label: "Necklace" },
 ];
 
+// Renders the edit item page view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 export default function EditItemPage() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
   const searchParams = useSearchParams();
   const itemId = searchParams.get("id");
 
-  const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
+  const [loading, setLoading] = useState(false);  // Initialize boolean flag as inactive
+  const [fetching, setFetching] = useState(true);  // Initialize loading flag as active on first render
   const [error, setError] = useState<string | null>(null);
 
   const [originalIconUrl, setOriginalIconUrl] = useState<string>("");
   const [formData, setFormData] = useState({
     name: "",
+    // Supported item types: Weapon, Armor, Consumable, Material, QuestItem, or Currency; the type controls filtering, stacking, and usage behavior.
     type: "Weapon",
+    // Supported rarity values: Common, Uncommon, Rare, Epic, Legendary, or Mythic; rarity controls quality, visuals, and sorting priority.
     rarity: "Common",
+    // Supported equipment slots: None, Weapon, Armor, Helmet, Gloves, Boots, Ring, Necklace, or Shield.
     slot: "None",
     description: "",
     baseValue: 0,
@@ -72,6 +78,7 @@ export default function EditItemPage() {
     iconUrl: "" as string | File | null,
   });
 
+  // Load by id when the dependencies change, update original icon url, form data, error, and fetching, and ignore stale callbacks after unmount.
   useEffect(() => {
     if (!itemId) return;
     getById(Number(itemId))
@@ -79,8 +86,11 @@ export default function EditItemPage() {
         setOriginalIconUrl(item.iconUrl || "");
         setFormData({
           name: item.name,
+          // Supported item types: Weapon, Armor, Consumable, Material, QuestItem, or Currency; the type controls filtering, stacking, and usage behavior.
           type: item.type,
+          // Supported rarity values: Common, Uncommon, Rare, Epic, Legendary, or Mythic; rarity controls quality, visuals, and sorting priority.
           rarity: item.rarity,
+          // Supported equipment slots: None, Weapon, Armor, Helmet, Gloves, Boots, Ring, Necklace, or Shield.
           slot: item.slot,
           description: item.description || "",
           baseValue: item.baseValue,
@@ -103,12 +113,17 @@ export default function EditItemPage() {
       .finally(() => setFetching(false));
   }, [itemId]);
 
+  // Renders the handle change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleChange = <K extends keyof typeof formData>(field: K, value: (typeof formData)[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Renders the handle submit view component.
+  // Key functionality: displays interactive alert dialogues for user actions.
+  // Returns the JSX element hierarchy for the page view.
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default HTML form submission and page reload
     if (!itemId) return;
     try {
       setLoading(true);
@@ -124,8 +139,11 @@ export default function EditItemPage() {
 
       await update(Number(itemId), {
         name: formData.name,
+        // Supported item types: Weapon, Armor, Consumable, Material, QuestItem, or Currency; the type controls filtering, stacking, and usage behavior.
         type: formData.type,
+        // Supported rarity values: Common, Uncommon, Rare, Epic, Legendary, or Mythic; rarity controls quality, visuals, and sorting priority.
         rarity: formData.rarity,
+        // Supported equipment slots: None, Weapon, Armor, Helmet, Gloves, Boots, Ring, Necklace, or Shield.
         slot: formData.slot,
         description: formData.description || undefined,
         baseValue: formData.baseValue,
@@ -141,12 +159,12 @@ export default function EditItemPage() {
         bonusCritDamage: formData.bonusCritDamage || undefined,
         iconUrl: finalIconUrl,
       });
-      await showSuccessAlert("Success!", "Item updated successfully.");
-      router.push("/manage-items");
+      await showSuccessAlert("Success!", "Item updated successfully.");  // Display styled success alert dialog to the user
+      router.push("/manage-items");  // Navigate to the next page and push to history stack
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to update item";
       setError(msg);
-      await showErrorAlert("Error", msg);
+      await showErrorAlert("Error", msg);  // Display styled error alert dialog to the user
     } finally {
       setLoading(false);
     }
@@ -339,7 +357,7 @@ export default function EditItemPage() {
       </FormSection>
 
       <FormActions
-        onCancel={() => router.push("/manage-items")}
+        onCancel={() => router.push("/manage-items")}  // Navigate to the next page and push to history stack
         submitLabel="Update Item"
         loadingLabel="Updating..."
         loading={loading}

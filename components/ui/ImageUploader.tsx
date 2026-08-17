@@ -5,15 +5,19 @@ interface ImageUploaderProps {
   value: string | File | null;
   onChange: (value: string | File | null) => void;
   label?: string;
+  // Supported player classes: Knight, Archer, or Mage; the class selects base stats, compatible skills, skins, and combat scaling.
   className?: string;
 }
 
+// Renders the image uploader reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes; binds user interaction event listeners.
+// Returns the styled JSX element.
 export default function ImageUploader({ value, onChange, label, className = "" }: ImageUploaderProps) {
-  const [isDragging, setIsDragging] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);  // Initialize boolean flag as inactive
   const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // Generate object URL for File values to display as preview
+  // Synchronize this effect by creates object url, builds resolve, and updates preview url whenever its dependencies change.
   useEffect(() => {
     let cancelled = false;
     let objectUrl: string | null = null;
@@ -40,6 +44,7 @@ export default function ImageUploader({ value, onChange, label, className = "" }
     };
   }, [value]);
 
+  // Event handler for handle file select.
   const handleFileSelect = (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
@@ -53,8 +58,10 @@ export default function ImageUploader({ value, onChange, label, className = "" }
     onChange(file);
   };
 
+  // Event handler for handle drop.
+  // Prevents default browser form submission action.
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default HTML form submission and page reload
     setIsDragging(false);
     handleFileSelect(e.dataTransfer.files);
   };
@@ -76,8 +83,8 @@ export default function ImageUploader({ value, onChange, label, className = "" }
       {!previewUrl ? (
         <div
           onDrop={handleDrop}
-          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-          onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}  // Prevent default HTML form submission and page reload
+          onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}  // Prevent default HTML form submission and page reload
           onClick={() => {
             const input = document.createElement('input');
             input.type = 'file';

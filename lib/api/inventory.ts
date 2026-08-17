@@ -6,10 +6,8 @@ import type {
 
 export type { InventorySummaryResponse, InventoryItemResponse } from "@/lib/types";
 
-/**
- * UC 20.1 – Get own inventory (player-side, requires auth cookie)
- * GET /api/inventory/me
- */
+// Helper function executing get my inventory.
+// Processes input parameters and returns the calculated result.
 export const getMyInventory = async (): Promise<ApiResponse<InventorySummaryResponse>> => {
   return get<ApiResponse<InventorySummaryResponse>>("/api/inventory/me");
 };

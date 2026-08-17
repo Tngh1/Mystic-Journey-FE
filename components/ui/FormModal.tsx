@@ -5,18 +5,7 @@ import { X } from "lucide-react";
 import FormField from "@/components/form/FormField";
 import { TextInput, TextArea, SelectInput, Checkbox } from "@/components/form/FormInput";
 
-/* The field-driven modal, on a steel plate instead of a `rounded-xl` #111 card.
 
-   Every one of the six field types used to carry its own copy of the same
-   `bg-white/5 border-white/10 rounded-lg … focus:border-[#ffc032]/50` string —
-   six places to change an input. They now render the shared form primitives, so
-   this file describes *which* fields exist and nothing about how they look. The
-   labels also gained the `htmlFor` they never had, and the card's
-   `animate-in zoom-in-95` is gone: smooth scaling is the one motion the pixel
-   system rules out. `backdrop-blur` stays — background dismissal is the single
-   sanctioned use for blur. */
-
-/* Renamed from `FormField` — that name now belongs to the imported component. */
 interface ModalField {
   name: string;
   label: string;
@@ -37,6 +26,9 @@ interface FormModalProps {
   onSubmit: (values: Record<string, FormValue>) => void;
 }
 
+// Renders form modal modal/form component.
+// Workflow: triggers lifecycle callbacks upon dismissal or success.
+// Returns the interactive form JSX element.
 export default function FormModal({
   isOpen,
   onClose,
@@ -47,16 +39,17 @@ export default function FormModal({
 }: FormModalProps) {
   const [formData, setFormData] = React.useState<Record<string, FormValue>>(initialValues);
 
+  // Synchronize this effect by builds resolve and updates form data whenever its dependencies change.
   useEffect(() => {
     if (isOpen) {
       void Promise.resolve().then(() => setFormData(initialValues));
     }
   }, [isOpen, initialValues]);
 
-  /* Escape closes, matching the app's other dialogs and giving keyboard users
-     the escape route the X alone did not. */
+  // Subscribe the required browser or runtime event handlers when dependencies change and remove the same handlers during cleanup.
   useEffect(() => {
     if (!isOpen) return;
+    // Event handler for on key.
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
@@ -64,28 +57,38 @@ export default function FormModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [isOpen, onClose]);
 
+  // Event handler for handle change.
   const handleChange = (name: string, value: FormValue) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Helper function executing get input value.
+  // Processes input parameters and returns the calculated result.
   const getInputValue = (name: string): string | number => {
     const value = formData[name];
     return typeof value === "string" || typeof value === "number" ? value : "";
   };
 
+  // Helper function executing get checked value.
+  // Processes input parameters and returns the calculated result.
   const getCheckedValue = (name: string): boolean => {
     return formData[name] === true;
   };
 
+  // Event handler for handle submit.
+  // Prevents default browser form submission action.
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default HTML form submission and page reload
     onSubmit(formData);
     onClose();
   };
 
   if (!isOpen) return null;
 
+  // Helper function executing render control.
   const renderControl = (field: ModalField) => {
+    // Helper function executing id.
+    // Processes input parameters and returns the calculated result.
     const id = `fm-${field.name}`;
     switch (field.type) {
       case "select":

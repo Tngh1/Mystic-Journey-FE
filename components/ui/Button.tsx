@@ -38,6 +38,9 @@ const SIZE_CLASSES: Record<ButtonSize, string> = {
   lg: "px-10 py-4 text-base",
 };
 
+// Renders the button reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes; renders child component slots dynamically.
+// Returns the styled JSX element.
 export default function Button({
   variant = "outline",
   size = "md",

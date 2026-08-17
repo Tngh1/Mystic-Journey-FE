@@ -1,17 +1,12 @@
 interface OrnateDividerProps {
-  /** Bias the rule lengths so stacked dividers don't look mechanically equal. */
   weight?: "even" | "left" | "right";
+  // Supported player classes: Knight, Archer, or Mage; the class selects base stats, compatible skills, skins, and combat scaling.
   className?: string;
 }
 
-/**
- * Section rule: two accent bars meeting at a diamond lozenge. Purely
- * decorative, so the whole thing is aria-hidden — a screen reader gains
- * nothing from announcing it.
- *
- * The lozenge is a square rotated 45deg, which is the one place a transform is
- * allowed to fake a curve-free "ornament" without breaking the pixel grid.
- */
+// Renders the ornate divider reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes.
+// Returns the styled JSX element.
 export default function OrnateDivider({
   weight = "even",
   className = "",

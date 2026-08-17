@@ -28,6 +28,9 @@ export interface FilterSortBarProps {
   }[];
 }
 
+// Renders the filter sort bar reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes; binds user interaction event listeners.
+// Returns the styled JSX element.
 export default function FilterSortBar({
   search,
   filters = [],

@@ -62,12 +62,18 @@ type QueryState = {
   sortOrder: "asc" | "desc";
 };
 
+// Renders the get objective text view component.
+// Returns the JSX element hierarchy for the page view.
 function getObjectiveText(quest: QuestResponse) {
   const target = quest.objectiveTarget || quest.objectiveLocation || "No target";
+  // Renders the amount view component.
+  // Returns the JSX element hierarchy for the page view.
   const amount = quest.targetAmount > 1 ? ` x${quest.targetAmount}` : "";
   return `${quest.objectiveType}${amount} — ${target}`;
 }
 
+// Renders the get reward text view component.
+// Returns the JSX element hierarchy for the page view.
 function getRewardText(quest: QuestResponse) {
   const itemRewards = quest.rewardItems?.length
     ? quest.rewardItems.map((item) => `${item.itemName || `Item #${item.itemId}`} x${item.quantity}`)
@@ -90,8 +96,11 @@ function getRewardText(quest: QuestResponse) {
   return rewards.length > 0 ? rewards.join(" + ") : "No reward";
 }
 
+// Renders the manage quests page view component.
+// Key functionality: manages local UI state, pagination, and filter values; fetches asynchronous page data on initial load and parameter changes.
+// Returns the JSX element hierarchy for the page view.
 export default function ManageQuestsPage() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
   const detailRef = useRef<HTMLDivElement>(null);
 
   const [filterType, setFilterType] = useState("");
@@ -102,14 +111,18 @@ export default function ManageQuestsPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [selectedQuestId, setSelectedQuestId] = useState<number | null>(null);
 
-  // Auto-scroll to detail panel when a quest is selected
+  // Synchronize the derived component state whenever this effect's dependency values change.
   useEffect(() => {
     if (selectedQuestId !== null && detailRef.current) {
       detailRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [selectedQuestId]);
 
+  // Renders the build params view component.
+  // Returns the JSX element hierarchy for the page view.
   const buildParams = (overrides: Partial<QueryState> = {}) => {
+    // Renders the next view component.
+    // Returns the JSX element hierarchy for the page view.
     const next = {
       search,
       filterType,
@@ -147,11 +160,21 @@ export default function ManageQuestsPage() {
     params: buildParams(),
   });
 
+  // Renders the selected quest view component.
+  // Returns the JSX element hierarchy for the page view.
   const selectedQuest = quests.find((quest) => quest.questId === selectedQuestId) ?? null;
 
+  // Renders the summary cards view component.
+  // Returns the JSX element hierarchy for the page view.
   const summaryCards = useMemo(() => {
+    // Renders the active count view component.
+    // Returns the JSX element hierarchy for the page view.
     const activeCount = quests.filter((quest) => quest.isActive).length;
+    // Renders the main count view component.
+    // Returns the JSX element hierarchy for the page view.
     const mainCount = quests.filter((quest) => quest.type === "Main").length;
+    // Renders the npc linked count view component.
+    // Returns the JSX element hierarchy for the page view.
     const npcLinkedCount = quests.filter((quest) => quest.questGiverName).length;
 
     return [
@@ -186,35 +209,45 @@ export default function ManageQuestsPage() {
     ];
   }, [quests, totalCount]);
 
+  // Renders the handle search view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSearch = (value: string) => {
     setSearch(value);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams({ search: value }));
   };
 
+  // Renders the handle filter type change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleFilterTypeChange = (value: string) => {
     setFilterType(value);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams({ filterType: value }));
   };
 
+  // Renders the handle filter status change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleFilterStatusChange = (value: string) => {
     setFilterStatus(value);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams({ filterStatus: value }));
   };
 
+  // Renders the handle filter map change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleFilterMapChange = (value: string) => {
     setFilterMap(value);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams({ filterMap: value }));
   };
 
+  // Renders the handle sort change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSortChange = (value: string) => {
     const nextOrder = sortBy === value && sortOrder === "asc" ? "desc" : "asc";
     setSortBy(value);
     setSortOrder(nextOrder);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams({ sortBy: value, sortOrder: nextOrder }));
   };
 
@@ -276,6 +309,8 @@ export default function ManageQuestsPage() {
       label: "Objective Target",
       sortable: true,
       render: (_val: string, row: QuestResponse) => {
+        // Renders the obj theme view component.
+        // Returns the JSX element hierarchy for the page view.
         const objTheme = OBJECTIVE_THEMES[row.objectiveType] || { text: "text-white", bg: "bg-white/5" };
         return (
           <div className="max-w-[220px]">
@@ -318,7 +353,6 @@ export default function ManageQuestsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Top Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffc032] to-[#ff8c00]">
@@ -333,7 +367,7 @@ export default function ManageQuestsPage() {
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
-            onClick={() => router.push("/manage-quests/create")}
+            onClick={() => router.push("/manage-quests/create")}  // Navigate to the next page and push to history stack
             className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#ffc032] px-4 text-sm font-semibold text-[#111] transition-colors hover:bg-[#ffd04c]"
           >
             <Plus className="h-4 w-4" />
@@ -351,7 +385,6 @@ export default function ManageQuestsPage() {
         </div>
       </div>
 
-      {/* Metrics */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {summaryCards.map((card) => {
           const Icon = card.icon;
@@ -371,7 +404,6 @@ export default function ManageQuestsPage() {
         })}
       </div>
 
-      {/* Filters */}
       <FilterSortBar
         search={{ placeholder: "Search quest title, target, NPC...", value: search, onChange: handleSearch }}
         filters={[
@@ -399,7 +431,6 @@ export default function ManageQuestsPage() {
         ]}
       />
 
-      {/* Admin Table */}
       <AdminTable
         title="Quests List"
         columns={columns}
@@ -409,7 +440,7 @@ export default function ManageQuestsPage() {
         onRetry={refresh}
         serverSide
         pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
-        onUpdate={(quest) => router.push(`/manage-quests/update?id=${quest.questId}`)}
+        onUpdate={(quest) => router.push(`/manage-quests/update?id=${quest.questId}`)}  // Navigate to the next page and push to history stack
         onRowClick={(quest) => setSelectedQuestId(quest.questId)}
         selectedId={selectedQuestId}
         idField="questId"
@@ -420,7 +451,6 @@ export default function ManageQuestsPage() {
         emptyHint="Try another search term or filter."
       />
 
-      {/* Quest Detail Panel */}
       {selectedQuest && (
         <div ref={detailRef} className="scroll-mt-6">
           <QuestDetailPanel

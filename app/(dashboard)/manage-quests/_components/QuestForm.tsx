@@ -72,10 +72,13 @@ export type QuestFormData = {
   title: string;
   description: string;
   dialogueContent: string;
+  // Supported quest types: Main, Side, Daily, or Event; the type determines how the quest is grouped and presented.
   type: string;
+  // Supported quest defaults: NotStarted, InProgress, Completed, Claimed, or Failed; this value initializes player quest progress.
   defaultStatus: string;
   mapName: string;
   regionName: string;
+  // Supported quest objectives: Explore, Defeat, Collect, Talk, OpenChest, Interact, EquipSkill, or Kill; the value selects progress-tracking behavior.
   objectiveType: string;
   objectiveTarget: string;
   objectiveLocation: string;
@@ -104,10 +107,13 @@ const EMPTY_FORM: QuestFormData = {
   title: "",
   description: "",
   dialogueContent: "",
+  // Supported quest types: Main, Side, Daily, or Event; the type determines how the quest is grouped and presented.
   type: "Main",
+  // Supported quest defaults: NotStarted, InProgress, Completed, Claimed, or Failed; this value initializes player quest progress.
   defaultStatus: "NotStarted",
   mapName: "ElfForest",
   regionName: "",
+  // Supported quest objectives: Explore, Defeat, Collect, Talk, OpenChest, Interact, EquipSkill, or Kill; the value selects progress-tracking behavior.
   objectiveType: "Explore",
   objectiveTarget: "",
   objectiveLocation: "",
@@ -122,16 +128,21 @@ const EMPTY_FORM: QuestFormData = {
   isActive: true,
 };
 
+// Helper function executing form from initial.
+// Processes input parameters and returns the calculated result.
 function formFromInitial(initial?: QuestResponse | null): QuestFormData {
   if (!initial) return EMPTY_FORM;
   return {
     title: initial.title || "",
     description: initial.description || "",
     dialogueContent: initial.dialogueContent || "",
+    // Supported quest types: Main, Side, Daily, or Event; the type determines how the quest is grouped and presented.
     type: initial.type || "Main",
+    // Supported quest defaults: NotStarted, InProgress, Completed, Claimed, or Failed; this value initializes player quest progress.
     defaultStatus: initial.defaultStatus || "NotStarted",
     mapName: initial.mapName || "ElfForest",
     regionName: initial.regionName || "",
+    // Supported quest objectives: Explore, Defeat, Collect, Talk, OpenChest, Interact, EquipSkill, or Kill; the value selects progress-tracking behavior.
     objectiveType: initial.objectiveType || "Explore",
     objectiveTarget: initial.objectiveTarget || "",
     objectiveLocation: initial.objectiveLocation || "",
@@ -155,6 +166,9 @@ function formFromInitial(initial?: QuestResponse | null): QuestFormData {
   };
 }
 
+// Renders quest form modal/form component.
+// Workflow: manages form field values and validation feedback state; validates user input and processes submission payload; triggers lifecycle callbacks upon dismissal or success.
+// Returns the interactive form JSX element.
 export default function QuestForm({
   mode,
   initialData,
@@ -171,14 +185,15 @@ export default function QuestForm({
   const [npcs, setNpcs] = useState<NPCResponse[]>([]);
   const [localError, setLocalError] = useState<string | null>(null);
 
-  // Modals
-  const [itemPickerOpen, setItemPickerOpen] = useState(false);
+  const [itemPickerOpen, setItemPickerOpen] = useState(false);  // Initialize boolean flag as inactive
   const [activeItemRewardIndex, setActiveItemRewardIndex] = useState<number | null>(null);
-  const [targetItemPickerOpen, setTargetItemPickerOpen] = useState(false);
-  const [monsterPickerOpen, setMonsterPickerOpen] = useState(false);
+  const [targetItemPickerOpen, setTargetItemPickerOpen] = useState(false);  // Initialize boolean flag as inactive
+  const [monsterPickerOpen, setMonsterPickerOpen] = useState(false);  // Initialize boolean flag as inactive
 
+  // Load items, skills, and monsters when the dependencies change, update items, skills, and monsters, and ignore stale callbacks after unmount.
   useEffect(() => {
     let mounted = true;
+    // Execute these independent asynchronous operations concurrently, then combine their results after all complete.
     Promise.all([getItems(1, 1000), getSkills({ page: 1, pageSize: 1000 }), getMonsters(1, 1000)])
       .then(([itemsRes, skillsRes, monstersRes]) => {
         if (!mounted) return;
@@ -190,6 +205,7 @@ export default function QuestForm({
     return () => { mounted = false; };
   }, []);
 
+  // Load npc options when the dependencies change, update npcs, and ignore stale callbacks after unmount.
   useEffect(() => {
     let mounted = true;
     getNpcOptions(formData.mapName || undefined)
@@ -198,15 +214,19 @@ export default function QuestForm({
     return () => { mounted = false; };
   }, [formData.mapName]);
 
+  // Event handler for handle change.
   const handleChange = <K extends keyof QuestFormData>(field: K, value: QuestFormData[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Helper function executing apply preset.
   const applyPreset = (presetType: "defeat" | "talk" | "collect" | "daily") => {
     if (presetType === "defeat") {
       setFormData((prev) => ({
         ...prev,
+        // Supported quest types: Main, Side, Daily, or Event; the type determines how the quest is grouped and presented.
         type: "Main",
+        // Supported quest objectives: Explore, Defeat, Collect, Talk, OpenChest, Interact, EquipSkill, or Kill; the value selects progress-tracking behavior.
         objectiveType: "Defeat",
         targetAmount: 5,
         rewardExperience: 500,
@@ -215,7 +235,9 @@ export default function QuestForm({
     } else if (presetType === "talk") {
       setFormData((prev) => ({
         ...prev,
+        // Supported quest types: Main, Side, Daily, or Event; the type determines how the quest is grouped and presented.
         type: "Main",
+        // Supported quest objectives: Explore, Defeat, Collect, Talk, OpenChest, Interact, EquipSkill, or Kill; the value selects progress-tracking behavior.
         objectiveType: "Talk",
         targetAmount: 1,
         rewardExperience: 200,
@@ -224,7 +246,9 @@ export default function QuestForm({
     } else if (presetType === "collect") {
       setFormData((prev) => ({
         ...prev,
+        // Supported quest types: Main, Side, Daily, or Event; the type determines how the quest is grouped and presented.
         type: "Side",
+        // Supported quest objectives: Explore, Defeat, Collect, Talk, OpenChest, Interact, EquipSkill, or Kill; the value selects progress-tracking behavior.
         objectiveType: "Collect",
         targetAmount: 10,
         rewardExperience: 400,
@@ -233,7 +257,9 @@ export default function QuestForm({
     } else if (presetType === "daily") {
       setFormData((prev) => ({
         ...prev,
+        // Supported quest types: Main, Side, Daily, or Event; the type determines how the quest is grouped and presented.
         type: "Daily",
+        // Supported quest objectives: Explore, Defeat, Collect, Talk, OpenChest, Interact, EquipSkill, or Kill; the value selects progress-tracking behavior.
         objectiveType: "Defeat",
         targetAmount: 15,
         rewardExperience: 1000,
@@ -243,8 +269,10 @@ export default function QuestForm({
     }
   };
 
+  // Event handler for handle submit.
+  // Prevents default browser form submission action.
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default HTML form submission and page reload
     if (!formData.title.trim()) {
       setLocalError("Quest title is required.");
       return;
@@ -262,10 +290,13 @@ export default function QuestForm({
     await onSubmit({
       title: formData.title.trim(),
       description: formData.description.trim() || null,
+      // Supported quest types: Main, Side, Daily, or Event; the type determines how the quest is grouped and presented.
       type: formData.type,
+      // Supported quest defaults: NotStarted, InProgress, Completed, Claimed, or Failed; this value initializes player quest progress.
       defaultStatus: formData.defaultStatus,
       mapName: formData.mapName,
       regionName: formData.regionName.trim() || null,
+      // Supported quest objectives: Explore, Defeat, Collect, Talk, OpenChest, Interact, EquipSkill, or Kill; the value selects progress-tracking behavior.
       objectiveType: formData.objectiveType,
       objectiveTarget: formData.objectiveTarget.trim() || null,
       objectiveLocation: formData.objectiveLocation.trim() || null,
@@ -295,7 +326,6 @@ export default function QuestForm({
         <FormAlert message={alertMessage} onDismiss={() => { setLocalError(null); onDismissError?.(); }} />
       )}
 
-      {/* Target Monster Picker Modal */}
       <MonsterPickerModal
         isOpen={monsterPickerOpen}
         onClose={() => setMonsterPickerOpen(false)}
@@ -303,7 +333,6 @@ export default function QuestForm({
         selectedMonsterName={formData.objectiveTarget}
       />
 
-      {/* Target Item Picker Modal */}
       <ItemPickerModal
         isOpen={targetItemPickerOpen}
         onClose={() => setTargetItemPickerOpen(false)}
@@ -311,7 +340,6 @@ export default function QuestForm({
         title="Select Target Item to Collect"
       />
 
-      {/* Reward Item Picker Modal */}
       <ItemPickerModal
         isOpen={itemPickerOpen}
         onClose={() => { setItemPickerOpen(false); setActiveItemRewardIndex(null); }}
@@ -326,11 +354,8 @@ export default function QuestForm({
       />
 
       <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        {/* Main Quest Form Fields */}
         <div className="space-y-6">
-          {/* General Section */}
           <FormSection title="General Information" icon={BookOpen}>
-            {/* Quick Templates */}
             <div className="mb-4 flex flex-wrap gap-2">
               <span className="text-xs font-semibold text-white/50 self-center mr-1">Quick Templates:</span>
               <button
@@ -423,7 +448,6 @@ export default function QuestForm({
             />
           </FormSection>
 
-          {/* NPC & Dialogue Section */}
           <FormSection title="NPC Quest Giver & Dialogue" icon={MessageSquare}>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField label="Quest Giver NPC" htmlFor="questGiverName">
@@ -459,7 +483,6 @@ export default function QuestForm({
             </FormField>
           </FormSection>
 
-          {/* Objectives Section */}
           <FormSection title="Objective Config" icon={Target}>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField label="Objective Type" htmlFor="objectiveType" required>
@@ -524,7 +547,6 @@ export default function QuestForm({
             </div>
           </FormSection>
 
-          {/* Rewards Section */}
           <FormSection title="Rewards & Loot Config" icon={Gift}>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               <FormField label="Experience Points" htmlFor="rewardExperience">
@@ -558,7 +580,6 @@ export default function QuestForm({
               </FormField>
             </div>
 
-            {/* Item Rewards */}
             <div className="mt-4 space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-white/70">Item Rewards</h4>
@@ -576,6 +597,8 @@ export default function QuestForm({
               ) : (
                 <div className="space-y-2">
                   {formData.rewardItems.map((item, idx) => {
+                    // Helper function executing picked.
+                    // Processes input parameters and returns the calculated result.
                     const picked = items.find((i) => i.itemId === item.itemId);
                     return (
                       <div key={idx} className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0d0d0d] p-2.5">
@@ -615,6 +638,7 @@ export default function QuestForm({
                         <button
                           type="button"
                           onClick={() => {
+                            // Helper function executing updated.
                             const updated = formData.rewardItems.filter((_, i) => i !== idx);
                             handleChange("rewardItems", updated);
                           }}
@@ -631,7 +655,6 @@ export default function QuestForm({
           </FormSection>
         </div>
 
-        {/* Live Player Quest Journal Preview */}
         <aside className="sticky top-24 space-y-4">
           <div className="rounded-2xl border border-white/10 bg-[#111111] p-5 shadow-xl">
             <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-3">
@@ -644,7 +667,6 @@ export default function QuestForm({
               </span>
             </div>
 
-            {/* In-Game Quest Card */}
             <div className="rounded-xl border border-white/10 bg-[#0a0a0a] p-4 space-y-3">
               <div>
                 <div className="flex items-center justify-between text-[10px] text-white/40 mb-1">
@@ -660,7 +682,6 @@ export default function QuestForm({
                 </p>
               )}
 
-              {/* Objective Tracker Box */}
               <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-3 space-y-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-red-400 block">Objective Tracker</span>
                 <div className="flex items-center justify-between text-xs font-semibold text-white">
@@ -674,7 +695,6 @@ export default function QuestForm({
                 )}
               </div>
 
-              {/* Rewards Summary */}
               <div className="rounded-lg border border-green-500/20 bg-green-500/5 p-3 space-y-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-green-400 block">Rewards</span>
                 <div className="flex flex-wrap gap-2 text-xs font-bold">

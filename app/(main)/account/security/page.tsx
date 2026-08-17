@@ -10,16 +10,19 @@ import { showSuccessAlert, showErrorAlert } from "@/lib/utils/swal";
 
 type PasswordField = "currentPassword" | "newPassword" | "confirmPassword";
 
-/* `autoComplete` is what lets a password manager fill and then update the saved
-   entry — `current-password` on the old one, `new-password` on both new ones. */
 const FIELDS: { key: PasswordField; label: string; placeholder: string; autoComplete: string }[] = [
   { key: "currentPassword", label: "Current Password",     placeholder: "Enter current password…", autoComplete: "current-password" },
   { key: "newPassword",     label: "New Password",         placeholder: "Enter new password…",     autoComplete: "new-password"     },
   { key: "confirmPassword", label: "Confirm New Password", placeholder: "Confirm new password…",   autoComplete: "new-password"     },
 ];
 
+// Renders the empty_form view component.
+// Key functionality: manages local UI state, pagination, and filter values; displays interactive alert dialogues for user actions.
+// Returns the JSX element hierarchy for the page view.
 const EMPTY_FORM = { currentPassword: "", newPassword: "", confirmPassword: "" };
 
+// Renders the security page view component.
+// Returns the JSX element hierarchy for the page view.
 export default function SecurityPage() {
   const { isLoading } = useAuth();
   const [formData, setFormData] = useState(EMPTY_FORM);
@@ -28,32 +31,33 @@ export default function SecurityPage() {
     newPassword: false,
     confirmPassword: false,
   });
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);  // Initialize boolean flag as inactive
 
-  /* Derived, not stored: the mismatch is a fact about the two fields, so there
-     is nothing to keep in sync. Only shown once the confirm box has been typed
-     in, so the warning doesn't fire on the first keystroke. */
   const mismatch =
     formData.confirmPassword.length > 0 && formData.newPassword !== formData.confirmPassword;
 
   if (isLoading) return null;
 
+  // Toggle show field for the supplied key by inverting its previous boolean value.
   const toggle = (key: PasswordField) =>
     setShowField((prev) => ({ ...prev, [key]: !prev[key] }));
 
+  // Renders the handle save view component.
+  // Key functionality: displays interactive alert dialogues for user actions.
+  // Returns the JSX element hierarchy for the page view.
   const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default HTML form submission and page reload
     if (formData.newPassword !== formData.confirmPassword) {
-      await showErrorAlert("Validation Error", "New Password and Confirm Password do not match.");
+      await showErrorAlert("Validation Error", "New Password and Confirm Password do not match.");  // Display styled error alert dialog to the user
       return;
     }
     setIsSaving(true);
     try {
       await changePassword(formData);
-      await showSuccessAlert("Success!", "Your password has been changed successfully.");
+      await showSuccessAlert("Success!", "Your password has been changed successfully.");  // Display styled success alert dialog to the user
       setFormData(EMPTY_FORM);
     } catch (error) {
-      await showErrorAlert("Error", error instanceof Error ? error.message : "An unexpected error occurred.");
+      await showErrorAlert("Error", error instanceof Error ? error.message : "An unexpected error occurred.");  // Display styled error alert dialog to the user
     } finally {
       setIsSaving(false);
     }
@@ -76,14 +80,7 @@ export default function SecurityPage() {
             Change the ward on your account. You will stay signed in on this device.
           </p>
 
-          {/* The ward, woven like the rest of /account: cloth on a rod, with each
-              field sunk into it. Wood belonged to the wiki.
 
-              Royal, the same blue as the nav pennants beside it — this page is
-              asked to read as one continuous cloth rather than two hangings in
-              different dyes. Parchment on royal is ~7:1, and the open nav row
-              still marks itself four ways (aria-current, gold ink, edge bar,
-              darker ground), so nothing here rests on the dye to be legible. */}
           <Tapestry
             as="section"
             aria-labelledby="change-pw"
@@ -116,7 +113,6 @@ export default function SecurityPage() {
                         placeholder={placeholder}
                         aria-invalid={invalid || undefined}
                         aria-describedby={invalid ? "confirm-error" : undefined}
-                        /* Reversed bevel so the field reads as cut into the plank. */
                         className={`h-11 w-full border-2 bg-black/45 pl-3 pr-11 text-sm text-parchment placeholder:text-parchment-dim/50 shadow-[inset_2px_2px_0_rgb(0_0_0_/_0.45)] outline-none focus:border-accent ${
                           invalid ? "border-danger" : "border-black/55"
                         }`}

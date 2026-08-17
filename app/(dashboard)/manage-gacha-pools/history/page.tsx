@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -19,6 +19,8 @@ const RARITY_CHIP: Record<string, string> = {
   Common: "bg-white/10 text-white/60 border border-white/20",
 };
 
+// Renders the rarity chip view component.
+// Returns the JSX element hierarchy for the page view.
 function RarityChip({ rarity }: { rarity: string | null }) {
   const cls = rarity ? (RARITY_CHIP[rarity] ?? RARITY_CHIP.Common) : RARITY_CHIP.Common;
   return (
@@ -37,12 +39,17 @@ const RARITIES = [
   { value: "Common", label: "Common" },
 ];
 
+// Renders the gacha history page view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 export default function GachaHistoryPage() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
   const [filterRarity, setFilterRarity] = useState("");
   const [search, setSearch] = useState("");
   const [selectedPlayerId, setSelectedPlayerId] = useState<number | null>(null);
 
+  // Renders the build params view component.
+  // Returns the JSX element hierarchy for the page view.
   const buildParams = () => ({
     ...(filterRarity ? { rarity: filterRarity } : {}),
   });
@@ -54,20 +61,22 @@ export default function GachaHistoryPage() {
       params: buildParams(),
     });
 
+  // Renders the handle filter change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleFilterChange = (value: string) => {
     setFilterRarity(value);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams());
   };
 
   const columns = [
     { key: "gachaPullHistoryId", label: "ID", sortable: false },
-    { 
-      key: "playerProfileId", 
-      label: "Player ID", 
+    {
+      key: "playerProfileId",
+      label: "Player ID",
       sortable: false,
       render: (val: number) => (
-        <button 
+        <button
           onClick={() => setSelectedPlayerId(val)}
           className="text-blue-400 hover:text-blue-300 underline font-medium cursor-pointer"
         >
@@ -120,7 +129,7 @@ export default function GachaHistoryPage() {
           </div>
         </div>
         <button
-          onClick={() => router.push("/manage-gacha-pools")}
+          onClick={() => router.push("/manage-gacha-pools")}  // Navigate to the next page and push to history stack
           className="px-4 py-2 text-sm font-semibold rounded-xl border border-[#ffc032]/30 text-[#ffc032] bg-[#ffc032]/10 hover:bg-[#ffc032]/20 transition-colors cursor-pointer"
         >
           ← Back to Banners
@@ -158,21 +167,24 @@ export default function GachaHistoryPage() {
       />
 
       {selectedPlayerId !== null && (
-        <PlayerStatsModal 
-          playerProfileId={selectedPlayerId} 
-          onClose={() => setSelectedPlayerId(null)} 
+        <PlayerStatsModal
+          playerProfileId={selectedPlayerId}
+          onClose={() => setSelectedPlayerId(null)}
         />
       )}
     </div>
   );
 }
 
+// Renders the player stats modal view component.
+// Returns the JSX element hierarchy for the page view.
 function PlayerStatsModal({ playerProfileId, onClose }: { playerProfileId: number, onClose: () => void }) {
   const [stats, setStats] = useState<PlayerGachaStatsResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);  // Initialize loading flag as active on first render
   const [error, setError] = useState("");
-  const [banning, setBanning] = useState(false);
+  const [banning, setBanning] = useState(false);  // Initialize boolean flag as inactive
 
+  // Load player gacha stats when the dependencies change, update error and loading, and ignore stale callbacks after unmount.
   useEffect(() => {
     getPlayerGachaStats(playerProfileId)
       .then(setStats)
@@ -180,6 +192,9 @@ function PlayerStatsModal({ playerProfileId, onClose }: { playerProfileId: numbe
       .finally(() => setLoading(false));
   }, [playerProfileId]);
 
+  // Renders the handle ban view component.
+  // Key functionality: displays interactive alert dialogues for user actions.
+  // Returns the JSX element hierarchy for the page view.
   const handleBan = async () => {
     if (!stats) return;
     const banReason = await showBanReasonPrompt(stats.playerName);
@@ -188,10 +203,10 @@ function PlayerStatsModal({ playerProfileId, onClose }: { playerProfileId: numbe
     setBanning(true);
     try {
       await banPlayer(stats.accountId, banReason || undefined);
-      await showSuccessAlert("Banned!", `${stats.playerName} has been banned.`);
+      await showSuccessAlert("Banned!", `${stats.playerName} has been banned.`);  // Display styled success alert dialog to the user
       onClose();
     } catch (err) {
-      await showErrorAlert("Error", err instanceof Error ? err.message : "Failed to ban account.");
+      await showErrorAlert("Error", err instanceof Error ? err.message : "Failed to ban account.");  // Display styled error alert dialog to the user
     } finally {
       setBanning(false);
     }
@@ -205,7 +220,7 @@ function PlayerStatsModal({ playerProfileId, onClose }: { playerProfileId: numbe
           <History className="w-5 h-5 text-[#ffc032]" />
           Player Gacha Statistics
         </h2>
-        
+
         {loading ? (
           <p className="text-gray-400 py-8 text-center">Loading stats...</p>
         ) : error ? (
@@ -216,16 +231,16 @@ function PlayerStatsModal({ playerProfileId, onClose }: { playerProfileId: numbe
               <p className="text-sm text-gray-400 mb-1">Player</p>
               <p className="text-lg font-bold text-white">{stats.playerName} <span className="text-xs text-gray-500 font-normal">({stats.playerProfileId})</span></p>
             </div>
-            
+
             <p className="text-gray-300 leading-relaxed text-sm p-4 bg-yellow-500/5 rounded-xl border border-yellow-500/20">
-              Người này đã quay tổng cộng <strong className="text-white">{stats.totalPulls}</strong> lần 
-              (Tốn <strong className="text-[#ffc032]">{stats.totalCost}</strong> vàng) - 
+              Người này đã quay tổng cộng <strong className="text-white">{stats.totalPulls}</strong> lần
+              (Tốn <strong className="text-[#ffc032]">{stats.totalCost}</strong> vàng) -
               Trúng <strong className="text-yellow-400">{stats.legendaryPulls}</strong> Legendary.
               <br/><br/>
-              Tỉ lệ thực tế: <strong className={stats.actualLegendaryRate > stats.systemLegendaryRate * 3 ? "text-red-400" : "text-green-400"}>{stats.actualLegendaryRate}%</strong> 
+              Tỉ lệ thực tế: <strong className={stats.actualLegendaryRate > stats.systemLegendaryRate * 3 ? "text-red-400" : "text-green-400"}>{stats.actualLegendaryRate}%</strong>
               {" "} vs Tỉ lệ hệ thống: <strong>{stats.systemLegendaryRate}%</strong>
             </p>
-            
+
             {stats.actualLegendaryRate > stats.systemLegendaryRate * 3 && (
               <div className="flex items-start gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
                 <ShieldAlert className="w-5 h-5 shrink-0" />
@@ -234,13 +249,13 @@ function PlayerStatsModal({ playerProfileId, onClose }: { playerProfileId: numbe
             )}
 
             <div className="pt-4 flex justify-end gap-3 border-t border-[#333]">
-              <button 
+              <button
                 onClick={onClose}
                 className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white transition-colors"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={handleBan}
                 disabled={banning}
                 className="px-4 py-2 text-sm font-semibold rounded-xl bg-red-500/20 text-red-400 border border-red-500/50 hover:bg-red-500 hover:text-white transition-colors disabled:opacity-50"

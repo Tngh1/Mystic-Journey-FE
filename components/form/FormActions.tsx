@@ -4,11 +4,6 @@ import React from "react";
 import { Loader2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-/* The seal strip at the foot of a form: iron Cancel, one gold Submit.
-
-   Was `rounded-xl` buttons on a #111111 gradient rail with a gold glow shadow
-   (`shadow-[#ffc032]/10`) — a soft-blur effect the pixel system has no room for.
-   The rail is a steel plate now, and both buttons are 44px tall. */
 
 interface FormActionsProps {
   onCancel: () => void;
@@ -21,6 +16,8 @@ interface FormActionsProps {
   sticky?: boolean;
 }
 
+// Renders form actions modal/form component.
+// Returns the interactive form JSX element.
 export default function FormActions({
   onCancel,
   cancelLabel = "Cancel",
@@ -31,6 +28,7 @@ export default function FormActions({
   submitIcon: SubmitIcon,
   sticky = true,
 }: FormActionsProps) {
+  // Process inner and returns the computed result.
   const inner = (
     <div className="flex items-center justify-end gap-3">
       <button

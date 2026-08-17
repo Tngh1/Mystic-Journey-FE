@@ -22,13 +22,16 @@ interface FormData {
   isActive: boolean;
 }
 
+// Renders the update category content content view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 function UpdateCategoryContentContent() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
   const searchParams = useSearchParams();
   const categoryId = searchParams.get('id');
 
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);  // Initialize loading flag as active on first render
+  const [submitting, setSubmitting] = useState(false);  // Initialize boolean flag as inactive
   const [error, setError] = useState<string | null>(null);
   const [category, setCategory] = useState<CategoryResponse | null>(null);
   const [originalIconUrl, setOriginalIconUrl] = useState<string>('');
@@ -41,11 +44,15 @@ function UpdateCategoryContentContent() {
     isActive: true,
   });
 
+  // Renders the fetch category view component.
+  // Returns the JSX element hierarchy for the page view.
   const fetchCategory = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getCategories();
+      const data = await getCategories();  // Await asynchronous operation before proceeding
+      // Renders the cat view component.
+      // Returns the JSX element hierarchy for the page view.
       const cat = data.find((c) => c.categoryContentId === Number(categoryId));
       if (cat) {
         setCategory(cat);
@@ -65,6 +72,7 @@ function UpdateCategoryContentContent() {
     }
   };
 
+  // Synchronize this effect by builds resolve whenever its dependencies change.
   useEffect(() => {
     if (categoryId) {
       void Promise.resolve().then(fetchCategory);
@@ -72,12 +80,17 @@ function UpdateCategoryContentContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryId]);
 
+  // Renders the handle change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleChange = <K extends keyof FormData>(field: K, value: FormData[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Renders the handle submit view component.
+  // Key functionality: displays interactive alert dialogues for user actions.
+  // Returns the JSX element hierarchy for the page view.
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default HTML form submission and page reload
     if (!category) return;
 
     setError(null);
@@ -100,12 +113,12 @@ function UpdateCategoryContentContent() {
         iconUrl: finalIconUrl,
         isActive: formData.isActive,
       });
-      await showSuccessAlert('Success!', 'Category updated successfully.');
-      router.push('/manage-category-content');
+      await showSuccessAlert('Success!', 'Category updated successfully.');  // Display styled success alert dialog to the user
+      router.push('/manage-category-content');  // Navigate to the next page and push to history stack
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to update category';
       setError(msg);
-      await showErrorAlert('Error', msg);
+      await showErrorAlert('Error', msg);  // Display styled error alert dialog to the user
     } finally {
       setSubmitting(false);
     }
@@ -125,7 +138,7 @@ function UpdateCategoryContentContent() {
         <div className="text-center">
           <p className="text-red-400 mb-4">Category not found</p>
           <button
-            onClick={() => router.push("/manage-category-content")}
+            onClick={() => router.push("/manage-category-content")}  // Navigate to the next page and push to history stack
             className="text-[#ffc032] hover:underline cursor-pointer"
           >
             Back to Categories
@@ -193,7 +206,7 @@ function UpdateCategoryContentContent() {
       </FormSection>
 
       <FormActions
-        onCancel={() => router.push('/manage-category-content')}
+        onCancel={() => router.push('/manage-category-content')}  // Navigate to the next page and push to history stack
         submitLabel="Update Category"
         loadingLabel="Updating..."
         loading={submitting}
@@ -203,6 +216,8 @@ function UpdateCategoryContentContent() {
   );
 }
 
+// Renders the update category content page view component.
+// Returns the JSX element hierarchy for the page view.
 export default function UpdateCategoryContentPage() {
   return (
     <Suspense

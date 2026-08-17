@@ -1,5 +1,6 @@
 import type { CloudinaryUploadResult } from "@/lib/types";
 
+// Helper function executing validate cloudinary config.
 export function validateCloudinaryConfig() {
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
   const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
@@ -8,6 +9,8 @@ export function validateCloudinaryConfig() {
   }
 }
 
+// Helper function executing extract public id from cloudinary url.
+// Processes input parameters and returns the calculated result.
 export function extractPublicIdFromCloudinaryUrl(url: string): string | null {
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
   if (!url || !cloudName) return null;
@@ -17,10 +20,14 @@ export function extractPublicIdFromCloudinaryUrl(url: string): string | null {
     if (!parsedUrl.hostname.includes("res.cloudinary.com")) return null;
 
     const segments = parsedUrl.pathname.split("/").filter(Boolean);
+    // Helper function executing upload index.
+    // Processes input parameters and returns the calculated result.
     const uploadIndex = segments.findIndex((segment) => segment === "upload");
     if (uploadIndex === -1) return null;
 
     const assetSegments = segments.slice(uploadIndex + 1);
+    // Helper function executing version index.
+    // Processes input parameters and returns the calculated result.
     const versionIndex = assetSegments.findIndex((segment) => /^v\d+$/.test(segment));
     const publicIdSegments = versionIndex >= 0 ? assetSegments.slice(versionIndex + 1) : assetSegments;
     if (publicIdSegments.length === 0) return null;
@@ -34,6 +41,7 @@ export function extractPublicIdFromCloudinaryUrl(url: string): string | null {
   }
 }
 
+// Helper function executing upload image to cloudinary.
 export async function uploadImageToCloudinary(file: File): Promise<CloudinaryUploadResult> {
   validateCloudinaryConfig();
 
@@ -41,14 +49,16 @@ export async function uploadImageToCloudinary(file: File): Promise<CloudinaryUpl
   const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
 
   const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", uploadPreset);
+  formData.append("file", file);  // Append field to multipart form payload
+  formData.append("upload_preset", uploadPreset);  // Append field to multipart form payload
 
+  // Helper function executing response.
   const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
     method: "POST",
     body: formData,
   });
 
+  // Helper function executing data.
   const data = (await response.json()) as {
     secure_url?: string;
     public_id?: string;
@@ -65,13 +75,16 @@ export async function uploadImageToCloudinary(file: File): Promise<CloudinaryUpl
   };
 }
 
+// Helper function executing delete image from cloudinary.
 export async function deleteImageFromCloudinary(publicId: string): Promise<void> {
+  // Helper function executing response.
   const response = await fetch("/api/cloudinary/delete", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ publicId }),
   });
 
+  // Helper function executing data.
   const data = (await response.json()) as { error?: string };
 
   if (!response.ok) {
@@ -79,35 +92,21 @@ export async function deleteImageFromCloudinary(publicId: string): Promise<void>
   }
 }
 
-/**
- * Upload image với logic xóa ảnh cũ trước (nếu có).
- * - Nếu có `oldImageUrl`: xóa ảnh cũ khỏi Cloudinary trước, rồi upload ảnh mới.
- * - Nếu không có `oldImageUrl`: chỉ upload ảnh mới.
- * 
- * @param file - File ảnh cần upload
- * @param oldImageUrl - URL ảnh cũ (nếu có, sẽ bị xóa trước khi upload mới)
- * @returns Kết quả upload (secureUrl, publicId)
- */
+// Process upload image with cleanup using file and old image url; it removes image from cloudinary and guards invalid or unavailable states and translates operation failures.
 export async function uploadImageWithCleanup(
   file: File,
   oldImageUrl?: string | null
 ): Promise<CloudinaryUploadResult> {
-  // Xóa ảnh cũ nếu tồn tại
   if (oldImageUrl) {
     const oldPublicId = extractPublicIdFromCloudinaryUrl(oldImageUrl);
     if (oldPublicId) {
       try {
         await deleteImageFromCloudinary(oldPublicId);
       } catch (error) {
-        // Không throw: xoá ảnh cũ thất bại chỉ làm rác trên Cloudinary, chặn
-        // luôn việc upload ảnh mới thì người dùng mất cả thao tác cập nhật.
-        // Nhưng phải log ở mức error — console.warn trước đây đã che một lỗi
-        // 404 thật (route handler chưa tồn tại) trong suốt thời gian dài.
         console.error("[Cloudinary] Failed to delete old image:", oldPublicId, error);
       }
     }
   }
 
-  // Upload ảnh mới
   return uploadImageToCloudinary(file);
 }

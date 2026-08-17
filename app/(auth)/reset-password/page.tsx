@@ -11,11 +11,13 @@ import { showErrorAlert, showSuccessAlert } from "@/lib/utils/swal";
 
 const CODE_LENGTH = 6;
 
-/* Six carved cells for the courier's code. Each is a real input with its own
-   label, so a screen reader announces "Digit 3 of 6" rather than one blob. */
+// Renders the otp input view component.
+// Returns the JSX element hierarchy for the page view.
 function OTPInput({ value, onChange }: { value: string; onChange: (val: string) => void }) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  // Renders the handle change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleChange = (index: number, char: string) => {
     if (!/^\d?$/.test(char)) return;
 
@@ -28,6 +30,8 @@ function OTPInput({ value, onChange }: { value: string; onChange: (val: string) 
     }
   };
 
+  // Renders the handle key down view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
     if (e.key === "Backspace" && !value[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
@@ -40,8 +44,10 @@ function OTPInput({ value, onChange }: { value: string; onChange: (val: string) 
     }
   };
 
+  // Renders the handle paste view component.
+  // Returns the JSX element hierarchy for the page view.
   const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default HTML form submission and page reload
     const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, CODE_LENGTH);
     onChange(pasted);
     inputRefs.current[Math.min(pasted.length, CODE_LENGTH - 1)]?.focus();
@@ -69,42 +75,46 @@ function OTPInput({ value, onChange }: { value: string; onChange: (val: string) 
   );
 }
 
+// Renders the reset password form view component.
+// Key functionality: manages local UI state, pagination, and filter values; displays interactive alert dialogues for user actions.
+// Returns the JSX element hierarchy for the page view.
 function ResetPasswordForm() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
 
   const [verificationCode, setVerificationCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);  // Track async submission loading state
 
   const mismatch = confirmPassword.length > 0 && newPassword !== confirmPassword;
 
+  // Submits the OTP code and new password to finalize the reset operation.
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent native browser form submission reload
 
     if (!email) {
-      await showErrorAlert("Error", "Email is required. Please go back to Forget Password.");
+      await showErrorAlert("Error", "Email is required. Please go back to Forget Password."); // Guard: email required
       return;
     }
 
     if (!verificationCode.trim()) {
-      await showErrorAlert("Error", "Please enter the verification code.");
+      await showErrorAlert("Error", "Please enter the verification code."); // Guard: verification code required
       return;
     }
 
     if (newPassword.length < 6) {
-      await showErrorAlert("Error", "Password must be at least 6 characters.");
+      await showErrorAlert("Error", "Password must be at least 6 characters."); // Guard: password length minimum
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      await showErrorAlert("Error", "Passwords do not match!");
+      await showErrorAlert("Error", "Passwords do not match!"); // Guard: password confirmation check
       return;
     }
 
-    setIsLoading(true);
+    setIsLoading(true); // Disable button and show loading spinner
 
     try {
       await resetPassword({
@@ -112,17 +122,17 @@ function ResetPasswordForm() {
         verificationCode: verificationCode.trim(),
         newPassword: newPassword,
         confirmPassword: confirmPassword,
-      });
-      await showSuccessAlert("Success!", "Your password has been reset. You can now login.");
-      router.push("/login");
+      }); // POST to /api/auth/reset-password — server verifies OTP and updates password hash
+
+      await showSuccessAlert("Success!", "Your password has been reset. You can now login."); // Inform user of success
+      router.push("/login"); // Redirect to login page
     } catch (err: unknown) {
-      await showErrorAlert("Error", err instanceof Error ? err.message : "Failed to reset password. Please try again.");
+      await showErrorAlert("Error", err instanceof Error ? err.message : "Failed to reset password. Please try again."); // Alert failure
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Reset loading state
     }
   };
 
-  // Landed here without the email in the query — the code has nothing to match.
   if (!email) {
     return (
       <AuthFrame
@@ -210,6 +220,8 @@ function ResetPasswordForm() {
   );
 }
 
+// Renders the reset password page view component.
+// Returns the JSX element hierarchy for the page view.
 export default function ResetPasswordPage() {
   return (
     <Suspense

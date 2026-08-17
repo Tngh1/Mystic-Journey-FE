@@ -1,26 +1,22 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-/* Every admin screen lives at /manage-*, and no public route starts with that
-   prefix, so one prefix covers the whole (dashboard) group.
-
-   This was an explicit list of 12 routes, and it had drifted: /manage-accounts,
-   /manage-category-content and /manage-daily-login were added later and never
-   listed, so guests could load three admin pages. (/manage-category-content
-   does not match a /manage-content prefix either.) Enumerating is fail-open —
-   a new page is public until someone remembers this file. The prefix is
-   fail-closed. */
 const protectedRoutes = ["/dashboard", "/manage-", "/account"];
 
 const guestRoutes = ["/login", "/register", "/forget-password", "/reset-password"];
 
+// Helper function executing proxy.
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Helper function executing is protected route.
+  // Processes input parameters and returns the calculated result.
   const isProtectedRoute = protectedRoutes.some((route) =>
     pathname.startsWith(route)
   );
 
+  // Helper function executing is guest route.
+  // Processes input parameters and returns the calculated result.
   const isGuestRoute = guestRoutes.some((route) =>
     pathname.startsWith(route)
   );
@@ -41,6 +37,7 @@ export function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
+// Helper function executing config.
 export const config = {
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico|public|api/).*)",

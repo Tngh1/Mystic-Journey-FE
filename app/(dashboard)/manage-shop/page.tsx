@@ -30,8 +30,11 @@ const currencyTone: Record<string, string> = {
   Gems: "text-cyan-300 bg-cyan-500/10 border-cyan-500/20",
 };
 
+// Renders the build params view component.
+// Returns the JSX element hierarchy for the page view.
 function buildParams(filters: {
   searchTerm: string;
+  // Supported currencies: Gold or Gems; the selected currency determines which player balance is charged or credited.
   currency: string;
   shopSection: string;
   status: string;
@@ -48,22 +51,34 @@ function buildParams(filters: {
   };
 }
 
+// Renders the format currency view component.
+// Returns the JSX element hierarchy for the page view.
 function formatCurrency(value: number, currency: string) {
   return `${Number(value || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })} ${currency}`;
 }
 
+// Renders the stock label view component.
+// Returns the JSX element hierarchy for the page view.
 function stockLabel(stock: number) {
   if (stock < 0) return "Unlimited";
   if (stock === 0) return "Sold out";
   return stock.toLocaleString();
 }
 
+// Renders the limit label view component.
+// Returns the JSX element hierarchy for the page view.
 function limitLabel(daily: number, weekly: number) {
+  // Renders the daily text view component.
+  // Returns the JSX element hierarchy for the page view.
   const dailyText = daily > 0 ? `Daily: ${daily}` : "No Daily limit";
+  // Renders the weekly text view component.
+  // Returns the JSX element hierarchy for the page view.
   const weeklyText = weekly > 0 ? `Weekly: ${weekly}` : "No Weekly limit";
   return `${dailyText} • ${weeklyText}`;
 }
 
+// Renders the format date view component.
+// Returns the JSX element hierarchy for the page view.
 function formatDate(value: string | null) {
   if (!value) return "";
   const date = new Date(value);
@@ -71,6 +86,8 @@ function formatDate(value: string | null) {
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
+// Renders the availability label view component.
+// Returns the JSX element hierarchy for the page view.
 function availabilityLabel(item: ShopItemResponse) {
   const now = Date.now();
   const from = item.availableFrom ? new Date(item.availableFrom).getTime() : null;
@@ -83,8 +100,11 @@ function availabilityLabel(item: ShopItemResponse) {
   return { label: "Live", tone: "text-green-300 bg-green-500/10 border-green-500/20" };
 }
 
+// Renders the manage shop page view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 export default function ManageShopPage() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCurrency, setFilterCurrency] = useState("");
   const [filterSection, setFilterSection] = useState("");
@@ -110,17 +130,32 @@ export default function ManageShopPage() {
     params: buildParams({ searchTerm, currency: filterCurrency, shopSection: filterSection, status: filterStatus, sortBy, sortOrder }),
   });
 
+  // Renders the page stats view component.
+  // Returns the JSX element hierarchy for the page view.
   const pageStats = useMemo(() => {
+    // Renders the fixed view component.
+    // Returns the JSX element hierarchy for the page view.
     const fixed = shopItems.filter((item) => item.shopSection === "Fixed").length;
+    // Renders the daily deals view component.
+    // Returns the JSX element hierarchy for the page view.
     const dailyDeals = shopItems.filter((item) => item.shopSection === "DailyDeal").length;
+    // Renders the active view component.
+    // Returns the JSX element hierarchy for the page view.
     const active = shopItems.filter((item) => item.isActive).length;
+    // Renders the sold out view component.
+    // Returns the JSX element hierarchy for the page view.
     const soldOut = shopItems.filter((item) => item.stock === 0).length;
     return { fixed, dailyDeals, active, soldOut };
   }, [shopItems]);
 
+  // Renders the apply filters view component.
+  // Returns the JSX element hierarchy for the page view.
   const applyFilters = (next?: Partial<{ searchTerm: string; currency: string; shopSection: string; status: string; sortBy: string; sortOrder: "asc" | "desc" }>) => {
+    // Renders the merged view component.
+    // Returns the JSX element hierarchy for the page view.
     const merged = {
       searchTerm,
+      // Supported currencies: Gold or Gems; the selected currency determines which player balance is charged or credited.
       currency: filterCurrency,
       shopSection: filterSection,
       status: filterStatus,
@@ -131,20 +166,24 @@ export default function ManageShopPage() {
     setParams(buildParams(merged));
   };
 
+  // Renders the handle sort change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSortChange = (value: string) => {
     const nextOrder = sortBy === value && sortOrder === "asc" ? "desc" : "asc";
     setSortBy(value);
     setSortOrder(nextOrder);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     applyFilters({ sortBy: value, sortOrder: nextOrder });
   };
 
+  // Renders the clear filters view component.
+  // Returns the JSX element hierarchy for the page view.
   const clearFilters = () => {
     setSearchTerm("");
     setFilterCurrency("");
     setFilterSection("");
     setFilterStatus("");
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams({ searchTerm: "", currency: "", shopSection: "", status: "", sortBy, sortOrder }));
   };
 
@@ -239,7 +278,6 @@ export default function ManageShopPage() {
 
   return (
     <div className="space-y-6">
-      {/* Top Bar */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffc032] to-[#ff8c00] text-[#111]">
@@ -254,7 +292,7 @@ export default function ManageShopPage() {
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
-            onClick={() => router.push("/manage-shop/create")}
+            onClick={() => router.push("/manage-shop/create")}  // Navigate to the next page and push to history stack
             className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#ffc032] px-4 text-sm font-semibold text-[#111] transition-colors hover:bg-[#ffd04c]"
           >
             <Plus className="h-4 w-4" />
@@ -272,7 +310,6 @@ export default function ManageShopPage() {
         </div>
       </div>
 
-      {/* Metrics */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className="rounded-2xl border border-white/10 bg-[#111111] p-4">
           <p className="text-xs font-semibold uppercase tracking-wider text-white/35">Total Shop Items</p>
@@ -292,7 +329,6 @@ export default function ManageShopPage() {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="rounded-2xl border border-white/10 bg-[#111111] p-4">
         <div className="mb-3 flex items-center gap-2 text-sm font-bold text-white/70">
           <SlidersHorizontal className="h-4 w-4 text-[#ffc032]" />
@@ -308,7 +344,7 @@ export default function ManageShopPage() {
               onChange={(event) => {
                 const value = event.target.value;
                 setSearchTerm(value);
-                setPage(1);
+                setPage(1);  // Reset to first page after filter/search change
                 applyFilters({ searchTerm: value });
               }}
               className="h-10 w-full rounded-xl border border-white/10 bg-[#0d0d0d] pl-9 pr-4 text-sm text-white placeholder:text-gray-600 focus:border-[#ffc032] focus:outline-none"
@@ -321,7 +357,7 @@ export default function ManageShopPage() {
             onChange={(event) => {
               const value = event.target.value;
               setFilterCurrency(value);
-              setPage(1);
+              setPage(1);  // Reset to first page after filter/search change
               applyFilters({ currency: value });
             }}
             className="h-10 rounded-xl border border-white/10 bg-[#0d0d0d] px-3 text-sm text-white focus:border-[#ffc032] focus:outline-none cursor-pointer"
@@ -337,7 +373,7 @@ export default function ManageShopPage() {
             onChange={(event) => {
               const value = event.target.value;
               setFilterSection(value);
-              setPage(1);
+              setPage(1);  // Reset to first page after filter/search change
               applyFilters({ shopSection: value });
             }}
             className="h-10 rounded-xl border border-white/10 bg-[#0d0d0d] px-3 text-sm text-white focus:border-[#ffc032] focus:outline-none cursor-pointer"
@@ -353,7 +389,7 @@ export default function ManageShopPage() {
             onChange={(event) => {
               const value = event.target.value;
               setFilterStatus(value);
-              setPage(1);
+              setPage(1);  // Reset to first page after filter/search change
               applyFilters({ status: value });
             }}
             className="h-10 rounded-xl border border-white/10 bg-[#0d0d0d] px-3 text-sm text-white focus:border-[#ffc032] focus:outline-none cursor-pointer"
@@ -380,7 +416,6 @@ export default function ManageShopPage() {
         </div>
       )}
 
-      {/* Admin Table */}
       <AdminTable
         title="Shop Items Catalog"
         columns={columns}
@@ -388,7 +423,7 @@ export default function ManageShopPage() {
         loading={loading}
         serverSide
         pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
-        onUpdate={(item) => router.push(`/manage-shop/update?id=${item.shopItemId}`)}
+        onUpdate={(item) => router.push(`/manage-shop/update?id=${item.shopItemId}`)}  // Navigate to the next page and push to history stack
         onRowClick={(item) => setSelectedShopItem(item)}
         selectedId={selectedShopItem?.shopItemId}
         idField="shopItemId"
@@ -399,7 +434,6 @@ export default function ManageShopPage() {
         emptyHint="Try another filter or create a new shop item."
       />
 
-      {/* Selected Shop Item Inspector Card */}
       {selectedShopItem && (
         <div className="rounded-2xl border border-white/10 bg-[#111111] p-6 animate-in fade-in-0 duration-200">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-white/10 pb-4">
@@ -426,7 +460,7 @@ export default function ManageShopPage() {
             </div>
 
             <button
-              onClick={() => router.push(`/manage-shop/update?id=${selectedShopItem.shopItemId}`)}
+              onClick={() => router.push(`/manage-shop/update?id=${selectedShopItem.shopItemId}`)}  // Navigate to the next page and push to history stack
               className="inline-flex items-center gap-2 rounded-xl bg-[#ffc032] px-4 py-2.5 text-sm font-semibold text-[#111] hover:bg-[#ffd04c] transition-colors"
             >
               <Edit2 className="h-4 w-4" />

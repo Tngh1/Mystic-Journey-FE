@@ -13,34 +13,7 @@ import { getWikiSkills, type SkillResponse } from "@/lib/api/wiki";
 import { getClassBySlug, CLASSES } from "@/lib/data/classes";
 import { useClassConfigs, findConfig } from "@/lib/hooks/useClassConfigs";
 
-/* The service record.
 
-   The previous page was a chapel bay — a masonry window with leaded glazing, a
-   brass tablet bolted under it, and the techniques on an iron rack down the
-   side. Handsome, but it read as architecture rather than as a *character
-   profile*, and its enclosures (Panel iron/stone, the stone-wall bay) were
-   the same shared furniture the rest of the site is built from.
-
-   This is built fresh, as one continuous record card of the kind a game's
-   character screen shows:
-
-     • **The file head** — a single wide object. The portrait stands at the left
-       edge, full bleed to the card's own border; the identity block sits beside
-       it with the name in display type, the file number, the role and the two
-       lore lines. One object, one border, one shadow: no plaque inside a plaque.
-     • **The attribute board** — the eight live ClassConfig figures as engraved
-       cells in one grid, each figure large and tabular. Not a two-column list of
-       label/value rows.
-     • **The technique dock** — the skills as a strip of file tabs across the top
-       of one wide body, so the open technique reads as the open tab of the same
-       object rather than as a second panel beside a rack.
-
-   Nothing about the data changed: still two independent reads, ClassConfigs and
-   Skills, neither blocking the other, each degrading inside its own block. */
-
-/* Cloth for a technique's type chip. Every one of these carries parchment ink at
-   better than 7:1, and the type word is printed on the chip, so the colour is
-   never the signal on its own. */
 const SKILL_TYPE_CLOTH: Record<string, string> = {
   Active: "bg-heraldry-crimson",
   Passive: "bg-heraldry-royal",
@@ -48,14 +21,14 @@ const SKILL_TYPE_CLOTH: Record<string, string> = {
   Debuff: "bg-heraldry-arcane",
 };
 
-/* One glyph per order, for the roster rail at the top. The accessible name is
-   the class name — the icon is decorative. */
 const CLASS_ICONS: Record<string, typeof Shield> = {
   knight: Shield,
   mage: Sparkles,
   archer: Target,
 };
 
+// Renders the skill type icon view component.
+// Returns the JSX element hierarchy for the page view.
 function SkillTypeIcon({ type, className }: { type: string; className?: string }) {
   const t = type.toLowerCase();
   if (t === "active") return <Zap className={className} />;
@@ -65,9 +38,8 @@ function SkillTypeIcon({ type, className }: { type: string; className?: string }
   return <Sparkles className={className} />;
 }
 
-/* One engraved cell of the attribute board: the glyph and the noun small at the
-   top, the figure struck large beneath it. Tabular figures so the board does not
-   shift as values change. */
+// Renders the attribute cell view component.
+// Returns the JSX element hierarchy for the page view.
 function AttributeCell({
   label,
   value,
@@ -88,8 +60,8 @@ function AttributeCell({
   );
 }
 
-/* Cells held open at the right height while the table is in flight, so the board
-   does not resize when the figures land. */
+// Renders the attribute board skeleton view component.
+// Returns the JSX element hierarchy for the page view.
 function AttributeBoardSkeleton() {
   return (
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" aria-hidden="true">
@@ -103,20 +75,22 @@ function AttributeBoardSkeleton() {
   );
 }
 
+// Renders the class detail page view component.
+// Returns the JSX element hierarchy for the page view.
 export default function ClassDetailPage() {
+  // Renders the params view component.
+  // Returns the JSX element hierarchy for the page view.
   const params = useParams<{ name: string }>();
   const slug = params?.name ?? "";
   const gameClass = getClassBySlug(slug);
 
-  /* Two independent reads: the stat line from ClassConfigs and the skill list
-     from Skills. Neither blocks the other, so one archive being down only
-     empties its own block. */
   const { configs, error: statsError, loading: loadingStats } = useClassConfigs();
 
   const [skills, setSkills] = useState<SkillResponse[] | null>(null);
   const [skillsError, setSkillsError] = useState<string | null>(null);
   const [selectedSkillId, setSelectedSkillId] = useState<number | null>(null);
 
+  // Load wiki skills when the dependencies change, update skills and skills error, and ignore stale callbacks after unmount.
   useEffect(() => {
     let mounted = true;
     getWikiSkills({ page: 1, pageSize: 1000 })
@@ -129,6 +103,8 @@ export default function ClassDetailPage() {
 
   const loadingSkills = !skills && !skillsError;
 
+  // Renders the class skills view component.
+  // Returns the JSX element hierarchy for the page view.
   const classSkills = useMemo(() => {
     if (!gameClass || !skills) return [];
     return skills
@@ -157,13 +133,12 @@ export default function ClassDetailPage() {
 
   const cls = gameClass;
   const cfg = findConfig(configs, cls.name);
+  // Renders the index view component.
+  // Returns the JSX element hierarchy for the page view.
   const index = CLASSES.findIndex((c) => c.id === cls.id);
   const prevClass = CLASSES[(index - 1 + CLASSES.length) % CLASSES.length];
   const nextClass = CLASSES[(index + 1) % CLASSES.length];
 
-  /* Every field of the live ClassConfig row, not just the three the roster
-     compares. Percentages carry their unit in the value so the label stays a
-     plain noun. */
   const attributes = cfg
     ? [
         { label: "Max HP", value: cfg.maxHp, icon: <Heart className="h-3 w-3" aria-hidden="true" /> },
@@ -205,8 +180,6 @@ export default function ClassDetailPage() {
   return (
     <div className="min-h-dvh pb-16 pt-[88px] md:pt-[112px]">
       <div className="mx-auto w-full max-w-[1200px] space-y-6 px-4 py-10 md:px-6 md:py-14">
-        {/* Back link and the roster rail. No hero band — the name lives on the
-            file head below, so nothing competes with it up here. */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
           <Link
             href="/wiki/classes"
@@ -242,15 +215,10 @@ export default function ClassDetailPage() {
           </nav>
         </div>
 
-        {/* ── The file head ──────────────────────────────────────────────────
-            One object: portrait flush to the left edge of the card, identity
-            block beside it, attribute board along the foot. The card's own
-            border is the only frame in here. */}
         <article
           aria-labelledby="class-name"
           className="border-2 border-black/70 bg-slate shadow-[8px_8px_0_rgb(0_0_0_/_0.55)]"
         >
-          {/* Cloth head in the order's heraldry — the file number and role. */}
           <div
             className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b-2 border-black/60 ${cls.accent} px-4 py-2`}
           >
@@ -264,8 +232,6 @@ export default function ClassDetailPage() {
           </div>
 
           <div className="grid md:grid-cols-[minmax(0,17rem)_1fr]">
-            {/* Portrait. Bleeds to the card edge, divided from the identity
-                block by one rule rather than by a frame of its own. */}
             <div className="relative aspect-3/4 w-full overflow-hidden border-b-2 border-black/60 bg-stone md:border-b-0 md:border-r-2">
               <Image
                 src={cls.image}
@@ -282,7 +248,6 @@ export default function ClassDetailPage() {
               <div className="pixel-scanlines absolute inset-0 opacity-20" aria-hidden="true" />
             </div>
 
-            {/* Identity block. */}
             <div className="flex flex-col gap-4 p-4 md:p-6">
               <div>
                 <h1
@@ -306,8 +271,6 @@ export default function ClassDetailPage() {
                 {cls.playstyle}
               </p>
 
-              {/* The attribute board, inside the same card — the figures belong
-                  to this record, not to a tablet bolted under it. */}
               <div className="mt-auto" aria-busy={loadingStats || undefined}>
                 <p className="mb-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-parchment-dim">
                   <Layers className="h-3 w-3" aria-hidden="true" />
@@ -353,9 +316,6 @@ export default function ClassDetailPage() {
           </div>
         </article>
 
-        {/* ── The technique dock ─────────────────────────────────────────────
-            Tabs across the head of one wide body: the open technique is the open
-            tab of the same object, so there is no rack-and-slab pair. */}
         <section
           aria-labelledby="techniques"
           className="border-2 border-black/70 bg-slate shadow-[8px_8px_0_rgb(0_0_0_/_0.55)]"
@@ -411,9 +371,6 @@ export default function ClassDetailPage() {
             </div>
           ) : (
             <>
-              {/* The tab strip. The open tab loses its bottom rule so it runs
-                  into the body — and carries a gold frame plus aria-pressed, so
-                  the state never rests on colour. */}
               <ul className="flex flex-wrap gap-1 border-b-2 border-black/60 bg-black/25 p-2">
                 {classSkills.map((skill) => {
                   const isOpen = selectedSkill?.skillId === skill.skillId;
@@ -479,7 +436,6 @@ export default function ClassDetailPage() {
           )}
         </section>
 
-        {/* Order-to-order navigation under the record. */}
         <nav aria-label="Other classes" className="flex flex-wrap items-center justify-between gap-3">
           <Link
             href={`/wiki/classes/${prevClass.id}`}

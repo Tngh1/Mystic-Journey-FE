@@ -32,6 +32,8 @@ const RARITY_THEMES: Record<string, { text: string; bg: string; border: string; 
   Mythic: { text: "text-rose-400", bg: "bg-rose-500/10", border: "border-rose-500/30", badge: "bg-rose-500/20 text-rose-300 border-rose-500/40" },
 };
 
+// Renders the render item stat badges view component.
+// Returns the JSX element hierarchy for the page view.
 function renderItemStatBadges(item: ItemResponse) {
   const badges = [];
 
@@ -62,8 +64,11 @@ function renderItemStatBadges(item: ItemResponse) {
   );
 }
 
+// Renders the manage items page view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 export default function ManageItemsPage() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
 
   const [filterType, setFilterType] = useState("");
   const [filterRarity, setFilterRarity] = useState("");
@@ -85,17 +90,29 @@ export default function ManageItemsPage() {
       },
     });
 
+  // Renders the page stats view component.
+  // Returns the JSX element hierarchy for the page view.
   const pageStats = useMemo(() => {
+    // Renders the weapons view component.
+    // Returns the JSX element hierarchy for the page view.
     const weapons = items.filter((i) => i.type === "Weapon").length;
+    // Renders the armor view component.
+    // Returns the JSX element hierarchy for the page view.
     const armor = items.filter((i) => i.type === "Armor").length;
+    // Renders the high rarity view component.
+    // Returns the JSX element hierarchy for the page view.
     const highRarity = items.filter((i) => i.rarity === "Legendary" || i.rarity === "Mythic").length;
+    // Renders the active view component.
+    // Returns the JSX element hierarchy for the page view.
     const active = items.filter((i) => i.isActive).length;
     return { weapons, armor, highRarity, active };
   }, [items]);
 
+  // Renders the handle search view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSearch = (value: string) => {
     setSearch(value);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams({
       ...(value ? { search: value } : {}),
       ...(filterType ? { type: filterType } : {}),
@@ -105,10 +122,12 @@ export default function ManageItemsPage() {
     });
   };
 
+  // Renders the handle filter change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleFilterChange = (key: string, value: string) => {
     if (key === "type") {
       setFilterType(value);
-      setPage(1);
+      setPage(1);  // Reset to first page after filter/search change
       setParams({
         ...(search ? { search } : {}),
         ...(value ? { type: value } : {}),
@@ -118,7 +137,7 @@ export default function ManageItemsPage() {
       });
     } else if (key === "rarity") {
       setFilterRarity(value);
-      setPage(1);
+      setPage(1);  // Reset to first page after filter/search change
       setParams({
         ...(search ? { search } : {}),
         ...(filterType ? { type: filterType } : {}),
@@ -129,11 +148,13 @@ export default function ManageItemsPage() {
     }
   };
 
+  // Renders the handle sort change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSortChange = (value: string) => {
     const nextOrder = sortBy === value && sortOrder === "asc" ? "desc" : "asc";
     setSortBy(value);
     setSortOrder(nextOrder);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams({
       ...(search ? { search } : {}),
       ...(filterType ? { type: filterType } : {}),
@@ -232,7 +253,6 @@ export default function ManageItemsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffc032] to-[#ff8c00]">
@@ -256,7 +276,6 @@ export default function ManageItemsPage() {
         </div>
       </div>
 
-      {/* Metric Cards */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className="rounded-2xl border border-white/10 bg-[#111111] p-4">
           <div className="flex items-center justify-between text-white/40">
@@ -291,7 +310,6 @@ export default function ManageItemsPage() {
         </div>
       </div>
 
-      {/* Filter Bar */}
       <FilterSortBar
         search={{ placeholder: "Search item by name or ID...", icon: Package, value: search, onChange: handleSearch }}
         filters={[
@@ -325,7 +343,6 @@ export default function ManageItemsPage() {
         ]}
       />
 
-      {/* Main Admin Table */}
       <AdminTable
         title="Game Items"
         columns={columns}
@@ -337,7 +354,7 @@ export default function ManageItemsPage() {
         emptyHint="Try adjusting search or rarity filters."
         serverSide
         pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
-        onUpdate={(item) => router.push(`/manage-items/update?id=${item.itemId}`)}
+        onUpdate={(item) => router.push(`/manage-items/update?id=${item.itemId}`)}  // Navigate to the next page and push to history stack
         onRowClick={(item) => setSelectedItem(item)}
         selectedId={selectedItem?.itemId}
         idField="itemId"
@@ -346,7 +363,6 @@ export default function ManageItemsPage() {
         onSort={handleSortChange}
       />
 
-      {/* Selected Item Tooltip Card Inspector */}
       {selectedItem && (
         <div className="rounded-2xl border border-white/10 bg-[#111111] p-6 animate-in fade-in-0 duration-200">
           <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
@@ -365,6 +381,7 @@ export default function ManageItemsPage() {
                   </span>
                   {selectedItem.slot !== "None" && (
                     <span className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-white/60">
+                      // Supported equipment slots: None, Weapon, Armor, Helmet, Gloves, Boots, Ring, Necklace, or Shield.
                       Slot: {selectedItem.slot}
                     </span>
                   )}
@@ -375,7 +392,7 @@ export default function ManageItemsPage() {
             </div>
 
             <button
-              onClick={() => router.push(`/manage-items/update?id=${selectedItem.itemId}`)}
+              onClick={() => router.push(`/manage-items/update?id=${selectedItem.itemId}`)}  // Navigate to the next page and push to history stack
               className="inline-flex items-center gap-2 rounded-xl bg-[#ffc032] px-4 py-2 text-sm font-semibold text-[#111] hover:bg-[#ffd04c] transition-colors"
             >
               <Edit2 className="h-4 w-4" />

@@ -54,6 +54,8 @@ interface LocalBlock extends BlockResponse {
   mediaFile?: File | null;
 }
 
+// Renders the editable image block view component.
+// Returns the JSX element hierarchy for the page view.
 function EditableImageBlock({ block, onUpdate, onDelete }: {
   block: LocalBlock;
   onUpdate: (id: string, updates: Partial<LocalBlock>) => void;
@@ -69,6 +71,9 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
     isDragging,
   } = useSortable({ id: blockId });
 
+  // Renders the style view component.
+  // Key functionality: manages local UI state, pagination, and filter values.
+  // Returns the JSX element hierarchy for the page view.
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -76,9 +81,11 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
     zIndex: isDragging ? 50 : undefined,
   };
 
-  const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);  // Initialize boolean flag as inactive
   const [error, setError] = useState<string | null>(null);
 
+  // Renders the handle file select view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleFileSelect = (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
@@ -93,12 +100,16 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
     onUpdate(blockId, { mediaUrl: objectUrl, mediaFile: file });
   };
 
+  // Renders the handle drop view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default HTML form submission and page reload
     setIsDraggingFile(false);
     handleFileSelect(e.dataTransfer.files);
   };
 
+  // Renders the handle caption change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleCaptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onUpdate(blockId, { caption: e.target.value });
   };
@@ -110,7 +121,6 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
       className="bg-[#222] border border-purple-500/50 rounded-lg overflow-hidden"
     >
       <div className="flex items-stretch">
-        {/* Drag Handle */}
         <div
           {...attributes}
           {...listeners}
@@ -120,7 +130,6 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
         </div>
 
         <div className="flex-1 p-4 space-y-3">
-          {/* Header with delete button */}
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded text-xs font-medium">
               <ImageIcon className="w-3 h-3 inline mr-1" />
@@ -130,7 +139,7 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
             <button
               type="button"
               onMouseDown={(e) => {
-                e.preventDefault();
+                e.preventDefault();  // Prevent default HTML form submission and page reload
                 e.stopPropagation();
               }}
               onClick={async (e) => {
@@ -159,12 +168,11 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
             </div>
           )}
 
-          {/* Image Upload Area */}
           {!block.mediaUrl ? (
             <div
               onDrop={handleDrop}
-              onDragOver={(e) => { e.preventDefault(); setIsDraggingFile(true); }}
-              onDragLeave={(e) => { e.preventDefault(); setIsDraggingFile(false); }}
+              onDragOver={(e) => { e.preventDefault(); setIsDraggingFile(true); }}  // Prevent default HTML form submission and page reload
+              onDragLeave={(e) => { e.preventDefault(); setIsDraggingFile(false); }}  // Prevent default HTML form submission and page reload
               onClick={() => {
                 const input = document.createElement('input');
                 input.type = 'file';
@@ -194,7 +202,6 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
             </div>
           )}
 
-          {/* Caption */}
           <input
             type="text"
             value={block.caption || ''}
@@ -209,8 +216,8 @@ function EditableImageBlock({ block, onUpdate, onDelete }: {
 }
 
 
-// ── InsertZone ─────────────────────────────────────────────────────────────
-// Thin separator between blocks that reveals Text / Image insert buttons on hover.
+// Renders the insert zone view component.
+// Returns the JSX element hierarchy for the page view.
 function InsertZone({
   onAddText,
   onAddImage,
@@ -218,11 +225,11 @@ function InsertZone({
   onAddText: () => void;
   onAddImage: () => void;
 }) {
-  const [hovered, setHovered] = useState(false);
+  const [hovered, setHovered] = useState(false);  // Initialize boolean flag as inactive
   return (
     <div className="relative flex items-center py-2">
       <div className="flex-1 h-px bg-gray-700/20" />
-      <div 
+      <div
         className="flex items-center gap-1.5 px-3 h-8"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
@@ -253,29 +260,31 @@ function InsertZone({
   );
 }
 
+// Renders the update content content view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 function UpdateContentContent() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
   const searchParams = useSearchParams();
   const contentId = searchParams.get('id');
 
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [publishing, setPublishing] = useState(false);
-  const [fetchingCategories, setFetchingCategories] = useState(true);
+  const [loading, setLoading] = useState(true);  // Initialize loading flag as active on first render
+  const [submitting, setSubmitting] = useState(false);  // Initialize boolean flag as inactive
+  const [publishing, setPublishing] = useState(false);  // Initialize boolean flag as inactive
+  const [fetchingCategories, setFetchingCategories] = useState(true);  // Initialize loading flag as active on first render
   const [error, setError] = useState<string | null>(null);
   const [content, setContent] = useState<ContentDetailResponse | null>(null);
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
-  // Single ordered list of all blocks (existing + newly added)
   const [allBlocks, setAllBlocks] = useState<LocalBlock[]>([]);
-  // IDs of existing blocks queued for deletion — sent to API on Save Changes
   const [deletedBlockIds, setDeletedBlockIds] = useState<number[]>([]);
-  // Original thumbnail URL for cleanup
   const [originalThumbnailUrl, setOriginalThumbnailUrl] = useState<string>("");
 
+  // Renders the editor content getters view component.
+  // Returns the JSX element hierarchy for the page view.
   const editorContentGetters = useRef<Map<string, () => string>>(new Map());
 
-  // Stable random id generator that won't collide on rapid clicks.
-  // crypto.randomUUID() is available in modern browsers and Next.js client.
+  // Renders the generate id view component.
+  // Returns the JSX element hierarchy for the page view.
   const generateId = () =>
     typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
       ? crypto.randomUUID()
@@ -294,10 +303,13 @@ function UpdateContentContent() {
     isPublished: false,
   });
 
+  // Renders the fetch data view component.
+  // Returns the JSX element hierarchy for the page view.
   const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
+      // Execute these independent asynchronous operations concurrently, then combine their results after all complete.
       const [contentData, categoriesData] = await Promise.all([
         getById(Number(contentId)),
         getCategories(),
@@ -317,7 +329,6 @@ function UpdateContentContent() {
             };
           })
       );
-      // Save original thumbnail URL for cleanup
       setOriginalThumbnailUrl(contentData.thumbnailUrl || "");
       setFormData({
         title: contentData.title,
@@ -334,6 +345,7 @@ function UpdateContentContent() {
     }
   };
 
+  // Synchronize this effect by builds resolve whenever its dependencies change.
   useEffect(() => {
     if (contentId) {
       void Promise.resolve().then(fetchData);
@@ -341,10 +353,13 @@ function UpdateContentContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contentId]);
 
-  // Stable key for a block: string tempId for new/existing blocks, fallback to unique string
+  // Renders the get block key view component.
+  // Returns the JSX element hierarchy for the page view.
   const getBlockKey = (b: LocalBlock, index?: number): string =>
     b.tempId || (b.blockContentId ? `block-${b.blockContentId}` : `block-idx-${index ?? 0}`);
 
+  // Renders the collect editor content view component.
+  // Returns the JSX element hierarchy for the page view.
   const collectEditorContent = () =>
     allBlocks.map(b => {
       const key = getBlockKey(b);
@@ -353,14 +368,15 @@ function UpdateContentContent() {
       return b;
     });
 
+  // Renders the handle submit view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default HTML form submission and page reload
     if (!content) return;
     setError(null);
 
     const updatedBlocks = collectEditorContent();
 
-    // Validation: image blocks must have a mediaUrl or mediaFile
     const invalidImageBlock = updatedBlocks.find(
       (b) => b.blockType === 'image' && !b.mediaUrl?.trim() && !b.mediaFile
     );
@@ -369,7 +385,8 @@ function UpdateContentContent() {
       return;
     }
 
-    // Validation: text blocks must have non-empty visible content
+    // Renders the empty text block view component.
+    // Returns the JSX element hierarchy for the page view.
     const emptyTextBlock = updatedBlocks.find((b) => {
       if (b.blockType !== 'text') return false;
       const text = (b.contentData || '').replace(/<[^>]*>/g, '').trim();
@@ -383,6 +400,7 @@ function UpdateContentContent() {
     try {
       setSubmitting(true);
 
+      // Execute these independent asynchronous operations concurrently, then combine their results after all complete.
       const finalBlocks = await Promise.all(updatedBlocks.map(async (b) => {
         if (b.blockType === 'image' && b.mediaFile) {
           const result = await uploadImageToCloudinary(b.mediaFile);
@@ -400,7 +418,6 @@ function UpdateContentContent() {
       }
       const thumbnailUrl = finalThumbnailUrl;
 
-      // 1. Update main content info
       await update(content.contentId, {
         title: formData.title,
         summary: formData.summary,
@@ -409,14 +426,11 @@ function UpdateContentContent() {
         isPublished: formData.isPublished,
       });
 
-      // 2. Delete queued blocks (only existing valid block IDs)
+      // Execute these independent asynchronous operations concurrently, then combine their results after all complete.
       await Promise.all(
         deletedBlockIds.filter((id) => id > 0).map((id) => removeBlock(id))
       );
 
-      // 3. Reorder blocks by sortOrder, then write changes.
-      // Existing blocks in DB have blockContentId > 0 and isNew !== true.
-      // New blocks (or blocks with blockContentId <= 0) must call createBlock.
       const updateOps = finalBlocks
         .map((b, i) => ({ ...b, sortOrder: i + 1 }))
         .filter((b) => !b.isNew && b.blockContentId > 0)
@@ -446,7 +460,10 @@ function UpdateContentContent() {
           })
         );
 
+      // Execute these independent asynchronous operations concurrently, then combine their results after all complete.
       const allResults = await Promise.allSettled([...updateOps, ...createOps]);
+      // Renders the failed view component.
+      // Returns the JSX element hierarchy for the page view.
       const failed = allResults.filter((r) => r.status === 'rejected');
       if (failed.length > 0) {
         const firstReason = (failed[0] as PromiseRejectedResult).reason;
@@ -457,17 +474,19 @@ function UpdateContentContent() {
         throw new Error(message);
       }
 
-      await showSuccessAlert('Success!', 'Content updated successfully.');
-      router.push('/manage-content');
+      await showSuccessAlert('Success!', 'Content updated successfully.');  // Display styled success alert dialog to the user
+      router.push('/manage-content');  // Navigate to the next page and push to history stack
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to update content';
       setError(message);
-      await showErrorAlert('Error', message);
+      await showErrorAlert('Error', message);  // Display styled error alert dialog to the user
     } finally {
       setSubmitting(false);
     }
   };
 
+  // Renders the handle publish view component.
+  // Returns the JSX element hierarchy for the page view.
   const handlePublish = async () => {
     if (!content) return;
     setError(null);
@@ -479,25 +498,32 @@ function UpdateContentContent() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to update publish status';
       setError(message);
-      await showErrorAlert('Cannot Publish Content', message);
+      await showErrorAlert('Cannot Publish Content', message);  // Display styled error alert dialog to the user
     } finally {
       setPublishing(false);
     }
   };
 
+  // Renders the handle change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleChange = (field: keyof FormData, value: string | number | boolean | File | null) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Renders the handle register editor view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleRegisterEditor = useCallback((id: string, getContent: () => string) => {
     editorContentGetters.current.set(id, getContent);
   }, []);
 
+  // Renders the handle unregister editor view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleUnregisterEditor = useCallback((id: string) => {
     editorContentGetters.current.delete(id);
   }, []);
 
-  // Insert a new block at a specific index in the list
+  // Renders the handle insert block view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleInsertBlock = (type: 'text' | 'image', insertAtIndex: number) => {
     const newBlock: LocalBlock = {
       blockContentId: -Date.now(),
@@ -521,10 +547,15 @@ function UpdateContentContent() {
     ]);
   };
 
-  // Top-level buttons append to the end
+  // Renders the handle add text view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleAddText = () => handleInsertBlock('text', allBlocks.length);
+  // Renders the handle add image view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleAddImage = () => handleInsertBlock('image', allBlocks.length);
 
+  // Renders the handle update block view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleUpdateBlock = (id: string, updates: Partial<LocalBlock>) => {
     setAllBlocks(prev => prev.map(b => {
       if (getBlockKey(b) === id) {
@@ -534,7 +565,11 @@ function UpdateContentContent() {
     }));
   };
 
+  // Renders the handle delete block view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleDeleteBlock = (id: string) => {
+    // Renders the block view component.
+    // Returns the JSX element hierarchy for the page view.
     const block = allBlocks.find(b => getBlockKey(b) === id);
     setAllBlocks(prev => prev.filter(b => getBlockKey(b) !== id));
     if (block && !block.isNew && block.blockContentId > 0) {
@@ -545,11 +580,17 @@ function UpdateContentContent() {
     }
   };
 
+  // Renders the handle drag end view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over && String(active.id) !== String(over.id)) {
       setAllBlocks(items => {
+        // Renders the old index view component.
+        // Returns the JSX element hierarchy for the page view.
         const oldIndex = items.findIndex(item => getBlockKey(item) === String(active.id));
+        // Renders the new index view component.
+        // Returns the JSX element hierarchy for the page view.
         const newIndex = items.findIndex(item => getBlockKey(item) === String(over.id));
         return arrayMove(items, oldIndex, newIndex);
       });
@@ -582,7 +623,6 @@ function UpdateContentContent() {
   return (
     <div className="min-h-screen bg-[#111] p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="mb-6">
           <Link
             href="/manage-content"
@@ -614,9 +654,7 @@ function UpdateContentContent() {
           </div>
         </div>
 
-        {/* 2-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left: Content Info */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="bg-[#111111] rounded-lg p-6">
               {error && (
@@ -627,7 +665,6 @@ function UpdateContentContent() {
 
               <h2 className="text-lg font-semibold text-white mb-4">Content Info</h2>
 
-              {/* Title */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Title <span className="text-red-500">*</span>
@@ -640,7 +677,6 @@ function UpdateContentContent() {
                 />
               </div>
 
-              {/* Summary */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Summary
@@ -653,7 +689,6 @@ function UpdateContentContent() {
                 />
               </div>
 
-              {/* Thumbnail */}
               <div className="mb-4">
                 <ImageUploader
                   value={formData.thumbnailUrl}
@@ -662,7 +697,6 @@ function UpdateContentContent() {
                 />
               </div>
 
-              {/* Category */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Category <span className="text-red-500">*</span>
@@ -689,7 +723,6 @@ function UpdateContentContent() {
 
             </div>
 
-            {/* Actions */}
             <div className="bg-[#111111] rounded-lg p-6">
               <div className="flex items-center gap-4">
                 <button
@@ -716,7 +749,6 @@ function UpdateContentContent() {
             </div>
           </form>
 
-          {/* Right: Block Content */}
           <div className="bg-[#111111] rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-white">Block Contents</h2>
@@ -738,7 +770,6 @@ function UpdateContentContent() {
               </div>
             </div>
 
-            {/* Block List */}
             {allBlocks.length === 0 ? (
               <div className="text-center py-16 text-gray-400 border-2 border-dashed border-white/10 rounded-lg">
                 <Quote className="w-12 h-12 mx-auto mb-3 text-gray-600" />
@@ -749,7 +780,6 @@ function UpdateContentContent() {
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
                   <div>
-                    {/* Insert zone before the first block */}
                     <InsertZone
                       onAddText={() => handleInsertBlock('text', 0)}
                       onAddImage={() => handleInsertBlock('image', 0)}
@@ -771,7 +801,6 @@ function UpdateContentContent() {
                             onDelete={handleDeleteBlock}
                           />
                         )}
-                        {/* Insert zone after each block */}
                         <InsertZone
                           onAddText={() => handleInsertBlock('text', index + 1)}
                           onAddImage={() => handleInsertBlock('image', index + 1)}
@@ -789,6 +818,8 @@ function UpdateContentContent() {
   );
 }
 
+// Renders the update content page view component.
+// Returns the JSX element hierarchy for the page view.
 export default function UpdateContentPage() {
   return (
     <Suspense

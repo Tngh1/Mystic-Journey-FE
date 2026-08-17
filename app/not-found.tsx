@@ -2,10 +2,9 @@ import Link from "next/link";
 import FaceAnimation from "@/components/ui/FaceAnimation";
 import Panel from "@/components/ui/Panel";
 
-/* A signpost in the dark rather than a web 404: stone ground, a wood board with
-   the message carved into it, gold for the way home and iron for the sidetrack.
-   No NotoSans here any more — it was loaded (3 faces, ~1.8 MB) only for these
-   two error screens, and the display face the rest of the app uses covers them. */
+// Renders the not found reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes.
+// Returns the styled JSX element.
 export default function NotFound() {
   return (
     <div className="stone-wall flex min-h-dvh items-center justify-center px-4 py-16">

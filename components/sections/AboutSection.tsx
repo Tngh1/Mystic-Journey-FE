@@ -2,20 +2,9 @@ import { Swords, Sparkles, TreePine } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Panel from "@/components/ui/Panel";
 
-/* About, as a proclamation nailed to the wall with three shields hung under it.
 
-   It used to be the generic treatment: the shared SectionHeading in the dark,
-   an OrnateDivider under it, then the parchment slab, then three wooden rivet
-   plaques. Two problems. The heading floated free of the sheet it introduced,
-   so the section read as three unrelated blocks; and the plaques were oak —
-   which now belongs to the wiki bookcase, not the landing page.
-
-   So the heading moves *onto* the parchment: title, rule and lore are one
-   sheet, held up by four iron nails and signed with a wax seal. The pillars
-   become heraldic shields, each in its own dye — the only construction in the
-   system that tapers to a point, which is what makes a rectangle read as a
-   shield. Parchment-dim on all three dyes is 4.8–5.8:1. */
-
+// Renders the about_content reusable UI component.
+// Returns the styled JSX element.
 const ABOUT_CONTENT = {
   eyebrow: "The Legend Begins",
   title: "About Mystic Journey",
@@ -46,8 +35,9 @@ const PILLARS: { icon: LucideIcon; title: string; text: string; dye: string }[] 
   },
 ];
 
-/* An iron nail: lit head, shadowed shank. Decorative — the sheet is a normal
-   article and needs no help being found. */
+// Renders the nail reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes.
+// Returns the styled JSX element.
 function Nail({ className }: { className: string }) {
   return (
     <span
@@ -57,16 +47,13 @@ function Nail({ className }: { className: string }) {
   );
 }
 
-/* One shield: a dyed field with the fitting and copy on it, then three courses
-   tapering to the point. The taper is the whole trick — without it this is a
-   card. */
+// Renders the shield reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes.
+// Returns the styled JSX element.
 function Shield({ icon: Icon, title, text, dye }: (typeof PILLARS)[number]) {
   return (
     <li className="mx-auto w-full max-w-[19rem]">
-      {/* Chief and field */}
       <div className={`border-2 border-black/70 ${dye} px-5 pb-5 pt-6 text-center shadow-[4px_4px_0_rgb(0_0_0_/_0.5)]`}>
-        {/* Iron boss. bg-iron, not .pixel-bevel-iron: that utility sets its own
-            background and out-cascades a hover swap. */}
         <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center border-2 border-black/60 bg-iron text-accent shadow-[inset_2px_2px_0_var(--color-iron-light),inset_-2px_-2px_0_rgb(0_0_0_/_0.55)]">
           <Icon className="h-6 w-6" aria-hidden="true" />
         </span>
@@ -77,8 +64,6 @@ function Shield({ icon: Icon, title, text, dye }: (typeof PILLARS)[number]) {
         <p className="text-sm leading-relaxed text-parchment-dim">{text}</p>
       </div>
 
-      {/* The point: three stepped courses, each narrower and darker by an
-          overlay, so the shield comes to a tip without a single curve. */}
       <div className={`mx-auto h-4 w-[82%] border-x-2 border-b-2 border-black/70 ${dye} shadow-[inset_0_-2px_0_rgb(0_0_0_/_0.20)]`} aria-hidden="true" />
       <div className={`mx-auto h-4 w-[56%] border-x-2 border-b-2 border-black/70 ${dye} shadow-[inset_0_-2px_0_rgb(0_0_0_/_0.30)]`} aria-hidden="true" />
       <div className={`mx-auto h-3 w-[26%] border-x-2 border-b-2 border-black/70 ${dye} shadow-[inset_0_-2px_0_rgb(0_0_0_/_0.45)]`} aria-hidden="true" />
@@ -86,6 +71,9 @@ function Shield({ icon: Icon, title, text, dye }: (typeof PILLARS)[number]) {
   );
 }
 
+// Renders the about section reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes.
+// Returns the styled JSX element.
 export default function AboutSection() {
   return (
     <section
@@ -93,17 +81,12 @@ export default function AboutSection() {
       aria-labelledby="about-heading"
       className="relative w-full overflow-hidden bg-bg px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-28"
     >
-      {/* Dungeon-tile texture — replaces the blurred gold glow, which softened
-          the pixel look. Hard 32px lattice, faded out toward the bottom. */}
       <div
         className="pixel-grid pointer-events-none absolute inset-0 [mask-image:linear-gradient(to_bottom,black,transparent_75%)]"
         aria-hidden="true"
       />
 
       <div className="relative mx-auto max-w-5xl">
-        {/* The sheet. Parchment is the one light surface in the system and it
-            earns it here: ink on paper is 8.7:1, so the longest copy on the
-            page is also the most legible block on it. */}
         <Panel
           material="parchment"
           as="article"
@@ -127,8 +110,6 @@ export default function AboutSection() {
             {ABOUT_CONTENT.title}
           </h2>
 
-          {/* Two rules with a lozenge between them, drawn in ink — parchment
-              shouldn't carry crisp machine borders inside it. */}
           <div className="mx-auto mt-5 flex max-w-sm items-center gap-2" aria-hidden="true">
             <span className="h-0.5 flex-1 bg-on-parchment/35" />
             <span className="h-2 w-2 bg-on-parchment/55" />
@@ -141,14 +122,10 @@ export default function AboutSection() {
 
           <span className="mx-auto mt-6 block h-0.5 w-24 bg-parchment-dim" aria-hidden="true" />
 
-          {/* Measure capped near 70ch so the line length stays readable on
-              wide screens. */}
           <p className="mx-auto mt-6 max-w-[70ch] text-center text-base leading-[1.9] tracking-wide sm:text-lg">
             {ABOUT_CONTENT.body}
           </p>
 
-          {/* Wax seal: three courses of crimson, widest in the middle, so it
-              reads as a pressed blob rather than a square. */}
           <div className="mt-8 flex flex-col items-center" aria-hidden="true">
             <span className="h-1.5 w-6 bg-heraldry-crimson" />
             <span className="h-4 w-9 bg-heraldry-crimson shadow-[inset_2px_2px_0_rgb(255_255_255_/_0.12),inset_-2px_-2px_0_rgb(0_0_0_/_0.35)]" />
@@ -156,7 +133,6 @@ export default function AboutSection() {
           </div>
         </Panel>
 
-        {/* The shields, hung under the proclamation. */}
         <ul className="mt-14 grid gap-8 sm:mt-16 sm:grid-cols-3 sm:gap-5">
           {PILLARS.map((pillar) => (
             <Shield key={pillar.title} {...pillar} />

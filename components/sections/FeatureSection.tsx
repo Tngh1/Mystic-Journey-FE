@@ -9,12 +9,6 @@ import SectionHeading from "@/components/ui/SectionHeading";
 import Banner from "@/components/ui/Banner";
 import OrnateDivider from "@/components/ui/OrnateDivider";
 
-/* Each realm used to carry a bright accent hex (#4ade80, #7dd3fc …) plus a
-   matching Tailwind palette triple for its badge. Those were five extra
-   saturated colours competing with gold, and the tints landed on top of pixel
-   art at 15% opacity, muddying the sprites. Realms now identify themselves by
-   *heraldry* — a banner tone from the medieval set — so gold stays the only
-   saturated colour that signals "act on this". */
 const WORLDS = [
   {
     id: "elf-forest",
@@ -26,8 +20,6 @@ const WORLDS = [
     tag: "Enchanted Woodland",
     tone: "pine" as const,
     Icon: Trees,
-    /* The dossier's header cloth. Same five heraldic tones the /story chapters
-       use, so a realm is the same colour on both pages. */
     cloth: "bg-heraldry-pine",
     quarry: ["Swamp Slime", "Swamp Demon"],
   },
@@ -74,30 +66,18 @@ const WORLDS = [
 
 const NUMERALS = ["I", "II", "III", "IV"];
 
-/* Redesigned: the section was a sticky picture frame on the left crossfading
-   between four realms, with the text in a narrow rail on the right. Two things
-   were wrong with that — only one realm's art was ever really visible, and the
-   realm's own name, chapter chip and banner were spread across four
-   separate surfaces.
-
-   It is now read as a **road with dossiers**. The sticky column is a route rail
-   of waystones (which is also the section's nav, so the scroll position is
-   usable, not just decorative), and each realm is one self-contained expedition
-   dossier: heraldic header, its own wide plate of art, field notes on parchment.
-   The scroll behaviour is unchanged — the page still runs top to bottom and the
-   active realm is still whichever one is nearest the viewport centre. */
+// Renders the world section reusable UI component.
+// Returns the styled JSX element.
 export default function WorldSection() {
   const [activeIndex, setActiveIndex] = useState(0);
-  // <article>, so HTMLElement — not the HTMLDivElement the old sticky column used.
   const worldRefs = useRef<(HTMLElement | null)[]>([]);
 
+  // Load bounding client rect when the dependencies change, update active index, and ignore stale callbacks after unmount.
   useEffect(() => {
-    // The scroll handler reads layout (getBoundingClientRect) for every world,
-    // so it is coalesced into one rAF frame per scroll burst instead of firing
-    // on every scroll event — otherwise it forces a reflow dozens of times a
-    // second and janks the sticky column.
     let frame = 0;
 
+    // Helper function executing measure.
+    // Processes input parameters and returns the calculated result.
     const measure = () => {
       frame = 0;
       const viewportHeight = window.innerHeight;
@@ -121,6 +101,7 @@ export default function WorldSection() {
       setActiveIndex(closestIndex);
     };
 
+    // Event handler for handle scroll.
     const handleScroll = () => {
       if (frame) return;
       frame = window.requestAnimationFrame(measure);
@@ -137,9 +118,9 @@ export default function WorldSection() {
     };
   }, []);
 
+  // Helper function executing travel to.
   const travelTo = (index: number) =>
     worldRefs.current[index]?.scrollIntoView({
-      // Smooth scrolling is motion, so the system preference decides.
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
         ? "auto"
         : "smooth",
@@ -149,8 +130,6 @@ export default function WorldSection() {
   return (
     <section id="game-features" className="w-full px-5 py-16 text-white md:px-10 lg:px-12 lg:py-20">
       <div className="mx-auto max-w-7xl">
-        {/* Header — asymmetric (title left, blurb right) so it reads differently
-            from the centered About/Class headers. */}
         <div className="mb-14 grid gap-6 lg:grid-cols-2 lg:items-end">
           <SectionHeading
             align="left"
@@ -169,10 +148,6 @@ export default function WorldSection() {
         </div>
 
         <div className="lg:grid lg:grid-cols-[15rem_1fr] lg:gap-12">
-          {/* The road. A sticky rail of waystones: one per realm, joined by an
-              iron line, with the one you are standing on struck in gold. It is a
-              real <nav> because it answers "where am I and what is left" — the
-              old sticky column could only be looked at. */}
           <nav
             aria-label="Realms of Mystic Journey"
             className="hidden lg:block lg:sticky lg:top-40 lg:max-h-[calc(100dvh-14rem)] lg:self-start"
@@ -183,7 +158,6 @@ export default function WorldSection() {
             </p>
 
             <ol className="relative">
-              {/* The road itself, run behind the waystones. */}
               <span
                 className="absolute top-5 bottom-5 left-[1.375rem] w-0.5 bg-iron-light"
                 aria-hidden="true"
@@ -201,10 +175,6 @@ export default function WorldSection() {
                         active ? "text-accent" : "text-fg-muted hover:text-fg"
                       }`}
                     >
-                      {/* Waystone: the chapter numeral cut into stone, dyed with
-                          the realm's cloth once you reach it. Gold frame *and*
-                          gold ink *and* aria-current, so the position never
-                          rests on colour alone. */}
                       <span
                         className={`flex h-11 w-11 shrink-0 items-center justify-center border-2 text-sm font-black tabular-nums shadow-md transition-colors duration-300 ${
                           active
@@ -227,8 +197,6 @@ export default function WorldSection() {
             </ol>
           </nav>
 
-          {/* The dossiers. One realm, one object — heraldic header, its own plate
-              of art, field notes on paper. */}
           <div className="space-y-12 md:space-y-16">
             {WORLDS.map((world, index) => (
               <article
@@ -255,9 +223,6 @@ export default function WorldSection() {
                   </p>
                 </div>
 
-                {/* Wide plate of art. Every realm shows its own now, so nothing
-                    is hidden behind an opacity swap and there is no aria-hidden
-                    to keep in sync. */}
                 <div className="relative aspect-16/9 w-full overflow-hidden border-b-2 border-black/60 md:aspect-21/9">
                   <Image
                     src={world.image}
@@ -267,8 +232,6 @@ export default function WorldSection() {
                     loading={index === 0 ? "eager" : "lazy"}
                     className="pixelated object-cover"
                   />
-                  {/* Neutral vignette instead of a per-realm colour wash, so the
-                      banner is the only thing carrying realm identity. */}
                   <div
                     className="absolute inset-0 bg-linear-to-t from-black/70 to-transparent"
                     aria-hidden="true"
@@ -279,8 +242,6 @@ export default function WorldSection() {
                   </div>
                 </div>
 
-                {/* Field notes. Ink on parchment: this is the one long-form read
-                    in the section, and paper is what it wants. */}
                 <div className="parchment p-4 md:p-6">
                   <div className="grid gap-5 md:grid-cols-[1fr_15rem]">
                     <p className="max-w-[64ch] text-[15px] leading-relaxed text-on-parchment">
@@ -301,8 +262,6 @@ export default function WorldSection() {
                           <Swords className="h-3.5 w-3.5" aria-hidden="true" />
                           Quarry
                         </dt>
-                        {/* Wood chips on the page, so the list reads as pinned
-                            notes rather than running prose. */}
                         <dd className="mt-1.5 flex flex-wrap gap-1.5">
                           {world.quarry.map((q) => (
                             <span
@@ -322,8 +281,6 @@ export default function WorldSection() {
           </div>
         </div>
 
-        {/* Bottom CTA, framed by mirrored dividers — the weights are biased in
-            opposite directions so the pair doesn't read as mechanically equal. */}
         <div className="mt-24 md:mt-28">
           <OrnateDivider weight="right" />
 

@@ -25,10 +25,13 @@ interface ItemPickerModalProps {
   selectedItemId?: number | null;
 }
 
+// Renders item picker modal modal/form component.
+// Workflow: manages form field values and validation feedback state; triggers lifecycle callbacks upon dismissal or success.
+// Returns the interactive form JSX element.
 export default function ItemPickerModal({ isOpen, onClose, onSelect, selectedItemId }: ItemPickerModalProps) {
   const [items, setItems] = useState<ItemResponse[]>([]);
   const [totalCount, setTotalCount] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);  // Initialize boolean flag as inactive
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("");
@@ -36,15 +39,18 @@ export default function ItemPickerModal({ isOpen, onClose, onSelect, selectedIte
   const [page, setPage] = useState(1);
   const pageSize = 12;
 
+  // Helper function executing fetch items.
   const fetchItems = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
+      // Helper function executing qs.
       const qs = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
       if (search) qs.set("search", search);
       if (filterType) qs.set("type", filterType);
       if (filterRarity) qs.set("rarity", filterRarity);
       qs.set("isActive", "true");
+      // Helper function executing res.
       const res = await get<PagedResponse<ItemResponse>>(`/api/items?${qs}`);
       setItems(res.items ?? []);
       setTotalCount(res.totalCount ?? 0);
@@ -55,17 +61,19 @@ export default function ItemPickerModal({ isOpen, onClose, onSelect, selectedIte
     }
   }, [page, search, filterType, filterRarity]);
 
+  // Synchronize this effect by builds resolve whenever its dependencies change.
   useEffect(() => {
     if (isOpen) {
       void Promise.resolve().then(fetchItems);
     }
   }, [isOpen, fetchItems]);
 
+  // Event handler for handle close.
   const handleClose = () => {
     setSearch("");
     setFilterType("");
     setFilterRarity("");
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     onClose();
   };
 
@@ -73,15 +81,15 @@ export default function ItemPickerModal({ isOpen, onClose, onSelect, selectedIte
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
+  // Event handler for handle search.
   const handleSearch = (v: string) => {
     setSearch(v);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
   };
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm">
       <div className="bg-[#111111] border border-white/10 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-in fade-in zoom-in-95 duration-200">
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-[#ffc032]/10 border border-[#ffc032]/20 flex items-center justify-center">
@@ -101,9 +109,7 @@ export default function ItemPickerModal({ isOpen, onClose, onSelect, selectedIte
           </button>
         </div>
 
-        {/* Filters */}
         <div className="px-6 py-3 border-b border-white/10 flex flex-wrap gap-2 shrink-0">
-          {/* Search */}
           <div className="relative flex-1 min-w-48">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
             <input
@@ -115,11 +121,10 @@ export default function ItemPickerModal({ isOpen, onClose, onSelect, selectedIte
               className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-4 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#ffc032]/50 transition-colors"
             />
           </div>
-          {/* Type filter */}
           <select
             id="item-picker-type"
             value={filterType}
-            onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
+            onChange={(e) => { setFilterType(e.target.value); setPage(1); }}  // Reset to first page after filter/search change
             className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors cursor-pointer"
           >
             <option value="" className="bg-[#111]">All Types</option>
@@ -127,11 +132,10 @@ export default function ItemPickerModal({ isOpen, onClose, onSelect, selectedIte
               <option key={t} value={t} className="bg-[#111]">{t}</option>
             ))}
           </select>
-          {/* Rarity filter */}
           <select
             id="item-picker-rarity"
             value={filterRarity}
-            onChange={(e) => { setFilterRarity(e.target.value); setPage(1); }}
+            onChange={(e) => { setFilterRarity(e.target.value); setPage(1); }}  // Reset to first page after filter/search change
             className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ffc032]/50 transition-colors cursor-pointer"
           >
             <option value="" className="bg-[#111]">All Rarities</option>
@@ -141,7 +145,6 @@ export default function ItemPickerModal({ isOpen, onClose, onSelect, selectedIte
           </select>
         </div>
 
-        {/* Item Grid */}
         <div className="flex-1 overflow-y-auto p-6">
           {loading ? (
             <div className="flex items-center justify-center h-40 text-white/40">
@@ -172,7 +175,6 @@ export default function ItemPickerModal({ isOpen, onClose, onSelect, selectedIte
                         : "border-white/10 bg-white/3 hover:border-[#ffc032]/40 hover:bg-[#ffc032]/5",
                     ].join(" ")}
                   >
-                    {/* Icon */}
                     <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
                       {item.iconUrl ? (
                         <img
@@ -186,7 +188,6 @@ export default function ItemPickerModal({ isOpen, onClose, onSelect, selectedIte
                       )}
                     </div>
 
-                    {/* Info */}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-white truncate leading-tight">{item.name}</p>
                       <div className="flex items-center gap-1.5 mt-1">
@@ -212,7 +213,6 @@ export default function ItemPickerModal({ isOpen, onClose, onSelect, selectedIte
           )}
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="px-6 py-3 border-t border-white/10 flex items-center justify-between shrink-0">
             <span className="text-xs text-white/40">{totalCount} items total</span>

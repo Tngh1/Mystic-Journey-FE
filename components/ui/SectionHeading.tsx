@@ -1,22 +1,17 @@
 import type { ReactNode } from "react";
 
 interface SectionHeadingProps {
-  /** Small uppercase label above the title. */
   eyebrow: string;
-  /** Section title — always renders as an h2 (the page h1 is the hero). */
   title: ReactNode;
-  /** Optional supporting line under the title. */
   subtitle?: ReactNode;
-  /** Left-align instead of centering (used by asymmetric section headers). */
   align?: "center" | "left";
+  // Supported player classes: Knight, Archer, or Mage; the class selects base stats, compatible skills, skins, and combat scaling.
   className?: string;
 }
 
-/**
- * The landing page's section header: gold eyebrow flanked by pixel rules, then
- * an h2. Extracted because Hero/About/World/Class each had their own copy with
- * slightly different rule thickness, tracking, and muted-text opacity.
- */
+// Renders the section heading reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes.
+// Returns the styled JSX element.
 export default function SectionHeading({
   eyebrow,
   title,

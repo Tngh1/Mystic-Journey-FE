@@ -4,9 +4,6 @@ import Link from "next/link";
 import MoonHeader from "@/components/ui/MoonHeader";
 import { Scroll, Clause, Provisions, Note } from "@/components/ui/LegalScroll";
 
-/* The privacy policy as a charter on parchment — see components/ui/LegalScroll.
-   Every word below is the copy the page already carried; only the surface it is
-   written on changed. */
 
 const COLLECTED: { icon: LucideIcon; title: string; text: string }[] = [
   {
@@ -40,6 +37,8 @@ const RIGHTS = [
   "You have the right to opt out of promotional communications at any time.",
 ];
 
+// Renders the privacy page view component.
+// Returns the JSX element hierarchy for the page view.
 export default function PrivacyPage() {
   return (
     <div className="min-h-dvh pt-[88px] pb-16 md:pt-[112px]">
@@ -62,9 +61,6 @@ export default function PrivacyPage() {
             We gather various types of information to enhance your gaming experience and ensure fair
             gameplay for all adventurers.
           </p>
-          {/* Three inked plates rather than the old blue/purple/amber pads: the
-              sigil carries no meaning of its own, so it takes the sheet's own ink
-              instead of three colours borrowed from outside the system. */}
           <ul className="grid gap-3 pt-1 sm:grid-cols-3">
             {COLLECTED.map(({ icon: Icon, title, text }) => (
               <li
@@ -117,9 +113,6 @@ export default function PrivacyPage() {
         </Clause>
       </Scroll>
 
-      {/* The way back sits below the sheet, on the dark ground, where gold is the
-          one thing meaning "act on this" — inside the parchment it would be
-          1.7:1 and unreadable. */}
       <div className="flex justify-center px-4">
         <Link
           href="/register"

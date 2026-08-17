@@ -1,11 +1,9 @@
-/* ─── Shared / Common ─────────────────────────────────────────────────────── */
 
 export interface PagedResponse<T> {
   totalCount: number;
   items: T[];
 }
 
-/* ─── Account / Auth ─────────────────────────────────────────────────────── */
 
 export interface LoginRequest {
   emailOrUsername: string;
@@ -41,8 +39,10 @@ export interface MeResponse {
   accountId: number;
   userName: string;
   email: string;
+  // Supported account roles: Player or Admin; the role determines authorization and access to management APIs.
   role: string;
   playerProfileId: number | null;
+  // Supported player classes: Knight, Archer, or Mage; the class selects base stats, compatible skills, skins, and combat scaling.
   playerClass: string;
   level: number;
   lastMapName: string;
@@ -54,11 +54,13 @@ export interface LoginResponse {
   accountId: number;
   userName: string;
   emailAddress: string;
+  // Supported account roles: Player or Admin; the role determines authorization and access to management APIs.
   role: string;
   roleId?: number;
   hasCharacter?: boolean;
   playerProfileId?: number;
   playerDisplayName?: string | null;
+  // Supported player classes: Knight, Archer, or Mage; the class selects base stats, compatible skills, skins, and combat scaling.
   playerClass?: string | null;
   level?: number;
   lastMapName?: string | null;
@@ -74,6 +76,7 @@ export interface AccountAdminResponse {
   accountId: number;
   userName: string;
   email: string;
+  // Supported account roles: Player or Admin; the role determines authorization and access to management APIs.
   roleName: string;
   isActive: boolean;
   banReason: string | null;
@@ -82,11 +85,7 @@ export interface AccountAdminResponse {
   playerDisplayName: string | null;
 }
 
-/* CreateAdminAccountRequest / UpdateAdminAccountRequest đã bỏ cùng endpoint
-   POST/PUT /api/adminaccounts. Cả hai đều mang `roleId` — tức là đường nâng
-   quyền — nên không để lại dạng type mồ côi cho người sau nối lại. */
 
-/* ─── Player ─────────────────────────────────────────────────────────────── */
 
 export interface PlayerProfileResponse {
   playerProfileId: number;
@@ -94,6 +93,7 @@ export interface PlayerProfileResponse {
   accountEmail: string | null;
   displayName: string;
   avatarUrl: string | null;
+  // Supported player classes: Knight, Archer, or Mage; the class selects base stats, compatible skills, skins, and combat scaling.
   playerClass: string;
   level: number;
   experiencePoints: number;
@@ -105,7 +105,6 @@ export interface PlayerProfileResponse {
   corruptionLevel: number;
   createdAt: string;
   updatedAt: string | null;
-  /** Ban = Account.IsActive == false trên BE. Nguồn duy nhất cho trạng thái ban. */
   isBanned: boolean;
 }
 
@@ -134,12 +133,14 @@ export interface CreatePlayerProfileRequest {
   accountId: number;
   displayName: string;
   avatarUrl?: string;
+  // Supported player classes: Knight, Archer, or Mage; the class selects base stats, compatible skills, skins, and combat scaling.
   class?: string;
 }
 
 export interface UpdatePlayerProfileRequest {
   displayName: string;
   avatarUrl: string;
+  // Supported player classes: Knight, Archer, or Mage; the class selects base stats, compatible skills, skins, and combat scaling.
   playerClass: string;
   level: number;
   experiencePoints: number;
@@ -150,14 +151,16 @@ export interface UpdatePlayerProfileRequest {
   corruptionLevel: number;
 }
 
-/* ─── Item ───────────────────────────────────────────────────────────────── */
 
 export interface ItemResponse {
   itemId: number;
   name: string;
   description: string | null;
+  // Supported item types: Weapon, Armor, Consumable, Material, QuestItem, or Currency; the type controls filtering, stacking, and usage behavior.
   type: string;
+  // Supported rarity values: Common, Uncommon, Rare, Epic, Legendary, or Mythic; rarity controls quality, visuals, and sorting priority.
   rarity: string;
+  // Supported equipment slots: None, Weapon, Armor, Helmet, Gloves, Boots, Ring, Necklace, or Shield.
   slot: string;
   baseValue: number;
   corruptionReduction: number;
@@ -178,8 +181,11 @@ export interface ItemResponse {
 export interface UpdateItemRequest {
   name?: string;
   description?: string;
+  // Supported item types: Weapon, Armor, Consumable, Material, QuestItem, or Currency; the type controls filtering, stacking, and usage behavior.
   type?: string;
+  // Supported rarity values: Common, Uncommon, Rare, Epic, Legendary, or Mythic; rarity controls quality, visuals, and sorting priority.
   rarity?: string;
+  // Supported equipment slots: None, Weapon, Armor, Helmet, Gloves, Boots, Ring, Necklace, or Shield.
   slot?: string;
   baseValue?: number;
   corruptionReduction?: number;
@@ -196,11 +202,11 @@ export interface UpdateItemRequest {
   bonusCritDamage?: number;
 }
 
-/* ─── Monster ────────────────────────────────────────────────────────────── */
 
 export interface MonsterResponse {
   monsterId: number;
   name: string;
+  // Supported monster types: Normal, Elite, or Boss; the type controls presentation and encounter behavior.
   type: string;
   description: string;
   level: number;
@@ -235,6 +241,7 @@ export interface MonsterDetailResponse extends MonsterResponse {
 
 export interface UpdateMonsterRequest {
   name?: string;
+  // Supported monster types: Normal, Elite, or Boss; the type controls presentation and encounter behavior.
   type?: string;
   description?: string;
   level?: number;
@@ -264,6 +271,7 @@ export interface MonsterSpawnResponse {
   monsterSpawnId: number;
   monsterId: number;
   monsterName: string;
+  // Supported monster types: Normal, Elite, or Boss; the type controls presentation and encounter behavior.
   monsterType: string;
   mapName: string;
   regionName: string | null;
@@ -293,12 +301,12 @@ export interface UpdateMonsterSpawnRequest {
   respawnSeconds: number;
 }
 
-/* ─── Dungeon ────────────────────────────────────────────────────────────── */
 
 export interface DungeonConfigResponse {
   dungeonConfigId: number;
   name: string;
   description: string | null;
+  // Dungeon type is a free-form category with Normal as the current default; the backend does not enforce a closed allowlist.
   type: string;
   levelRequirement: number;
   maxMembers: number;
@@ -316,6 +324,7 @@ export interface ChestItemResponse {
   itemId: number;
   itemName?: string;
   itemIconUrl?: string;
+  // Supported rarity values: Common, Uncommon, Rare, Epic, Legendary, or Mythic; rarity controls quality, visuals, and sorting priority.
   itemRarity?: string;
   quantityMin: number;
   quantityMax: number;
@@ -334,6 +343,7 @@ export interface CreateChestItemRequest {
 export interface UpdateDungeonConfigRequest {
   name?: string;
   description?: string;
+  // Dungeon type is a free-form category with Normal as the current default; the backend does not enforce a closed allowlist.
   type?: string;
   levelRequirement?: number;
   maxMembers?: number;
@@ -344,14 +354,13 @@ export interface UpdateDungeonConfigRequest {
   isActive?: boolean;
 }
 
-/* ─── Quest ──────────────────────────────────────────────────────────────── */
 
-/* NPC */
 
 export interface NPCResponse {
   npcId: number;
   name: string;
   description: string | null;
+  // NPC type is a free-form category with Information as the current default; the backend does not enforce a closed allowlist.
   type: string;
   mapName: string;
   positionX: number;
@@ -376,8 +385,11 @@ export interface QuestRewardSkillResponse {
   questRewardSkillId: number;
   skillId: number;
   skillName: string | null;
+  // Supported class requirements: Knight, Archer, Mage, or All; All allows every player class to use the skill or reward.
   classRequirement: string | null;
+  // Supported skill types: Active, Passive, Buff, or Debuff; the type controls activation and effect presentation.
   type: string | null;
+  // Supported damage types: Physical, Magical, or TrueDamage; the value selects how skill damage is categorized and resolved.
   damageType: string | null;
 }
 
@@ -389,10 +401,13 @@ export interface QuestResponse {
   questId: number;
   title: string;
   description: string | null;
+  // Supported quest types: Main, Side, Daily, or Event; the type determines how the quest is grouped and presented.
   type: string;
+  // Supported quest defaults: NotStarted, InProgress, Completed, Claimed, or Failed; this value initializes player quest progress.
   defaultStatus: string;
   mapName: string;
   regionName: string | null;
+  // Supported quest objectives: Explore, Defeat, Collect, Talk, OpenChest, Interact, EquipSkill, or Kill; the value selects progress-tracking behavior.
   objectiveType: string;
   objectiveTarget: string | null;
   objectiveLocation: string | null;
@@ -421,9 +436,11 @@ export interface UpdateQuestRequest {
   title?: string;
   description?: string | null;
   type?: string;
+  // Supported quest defaults: NotStarted, InProgress, Completed, Claimed, or Failed; this value initializes player quest progress.
   defaultStatus?: string;
   mapName?: string;
   regionName?: string | null;
+  // Supported quest objectives: Explore, Defeat, Collect, Talk, OpenChest, Interact, EquipSkill, or Kill; the value selects progress-tracking behavior.
   objectiveType?: string;
   objectiveTarget?: string | null;
   objectiveLocation?: string | null;
@@ -444,12 +461,12 @@ export interface UpdateQuestRequest {
   isActive?: boolean;
 }
 
-/* ─── Achievement ───────────────────────────────────────────────────────── */
 
 export interface AchievementResponse {
   achievementId: number;
   name: string;
   description: string | null;
+  // Supported achievement types: Combat, Exploration, Social, Collection, or Progression; the type selects the tracked activity category.
   type: string;
   iconUrl: string | null;
   requiredValue: number;
@@ -466,6 +483,7 @@ export interface AchievementResponse {
 export interface UpdateAchievementRequest {
   name?: string;
   description?: string;
+  // Supported achievement types: Combat, Exploration, Social, Collection, or Progression; the type selects the tracked activity category.
   type?: string;
   iconUrl?: string | null;
   requiredValue?: number;
@@ -477,15 +495,16 @@ export interface UpdateAchievementRequest {
   point?: number;
 }
 
-/* ─── Shop ───────────────────────────────────────────────────────────────── */
 
 export interface ShopItemResponse {
   shopItemId: number;
   itemId: number;
   itemName: string | null;
   itemIconUrl: string | null;
+  // Supported item types: Weapon, Armor, Consumable, Material, QuestItem, or Currency; the type controls filtering, stacking, and usage behavior.
   itemType: string | null;
   shopSection: string;
+  // Supported currencies: Gold or Gems; the selected currency determines which player balance is charged or credited.
   currency: string;
   price: number;
   stock: number;
@@ -499,6 +518,7 @@ export interface ShopItemResponse {
 export interface CreateShopItemRequest {
   itemId: number;
   shopSection?: string;
+  // Supported currencies: Gold or Gems; the selected currency determines which player balance is charged or credited.
   currency?: string;
   price?: number;
   stock?: number;
@@ -510,14 +530,13 @@ export interface CreateShopItemRequest {
 }
 
 export type UpdateShopItemRequest = Partial<CreateShopItemRequest>;
-/* ─── Gacha ──────────────────────────────────────────────────────────────── */
 
 export interface GachaBannerResponse {
   gachaBannerId: number;
   name: string;
+  // Supported gacha banner types: Standard, Limited, or Event; the type controls banner categorization and presentation.
   type: string;
   pullCost: number;
-  /** Ticket item dùng để pull. BR-053/BR-136: không dùng Gold/Gem/Energy. */
   costItemId: number | null;
   pityLimit: number;
   isActive: boolean;
@@ -530,6 +549,7 @@ export interface GachaBannerItemResponse {
   itemId: number;
   itemName: string | null;
   itemIconUrl: string | null;
+  // Supported rarity values: Common, Uncommon, Rare, Epic, Legendary, or Mythic; rarity controls quality, visuals, and sorting priority.
   itemRarity: string | null;
   dropRate: number;
   isFeatured: boolean;
@@ -541,6 +561,7 @@ export interface GachaBannerDetailResponse extends GachaBannerResponse {
 
 export interface UpdateGachaBannerRequest {
   name?: string;
+  // Supported gacha banner types: Standard, Limited, or Event; the type controls banner categorization and presentation.
   type?: string;
   pullCost?: number;
   costItemId?: number | null;
@@ -558,6 +579,7 @@ export interface AddGachaBannerItemRequest {
 
 export interface CreateGachaBannerRequest {
   name: string;
+  // Supported gacha banner types: Standard, Limited, or Event; the type controls banner categorization and presentation.
   type: string;
   pullCost: number;
   costItemId: number | null;
@@ -592,7 +614,6 @@ export interface PlayerGachaStatsResponse {
   systemLegendaryRate: number;
 }
 
-/* ─── Mailbox ────────────────────────────────────────────────────────────── */
 
 export interface MailboxRewardItemResponse {
   itemId: number;
@@ -607,6 +628,7 @@ export interface MailboxResponse {
   playerName: string | null;
   title: string;
   content: string;
+  // Mailbox type is a free-form category with System as the current default; the backend does not enforce a closed allowlist.
   type: string;
   attachedGold: number;
   attachedGems: number;
@@ -628,6 +650,7 @@ export interface SendMailboxByListIdRequest {
   playerProfileIds: number[];
   title: string;
   content: string;
+  // Mailbox type is a free-form category with System as the current default; the backend does not enforce a closed allowlist.
   type?: string;
   attachedGold?: number;
   attachedGems?: number;
@@ -638,6 +661,7 @@ export interface SendMailboxByListIdRequest {
 export interface SendMailboxToAllRequest {
   title: string;
   content: string;
+  // Mailbox type is a free-form category with System as the current default; the backend does not enforce a closed allowlist.
   type?: string;
   attachedGold?: number;
   attachedGems?: number;
@@ -645,7 +669,6 @@ export interface SendMailboxToAllRequest {
   expiredAt?: string;
 }
 
-/* ─── Content / CMS ─────────────────────────────────────────────────────── */
 
 export interface ContentResponse {
   contentId: number;
@@ -736,7 +759,6 @@ export interface CreateContentBlockItem {
   isActive?: boolean;
 }
 
-/* ─── Dashboard ──────────────────────────────────────────────────────────── */
 
 export interface DashboardStatsResponse {
   totalPlayers: number;
@@ -749,7 +771,6 @@ export interface DashboardStatsResponse {
   totalRevenue: number;
 }
 
-/* ─── Purchase / Sale ─────────────────────────────────────────────────────── */
 
 export interface PurchaseHistoryResponse {
   purchaseHistoryId: number;
@@ -760,11 +781,11 @@ export interface PurchaseHistoryResponse {
   itemIconUrl?: string;
   quantity: number;
   totalPrice: number;
+  // Supported currencies: Gold or Gems; the selected currency determines which player balance is charged or credited.
   currency: string;
   purchasedAt: string;
 }
 
-/* ─── Game Config ────────────────────────────────────────────────────────── */
 
 export interface DailyLoginRewardResponse {
   dailyLoginRewardId: number;
@@ -772,6 +793,7 @@ export interface DailyLoginRewardResponse {
   month: number | null;
   year: number | null;
   isDefault: boolean;
+  // Supported reward types: Gold, Gems, EXP, Energy, or Item; Item rewards also require an item identifier and quantity.
   rewardType: string;
   rewardValue: number;
   rewardItemId: number | null;
@@ -785,6 +807,7 @@ export interface CreateDailyLoginRewardRequest {
   dayNumber: number;
   month?: number | null;
   year?: number | null;
+  // Supported reward types: Gold, Gems, EXP, Energy, or Item; Item rewards also require an item identifier and quantity.
   rewardType?: string;
   rewardValue?: number;
   rewardItemId?: number;
@@ -793,6 +816,7 @@ export interface CreateDailyLoginRewardRequest {
 }
 
 export interface UpdateDailyLoginRewardRequest {
+  // Supported reward types: Gold, Gems, EXP, Energy, or Item; Item rewards also require an item identifier and quantity.
   rewardType: string;
   rewardValue: number;
   rewardItemId?: number | null;
@@ -800,14 +824,12 @@ export interface UpdateDailyLoginRewardRequest {
   isActive: boolean;
 }
 
-/* ─── Cloudinary ─────────────────────────────────────────────────────────── */
 
 export interface CloudinaryUploadResult {
   secureUrl: string;
   publicId: string;
 }
 
-/* ─── Inventory ───────────────────────────────────────────────────────────── */
 
 export interface InventoryItemResponse {
   inventoryItemId: number;
@@ -815,8 +837,11 @@ export interface InventoryItemResponse {
   itemId: number;
   itemName: string;
   itemDescription: string | null;
+  // Supported item types: Weapon, Armor, Consumable, Material, QuestItem, or Currency; the type controls filtering, stacking, and usage behavior.
   itemType: string;
+  // Supported rarity values: Common, Uncommon, Rare, Epic, Legendary, or Mythic; rarity controls quality, visuals, and sorting priority.
   itemRarity: string;
+  // Supported equipment slots: None, Weapon, Armor, Helmet, Gloves, Boots, Ring, Necklace, or Shield.
   itemSlot: string | null;
   iconUrl: string | null;
   corruptionReduction: number;
@@ -833,7 +858,9 @@ export interface PlayerSkinSummaryResponse {
   skinId: number;
   skinName: string;
   skinDescription: string | null;
+  // Supported skin types include Armor and FullSet; the value identifies how the cosmetic is grouped and equipped.
   skinType: string;
+  // Supported rarity values: Common, Uncommon, Rare, Epic, Legendary, or Mythic; rarity controls quality, visuals, and sorting priority.
   skinRarity: string;
   iconUrl: string | null;
   previewUrl: string | null;

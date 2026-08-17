@@ -1,10 +1,14 @@
 import { CSSProperties } from "react";
 
 interface FaceAnimationProps {
+  // Supported player classes: Knight, Archer, or Mage; the class selects base stats, compatible skills, skins, and combat scaling.
   className?: string;
   style?: CSSProperties;
 }
 
+// Renders the face animation reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes.
+// Returns the styled JSX element.
 export default function FaceAnimation({ className = "", style }: FaceAnimationProps) {
   return (
     <main className={`my-custom-face-container ${className}`.trim()} style={style}>

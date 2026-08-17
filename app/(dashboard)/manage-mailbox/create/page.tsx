@@ -58,46 +58,46 @@ const STEPS = [
   { id: 4, label: "Review", icon: Eye },
 ];
 
+// Renders the send mail page view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 export default function SendMailPage() {
-  const router = useRouter();
-  const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
+  const [submitting, setSubmitting] = useState(false);  // Initialize boolean flag as inactive
+  const [success, setSuccess] = useState(false);  // Initialize boolean flag as inactive
   const [error, setError] = useState<string | null>(null);
-  const [sendToAll, setSendToAll] = useState(false);
+  const [sendToAll, setSendToAll] = useState(false);  // Initialize boolean flag as inactive
   const [activeStep, setActiveStep] = useState(1);
 
-  // Item picker state
   const [allItems, setAllItems] = useState<ItemResponse[]>([]);
-  const [loadingItems, setLoadingItems] = useState(true);
+  const [loadingItems, setLoadingItems] = useState(true);  // Initialize loading flag as active on first render
   const [itemSearch, setItemSearch] = useState("");
-  const [showItemDropdown, setShowItemDropdown] = useState(false);
+  const [showItemDropdown, setShowItemDropdown] = useState(false);  // Initialize boolean flag as inactive
   const [selectedItems, setSelectedItems] = useState<ItemResponse[]>([]);
-  // Per-item quantity keyed by itemId (string for controlled input; blank = default 1).
   const [itemQuantities, setItemQuantities] = useState<Record<number, string>>({});
   const itemDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Player picker state — recipients are chosen from a searchable, server-paginated
-  // list (10/page). Search accepts a numeric ID (exact lookup) or a name.
   const PLAYERS_PER_PAGE = 10;
   const [players, setPlayers] = useState<PlayerProfileResponse[]>([]);
-  const [loadingPlayers, setLoadingPlayers] = useState(true);
+  const [loadingPlayers, setLoadingPlayers] = useState(true);  // Initialize loading flag as active on first render
   const [playerSearch, setPlayerSearch] = useState("");
   const [playerPage, setPlayerPage] = useState(1);
   const [playerTotalCount, setPlayerTotalCount] = useState(0);
-  const [showPlayerDropdown, setShowPlayerDropdown] = useState(false);
-  // One shared recipient list — send to one or many, all collected here.
+  const [showPlayerDropdown, setShowPlayerDropdown] = useState(false);  // Initialize boolean flag as inactive
   const [selectedPlayers, setSelectedPlayers] = useState<PlayerProfileResponse[]>([]);
   const playerDropdownRef = useRef<HTMLDivElement>(null);
 
   const [form, setForm] = useState({
     title: "",
     content: "",
+    // Mailbox type is a free-form category with System as the current default; the backend does not enforce a closed allowlist.
     type: "System",
     attachedGold: "",
     attachedGems: "",
     expiredAt: "",
   });
 
+  // Load all simple when the dependencies change, update all items and loading items, and ignore stale callbacks after unmount.
   useEffect(() => {
     getAllSimple()
       .then((res) => setAllItems(res.items))
@@ -105,13 +105,14 @@ export default function SendMailPage() {
       .finally(() => setLoadingItems(false));
   }, []);
 
-  // Fetch a page of players (debounced on search). A numeric query is treated as an
-  // exact ID lookup (backend search only matches DisplayName); otherwise page normally.
+  // Debounce the current input, update loading players, players, and player total count, and cancel the pending timer before the effect reruns or unmounts.
   useEffect(() => {
     const q = playerSearch.trim();
     const asId = Number(q);
     const isIdQuery = q !== "" && Number.isInteger(asId) && asId > 0;
 
+    // Renders the handle view component.
+    // Returns the JSX element hierarchy for the page view.
     const handle = setTimeout(() => {
       setLoadingPlayers(true);
       if (isIdQuery) {
@@ -142,7 +143,10 @@ export default function SendMailPage() {
     return () => clearTimeout(handle);
   }, [playerSearch, playerPage]);
 
+  // Subscribe the required browser or runtime event handlers when dependencies change and remove the same handlers during cleanup.
   useEffect(() => {
+    // Renders the handle click view component.
+    // Returns the JSX element hierarchy for the page view.
     const handleClick = (e: MouseEvent) => {
       if (itemDropdownRef.current && !itemDropdownRef.current.contains(e.target as Node)) {
         setShowItemDropdown(false);
@@ -155,6 +159,7 @@ export default function SendMailPage() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  // Filter the source collection with the current search and category values, then apply the selected ordering before returning the visible results.
   const filteredItems = useMemo(
     () =>
       allItems.filter(
@@ -165,12 +170,16 @@ export default function SendMailPage() {
     [allItems, itemSearch]
   );
 
+  // Renders the recipient count view component.
+  // Returns the JSX element hierarchy for the page view.
   const recipientCount = useMemo(() => {
     if (sendToAll) return "All players";
     const n = selectedPlayers.length;
     return `${n} player${n === 1 ? "" : "s"}`;
   }, [sendToAll, selectedPlayers.length]);
 
+  // Renders the has rewards view component.
+  // Returns the JSX element hierarchy for the page view.
   const hasRewards = useMemo(() => {
     return (
       Number(form.attachedGold || 0) > 0 ||
@@ -179,20 +188,27 @@ export default function SendMailPage() {
     );
   }, [form.attachedGold, form.attachedGems, selectedItems]);
 
-  // Effective quantity for an item (blank/invalid → 1, clamped to maxStack & 99).
+  // Renders the get item quantity view component.
+  // Returns the JSX element hierarchy for the page view.
   const getItemQuantity = (itemId: number): number => {
     const raw = Number(itemQuantities[itemId]);
     if (!raw || raw < 1) return 1;
+    // Renders the item view component.
+    // Returns the JSX element hierarchy for the page view.
     const item = selectedItems.find((s) => s.itemId === itemId);
     const maxStack = item?.maxStack && item.maxStack > 0 ? item.maxStack : 99;
     const max = Math.min(maxStack, 99);
     return Math.min(raw, max);
   };
 
+  // Renders the handle select item view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSelectItem = (item: ItemResponse) => {
     if (selectedItems.some((s) => s.itemId === item.itemId)) {
       setSelectedItems((prev) => prev.filter((s) => s.itemId !== item.itemId));
       setItemQuantities((prev) => {
+        // Renders the next view component.
+        // Returns the JSX element hierarchy for the page view.
         const next = { ...prev };
         delete next[item.itemId];
         return next;
@@ -204,9 +220,13 @@ export default function SendMailPage() {
     setShowItemDropdown(false);
   };
 
+  // Renders the handle remove item view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleRemoveItem = (itemId: number) => {
     setSelectedItems((prev) => prev.filter((s) => s.itemId !== itemId));
     setItemQuantities((prev) => {
+      // Renders the next view component.
+      // Returns the JSX element hierarchy for the page view.
       const next = { ...prev };
       delete next[itemId];
       return next;
@@ -215,7 +235,8 @@ export default function SendMailPage() {
 
   const playerTotalPages = Math.max(1, Math.ceil(playerTotalCount / PLAYERS_PER_PAGE));
 
-  // Toggle a player in the shared recipient list (one or many — same list).
+  // Renders the handle select player view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSelectPlayer = (player: PlayerProfileResponse) => {
     setSelectedPlayers((prev) =>
       prev.some((p) => p.playerProfileId === player.playerProfileId)
@@ -224,20 +245,26 @@ export default function SendMailPage() {
     );
   };
 
+  // Renders the handle remove player view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleRemovePlayer = (playerProfileId: number) => {
     setSelectedPlayers((prev) => prev.filter((p) => p.playerProfileId !== playerProfileId));
   };
 
+  // Process the supplied values: maps the input discriminator to the corresponding domain value and fallback and updates form.
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  // Renders the reset form view component.
+  // Returns the JSX element hierarchy for the page view.
   const resetForm = () => {
     setForm({
       title: "",
       content: "",
+      // Mailbox type is a free-form category with System as the current default; the backend does not enforce a closed allowlist.
       type: "System",
       attachedGold: "",
       attachedGems: "",
@@ -254,6 +281,8 @@ export default function SendMailPage() {
     setError(null);
   };
 
+  // Renders the build payload view component.
+  // Returns the JSX element hierarchy for the page view.
   const buildPayload = (): SendMailboxByListIdRequest | SendMailboxToAllRequest => {
     let expiredAtUtc: string | undefined = undefined;
     if (form.expiredAt) {
@@ -261,9 +290,12 @@ export default function SendMailPage() {
       expiredAtUtc = localDate.toISOString();
     }
 
+    // Renders the base view component.
+    // Returns the JSX element hierarchy for the page view.
     const base = {
       title: form.title,
       content: form.content,
+      // Mailbox type is a free-form category with System as the current default; the backend does not enforce a closed allowlist.
       type: form.type,
       attachedGold: form.attachedGold ? Number(form.attachedGold) : 0,
       attachedGems: form.attachedGems ? Number(form.attachedGems) : 0,
@@ -278,11 +310,15 @@ export default function SendMailPage() {
       return base as SendMailboxToAllRequest;
     }
 
+    // Renders the ids view component.
+    // Returns the JSX element hierarchy for the page view.
     const ids = selectedPlayers.map((p) => p.playerProfileId);
 
     return { ...base, playerProfileIds: ids } as SendMailboxByListIdRequest;
   };
 
+  // Renders the validate current step view component.
+  // Returns the JSX element hierarchy for the page view.
   const validateCurrentStep = (): boolean => {
     if (activeStep === 1) {
       if (sendToAll) return true;
@@ -311,11 +347,11 @@ export default function SendMailPage() {
         return false;
       }
       for (const item of selectedItems) {
-        // Validate the user-entered value before getItemQuantity clamps it to
-        // the payload range; otherwise values above 99 would be silently sent
-        // as 99 and never reach the error path.
         const enteredQuantity = Number(itemQuantities[item.itemId]);
         if (enteredQuantity > 99) {
+          // Renders the message view component.
+          // Key functionality: displays interactive alert dialogues for user actions.
+          // Returns the JSX element hierarchy for the page view.
           const message = `Item quantity for '${item.name}' cannot exceed 99.`;
           setError(message);
           void showErrorAlert("Invalid item quantity", message);
@@ -327,17 +363,24 @@ export default function SendMailPage() {
     return true;
   };
 
+  // Renders the go next view component.
+  // Returns the JSX element hierarchy for the page view.
   const goNext = () => {
     if (!validateCurrentStep()) return;
     setError(null);
     setActiveStep((p) => Math.min(p + 1, STEPS.length));
   };
 
+  // Renders the go prev view component.
+  // Key functionality: displays interactive alert dialogues for user actions.
+  // Returns the JSX element hierarchy for the page view.
   const goPrev = () => {
     setError(null);
     setActiveStep((p) => Math.max(p - 1, 1));
   };
 
+  // Renders the handle submit view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSubmit = async () => {
     setError(null);
     if (!validateCurrentStep()) {
@@ -353,17 +396,19 @@ export default function SendMailPage() {
         await sendByList(buildPayload() as SendMailboxByListIdRequest);
       }
       setSuccess(true);
-      await showSuccessAlert("Success!", "Mailbox sent successfully.");
-      setTimeout(() => router.push("/manage-mailbox"), 1500);
+      await showSuccessAlert("Success!", "Mailbox sent successfully.");  // Display styled success alert dialog to the user
+      setTimeout(() => router.push("/manage-mailbox"), 1500);  // Navigate to the next page and push to history stack
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to send mailbox. Please try again.";
       setError(msg);
-      await showErrorAlert("Error", msg);
+      await showErrorAlert("Error", msg);  // Display styled error alert dialog to the user
     } finally {
       setSubmitting(false);
     }
   };
 
+  // Renders the current type view component.
+  // Returns the JSX element hierarchy for the page view.
   const currentType = MAIL_TYPES.find((t) => t.value === form.type) ?? MAIL_TYPES[0];
 
   return (
@@ -383,7 +428,6 @@ export default function SendMailPage() {
         }
       />
 
-      {/* Stepper */}
       <div className="bg-[#111111] border border-white/10 rounded-2xl p-4">
         <div className="flex items-center justify-between max-w-3xl mx-auto">
           {STEPS.map((step, idx) => {
@@ -432,7 +476,6 @@ export default function SendMailPage() {
         </div>
       </div>
 
-      {/* Feedback banners */}
       {error && (
         <FormAlert type="error" message={error} onDismiss={() => setError(null)} />
       )}
@@ -445,9 +488,7 @@ export default function SendMailPage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
-        {/* Main Form Area */}
         <div className="space-y-5 min-w-0">
-          {/* STEP 1 - Recipients */}
           {activeStep === 1 && (
             <div className="bg-[#111111] border border-white/10 rounded-2xl overflow-visible">
               <div className="px-6 py-4 border-b border-white/10 flex items-center gap-2">
@@ -507,7 +548,6 @@ export default function SendMailPage() {
                         )}
                       </label>
 
-                      {/* Selected recipient chips */}
                       {selectedPlayers.length > 0 && (
                         <div className="flex flex-wrap gap-2 mb-3">
                           {selectedPlayers.map((player) => (
@@ -545,7 +585,6 @@ export default function SendMailPage() {
                         </div>
                       )}
 
-                      {/* Searchable player dropdown */}
                       <div className="relative" ref={playerDropdownRef}>
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -685,7 +724,6 @@ export default function SendMailPage() {
             </div>
           )}
 
-          {/* STEP 2 - Message */}
           {activeStep === 2 && (
             <div className="bg-[#111111] border border-white/10 rounded-2xl overflow-hidden">
               <div className="px-6 py-4 border-b border-white/10 flex items-center gap-2">
@@ -769,7 +807,6 @@ export default function SendMailPage() {
             </div>
           )}
 
-          {/* STEP 3 - Rewards */}
           {activeStep === 3 && (
             <div className="bg-[#111111] border border-white/10 rounded-2xl overflow-visible">
               <div className="px-6 py-4 border-b border-white/10 flex items-center gap-2">
@@ -814,7 +851,6 @@ export default function SendMailPage() {
                   </div>
                 </div>
 
-                {/* Item Picker */}
                 <div>
                   <label className="flex items-center justify-between text-xs font-medium text-gray-400 mb-2 uppercase tracking-wide">
                     <span className="flex items-center gap-1.5">
@@ -1047,7 +1083,6 @@ export default function SendMailPage() {
             </div>
           )}
 
-          {/* STEP 4 - Review */}
           {activeStep === 4 && (
             <div className="space-y-5">
               <div className="bg-[#111111] border border-white/10 rounded-2xl overflow-hidden">
@@ -1058,7 +1093,6 @@ export default function SendMailPage() {
                   </h2>
                 </div>
                 <div className="p-6 space-y-5">
-                  {/* Live preview card */}
                   <div className="bg-[#111] border border-white/10 rounded-xl p-5 space-y-3">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span
@@ -1119,7 +1153,6 @@ export default function SendMailPage() {
                     )}
                   </div>
 
-                  {/* Confirmation list */}
                   <div className="space-y-2 text-sm">
                     <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                       Summary
@@ -1177,7 +1210,6 @@ export default function SendMailPage() {
             </div>
           )}
 
-          {/* Navigation buttons */}
           <div className="flex items-center justify-between gap-3 pt-2">
             <div className="flex items-center gap-2">
               {activeStep > 1 && (
@@ -1238,7 +1270,6 @@ export default function SendMailPage() {
           </div>
         </div>
 
-        {/* Live Side Panel */}
         <div className="space-y-3 lg:sticky lg:top-6">
           <div className="bg-[#111111] border border-white/10 rounded-2xl overflow-hidden">
             <div className="px-5 py-3 border-b border-white/10 flex items-center gap-2">
@@ -1315,7 +1346,7 @@ export default function SendMailPage() {
 
           <button
             type="button"
-            onClick={() => router.push("/manage-mailbox")}
+            onClick={() => router.push("/manage-mailbox")}  // Navigate to the next page and push to history stack
             className="w-full px-4 py-2.5 text-sm text-gray-500 hover:text-gray-300 transition-colors cursor-pointer"
           >
             ← Back to Mailbox
@@ -1326,6 +1357,8 @@ export default function SendMailPage() {
   );
 }
 
+// Renders the summary row view component.
+// Returns the JSX element hierarchy for the page view.
 function SummaryRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-4 py-2 border-b border-white/10 last:border-0">
@@ -1335,6 +1368,8 @@ function SummaryRow({ label, value }: { label: string; value: React.ReactNode })
   );
 }
 
+// Renders the side row view component.
+// Returns the JSX element hierarchy for the page view.
 function SideRow({ label, value, highlight }: { label: string; value: React.ReactNode; highlight?: boolean }) {
   return (
     <div className="space-y-1">

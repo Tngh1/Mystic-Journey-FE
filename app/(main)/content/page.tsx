@@ -7,8 +7,8 @@ import { getAll, getCategories, type ContentResponse, type CategoryResponse } fr
 import Panel from "@/components/ui/Panel";
 import NoticeBoard from "@/components/ui/NoticeBoard";
 
-/* Dates on the board are the herald's own record, so they stay in the site's
-   locale rather than the visitor's. */
+// Renders the format date view component.
+// Returns the JSX element hierarchy for the page view.
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString("vi-VN", {
     day: "numeric",
@@ -17,9 +17,8 @@ function formatDate(dateString: string) {
   });
 }
 
-/* One notice nailed to the board: a parchment slip on the planks, with the
-   illustration sunk into its left half. Parchment rather than another wood
-   panel — the notices sit *on* the board now, and oak on oak reads flat. */
+// Renders the content card view component.
+// Returns the JSX element hierarchy for the page view.
 function ContentCard({ content }: { content: ContentResponse }) {
   return (
     <Panel
@@ -33,11 +32,6 @@ function ContentCard({ content }: { content: ContentResponse }) {
       >
         <div className="relative h-40 w-full shrink-0 overflow-hidden border-b-2 border-wood-dark bg-stone md:h-auto md:w-[240px] md:border-b-0 md:border-r-2 lg:w-[280px]">
           {content.thumbnailUrl ? (
-            /* Plain <img>, not next/image: thumbnails are arbitrary admin-supplied
-               URLs and no remotePatterns are configured, so the optimizer would
-               reject them at runtime. Lazy + sized to keep CLS at zero.
-               // ponytail: swap to next/image once the upload host is fixed and
-               // added to next.config.ts remotePatterns. */
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={content.thumbnailUrl}
@@ -46,7 +40,6 @@ function ContentCard({ content }: { content: ContentResponse }) {
               className="pixelated absolute inset-0 h-full w-full object-cover"
             />
           ) : (
-            /* No art: the slip shows a blank notice rather than a broken frame. */
             <span className="pixel-grid flex h-full w-full items-center justify-center">
               <Bell className="h-8 w-8 text-parchment-dim/40" aria-hidden="true" />
             </span>
@@ -61,8 +54,6 @@ function ContentCard({ content }: { content: ContentResponse }) {
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col p-4 md:p-5">
-          {/* break-words: titles and summaries are admin-supplied and may be one
-              unbroken string, which used to push the panel past the viewport. */}
           <h2 className="mb-2 line-clamp-2 break-words text-lg font-bold group-hover:underline md:text-xl">
             {content.title}
           </h2>
@@ -77,8 +68,6 @@ function ContentCard({ content }: { content: ContentResponse }) {
               <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
               <time dateTime={content.createdAt}>{formatDate(content.createdAt)}</time>
             </span>
-            {/* Ink, not gold: gold on parchment is 1.9:1, and the page's one gold
-                thing stays the active filter. */}
             <span className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest">
               Read more
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -90,8 +79,9 @@ function ContentCard({ content }: { content: ContentResponse }) {
   );
 }
 
-/* A slip-shaped placeholder at roughly the height of a real one, so the board
-   doesn't jump when the notices land. */
+// Renders the card skeleton view component.
+// Key functionality: manages local UI state, pagination, and filter values; fetches asynchronous page data on initial load and parameter changes.
+// Returns the JSX element hierarchy for the page view.
 function CardSkeleton() {
   return (
     <Panel material="parchment" aria-hidden="true" className="flex flex-col md:flex-row">
@@ -105,14 +95,19 @@ function CardSkeleton() {
   );
 }
 
+// Renders the content page view component.
+// Key functionality: manages local UI state, pagination, and filter values; fetches asynchronous page data on initial load and parameter changes.
+// Returns the JSX element hierarchy for the page view.
 export default function ContentPage() {
   const [contents, setContents] = useState<ContentResponse[] | null>(null);
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
+  // Load all and categories when the dependencies change, update contents, categories, and error, and ignore stale callbacks after unmount.
   useEffect(() => {
     let mounted = true;
+    // Execute these independent asynchronous operations concurrently, then combine their results after all complete.
     Promise.all([getAll(1, 100, { isPublished: true }), getCategories()])
       .then(([contentsRes, categoriesRes]) => {
         if (!mounted) return;
@@ -128,7 +123,6 @@ export default function ContentPage() {
     };
   }, []);
 
-  // Derived rather than stored — there is no third state to keep in sync.
   const loading = !contents && !error;
   const filtered = selectedCategory
     ? (contents ?? []).filter((c) => c.categoryId === selectedCategory)
@@ -140,12 +134,7 @@ export default function ContentPage() {
   ];
 
   return (
-    /* Full-height column with no bottom padding: on a short list the board is
-       pushed down by NoticeBoard's own `mt-auto` so its legs land in the
-       footer's turf strip instead of floating over dead sky. */
     <div className="flex min-h-dvh flex-col pt-[88px] md:pt-[112px]">
-      {/* The board carries the list, so it grows as tall as the notices need —
-          the title notice is nailed at the top of the same planks. */}
       <NoticeBoard
         eyebrow="Notice Board"
         icon={Bell}
@@ -158,9 +147,6 @@ export default function ContentPage() {
           </p>
         )}
 
-        {/* Filter tabs. Only rendered once categories are known — an empty rail
-            would otherwise flash a lone "All" button on first paint. Inactive
-            tabs are wood-dark so they read against the planks behind them. */}
         {categories.length > 0 && (
           <div role="tablist" aria-label="Categories" className="mb-3 flex flex-wrap justify-center gap-2 md:mb-4">
             {tabs.map((t) => {
@@ -207,7 +193,6 @@ export default function ContentPage() {
             : filtered.map((item) => <ContentCard key={item.contentId} content={item} />)}
         </div>
 
-        {/* Empty state carries both a message and a way out of it. */}
         {!loading && !error && filtered.length === 0 && (
           <Panel material="parchment" className="p-10 text-center text-on-parchment">
             <Bell className="mx-auto mb-3 h-10 w-10 text-on-parchment/40" aria-hidden="true" />

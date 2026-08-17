@@ -23,7 +23,8 @@ interface HeadingItem {
   level: 1 | 2 | 3;
 }
 
-/** Slugify heading text into a valid HTML id. Duplicates get a numeric suffix. */
+// Renders the slugify view component.
+// Returns the JSX element hierarchy for the page view.
 function slugify(text: string, seen: Map<string, number>): string {
   const base =
     text
@@ -38,11 +39,8 @@ function slugify(text: string, seen: Map<string, number>): string {
   return count === 0 ? base : `${base}-${count + 1}`;
 }
 
-/**
- * Inject unique `id` attributes into the H1/H2/H3 elements of each raw HTML
- * block and collect them for the table of contents. Parses in a detached
- * document, so nothing runs while we walk it.
- */
+// Renders the process html with ids view component.
+// Returns the JSX element hierarchy for the page view.
 function processHtmlWithIds(htmlBlocks: string[]): {
   processedBlocks: string[];
   headings: HeadingItem[];
@@ -71,12 +69,12 @@ function processHtmlWithIds(htmlBlocks: string[]): {
   return { processedBlocks, headings };
 }
 
-/* The contents index — a brass plate of ruled lines. The open section is marked
-   by the gold ink *and* a gilt bar on its inner edge, so it never rests on
-   colour alone. */
+// Renders the table of contents view component.
+// Returns the JSX element hierarchy for the page view.
 function TableOfContents({ headings }: { headings: HeadingItem[] }) {
   const [activeId, setActiveId] = useState<string>("");
 
+  // Load element by id when the dependencies change, update active id, and ignore stale callbacks after unmount.
   useEffect(() => {
     if (headings.length === 0) return;
 
@@ -133,6 +131,8 @@ function TableOfContents({ headings }: { headings: HeadingItem[] }) {
   );
 }
 
+// Renders the format date view component.
+// Returns the JSX element hierarchy for the page view.
 function formatDate(dateString: string, long = false) {
   return new Date(dateString).toLocaleDateString("en-US", {
     year: "numeric",
@@ -141,12 +141,13 @@ function formatDate(dateString: string, long = false) {
   });
 }
 
-/* The other notices still on the board. A failed fetch here costs the rail and
-   nothing else, so it degrades to a quiet line rather than an alert. */
+// Renders the recent posts view component.
+// Returns the JSX element hierarchy for the page view.
 function RecentPosts({ currentContentId }: { currentContentId: number }) {
   const [posts, setPosts] = useState<ContentResponse[] | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [failed, setFailed] = useState(false);  // Initialize boolean flag as inactive
 
+  // Load all when the dependencies change, update posts and failed, and ignore stale callbacks after unmount.
   useEffect(() => {
     let mounted = true;
     getAll(1, 10)
@@ -225,29 +226,25 @@ function RecentPosts({ currentContentId }: { currentContentId: number }) {
   );
 }
 
+// Renders the content detail page view component.
+// Key functionality: manages local UI state, pagination, and filter values; fetches asynchronous page data on initial load and parameter changes.
+// Returns the JSX element hierarchy for the page view.
 export default function ContentDetailPage() {
   const params = useParams();
   const [content, setContent] = useState<ContentDetailResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [headings, setHeadings] = useState<HeadingItem[]>([]);
-  /* Keyed by position, not by blockContentId: the BE hands back 0 for every
-     block on some records, so an id-keyed map collapsed them into one entry and
-     rendered the first block's HTML everywhere. */
   const [processedTextBlocks, setProcessedTextBlocks] = useState<string[]>([]);
 
   const slug = params.id as string;
 
-  /* All state lands in the promise callbacks, never in the effect body — a
-     synchronous setState here would cascade a second render on every mount. */
+  // Load by slug when the dependencies change, update headings, processed text blocks, content, and error, and ignore stale callbacks after unmount.
   useEffect(() => {
     let mounted = true;
     getBySlug(slug)
       .then((data) => {
         if (!mounted) return;
 
-        /* Same filter and comparator as the render below, so the processed HTML
-           lines up with the rendered blocks by index. Non-text blocks keep an
-           empty slot rather than being squeezed out. */
         const activeBlocks = data.blocks
           .filter((b) => b.isActive)
           .sort((a, b) => a.sortOrder - b.sortOrder);
@@ -269,7 +266,6 @@ export default function ContentDetailPage() {
     };
   }, [slug]);
 
-  // Derived, not a third piece of state to keep in sync.
   const loading = !content && !error;
 
   if (loading) {
@@ -305,13 +301,13 @@ export default function ContentDetailPage() {
     );
   }
 
+  // Renders the sorted blocks view component.
+  // Returns the JSX element hierarchy for the page view.
   const sortedBlocks = content.blocks.filter((b) => b.isActive).sort((a, b) => a.sortOrder - b.sortOrder);
   const totalBlocks = sortedBlocks.length;
   const hasToc = headings.length > 0;
 
   return (
-    /* Full-height column: the notice board settles onto the footer's turf,
-       with a higher stacking layer so its lower brace and legs remain visible. */
     <div className="relative z-10 flex min-h-dvh flex-col pt-[88px] md:pt-[112px]">
       <div className="mx-auto mt-auto w-full max-w-[1200px] px-4 pt-8 md:px-6">
         <div
@@ -334,15 +330,8 @@ export default function ContentDetailPage() {
               </div>
             )}
 
-            {/* The same board as /content — BoardFrame is shared, so the list and
-                a single notice read as one object rather than two designs. The
-                title plate and every block are nailed to the same planks, so a
-                block is a slip on the board rather than a board of its own. */}
             <BoardFrame>
               <div className="min-w-0 space-y-3 md:space-y-4">
-                {/* Title plate, sized to its own text and centred like the one on
-                    /content. It used to be a full-width sheet at md:text-4xl with
-                    p-8, which made the header taller than most articles' bodies. */}
                 <header className="parchment mx-auto max-w-[68ch] border-2 border-wood-dark px-5 py-4 text-center text-on-parchment shadow-[inset_0_0_0_2px_rgb(0_0_0_/_0.12)] md:px-8 md:py-5">
                   {content.categoryName ? (
                     <span className="mb-2 inline-flex items-center gap-1.5 border-2 border-black/60 bg-wood px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-parchment">
@@ -355,8 +344,6 @@ export default function ContentDetailPage() {
                     </span>
                   )}
 
-                  {/* break-words: title and summary are admin-supplied and may be a
-                      single unbroken string, which used to run off the viewport. */}
                   <h1 className="break-words text-lg font-bold leading-tight sm:text-xl md:text-2xl">
                     {content.title}
                   </h1>
@@ -379,10 +366,8 @@ export default function ContentDetailPage() {
                   </div>
                 </header>
 
-                {/* Banner, framed rather than rounded-and-glowing. */}
                 {content.thumbnailUrl && (
                   <div className="border-2 border-wood-dark bg-stone">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={content.thumbnailUrl}
                       alt=""
@@ -391,16 +376,12 @@ export default function ContentDetailPage() {
                   </div>
                 )}
 
-                {/* Blocks. Long-form prose sits on parchment — the one light surface
-                    in the system, and the only place a wall of text is comfortable. */}
                 {sortedBlocks.map((block, i) => {
                   if (block.blockType === "text") {
                     const html = processedTextBlocks[i] || block.contentData || "";
                     return (
                       <div
                         key={i}
-                        /* Editor HTML from the admin portal; `.rendered-html` in
-                           components/css/rendered-html.css carries the prose rules. */
                         className="parchment rendered-html border-2 border-wood-dark p-5 text-[15px] leading-[1.8] shadow-[inset_0_0_0_2px_rgb(0_0_0_/_0.12)] md:p-8"
                         dangerouslySetInnerHTML={{ __html: html }}
                       />
@@ -442,9 +423,6 @@ export default function ContentDetailPage() {
                   </p>
                 )}
 
-                {/* The way out is nailed to the board too. Outside it, the row
-                    was a rule and two lines floating on the starfield below the
-                    planks — one object, so it goes on the planks. */}
                 <footer className="flex flex-wrap items-center justify-between gap-3 border-2 border-black/60 bg-wood-dark px-3 py-3">
                   <Link
                     href="/content"

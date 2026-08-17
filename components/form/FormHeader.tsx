@@ -4,12 +4,6 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
-/* Title bar for a create/update screen: an iron back plate, the title, and an
-   optional cloth badge.
-
-   Badge tones were five raw `-500/10` washes plus a hardcoded #ffc032; they are
-   heraldic cloth now. The unused `LucideIcon` type import is gone, and the back
-   button is 44px rather than the old 36px. */
 
 interface FormHeaderProps {
   title: string;
@@ -28,6 +22,8 @@ const BADGE_TONE: Record<NonNullable<FormHeaderProps["badgeTone"]>, string> = {
   danger: "border-black/60 bg-heraldry-crimson text-parchment",
 };
 
+// Renders form header modal/form component.
+// Returns the interactive form JSX element.
 export default function FormHeader({
   title,
   subtitle,
@@ -36,13 +32,13 @@ export default function FormHeader({
   badgeTone = "default",
   actions,
 }: FormHeaderProps) {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
 
   return (
     <div className="flex items-center gap-4">
       <button
         type="button"
-        onClick={() => router.push(backHref)}
+        onClick={() => router.push(backHref)}  // Navigate to the next page and push to history stack
         title="Back"
         aria-label="Back"
         className="pixel-press flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center border-2 border-black/60 bg-iron text-parchment shadow-sm transition-colors hover:text-accent"

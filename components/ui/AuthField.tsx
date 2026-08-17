@@ -5,19 +5,15 @@ import { Eye, EyeOff } from "lucide-react";
 
 interface AuthFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "className"> {
   label: string;
-  /** Renders a show/hide toggle and drives `type` between password and text. */
   reveal?: boolean;
-  /** Persistent hint under the slot — not a placeholder, so it survives typing. */
   hint?: ReactNode;
-  /** Message shown in place of the hint, announced as an alert. */
   error?: string;
-  /** Anything that sits inside the slot's right gutter (verify button, tick). */
   trailing?: ReactNode;
 }
 
-/* One ruled slot in a gate ledger: chiselled recess, gold rule when focused,
-   danger rule when the value is refused. Used by every /login /register
-   /forget-password /reset-password field so the four pages stay identical. */
+// Renders the auth field reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes; binds user interaction event listeners.
+// Returns the styled JSX element.
 export default function AuthField({
   label,
   reveal,
@@ -28,9 +24,11 @@ export default function AuthField({
   type = "text",
   ...rest
 }: AuthFieldProps) {
-  const [shown, setShown] = useState(false);
+  const [shown, setShown] = useState(false);  // Initialize boolean flag as inactive
   const autoId = useId();
   const fieldId = id ?? autoId;
+  // Helper function executing note id.
+  // Processes input parameters and returns the calculated result.
   const noteId = `${fieldId}-note`;
 
   return (

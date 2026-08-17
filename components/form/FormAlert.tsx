@@ -3,13 +3,6 @@
 import React from "react";
 import { AlertCircle, AlertTriangle, Info, X } from "lucide-react";
 
-/* The notice nailed to the top of a form. Cloth plate on the left carries the
-   severity, so the type survives without the colour.
-
-   The old `ICON` map pointed all three types at `AlertCircle` — the map existed
-   but did nothing, leaving red/orange/blue as the only difference between an
-   error and a hint. Each type now has its own glyph. Tones are heraldic cloth
-   instead of `bg-red-500/10 border-red-500/30`. */
 
 interface FormAlertProps {
   type?: "error" | "warning" | "info";
@@ -38,6 +31,8 @@ const ICON: Record<AlertType, typeof AlertCircle> = {
   info: Info,
 };
 
+// Renders form alert modal/form component.
+// Returns the interactive form JSX element.
 export default function FormAlert({
   type = "error",
   message,

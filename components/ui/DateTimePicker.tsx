@@ -5,15 +5,19 @@ import { createPortal } from "react-dom";
 import { DayPicker } from "react-day-picker";
 import { CalendarDays, ChevronLeft, ChevronRight, Clock, X } from "lucide-react";
 
-/* ─── Helpers ─────────────────────────────────────────────────────────────── */
 
+// Helper function executing parse local.
+// Processes input parameters and returns the calculated result.
 function parseLocal(value: string): Date | undefined {
   if (!value) return undefined;
   const d = new Date(value);
   return Number.isNaN(d.getTime()) ? undefined : d;
 }
 
+// Helper function executing to local string.
+// Processes input parameters and returns the calculated result.
 function toLocalString(date: Date): string {
+  // Convert the number to a two-character string so generated local date and time fields remain zero-padded.
   const pad = (n: number) => String(n).padStart(2, "0");
   return (
     `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
@@ -21,6 +25,8 @@ function toLocalString(date: Date): string {
   );
 }
 
+// Helper function executing format display.
+// Processes input parameters and returns the calculated result.
 function formatDisplay(date: Date): string {
   return date.toLocaleString("vi-VN", {
     day: "2-digit",
@@ -32,10 +38,13 @@ function formatDisplay(date: Date): string {
   });
 }
 
+// Renders the hours reusable UI component.
+// Returns the styled JSX element.
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
+// Renders the minutes reusable UI component.
+// Returns the styled JSX element.
 const MINUTES = Array.from({ length: 12 }, (_, i) => i * 5);
 
-/* ─── Types ───────────────────────────────────────────────────────────────── */
 
 interface DropdownPos {
   top: number;
@@ -53,8 +62,10 @@ interface DateTimePickerProps {
   minDate?: Date;
 }
 
-/* ─── Component ───────────────────────────────────────────────────────────── */
 
+// Renders date time picker modal/form component.
+// Workflow: manages form field values and validation feedback state.
+// Returns the interactive form JSX element.
 export default function DateTimePicker({
   id,
   value,
@@ -63,7 +74,7 @@ export default function DateTimePicker({
   disabled = false,
   minDate,
 }: DateTimePickerProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false);  // Initialize boolean flag as inactive
   const [pos, setPos] = useState<DropdownPos | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -72,11 +83,12 @@ export default function DateTimePicker({
   const hour = selected?.getHours() ?? 0;
   const minute = Math.round((selected?.getMinutes() ?? 0) / 5) * 5;
 
-  // Compute fixed position from trigger rect
+  // Helper function executing open dropdown.
+  // Processes input parameters and returns the calculated result.
   const openDropdown = () => {
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
-    const DROPDOWN_H = 430; // rough max height of calendar
+    const DROPDOWN_H = 430;
     const spaceBelow = window.innerHeight - rect.bottom - 8;
     const openUp = spaceBelow < DROPDOWN_H && rect.top > DROPDOWN_H;
 
@@ -89,10 +101,12 @@ export default function DateTimePicker({
     setOpen(true);
   };
 
-  // Reposition on scroll/resize while open
+  // Load bounding client rect when the dependencies change, update pos, and ignore stale callbacks after unmount.
   useEffect(() => {
     if (!open) return;
 
+    // Helper function executing reposition.
+    // Processes input parameters and returns the calculated result.
     const reposition = () => {
       if (!triggerRef.current) return;
       const rect = triggerRef.current.getBoundingClientRect();
@@ -115,9 +129,10 @@ export default function DateTimePicker({
     };
   }, [open]);
 
-  // Close on outside click
+  // Subscribe the required browser or runtime event handlers when dependencies change and remove the same handlers during cleanup.
   useEffect(() => {
     if (!open) return;
+    // Event handler for handler.
     const handler = (e: MouseEvent) => {
       const target = e.target as Node;
       if (
@@ -132,9 +147,10 @@ export default function DateTimePicker({
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
-  // Close on Escape
+  // Subscribe the required browser or runtime event handlers when dependencies change and remove the same handlers during cleanup.
   useEffect(() => {
     if (!open) return;
+    // Event handler for handler.
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
     };
@@ -142,6 +158,7 @@ export default function DateTimePicker({
     return () => document.removeEventListener("keydown", handler);
   }, [open]);
 
+  // Event handler for handle day select.
   const handleDaySelect = (day: Date | undefined) => {
     if (!day) { onChange(""); return; }
     const next = new Date(day);
@@ -149,6 +166,7 @@ export default function DateTimePicker({
     onChange(toLocalString(next));
   };
 
+  // Event handler for handle hour change.
   const handleHourChange = (h: number) => {
     if (selected) {
       const next = new Date(selected);
@@ -157,6 +175,7 @@ export default function DateTimePicker({
     }
   };
 
+  // Event handler for handle minute change.
   const handleMinuteChange = (m: number) => {
     if (selected) {
       const next = new Date(selected);
@@ -165,6 +184,7 @@ export default function DateTimePicker({
     }
   };
 
+  // Event handler for handle now.
   const handleNow = () => {
     const now = new Date();
     const roundedMin = Math.round(now.getMinutes() / 5) * 5;
@@ -173,9 +193,9 @@ export default function DateTimePicker({
     setOpen(false);
   };
 
+  // Event handler for handle clear.
   const handleClear = () => { onChange(""); setOpen(false); };
 
-  /* ── Dropdown panel ────────────────────────────────────────────────────── */
 
   const dropdown = open && pos ? (
     <div
@@ -190,7 +210,6 @@ export default function DateTimePicker({
       }}
       className="overflow-hidden rounded-2xl border border-white/10 bg-[#111111] shadow-2xl shadow-black/70 animate-in fade-in-0 zoom-in-95 duration-150"
     >
-      {/* Calendar */}
       <DayPicker
         mode="single"
         selected={selected}
@@ -230,7 +249,6 @@ export default function DateTimePicker({
         }}
       />
 
-      {/* Time picker */}
       <div className="border-t border-white/10 px-4 py-3">
         <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-white/35">
           <Clock className="h-3 w-3" />
@@ -269,7 +287,6 @@ export default function DateTimePicker({
         </div>
       </div>
 
-      {/* Footer */}
       <div className="flex items-center justify-between border-t border-white/10 px-4 py-3">
         <button
           type="button"
@@ -289,11 +306,9 @@ export default function DateTimePicker({
     </div>
   ) : null;
 
-  /* ── Render ─────────────────────────────────────────────────────────────── */
 
   return (
     <div className="relative">
-      {/* Trigger button */}
       <button
         ref={triggerRef}
         id={id}
@@ -328,7 +343,6 @@ export default function DateTimePicker({
         )}
       </button>
 
-      {/* Portal: renders outside any overflow:hidden ancestor */}
       {typeof document !== "undefined" && createPortal(dropdown, document.body)}
     </div>
   );

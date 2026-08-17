@@ -7,17 +7,9 @@ interface AnimatedButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: ButtonSize;
 }
 
-/**
- * The secondary button: arrow-swap hover animation.
- * - Default: right arrow visible at right edge, left arrow parked off the left edge
- * - Hover: left arrow slides in from the left, right arrow slides out to the right,
- *          text nudges right, the ring expands and fills
- *
- * Corners are square, not pill — the global `border-radius: 0` rule in
- * globals.css overrides whatever animated-button.css asks for. The primary
- * action is the solid gold `bg-accent` button in HeroSection; use this for the
- * secondary action beside it.
- */
+// Renders the animated button reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes; renders child component slots dynamically.
+// Returns the styled JSX element.
 export default function AnimatedButton({
   children,
   size = "md",

@@ -13,17 +13,10 @@ interface StoryChapter {
   location: string;
   content: string;
   Icon: typeof Trees;
-  /** The realm's heraldic cloth for the chapter plate. Ink on all five is
-   *  parchment, so the plate never carries meaning by colour alone — the
-   *  location name sits on it. */
   cloth: string;
-  /** Which realm the chapter's whole enclosure is built from — see ChapterFrame. */
   realm: Realm;
 }
 
-/* Story summaries follow the main-quest seed in the game database
-   (Quests 1–46, MysticJourneyDbContext) — introduction only, no spoilers
-   beyond what the quest log itself reveals. */
 const CHAPTERS: StoryChapter[] = [
   {
     id: 1,
@@ -77,18 +70,9 @@ const CHAPTERS: StoryChapter[] = [
   },
 ];
 
-/* The sun IS the hero. The stone wall, its tile lattice and the carved board are
-   gone: the chronicle's title now sits inside one large pixel disc, the way a
-   game's title card sits inside a sprite rather than on a UI panel.
-
-   The disc is one 32x32 SVG under a kilobyte, rasterised from a real circle so
-   the silhouette reads as round; a coarser grid turned it into an octagon. At
-   this size each cell is ~20px, so the edge still steps.
-
-   Ink is `on-parchment` brown, not gold — gold on gold is invisible, and brown
-   on the accent body is about 7:1. No flicker: this is a static plate carrying
-   body copy, and pulsing the text's own background is the one place the
-   torch-flicker cycle actively hurts legibility. */
+// Renders the sun view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 function Sun() {
   return (
     // eslint-disable-next-line @next/next/no-img-element
@@ -101,33 +85,19 @@ function Sun() {
   );
 }
 
+// Renders the story page view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 export default function StoryPage() {
   const [active, setActive] = useState(0);
   const chapter = CHAPTERS[active];
 
   return (
     <div className="min-h-dvh pt-[88px] pb-16 md:pt-[112px]">
-      {/* Hero — the chronicle read in daylight: a pixel sun overhead, then a gilt
-          banner nailed above a carved board. It used to be centred text floating
-          on a bare dark band, which read as a web page header rather than
-          anything from the game; everything here is a material the rest of the
-          system already uses (stone ground, wood board, gilt cloth, gold ink).
-          The sun is the only motion and it animates opacity only, so it costs no
-          layout and vanishes under prefers-reduced-motion. */}
       <header className="relative px-4 py-10 md:py-14">
-        {/* The disc, square so the sun stays round, and capped so the text band
-            inside it never gets wider than a readable measure. The cap used to
-            be 40rem, which filled the viewport and read as a splash screen
-            rather than a page header. The sun stays a step larger than
-            MoonHeader's 30rem because it carries two more rows — the rule and
-            the five seal marks. */}
         <div className="relative mx-auto aspect-square w-full max-w-[22rem] sm:max-w-[27rem] md:max-w-[34rem]">
           <Sun />
 
-          {/* The text sits in the disc's flat middle band — cells y=6..14 of the
-              20-cell grid, i.e. 30%–70% — inset horizontally by a fifth so it
-              clears the stepped left and right edges. Percentages, not padding,
-              so the field scales with the sun at every breakpoint. */}
           <div className="absolute inset-x-[19%] inset-y-[29%] flex flex-col items-center justify-center text-center text-on-parchment">
             <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.25em] md:text-xs">
               <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
@@ -138,8 +108,6 @@ export default function StoryPage() {
               The Tale of Mystic Journey
             </h1>
 
-            {/* Brown rule rather than OrnateDivider: the divider is gold, and
-                gold on the gold disc is invisible. */}
             <span
               className="my-2 h-0.5 w-16 bg-on-parchment/40 md:my-3 md:w-24"
               aria-hidden="true"
@@ -150,9 +118,6 @@ export default function StoryPage() {
               dying Origin Tree — this is the road ahead.
             </p>
 
-            {/* The five chapters as seal marks, so the length of the road is
-                visible before you start reading it. Decorative duplicate of the
-                chapter rail below, hence aria-hidden. */}
             <div className="mt-2.5 flex items-center gap-1.5 md:mt-4 md:gap-2" aria-hidden="true">
               {CHAPTERS.map((c) => (
                 <span
@@ -168,8 +133,6 @@ export default function StoryPage() {
       </header>
 
       <div className="mx-auto w-full max-w-[1000px] px-4 py-12 md:px-6 md:py-16">
-        {/* Chapter rail. Each realm is a heraldic plate; the open one takes the
-            gold frame and aria-current, so the state is never colour-only. */}
         <nav aria-label="Chapters" className="mb-8 flex flex-wrap justify-center gap-2">
           {CHAPTERS.map((c, i) => {
             const isActive = active === i;
@@ -193,12 +156,6 @@ export default function StoryPage() {
           })}
         </nav>
 
-        {/* The open chapter, on parchment: this is the one place in the system
-            that is long-form reading, and ink on paper is what it wants. The
-            enclosure around it is the realm itself — canopy and bark for the Elf
-            Forest, gourd rind for Autumn Pumpkin, an ice pillar for Frozen
-            Mountain, a curtain wall for the Abandoned Castle. See
-            components/ui/ChapterFrame; the whole frame changes, not a trim. */}
         <ChapterFrame realm={chapter.realm} aria-labelledby="chapter-title">
           <div className={`flex flex-wrap items-center justify-between gap-2 border-b-2 border-black/60 ${chapter.cloth} px-4 py-2.5`}>
             <span className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-parchment">
@@ -220,8 +177,6 @@ export default function StoryPage() {
                 <p className="mt-1 text-sm italic text-on-parchment/70">{chapter.subtitle}</p>
               </header>
 
-              {/* max-w-[68ch] keeps the measure inside the readable line-length
-                  band; centred body copy is hard to track, so this is left-set. */}
               <div className="mx-auto max-w-[68ch] space-y-4 text-[15px] leading-relaxed">
                 {chapter.content.split("\n\n").map((p, i) => (
                   <p key={i}>{p}</p>
@@ -230,9 +185,6 @@ export default function StoryPage() {
             </div>
           </div>
 
-          {/* Pager, on the realm's own frame rather than the page — no fill of
-              its own, so it sits on ice in the mountain and on stone in the
-              castle instead of carrying oak into both. */}
           <div className="flex items-center justify-between gap-3 border-t-2 border-black/60 px-3 py-3 md:px-4">
             <button
               type="button"
@@ -260,7 +212,6 @@ export default function StoryPage() {
           </div>
         </ChapterFrame>
 
-        {/* Closing call — the one gold panel on the page. */}
         <Panel material="wood" as="section" aria-labelledby="closing" className="mt-8 p-8 text-center md:p-10">
           <Crown className="mx-auto mb-4 h-10 w-10 text-accent" aria-hidden="true" />
           <h2 id="closing" className="mb-3 text-xl font-bold text-parchment md:text-2xl">

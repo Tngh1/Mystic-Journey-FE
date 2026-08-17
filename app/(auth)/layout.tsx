@@ -2,26 +2,9 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-/* The gatehouse the four auth pages stand in.
 
-   Ground is the game's own title screen (`main-menu.webp`), the same art the
-   client opens on. It is decoration, hence the empty alt and `aria-hidden`.
-
-   The scrims are top-weighted, which is the opposite of what a floating form
-   needs and exactly what a hung banner needs. The banner (AuthFrame) drops from
-   a rod at the top of the page, so the night sky behind the rod is darkened to
-   give the ironwork something to bite into, and the picture is then left alone
-   on the way down: the sunset band keeps its gold, and the foreground bluff with
-   the three heroes on it stays lit and uncovered.
-
-   One light overall wash on top of that, plain black — it was `night` (#0b0620)
-   once, a *violet* black, which at these opacities washed the sunset mauve and
-   lost the game's warm palette. Black only darkens.
-
-   Top-aligned (`pt-6`, no `mt-auto`) because a banner hangs from its rod. The
-   old wood board was bottom-aligned for the opposite reason: an object with legs
-   meets the ground. */
-
+// Renders the auth layout view component.
+// Returns the JSX element hierarchy for the page view.
 export default function AuthLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <div className="relative flex min-h-dvh flex-col overflow-hidden bg-black">

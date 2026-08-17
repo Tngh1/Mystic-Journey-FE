@@ -30,37 +30,38 @@ const RARITY_CHIP: Record<string, string> = {
   Common: "bg-white/10 text-white/60 border-white/20",
 };
 
+// Renders the edit gacha banner page view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 export default function EditGachaBannerPage() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
   const searchParams = useSearchParams();
   const bannerId = searchParams.get("id");
 
-  const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
+  const [loading, setLoading] = useState(false);  // Initialize boolean flag as inactive
+  const [fetching, setFetching] = useState(true);  // Initialize loading flag as active on first render
   const [error, setError] = useState<string | null>(null);
   const [bannerItems, setBannerItems] = useState<GachaBannerItemResponse[]>([]);
 
-  // Add item form
-  const [addItemOpen, setAddItemOpen] = useState(false);
+  const [addItemOpen, setAddItemOpen] = useState(false);  // Initialize boolean flag as inactive
   const [addItemForm, setAddItemForm] = useState({ itemId: "", dropRate: "10", isFeatured: false });
-  const [addItemLoading, setAddItemLoading] = useState(false);
+  const [addItemLoading, setAddItemLoading] = useState(false);  // Initialize boolean flag as inactive
   const [addItemError, setAddItemError] = useState<string | null>(null);
 
   const [items, setItems] = useState<ItemResponse[]>([]);
 
+  // Load all items when the dependencies change, update items, and ignore stale callbacks after unmount.
   useEffect(() => {
     getAllItems(1, 1000).then(res => setItems(res.items)).catch(console.error);
   }, []);
 
-  // BR-053 / BR-136: pull chỉ nhận ticket item.
-  // Loại Currency (Gold / Gem / Exp) khỏi danh sách để admin không cấu hình
-  // banner trừ tiền thay vì trừ ticket. BE cũng chặn lại lần nữa.
   const ticketItems = items.filter(
     (i) => i.isActive && i.type?.toLowerCase() !== "currency"
   );
 
   const [formData, setFormData] = useState({
     name: "",
+    // Supported gacha banner types: Standard, Limited, or Event; the type controls banner categorization and presentation.
     type: "Standard",
     pullCost: 100,
     costItemId: "",
@@ -70,17 +71,22 @@ export default function EditGachaBannerPage() {
     endAt: "",
   });
 
+  // Renders the load banner view component.
+  // Returns the JSX element hierarchy for the page view.
   const loadBanner = useCallback(() => {
     if (!bannerId) return;
     setFetching(true);
     getById(Number(bannerId))
       .then((banner: GachaBannerDetailResponse) => {
+        // Renders the format date view component.
+        // Returns the JSX element hierarchy for the page view.
         const formatDate = (dateStr: string) => {
           if (!dateStr) return "";
           return dateStr;
         };
         setFormData({
           name: banner.name,
+          // Supported gacha banner types: Standard, Limited, or Event; the type controls banner categorization and presentation.
           type: banner.type,
           pullCost: banner.pullCost,
           costItemId: banner.costItemId != null ? String(banner.costItemId) : "",
@@ -97,18 +103,22 @@ export default function EditGachaBannerPage() {
       .finally(() => setFetching(false));
   }, [bannerId]);
 
+  // Synchronize this effect by builds resolve whenever its dependencies change.
   useEffect(() => {
     void Promise.resolve().then(loadBanner);
   }, [loadBanner]);
 
+  // Renders the handle change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleChange = <K extends keyof typeof formData>(field: K, value: (typeof formData)[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Renders the handle submit view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default HTML form submission and page reload
     if (!bannerId) return;
-    // BR-053 / BR-136: banner có phí pull buộc phải có ticket item.
     if (formData.pullCost > 0 && !formData.costItemId) {
       setError("Please select a ticket item. A gacha pull cannot be paid with Gold, Gem or Energy.");
       return;
@@ -118,6 +128,7 @@ export default function EditGachaBannerPage() {
       setError(null);
       await update(Number(bannerId), {
         name: formData.name,
+        // Supported gacha banner types: Standard, Limited, or Event; the type controls banner categorization and presentation.
         type: formData.type,
         pullCost: formData.pullCost,
         costItemId: formData.costItemId ? Number(formData.costItemId) : null,
@@ -126,48 +137,59 @@ export default function EditGachaBannerPage() {
         startAt: formData.startAt,
         endAt: formData.endAt,
       });
-      await showSuccessAlert("Success!", "Gacha banner updated successfully.");
-      router.push("/manage-gacha-pools");
+      await showSuccessAlert("Success!", "Gacha banner updated successfully.");  // Display styled success alert dialog to the user
+      router.push("/manage-gacha-pools");  // Navigate to the next page and push to history stack
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to update gacha banner";
       setError(msg);
-      await showErrorAlert("Error", msg);
+      await showErrorAlert("Error", msg);  // Display styled error alert dialog to the user
     } finally {
       setLoading(false);
     }
   };
 
+  // Renders the handle add item view component.
+  // Key functionality: displays interactive alert dialogues for user actions.
+  // Returns the JSX element hierarchy for the page view.
   const handleAddItem = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default HTML form submission and page reload
     if (!bannerId) return;
     try {
       setAddItemLoading(true);
       setAddItemError(null);
+      // Renders the new item view component.
+      // Returns the JSX element hierarchy for the page view.
       const newItem = await addBannerItem(Number(bannerId), {
         itemId: Number(addItemForm.itemId),
         dropRate: Number(addItemForm.dropRate),
         isFeatured: addItemForm.isFeatured,
       });
+      // Renders the matched view component.
+      // Returns the JSX element hierarchy for the page view.
       const matched = items.find((i) => i.itemId === newItem.itemId);
       const enrichedItem: GachaBannerItemResponse = {
         ...newItem,
         itemName: newItem.itemName ?? matched?.name ?? null,
         itemIconUrl: newItem.itemIconUrl ?? matched?.iconUrl ?? null,
+        // Supported rarity values: Common, Uncommon, Rare, Epic, Legendary, or Mythic; rarity controls quality, visuals, and sorting priority.
         itemRarity: newItem.itemRarity ?? matched?.rarity ?? null,
       };
       setBannerItems((prev) => [...prev, enrichedItem]);
       setAddItemForm({ itemId: "", dropRate: "10", isFeatured: false });
       setAddItemOpen(false);
-      await showSuccessAlert("Success!", "Item added to banner successfully.");
+      await showSuccessAlert("Success!", "Item added to banner successfully.");  // Display styled success alert dialog to the user
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to add item";
       setAddItemError(msg);
-      await showErrorAlert("Error", msg);
+      await showErrorAlert("Error", msg);  // Display styled error alert dialog to the user
     } finally {
       setAddItemLoading(false);
     }
   };
 
+  // Renders the handle remove item view component.
+  // Key functionality: displays interactive alert dialogues for user actions.
+  // Returns the JSX element hierarchy for the page view.
   const handleRemoveItem = async (bannerItemId: number) => {
     if (!bannerId) return;
     const confirm = await showConfirmAlert(
@@ -180,11 +202,11 @@ export default function EditGachaBannerPage() {
     try {
       await removeBannerItem(Number(bannerId), bannerItemId);
       setBannerItems((prev) => prev.filter((i) => i.gachaBannerItemId !== bannerItemId));
-      await showSuccessAlert("Removed!", "Item removed from banner successfully.");
+      await showSuccessAlert("Removed!", "Item removed from banner successfully.");  // Display styled success alert dialog to the user
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to remove item";
       setError(msg);
-      await showErrorAlert("Error", msg);
+      await showErrorAlert("Error", msg);  // Display styled error alert dialog to the user
     }
   };
 
@@ -297,7 +319,6 @@ export default function EditGachaBannerPage() {
         />
       </FormSection>
 
-      {/* ── Banner Items Panel ── */}
       <div className="bg-[#111] border border-white/10 rounded-2xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
           <div className="flex items-center gap-2">
@@ -317,7 +338,6 @@ export default function EditGachaBannerPage() {
           </button>
         </div>
 
-        {/* Add item form */}
         {addItemOpen && (
           <div className="px-5 py-4 border-b border-white/10 bg-[#0d0d0d]">
             <p className="text-xs text-white/50 mb-3 font-semibold uppercase tracking-wider">Add New Item</p>
@@ -385,7 +405,6 @@ export default function EditGachaBannerPage() {
           </div>
         )}
 
-        {/* Items list */}
         {bannerItems.length === 0 ? (
           <div className="px-5 py-10 text-center text-white/40 text-sm">
             No items in this banner yet. Click &quot;Add Item&quot; to add your first item.
@@ -393,8 +412,13 @@ export default function EditGachaBannerPage() {
         ) : (
           <div className="divide-y divide-white/5">
             {bannerItems.map((item) => {
+              // Renders the matched item view component.
+              // Returns the JSX element hierarchy for the page view.
               const matchedItem = items.find((i) => i.itemId === item.itemId);
+              // Renders the name view component.
+              // Returns the JSX element hierarchy for the page view.
               const name = item.itemName ?? matchedItem?.name ?? `Item #${item.itemId}`;
+              // Supported rarity values: Common, Uncommon, Rare, Epic, Legendary, or Mythic; rarity controls quality, visuals, and sorting priority.
               const rarity = item.itemRarity ?? matchedItem?.rarity ?? "Unknown";
               const iconUrl = item.itemIconUrl ?? matchedItem?.iconUrl;
               const rarityClass = RARITY_CHIP[rarity] ?? RARITY_CHIP.Common;
@@ -439,7 +463,6 @@ export default function EditGachaBannerPage() {
           </div>
         )}
 
-        {/* Total drop rate indicator */}
         {bannerItems.length > 0 && (
           <div className="px-5 py-3 bg-[#0d0d0d] border-t border-white/10 flex items-center justify-between">
             <span className="text-xs text-white/40">Total Drop Rate</span>
@@ -452,7 +475,7 @@ export default function EditGachaBannerPage() {
       </div>
 
       <FormActions
-        onCancel={() => router.push("/manage-gacha-pools")}
+        onCancel={() => router.push("/manage-gacha-pools")}  // Navigate to the next page and push to history stack
         submitLabel="Update Gacha Banner"
         loadingLabel="Updating..."
         loading={loading}

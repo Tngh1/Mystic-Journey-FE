@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   description: "A dark-fantasy pixel MMORPG. Wake in the Elf Forest and answer the call.",
 };
 
+// Renders the root layout view component.
+// Returns the JSX element hierarchy for the page view.
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -14,10 +16,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      {/* Both faces were discovered only after globals.css parsed, which put the
-          body font 612ms into the critical chain. Preloading them starts the
-          fetch with the document instead. Only these two — the app ships no
-          other faces, so there is nothing here to over-preload. */}
       <head>
         <link
           rel="preload"

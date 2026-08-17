@@ -3,24 +3,9 @@ import { Monitor, Check, Cpu, Sprout } from "lucide-react";
 import DownloadButton from "@/components/ui/DownloadButton";
 import Panel from "@/components/ui/Panel";
 
-/* Download, as one tree standing on the page.
 
-   The page used to be an iron strongbox with two slates under it — three
-   separate surfaces stacked down a scroll. Now the whole page is a single
-   object: a canopy carrying the title, a trunk running down the middle and into
-   the footer's turf, and every piece of download information hung off the
-   branches as a wooden sign. The installer itself is the fruit — one big gold
-   thing in the middle of the trunk, which is also the page's only gold, so
-   there is no question what you are meant to press.
-
-   Same idiom as NoticeBoard and ChapterFrame: stacked hard-edged courses in
-   existing tokens, lit on one edge, darker toward the bottom, tiling detail from
-   `repeating-linear-gradient` so a course works at any width. Every part of the
-   tree is decoration and `aria-hidden`; the signs are ordinary sections.
-
-   The download button and its animation are untouched — it is dropped into the
-   fruit's dark core, where its white-on-dark copy still reads. */
-
+// Renders the download view component.
+// Returns the JSX element hierarchy for the page view.
 const DOWNLOAD = {
   platform: "Windows (PC)",
   icon: Monitor,
@@ -31,6 +16,8 @@ const DOWNLOAD = {
   requirements: ["Windows 7, Windows 10, or later", "4 GB RAM minimum", "2 GB available space"],
 };
 
+// Renders the system_requirements view component.
+// Returns the JSX element hierarchy for the page view.
 const SYSTEM_REQUIREMENTS = {
   minimum: [
     { label: "CPU", value: "Core i3 3220 or above" },
@@ -49,22 +36,18 @@ const SYSTEM_REQUIREMENTS = {
 };
 
 const OUTLINE = "border-black/60";
-/** Bark seen along a branch: grain bands tiled across it. */
 const BARK = "bg-[repeating-linear-gradient(90deg,rgb(0_0_0_/_0.18)_0_2px,transparent_2px_20px)]";
-/** Foliage: hatched leaf clumps, tiled so one course works at any width. */
 const LEAVES =
   "bg-[repeating-linear-gradient(45deg,rgb(0_0_0_/_0.18)_0_3px,transparent_3px_14px)]";
 
-/** One foliage course. Narrow ones step the crown in toward the top. */
+// Renders the leaf view component.
+// Returns the JSX element hierarchy for the page view.
 function Leaf({ w, h, fill }: { w: string; h: string; fill: string }) {
   return <span className={`block border-2 ${OUTLINE} ${w} ${h} ${fill} ${LEAVES}`} />;
 }
 
-/**
- * A sign hung off the trunk: a branch reaching out over it, two ropes, and the
- * plank itself. Below `md` the branches would have nowhere to reach, so the
- * signs stack down the trunk and only the ropes remain.
- */
+// Renders the branch sign view component.
+// Returns the JSX element hierarchy for the page view.
 function BranchSign({
   side,
   labelledBy,
@@ -79,10 +62,6 @@ function BranchSign({
     <div
       className={`relative w-full md:w-[54%] ${isLeft ? "md:mr-auto md:pr-6" : "md:ml-auto md:pl-6"}`}
     >
-      {/* The bough. It spans the sign's full width so both ropes below hang
-          from it — an inset branch left the outer rope attached to nothing —
-          and runs past the container edge nearest the trunk so it reads as
-          growing out of it. */}
       <span
         className={`pointer-events-none absolute top-0 hidden h-3 border-y-2 ${OUTLINE} bg-wood ${BARK} shadow-[inset_0_2px_0_var(--color-wood-light),inset_0_-2px_0_var(--color-wood-dark)] md:block ${
           isLeft ? "left-0 -right-4" : "-left-4 right-0"
@@ -114,8 +93,8 @@ function BranchSign({
   );
 }
 
-/* One spec sign. The recommended one is marked by a gold header rule *and* the
-   word "Recommended", never by tint alone. */
+// Renders the requirement sign view component.
+// Returns the JSX element hierarchy for the page view.
 function RequirementSign({
   id,
   title,
@@ -149,8 +128,6 @@ function RequirementSign({
           {title}
         </h3>
       </div>
-      {/* Scratched rows rather than a boxed table: every other line sunk one
-          step, so the eye tracks across without a grid of borders. */}
       <dl>
         {specs.map((spec) => (
           <div
@@ -168,16 +145,13 @@ function RequirementSign({
   );
 }
 
+// Renders the download page view component.
+// Returns the JSX element hierarchy for the page view.
 export default function DownloadPage() {
   const Icon = DOWNLOAD.icon;
 
   return (
-    /* No bottom padding: the trunk runs to the end of the page so its base meets
-       the footer's turf strip, which overhangs the seam by 16px. */
     <div className="min-h-dvh pt-[88px] md:pt-[112px]">
-      {/* The crown. Foliage courses stepping out to a wide slab that carries the
-          title plate, then stepping back in — the canopy is the page header, so
-          there is no separate banner above the tree. */}
       <header className="px-4 pt-6 md:pt-10">
         <div className="mx-auto flex w-full max-w-[64rem] flex-col items-center">
           <div className="flex w-full flex-col items-center" aria-hidden="true">
@@ -186,7 +160,6 @@ export default function DownloadPage() {
             <Leaf w="w-[72%]" h="h-5" fill="bg-grass" />
           </div>
 
-          {/* The widest course, with the plate nailed into it. */}
           <div
             className={`flex w-full justify-center border-2 ${OUTLINE} bg-heraldry-pine ${LEAVES} px-4 py-6 shadow-lg md:py-8`}
           >
@@ -214,9 +187,6 @@ export default function DownloadPage() {
         </div>
       </header>
 
-      {/* Trunk and everything hung on it. The trunk is one absolute course down
-          the centre, so the rows below can sit on either side of it without
-          knowing it is there. */}
       <div className="relative mx-auto w-full max-w-[1000px] px-4 pt-6 md:px-6 md:pt-10">
         <span
           className={`pointer-events-none absolute inset-y-0 left-1/2 -ml-5 w-10 border-x-2 ${OUTLINE} bg-wood ${BARK} shadow-[inset_3px_0_0_var(--color-wood-light),inset_-3px_0_0_var(--color-wood-dark)] md:-ml-7 md:w-14`}
@@ -255,13 +225,8 @@ export default function DownloadPage() {
             </ul>
           </BranchSign>
 
-          {/* The fruit: the installer, growing off the trunk in the middle of the
-              page. Stepped courses give it a round-enough silhouette without a
-              single curve, and its core is dark so the button's own white copy
-              still reads on it. The one gold thing on the page. */}
           <div className="relative flex justify-center">
             <div className="flex w-full max-w-[20rem] flex-col items-center">
-              {/* Stalk and leaf, joining it to the trunk above. */}
               <span
                 className={`h-7 w-2.5 border-x-2 ${OUTLINE} bg-wood-dark`}
                 aria-hidden="true"
@@ -308,8 +273,6 @@ export default function DownloadPage() {
             </div>
           </div>
 
-          {/* A plaque nailed to the trunk, so the two spec signs below it read as
-              one pair rather than two more unrelated boards. */}
           <div className="relative flex justify-center">
             <h2
               id="sysreq"
@@ -334,9 +297,6 @@ export default function DownloadPage() {
           />
         </div>
 
-        {/* The base flaring out into roots. The footer's turf strip overhangs the
-            last course, so the tree stands in the ground rather than stopping
-            above it. */}
         <div className="flex flex-col items-center pt-12 md:pt-16" aria-hidden="true">
           <span
             className={`h-4 w-16 border-x-2 ${OUTLINE} bg-wood shadow-[inset_3px_0_0_var(--color-wood-light),inset_-3px_0_0_var(--color-wood-dark)]`}

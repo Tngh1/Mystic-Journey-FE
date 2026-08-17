@@ -3,6 +3,8 @@ interface SocialIconProps {
   size?: number;
 }
 
+// Renders the social icon reusable UI component.
+// Returns the styled JSX element.
 export default function SocialIcon({ name, size = 18 }: SocialIconProps) {
   switch (name) {
     case "Twitter":

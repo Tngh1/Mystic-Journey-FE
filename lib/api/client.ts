@@ -1,9 +1,7 @@
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 
+// Helper function executing api client.
 const apiClient = axios.create({
-  // Keep auth requests on the FE origin. Next rewrites /backend to the .NET
-  // API, so its HttpOnly cookies are stored for the FE host and are also
-  // visible to proxy.ts when it protects dashboard routes.
   baseURL: "/backend",
   headers: { "Content-Type": "application/json" },
   withCredentials: true,
@@ -16,27 +14,28 @@ let refreshQueue: Array<{
   reject: (err: unknown) => void;
 }> = [];
 
+// Resume every request waiting for the shared token refresh, then clear the queue so each request retries exactly once.
 function processRefreshQueue() {
   refreshQueue.forEach((cb) => cb.resolve());
   refreshQueue = [];
 }
 
+// Reject every request waiting for a failed token refresh, then clear the queue to prevent stale retry callbacks.
 function processRefreshError(err: unknown) {
   refreshQueue.forEach((cb) => cb.reject(err));
   refreshQueue = [];
 }
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => response, // Pass through successful HTTP responses unchanged
   async (error: AxiosError) => {
     const originalRequest = error.config as (AxiosRequestConfig & { _retry?: boolean }) | undefined;
 
-    const isRefreshRequest = originalRequest?.url?.includes("/api/auth/refresh-token") ?? false;
+    const isRefreshRequest = originalRequest?.url?.includes("/api/auth/refresh-token") ?? false; // Check if the failed request was the refresh token call itself
 
-    // A failed refresh must reject normally. Retrying the refresh request through its own
-    // queue deadlocks session hydration and leaves the header permanently unauthenticated.
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isRefreshRequest) {
       if (isRefreshing) {
+        // Another request is already refreshing tokens — queue this request until refresh completes
         return new Promise((resolve, reject) => {
           refreshQueue.push({
             resolve: () => apiClient(originalRequest).then(resolve).catch(reject),
@@ -45,26 +44,25 @@ apiClient.interceptors.response.use(
         });
       }
 
-      originalRequest._retry = true;
-      isRefreshing = true;
+      originalRequest._retry = true; // Mark request so it is never retried more than once
+      isRefreshing = true; // Acquire refresh mutex flag
 
       try {
-        await apiClient.post("/api/auth/refresh-token");
-        processRefreshQueue();
-        return apiClient(originalRequest);
+        await apiClient.post("/api/auth/refresh-token"); // Exchange refresh token cookie for new access token
+        processRefreshQueue(); // Flush pending request queue now that new token cookies are active
+        return apiClient(originalRequest); // Re-execute original request with fresh credentials
       } catch (refreshErr) {
-        processRefreshError(refreshErr);
+        processRefreshError(refreshErr); // Reject all queued callers with session expiry error
         return Promise.reject(new ApiError("Session expired. Please login again."));
       } finally {
-        isRefreshing = false;
+        isRefreshing = false; // Release refresh lock
       }
     }
 
-    throw normalizeError(error);
+    throw normalizeError(error); // Wrap non-401 or fatal errors into normalized ApiError
   }
 );
 
-/* ─── ApiResponse envelope (BE unified format) ─────────────────────────── */
 
 interface ApiEnvelope<T> {
   success: boolean;
@@ -73,38 +71,40 @@ interface ApiEnvelope<T> {
   data: T | null;
 }
 
-/** Unwrap BE ApiResponse<T> envelope. If body is not an envelope, return as-is. */
+// Return the data field from a successful API envelope, or return the original body when the response is not wrapped.
 function unwrap<T>(body: unknown): T {
   if (body && typeof body === "object" && "success" in body && "data" in body) {
     const env = body as ApiEnvelope<T>;
-    if (env.data !== null && env.data !== undefined) return env.data;
+    if (env.data !== null && env.data !== undefined) return env.data; // Extract unwrapped data payload
   }
-  return body as T;
+  return body as T; // Fallback to raw body if not standard envelope
 }
 
-/* ─── Typed helper functions ─────────────────────────────────────────────── */
 
+// Send a GET request with optional query parameters, unwrap the API envelope, and return the typed response payload.
 export async function get<T = unknown>(path: string, params?: Record<string, unknown>): Promise<T> {
-  const response = await apiClient.get<ApiEnvelope<T> | T>(path, { params });
-  return unwrap<T>(response.data);
+  const response = await apiClient.get<ApiEnvelope<T> | T>(path, { params }); // Execute HTTP GET with query params
+  return unwrap<T>(response.data); // Unwrap data field from response envelope
 }
 
+// Send a POST request with the supplied payload, unwrap the API envelope, and return the typed response payload.
 export async function post<T = unknown>(path: string, data?: unknown): Promise<T> {
-  const response = await apiClient.post<ApiEnvelope<T> | T>(path, data);
-  return unwrap<T>(response.data);
+  const response = await apiClient.post<ApiEnvelope<T> | T>(path, data); // Execute HTTP POST with JSON body
+  return unwrap<T>(response.data); // Unwrap data field from response envelope
 }
 
+// Send a PUT request with the supplied payload, unwrap the API envelope, and return the typed response payload.
 export async function put<T = unknown>(path: string, data?: unknown): Promise<T> {
-  const response = await apiClient.put<ApiEnvelope<T> | T>(path, data);
-  return unwrap<T>(response.data);
+  const response = await apiClient.put<ApiEnvelope<T> | T>(path, data); // Execute HTTP PUT with JSON body
+  return unwrap<T>(response.data); // Unwrap data field from response envelope
 }
 
+// Send a DELETE request with optional query parameters, unwrap the API envelope, and return the typed response payload.
 export async function del<T = unknown>(path: string, params?: Record<string, unknown>): Promise<T> {
-  const response = await apiClient.delete<ApiEnvelope<T> | T>(path, { params });
-  return unwrap<T>(response.data);
+  const response = await apiClient.delete<ApiEnvelope<T> | T>(path, { params }); // Execute HTTP DELETE with query params
+  return unwrap<T>(response.data); // Unwrap data field from response envelope
 }
 
-/* ─── Error helpers ──────────────────────────────────────────────────────── */
 
 const STATUS_TEXT_MAP: Record<number, string> = {
   400: "Invalid request. Please check your input parameters.",
@@ -123,6 +123,7 @@ const STATUS_TEXT_MAP: Record<number, string> = {
   504: "Gateway timeout. The server took too long to respond.",
 };
 
+// Reject empty or raw HTTP status messages, map known status codes to safe user-facing text, and preserve valid backend messages.
 export function sanitizeErrorMessage(msg: string | undefined, status?: number): string {
   if (!msg || typeof msg !== "string") {
     return status && STATUS_TEXT_MAP[status] ? STATUS_TEXT_MAP[status] : "An unexpected error occurred.";
@@ -130,13 +131,11 @@ export function sanitizeErrorMessage(msg: string | undefined, status?: number): 
 
   const trimmed = msg.trim();
 
-  // If message is purely digits (e.g. "404", "401", "500")
   if (/^\d{3}$/.test(trimmed)) {
     const code = parseInt(trimmed, 10);
     return STATUS_TEXT_MAP[code] ?? "An unexpected error occurred.";
   }
 
-  // If message matches raw status code patterns (e.g. "Request failed with status code 404")
   if (
     /request failed with status code/i.test(trimmed) ||
     /status code \d{3}/i.test(trimmed) ||
@@ -147,6 +146,8 @@ export function sanitizeErrorMessage(msg: string | undefined, status?: number): 
     if (status && STATUS_TEXT_MAP[status]) {
       return STATUS_TEXT_MAP[status];
     }
+    // Helper function executing match.
+    // Processes input parameters and returns the calculated result.
     const match = trimmed.match(/\b([45]\d{2})\b/);
     if (match) {
       const code = parseInt(match[1], 10);
@@ -161,6 +162,7 @@ export function sanitizeErrorMessage(msg: string | undefined, status?: number): 
 export class ApiError extends Error {
   code?: string;
   status?: number;
+  // Initialize this instance from message, code, and status and store name, code, and status for later operations.
   constructor(message: string, code?: string, status?: number) {
     super(message);
     this.name = "ApiError";
@@ -169,6 +171,7 @@ export class ApiError extends Error {
   }
 }
 
+// Convert Axios, native Error, and unknown failures into ApiError while preserving the sanitized message, backend code, and HTTP status.
 export function normalizeError(error: unknown): ApiError {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<ApiEnvelope<unknown>>;
@@ -196,6 +199,7 @@ export function normalizeError(error: unknown): ApiError {
   return new ApiError("An unexpected error occurred.");
 }
 
+// Normalize the supplied failure into ApiError and throw it so callers receive one consistent error shape.
 export function handleApiError(error: unknown): never {
   throw normalizeError(error);
 }

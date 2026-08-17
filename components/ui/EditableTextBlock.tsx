@@ -23,28 +23,19 @@ import {
 } from 'lucide-react';
 
 export interface EditableTextBlockProps {
-  /** Unique id used for the sortable item and for registering the content getter */
   id: string;
-  /** Initial HTML content */
   contentData: string;
-  /** Called when the user clicks the delete button */
   onDelete: (id: string) => void;
-  /** Called once after the editor mounts so the parent can read the latest HTML */
   onRegisterEditor?: (id: string, getContent: () => string) => void;
-  /** Called when the editor unmounts so the parent can release the getter reference */
   onUnregisterEditor?: (id: string) => void;
 }
 
 const BLOCK_TAGS = new Set(['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P', 'BLOCKQUOTE', 'PRE', 'LI']);
 const ALIGNMENT_BLOCK_TAGS = new Set(['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BLOCKQUOTE', 'LI', 'DIV']);
 
-/**
- * A sortable, contentEditable rich-text block with a toolbar that stays in sync
- * with the current selection / caret position.
- *
- * The toolbar is driven by DOM-walking (not by the deprecated `queryCommandState`)
- * so it works reliably in modern Chrome / Edge / Firefox.
- */
+// Renders the editable text block reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes; binds user interaction event listeners.
+// Returns the styled JSX element.
 export default function EditableTextBlock({
   id,
   contentData,
@@ -61,6 +52,7 @@ export default function EditableTextBlock({
     isDragging,
   } = useSortable({ id });
 
+  // Helper function executing style.
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -71,13 +63,12 @@ export default function EditableTextBlock({
   const editorRef = useRef<HTMLDivElement>(null);
   const isInitializedRef = useRef(false);
 
-  // Toolbar active state — synced with current selection / caret position
   const [activeStates, setActiveStates] = useState({
     bold: false,
     italic: false,
     underline: false,
     strikeThrough: false,
-    block: '', // 'h1' | 'h2' | 'h3' | 'p' | ...
+    block: '',
     justifyLeft: false,
     justifyCenter: false,
     justifyRight: false,
@@ -85,8 +76,8 @@ export default function EditableTextBlock({
     orderedList: false,
   });
 
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  const [showFontSize, setShowFontSize] = useState(false);
+  const [showColorPicker, setShowColorPicker] = useState(false);  // Initialize boolean flag as inactive
+  const [showFontSize, setShowFontSize] = useState(false);  // Initialize boolean flag as inactive
   const [selectedColor, setSelectedColor] = useState('#ffffff');
 
   const FONT_SIZES = [
@@ -102,6 +93,8 @@ export default function EditableTextBlock({
     '#a78bfa', '#f472b6', '#e5e5e5', '#737373',
   ];
 
+  // Helper function executing toggle color.
+  // Processes input parameters and returns the calculated result.
   const toggleColor = (color: string) => {
     document.execCommand('foreColor', false, color);
     setSelectedColor(color);
@@ -109,6 +102,8 @@ export default function EditableTextBlock({
     requestAnimationFrame(updateActiveStates);
   };
 
+  // Helper function executing strip direction styles.
+  // Processes input parameters and returns the calculated result.
   const stripDirectionStyles = useCallback((html: string): string => {
     if (!html) return '';
     return html
@@ -119,6 +114,7 @@ export default function EditableTextBlock({
       .replace(/\s+style=""/g, '');
   }, []);
 
+  // Helper function executing fix editor direction.
   const fixEditorDirection = useCallback(() => {
     if (editorRef.current) {
       editorRef.current.style.direction = 'ltr';
@@ -126,10 +122,12 @@ export default function EditableTextBlock({
     }
   }, []);
 
+  // Synchronize the derived component state whenever this effect's dependency values change.
   useEffect(() => {
     fixEditorDirection();
   }, [fixEditorDirection]);
 
+  // Helper function executing initialize editor.
   const initializeEditor = useCallback(() => {
     if (editorRef.current && !isInitializedRef.current) {
       editorRef.current.innerHTML = contentData || '';
@@ -138,12 +136,16 @@ export default function EditableTextBlock({
     }
   }, [contentData, fixEditorDirection]);
 
+  // Synchronize the derived component state whenever this effect's dependency values change.
   useEffect(() => {
     initializeEditor();
   }, [initializeEditor]);
 
+  // Synchronize the derived component state whenever this effect's dependency values change.
   useEffect(() => {
     if (onRegisterEditor && editorRef.current) {
+      // Helper function executing get content.
+      // Processes input parameters and returns the calculated result.
       const getContent = () => {
         if (editorRef.current) {
           return stripDirectionStyles(editorRef.current.innerHTML);
@@ -157,7 +159,8 @@ export default function EditableTextBlock({
     };
   }, [id, onRegisterEditor, onUnregisterEditor, stripDirectionStyles]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Detect current block tag (h1, h2, h3, p, blockquote, etc.) at caret / selection
+  // Helper function executing get current block tag.
+  // Processes input parameters and returns the calculated result.
   const getCurrentBlockTag = useCallback((): string => {
     const editor = editorRef.current;
     if (!editor) return '';
@@ -180,8 +183,8 @@ export default function EditableTextBlock({
     return '';
   }, []);
 
-  // DOM-based command-state detection. Replaces the deprecated queryCommandState,
-  // which is unreliable in modern browsers (especially for formatBlock / alignment).
+  // Helper function executing is command active.
+  // Processes input parameters and returns the calculated result.
   const isCommandActive = useCallback((command: string): boolean => {
     const editor = editorRef.current;
     if (!editor) return false;
@@ -248,8 +251,6 @@ export default function EditableTextBlock({
       checkNode = checkNode.parentElement;
     }
 
-    // Check the parent element of the anchor first (most common case),
-    // then any descendants that contain inline formatting.
     if (checkNode && checkNode.nodeType === Node.ELEMENT_NODE) {
       const el = checkNode as HTMLElement;
       if (targetTags.includes(el.tagName)) return true;
@@ -269,6 +270,8 @@ export default function EditableTextBlock({
     return false;
   }, []);
 
+  // Helper function executing update active states.
+  // Processes input parameters and returns the calculated result.
   const updateActiveStates = useCallback(() => {
     const editor = editorRef.current;
     if (!editor) return;
@@ -302,15 +305,16 @@ export default function EditableTextBlock({
         orderedList: isCommandActive('insertOrderedList'),
       });
     } catch {
-      // Some browsers throw if there's no selection — ignore
     }
   }, [getCurrentBlockTag, isCommandActive]);
 
-  // Wire up selection / cursor listeners. rAF lets the DOM settle first.
+  // Subscribe the required browser or runtime event handlers when dependencies change and remove the same handlers during cleanup.
   useEffect(() => {
     const editor = editorRef.current;
     if (!editor) return;
 
+    // Helper function executing schedule update.
+    // Processes input parameters and returns the calculated result.
     const scheduleUpdate = () => requestAnimationFrame(updateActiveStates);
 
     document.addEventListener('selectionchange', scheduleUpdate);
@@ -330,8 +334,9 @@ export default function EditableTextBlock({
     };
   }, [updateActiveStates]);
 
-  // Close dropdowns when clicking outside
+  // Subscribe the required browser or runtime event handlers when dependencies change and remove the same handlers during cleanup.
   useEffect(() => {
+    // Event handler for handle click outside.
     const handleClickOutside = () => {
       setShowColorPicker(false);
       setShowFontSize(false);
@@ -344,15 +349,14 @@ export default function EditableTextBlock({
     };
   }, [showColorPicker, showFontSize]);
 
+  // Helper function executing exec command.
   const execCommand = (command: string, value?: string) => {
-    // Buttons use onMouseDown={e => e.preventDefault()} so the editor keeps focus.
-    // No need to call focus() here — doing so would move the caret.
     document.execCommand(command, false, value);
     requestAnimationFrame(updateActiveStates);
   };
 
-  // Toggle a heading on/off. If the caret is already inside the requested
-  // heading, switch it back to a paragraph; otherwise apply the heading.
+  // Helper function executing toggle block.
+  // Processes input parameters and returns the calculated result.
   const toggleBlock = (tag: 'h1' | 'h2' | 'h3' | 'p') => {
     const current = getCurrentBlockTag();
     const next = current === tag ? 'p' : tag;
@@ -360,14 +364,15 @@ export default function EditableTextBlock({
     requestAnimationFrame(updateActiveStates);
   };
 
-  // Helper classes
   const btnBase = 'p-1.5 rounded transition-colors cursor-pointer';
   const btnIdle = 'text-gray-400 hover:text-white hover:bg-[#333]';
   const btnActive = 'text-white bg-blue-500/30 hover:bg-blue-500/40';
 
+  // Helper function executing toolbar btn class.
   const toolbarBtnClass = (isActive: boolean, extra = '') =>
     `${btnBase} ${isActive ? btnActive : btnIdle} ${extra}`;
 
+  // Helper function executing h btn class.
   const hBtnClass = (tag: string, extra = '') =>
     `px-2 py-1 text-xs font-bold rounded transition-colors ${
       activeStates.block === tag
@@ -382,7 +387,6 @@ export default function EditableTextBlock({
       className="bg-[#222] border border-blue-500/50 rounded-lg overflow-hidden"
     >
       <div className="flex items-stretch">
-        {/* Drag Handle */}
         <div
           {...attributes}
           {...listeners}
@@ -392,7 +396,6 @@ export default function EditableTextBlock({
         </div>
 
         <div className="flex-1 p-4 space-y-3">
-          {/* Header with type badge and delete */}
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded text-xs font-medium">
               <Type className="w-3 h-3 inline mr-1" />
@@ -402,7 +405,7 @@ export default function EditableTextBlock({
             <button
               type="button"
               onMouseDown={(e) => {
-                e.preventDefault();
+                e.preventDefault();  // Prevent default HTML form submission and page reload
                 e.stopPropagation();
               }}
               onClick={async (e) => {
@@ -425,11 +428,10 @@ export default function EditableTextBlock({
             </button>
           </div>
 
-          {/* Inline Toolbar */}
           <div className="flex flex-wrap items-center gap-1 p-2 border border-[#333] rounded-lg bg-[#111111]">
             <button
               type="button"
-              onMouseDown={(e) => e.preventDefault()}
+              onMouseDown={(e) => e.preventDefault()}  // Prevent default HTML form submission and page reload
               onClick={() => execCommand('undo')}
               className={toolbarBtnClass(false)}
               title="Undo"
@@ -438,7 +440,7 @@ export default function EditableTextBlock({
             </button>
             <button
               type="button"
-              onMouseDown={(e) => e.preventDefault()}
+              onMouseDown={(e) => e.preventDefault()}  // Prevent default HTML form submission and page reload
               onClick={() => execCommand('redo')}
               className={toolbarBtnClass(false)}
               title="Redo"
@@ -450,7 +452,7 @@ export default function EditableTextBlock({
 
             <button
               type="button"
-              onMouseDown={(e) => e.preventDefault()}
+              onMouseDown={(e) => e.preventDefault()}  // Prevent default HTML form submission and page reload
               onClick={() => execCommand('bold')}
               className={toolbarBtnClass(activeStates.bold, 'font-bold')}
               title="Bold"
@@ -459,7 +461,7 @@ export default function EditableTextBlock({
             </button>
             <button
               type="button"
-              onMouseDown={(e) => e.preventDefault()}
+              onMouseDown={(e) => e.preventDefault()}  // Prevent default HTML form submission and page reload
               onClick={() => execCommand('italic')}
               className={toolbarBtnClass(activeStates.italic, 'italic')}
               title="Italic"
@@ -468,7 +470,7 @@ export default function EditableTextBlock({
             </button>
             <button
               type="button"
-              onMouseDown={(e) => e.preventDefault()}
+              onMouseDown={(e) => e.preventDefault()}  // Prevent default HTML form submission and page reload
               onClick={() => execCommand('underline')}
               className={toolbarBtnClass(activeStates.underline, 'underline')}
               title="Underline"
@@ -477,7 +479,7 @@ export default function EditableTextBlock({
             </button>
             <button
               type="button"
-              onMouseDown={(e) => e.preventDefault()}
+              onMouseDown={(e) => e.preventDefault()}  // Prevent default HTML form submission and page reload
               onClick={() => execCommand('strikeThrough')}
               className={toolbarBtnClass(activeStates.strikeThrough, 'line-through')}
               title="Strikethrough"
@@ -489,7 +491,7 @@ export default function EditableTextBlock({
 
             <button
               type="button"
-              onMouseDown={(e) => e.preventDefault()}
+              onMouseDown={(e) => e.preventDefault()}  // Prevent default HTML form submission and page reload
               onClick={() => toggleBlock('h1')}
               className={hBtnClass('h1')}
               title="Heading 1"
@@ -498,7 +500,7 @@ export default function EditableTextBlock({
             </button>
             <button
               type="button"
-              onMouseDown={(e) => e.preventDefault()}
+              onMouseDown={(e) => e.preventDefault()}  // Prevent default HTML form submission and page reload
               onClick={() => toggleBlock('h2')}
               className={hBtnClass('h2')}
               title="Heading 2"
@@ -507,7 +509,7 @@ export default function EditableTextBlock({
             </button>
             <button
               type="button"
-              onMouseDown={(e) => e.preventDefault()}
+              onMouseDown={(e) => e.preventDefault()}  // Prevent default HTML form submission and page reload
               onClick={() => toggleBlock('h3')}
               className={hBtnClass('h3')}
               title="Heading 3"
@@ -516,7 +518,7 @@ export default function EditableTextBlock({
             </button>
             <button
               type="button"
-              onMouseDown={(e) => e.preventDefault()}
+              onMouseDown={(e) => e.preventDefault()}  // Prevent default HTML form submission and page reload
               onClick={() => toggleBlock('p')}
               className={hBtnClass('p')}
               title="Paragraph"
@@ -526,11 +528,10 @@ export default function EditableTextBlock({
 
             <div className="w-px h-5 bg-gray-700 mx-1" />
 
-            {/* Font Size Dropdown */}
             <div className="relative">
               <button
                 type="button"
-                onMouseDown={(e) => { e.preventDefault(); setShowFontSize((v) => !v); setShowColorPicker(false); }}
+                onMouseDown={(e) => { e.preventDefault(); setShowFontSize((v) => !v); setShowColorPicker(false); }}  // Prevent default HTML form submission and page reload
                 className={toolbarBtnClass(showFontSize)}
                 title="Font Size"
               >
@@ -542,7 +543,7 @@ export default function EditableTextBlock({
                     <button
                       key={size.value}
                       type="button"
-                      onMouseDown={(e) => e.preventDefault()}
+                      onMouseDown={(e) => e.preventDefault()}  // Prevent default HTML form submission and page reload
                       onClick={() => {
                         execCommand('fontSize', size.value);
                         setShowFontSize(false);
@@ -557,11 +558,10 @@ export default function EditableTextBlock({
               )}
             </div>
 
-            {/* Color Picker */}
             <div className="relative">
               <button
                 type="button"
-                onMouseDown={(e) => { e.preventDefault(); setShowColorPicker((v) => !v); setShowFontSize(false); }}
+                onMouseDown={(e) => { e.preventDefault(); setShowColorPicker((v) => !v); setShowFontSize(false); }}  // Prevent default HTML form submission and page reload
                 className={`${toolbarBtnClass(showColorPicker)} flex items-center gap-1`}
                 title="Text Color"
               >
@@ -577,7 +577,7 @@ export default function EditableTextBlock({
                     <button
                       key={color}
                       type="button"
-                      onMouseDown={(e) => e.preventDefault()}
+                      onMouseDown={(e) => e.preventDefault()}  // Prevent default HTML form submission and page reload
                       onClick={() => toggleColor(color)}
                       className="w-6 h-6 rounded border border-gray-600 hover:scale-110 transition-transform"
                       style={{ backgroundColor: color }}
@@ -601,7 +601,7 @@ export default function EditableTextBlock({
 
             <button
               type="button"
-              onMouseDown={(e) => e.preventDefault()}
+              onMouseDown={(e) => e.preventDefault()}  // Prevent default HTML form submission and page reload
               onClick={() => execCommand('justifyLeft')}
               className={toolbarBtnClass(activeStates.justifyLeft)}
               title="Align Left"
@@ -610,7 +610,7 @@ export default function EditableTextBlock({
             </button>
             <button
               type="button"
-              onMouseDown={(e) => e.preventDefault()}
+              onMouseDown={(e) => e.preventDefault()}  // Prevent default HTML form submission and page reload
               onClick={() => execCommand('justifyCenter')}
               className={toolbarBtnClass(activeStates.justifyCenter)}
               title="Align Center"
@@ -619,7 +619,7 @@ export default function EditableTextBlock({
             </button>
             <button
               type="button"
-              onMouseDown={(e) => e.preventDefault()}
+              onMouseDown={(e) => e.preventDefault()}  // Prevent default HTML form submission and page reload
               onClick={() => execCommand('justifyRight')}
               className={toolbarBtnClass(activeStates.justifyRight)}
               title="Align Right"
@@ -631,7 +631,7 @@ export default function EditableTextBlock({
 
             <button
               type="button"
-              onMouseDown={(e) => e.preventDefault()}
+              onMouseDown={(e) => e.preventDefault()}  // Prevent default HTML form submission and page reload
               onClick={() => execCommand('insertUnorderedList')}
               className={toolbarBtnClass(activeStates.unorderedList)}
               title="Bullet List"
@@ -640,7 +640,7 @@ export default function EditableTextBlock({
             </button>
             <button
               type="button"
-              onMouseDown={(e) => e.preventDefault()}
+              onMouseDown={(e) => e.preventDefault()}  // Prevent default HTML form submission and page reload
               onClick={() => execCommand('insertOrderedList')}
               className={toolbarBtnClass(activeStates.orderedList)}
               title="Numbered List"
@@ -649,7 +649,6 @@ export default function EditableTextBlock({
             </button>
           </div>
 
-          {/* Editor Area */}
           <div
             ref={editorRef}
             contentEditable
