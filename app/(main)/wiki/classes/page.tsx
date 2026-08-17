@@ -7,17 +7,6 @@ import { CLASSES } from "@/lib/data/classes";
 import { useClassConfigs, statCeilings, findConfig } from "@/lib/hooks/useClassConfigs";
 import type { ClassConfigResponse } from "@/lib/api/characters";
 
-/* Redesigned as a **muster roll**: three enlistment records stood side by side,
-   the way a character-select screen shows its roster rather than the way a wiki
-   shows three cards. Each record is one object — cloth head, the recruit's
-   portrait full height beneath it, and a rivetted service strip at the foot
-   carrying the name, the role and the stat gauges. Nothing is a Panel, nothing
-   is a wooden plaque, and the whole record is the link, so the click target is
-   the recruit and not a button tacked under one.
-
-   The three stats every record compares. `read` pulls the value off the live
-   ClassConfig row, so the gauge never has to know which API field a label maps
-   to. */
 const STAT_COLUMNS = [
   { key: "hp", label: "HP", Icon: Heart, read: (c: ClassConfigResponse) => c.maxHp },
   { key: "atk", label: "ATK", Icon: Swords, read: (c: ClassConfigResponse) => c.atk },
@@ -26,11 +15,8 @@ const STAT_COLUMNS = [
 
 const PIPS = 8;
 
-/* A gauge stood on end — pips stacked bottom-up, the way a level meter reads on
-   a character sheet. Horizontal bars were the old design's idiom; upright
-   columns let the three stats sit beside each other in the strip and be compared
-   at a glance. The figure is always printed above the column, so nothing here
-   depends on colour. */
+// Renders the stat column view component.
+// Returns the JSX element hierarchy for the page view.
 function StatColumn({
   label,
   Icon,
@@ -72,8 +58,8 @@ function StatColumn({
   );
 }
 
-/* Holds the gauge row's exact height while the ClassConfig table is in flight,
-   so the record never resizes under the cursor when the numbers land. */
+// Renders the stat columns skeleton view component.
+// Returns the JSX element hierarchy for the page view.
 function StatColumnsSkeleton() {
   return (
     <div className="grid grid-cols-3 gap-3" aria-hidden="true">
@@ -88,6 +74,8 @@ function StatColumnsSkeleton() {
   );
 }
 
+// Renders the wiki classes page view component.
+// Returns the JSX element hierarchy for the page view.
 export default function WikiClassesPage() {
   const { configs, error, loading } = useClassConfigs();
   const ceilings = configs ? statCeilings(configs) : null;
@@ -95,8 +83,6 @@ export default function WikiClassesPage() {
   return (
     <div className="min-h-dvh pt-[88px] pb-16 md:pt-[112px]">
       <div className="mx-auto w-full max-w-[1200px] px-4 py-12 md:px-6 md:py-16">
-        {/* Register head. A left-set title with a rule running off it — no moon,
-            no carved board: the roster below is the thing to look at. */}
         <header className="mb-10 md:mb-12">
           <p className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] text-accent">
             <Users className="h-3.5 w-3.5" aria-hidden="true" />
@@ -139,8 +125,6 @@ export default function WikiClassesPage() {
           </div>
         )}
 
-        {/* The roll. `items-stretch` so all three records are the same height
-            whatever the length of the lore line. */}
         <ol
           className="grid items-stretch gap-6 md:grid-cols-3 lg:gap-8"
           aria-busy={loading || undefined}
@@ -154,7 +138,6 @@ export default function WikiClassesPage() {
                   href={`/wiki/classes/${cls.id}`}
                   className="group flex w-full flex-col border-2 border-black/70 bg-slate shadow-[6px_6px_0_rgb(0_0_0_/_0.55)] transition-colors hover:border-accent"
                 >
-                  {/* Cloth head: the recruit's file number and heraldry. */}
                   <div
                     className={`flex items-center justify-between gap-2 border-b-2 border-black/60 ${cls.accent} px-3 py-2`}
                   >
@@ -167,8 +150,6 @@ export default function WikiClassesPage() {
                     </span>
                   </div>
 
-                  {/* Portrait, full width of the record. The scrim runs into the
-                      service strip below so the two read as one object. */}
                   <div className="relative aspect-3/4 w-full overflow-hidden border-b-2 border-black/60 bg-stone">
                     <Image
                       src={cls.image}
@@ -184,14 +165,11 @@ export default function WikiClassesPage() {
                     />
                     <div className="pixel-scanlines absolute inset-0 opacity-20" aria-hidden="true" />
 
-                    {/* The name, stencilled onto the portrait's dark foot rather
-                        than given a plate of its own. */}
                     <h2 className="absolute inset-x-0 bottom-0 px-3 pb-3 text-2xl font-bold leading-none text-parchment">
                       {cls.name}
                     </h2>
                   </div>
 
-                  {/* Service strip: gauges, then the lore line, then the tail. */}
                   <div className="flex flex-1 flex-col gap-3 bg-iron-dark p-3">
                     {cfg && ceilings ? (
                       <div className="grid grid-cols-3 gap-3">

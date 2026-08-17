@@ -22,7 +22,6 @@ import {
 } from "lucide-react";
 import type { QuestResponse } from "@/lib/types";
 
-/* ── Colour maps ──────────────────────────────────────────────────────────── */
 const TYPE_THEMES: Record<string, { text: string; bg: string; border: string; glow: string }> = {
   Main:  { text: "text-[#ffc032]", bg: "bg-[#ffc032]/10",  border: "border-[#ffc032]/30",  glow: "shadow-[0_0_12px_rgba(255,192,50,0.25)]" },
   Side:  { text: "text-purple-300", bg: "bg-purple-500/10", border: "border-purple-500/30", glow: "shadow-[0_0_12px_rgba(168,85,247,0.2)]" },
@@ -39,7 +38,8 @@ const OBJECTIVE_THEMES: Record<string, { text: string; bg: string; icon: typeof 
   Interact:  { text: "text-teal-300",   bg: "bg-teal-500/10",   icon: Zap },
 };
 
-/* ── Sub-components ───────────────────────────────────────────────────────── */
+// Renders the info row reusable UI component.
+// Returns the styled JSX element.
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-3 py-2 border-b border-white/[0.04] last:border-0">
@@ -49,6 +49,9 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
+// Renders the reward chip reusable UI component.
+// Features: renders child component slots dynamically.
+// Returns the styled JSX element.
 function RewardChip({ children, icon: Icon }: { children: React.ReactNode; icon?: typeof Star }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-bold text-emerald-300">
@@ -58,16 +61,20 @@ function RewardChip({ children, icon: Icon }: { children: React.ReactNode; icon?
   );
 }
 
-/* ── Main Panel ───────────────────────────────────────────────────────────── */
 interface QuestDetailPanelProps {
   quest: QuestResponse;
   onClose: () => void;
 }
 
+// Renders the quest detail panel reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes; binds user interaction event listeners.
+// Returns the styled JSX element.
 export default function QuestDetailPanel({ quest, onClose }: QuestDetailPanelProps) {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
 
   const typeTheme = TYPE_THEMES[quest.type] ?? TYPE_THEMES.Main;
+  // Helper function executing obj config.
+  // Processes input parameters and returns the calculated result.
   const objConfig = OBJECTIVE_THEMES[quest.objectiveType] ?? { text: "text-white/70", bg: "bg-white/5", icon: Target };
   const ObjIcon = objConfig.icon;
 
@@ -80,10 +87,8 @@ export default function QuestDetailPanel({ quest, onClose }: QuestDetailPanelPro
       className={`rounded-2xl border bg-[#111111] overflow-hidden animate-in fade-in-0 slide-in-from-bottom-3 duration-200 ${typeTheme.border} ${typeTheme.glow}`}
       id={`quest-detail-${quest.questId}`}
     >
-      {/* ── Header ── */}
       <div className={`px-6 py-4 border-b ${typeTheme.border} bg-gradient-to-r from-white/[0.02] to-transparent`}>
         <div className="flex items-start justify-between gap-4">
-          {/* Left: type badge + title */}
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <span
@@ -124,11 +129,10 @@ export default function QuestDetailPanel({ quest, onClose }: QuestDetailPanelPro
             )}
           </div>
 
-          {/* Right: actions */}
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
-              onClick={() => router.push(`/manage-quests/update?id=${quest.questId}`)}
+              onClick={() => router.push(`/manage-quests/update?id=${quest.questId}`)}  // Navigate to the next page and push to history stack
               className="inline-flex h-9 items-center gap-2 rounded-xl bg-[#ffc032] px-3 text-xs font-bold text-[#111] transition-colors hover:bg-[#ffd04c]"
               aria-label="Edit quest"
             >
@@ -147,10 +151,8 @@ export default function QuestDetailPanel({ quest, onClose }: QuestDetailPanelPro
         </div>
       </div>
 
-      {/* ── Body ── */}
       <div className="p-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
 
-        {/* Card 1 – World & Location */}
         <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
           <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white/40">
             <MapPin className="h-4 w-4 text-[#ffc032]" aria-hidden="true" />
@@ -172,7 +174,6 @@ export default function QuestDetailPanel({ quest, onClose }: QuestDetailPanelPro
           )}
         </div>
 
-        {/* Card 2 – Objective */}
         <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
           <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white/40">
             <Target className="h-4 w-4 text-red-400" aria-hidden="true" />
@@ -201,7 +202,6 @@ export default function QuestDetailPanel({ quest, onClose }: QuestDetailPanelPro
           />
         </div>
 
-        {/* Card 3 – Dialogue */}
         <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
           <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white/40">
             <BookOpen className="h-4 w-4 text-purple-400" aria-hidden="true" />
@@ -232,7 +232,6 @@ export default function QuestDetailPanel({ quest, onClose }: QuestDetailPanelPro
           )}
         </div>
 
-        {/* Card 4 – Rewards (spans full width) */}
         <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 md:col-span-2 xl:col-span-3">
           <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white/40">
             <Gift className="h-4 w-4 text-emerald-400" aria-hidden="true" />

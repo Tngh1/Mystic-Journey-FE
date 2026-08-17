@@ -48,14 +48,19 @@ const columns = [
   { key: "goldReward", label: "Gold", sortable: true },
 ];
 
+// Renders the manage monsters page view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 export default function ManageMonstersPage() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
 
   const [filterType, setFilterType] = useState("");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("monsterId");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
+  // Renders the build params view component.
+  // Returns the JSX element hierarchy for the page view.
   const buildParams = () => ({
     ...(search ? { search } : {}),
     ...(filterType ? { type: filterType } : {}),
@@ -70,18 +75,24 @@ export default function ManageMonstersPage() {
       params: buildParams(),
     });
 
+  // Renders the handle search view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSearch = (value: string) => {
     setSearch(value);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams());
   };
 
+  // Renders the handle filter change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleFilterChange = (value: string) => {
     setFilterType(value);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams());
   };
 
+  // Renders the handle sort change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSortChange = (value: string) => {
     if (sortBy === value) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -89,13 +100,15 @@ export default function ManageMonstersPage() {
       setSortBy(value);
       setSortOrder("asc");
     }
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams());
   };
 
+  // Renders the handle order change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleOrderChange = (order: "asc" | "desc") => {
     setSortOrder(order);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams());
   };
 
@@ -144,7 +157,7 @@ export default function ManageMonstersPage() {
         loading={loading}
         serverSide
         pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
-        onUpdate={(m) => router.push(`/manage-monsters/update?id=${m.monsterId}`)}
+        onUpdate={(m) => router.push(`/manage-monsters/update?id=${m.monsterId}`)}  // Navigate to the next page and push to history stack
         idField="monsterId"
         sortBy={sortBy}
         sortOrder={sortOrder}

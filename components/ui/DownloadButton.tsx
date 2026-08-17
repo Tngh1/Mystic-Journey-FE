@@ -6,15 +6,13 @@ interface DownloadButtonProps extends Omit<ComponentProps<"a">, "href" | "childr
   href: string;
   idleLabel?: ReactNode;
   doneLabel?: ReactNode;
-  /** Extra class on the outer container. */
+  // Supported player classes: Knight, Archer, or Mage; the class selects base stats, compatible skills, skins, and combat scaling.
   className?: string;
 }
 
-/**
- * Uiverse "install" button by Na3ar-17.
- * Controlled checkbox drives the CSS `:has(.db-input:checked)` selector.
- * Total animation length: 3.9s (3.5s install + 0.4s reveal), then opens `href`.
- */
+// Renders the download button reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes; binds user interaction event listeners.
+// Returns the styled JSX element.
 export default function DownloadButton({
   href,
   idleLabel = "Download",
@@ -22,8 +20,9 @@ export default function DownloadButton({
   className = "",
   ...anchorProps
 }: DownloadButtonProps) {
-  const [checked, setChecked] = useState(false);
+  const [checked, setChecked] = useState(false);  // Initialize boolean flag as inactive
 
+  // Event handler for handle download.
   const handleDownload = () => {
     if (!checked) {
       setChecked(true);

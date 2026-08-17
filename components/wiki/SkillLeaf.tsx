@@ -9,6 +9,8 @@ import type { SkillResponse } from "@/lib/api/skills";
 import { BookStatTable, BookPageTitle } from "@/components/ui/BookSpread";
 import Banner from "@/components/ui/Banner";
 
+// Renders the skill type icon reusable UI component.
+// Returns the styled JSX element.
 export function SkillTypeIcon({ type, size = 14 }: { type: string; size?: number }) {
   const t = type.toLowerCase();
   if (t === "active") return <Zap style={{ width: size, height: size }} />;
@@ -18,6 +20,8 @@ export function SkillTypeIcon({ type, size = 14 }: { type: string; size?: number
   return <Sparkles style={{ width: size, height: size }} />;
 }
 
+// Renders the class icon reusable UI component.
+// Returns the styled JSX element.
 export function ClassIcon({ cls, size = 14 }: { cls: string; size?: number }) {
   const c = cls.toLowerCase();
   if (c === "knight") return <Shield style={{ width: size, height: size }} />;
@@ -26,13 +30,16 @@ export function ClassIcon({ cls, size = 14 }: { cls: string; size?: number }) {
   return <Star style={{ width: size, height: size }} />;
 }
 
+// Helper function executing format number.
+// Processes input parameters and returns the calculated result.
 function formatNumber(n: number | null | undefined): string {
   if (n == null || Number.isNaN(n)) return "0";
   if (Number.isInteger(n)) return n.toLocaleString("en-US");
   return n.toFixed(1).replace(/\.0$/, "");
 }
 
-/* Compact visual stat bar component */
+// Renders the visual stat bar reusable UI component.
+// Returns the styled JSX element.
 function VisualStatBar({
   label,
   value,
@@ -50,6 +57,8 @@ function VisualStatBar({
 }) {
   const percentage = Math.min(100, Math.max(5, (value / maxVal) * 100));
 
+  // Helper function executing bg gradient.
+  // Processes input parameters and returns the calculated result.
   const bgGradient = {
     red: "from-red-700 to-rose-500 border-red-900",
     blue: "from-sky-700 to-indigo-500 border-sky-900",
@@ -78,7 +87,11 @@ function VisualStatBar({
   );
 }
 
+// Renders the skill leaf reusable UI component.
+// Returns the styled JSX element.
 export default function SkillLeaf({ skill }: { skill: SkillResponse }) {
+  // Helper function executing type banner tone.
+  // Processes input parameters and returns the calculated result.
   const typeBannerTone = {
     Active: "crimson",
     Passive: "arcane",
@@ -88,13 +101,11 @@ export default function SkillLeaf({ skill }: { skill: SkillResponse }) {
 
   return (
     <div className="flex h-full flex-col justify-between">
-      {/* Top Header */}
       <div>
         <BookPageTitle as="h2" align="center" eyebrow={`${skill.type} Skill · ${skill.classRequirement}`}>
           {skill.name}
         </BookPageTitle>
 
-        {/* Showcase Plate & Pedestal */}
         <div className="my-2 flex flex-col items-center">
           <div className="relative flex h-16 w-16 items-center justify-center bg-wood-dark border-2 shadow-md group">
             <div className="absolute -inset-0.5 rounded-sm opacity-50 blur-sm animate-rarity-pulse bg-amber-500/60" />
@@ -113,9 +124,7 @@ export default function SkillLeaf({ skill }: { skill: SkillResponse }) {
         </div>
       </div>
 
-      {/* Main Content Body */}
       <div className="min-h-0 flex-1 overflow-y-auto space-y-2.5 py-1">
-        {/* Skill Lore/Description Box */}
         {skill.description && (
           <div className="relative mx-auto max-w-[48ch] border-y border-wood/30 py-1.5 px-3 bg-wood/5">
             <Quote className="absolute top-0.5 left-0.5 h-3 w-3 text-on-parchment/20 rotate-180" />
@@ -126,7 +135,6 @@ export default function SkillLeaf({ skill }: { skill: SkillResponse }) {
           </div>
         )}
 
-        {/* Visual Progress Stat Bars */}
         <div className="rounded border border-wood/40 bg-wood/5 p-2 space-y-1.5">
           <h3 className="text-[9px] font-bold uppercase tracking-[0.2em] text-on-parchment/70">
             Skill Overview
@@ -161,7 +169,6 @@ export default function SkillLeaf({ skill }: { skill: SkillResponse }) {
           )}
         </div>
 
-        {/* Core Skill Properties Table */}
         <div>
           <BookStatTable
             rows={[
@@ -196,7 +203,6 @@ export default function SkillLeaf({ skill }: { skill: SkillResponse }) {
         </div>
       </div>
 
-      {/* Page Footer Folio */}
       <div className="mt-auto border-t border-wood/30 pt-1 text-center text-[10px] tracking-wider text-on-parchment/50">
         Skill № {skill.skillId}
       </div>

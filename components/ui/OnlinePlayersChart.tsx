@@ -3,8 +3,9 @@
 import dynamic from "next/dynamic";
 import type { ApexOptions } from "apexcharts";
 
-/* ApexCharts touches `window` on import, so it can only be pulled in on the
-   client — `ssr: false` on a dynamic import is the supported way. */
+// Renders the react apex chart reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes.
+// Returns the styled JSX element.
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
   loading: () => (
@@ -17,23 +18,19 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
 });
 
 export interface OnlineSample {
-  /** Epoch ms the sample was taken. */
   t: number;
   online: number;
 }
 
-/* Apex's defaults are rounded, gradient-filled and animated — all three break
-   the house rules — so every one of them is switched off below rather than
-   restyled. Colours come through `var()`: an SVG presentation attribute takes a
-   custom property fine, and it keeps the chart on the token system. Anything
-   that would make Apex do colour arithmetic on those vars (gradients, hover
-   shade, monochrome themes) is disabled, since `var()` cannot be lightened. */
 const GOLD = "var(--color-accent)";
 const GRID = "color-mix(in srgb, var(--color-parchment) 14%, transparent)";
 const TEXT = "var(--color-parchment-dim)";
 
+// Helper function executing label style.
 const labelStyle = { colors: TEXT, fontSize: "11px", fontWeight: 700 };
 
+// Renders the online players chart reusable UI component.
+// Returns the styled JSX element.
 export default function OnlinePlayersChart({ samples }: { samples: OnlineSample[] }) {
   if (samples.length < 2) {
     return (
@@ -52,13 +49,11 @@ export default function OnlinePlayersChart({ samples }: { samples: OnlineSample[
       height: 288,
       toolbar: { show: false },
       zoom: { enabled: false },
-      // Reduced motion is a system preference; the safe default is simply no motion.
       animations: { enabled: false },
       fontFamily: "inherit",
       background: "transparent",
       parentHeightOffset: 0,
     },
-    // Square joints and caps: the pixel system has no curves anywhere.
     stroke: { curve: "straight", width: 2, lineCap: "square" },
     fill: { type: "solid", opacity: 0.18 },
     colors: [GOLD],
@@ -87,10 +82,6 @@ export default function OnlinePlayersChart({ samples }: { samples: OnlineSample[
   };
 
   return (
-    /* Apex renders an SVG with no accessible name of its own, and the shape of a
-       line is not information a screen reader can use — so the figure is named
-       here and the current count is also printed in the caption below it, which
-       is the actual accessible answer to "how many are online". */
     <figure
       role="img"
       aria-label={`Players online over time, ${samples.length} samples, currently ${samples[samples.length - 1].online}`}

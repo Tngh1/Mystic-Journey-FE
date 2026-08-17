@@ -11,6 +11,8 @@ import AdminTable from "@/components/ui/AdminTable";
 import PageHeader from "@/components/ui/PageHeader";
 import FilterSortBar from "@/components/ui/FilterSortBar";
 
+// Renders the format date view component.
+// Returns the JSX element hierarchy for the page view.
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -19,8 +21,11 @@ function formatDate(dateString: string): string {
   });
 }
 
+// Renders the manage content page view component.
+// Key functionality: manages local UI state, pagination, and filter values; fetches asynchronous page data on initial load and parameter changes.
+// Returns the JSX element hierarchy for the page view.
 export default function ManageContentPage() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
@@ -28,12 +33,15 @@ export default function ManageContentPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [togglingId, setTogglingId] = useState<number | null>(null);
 
+  // Load categories when the dependencies change, update categories, and ignore stale callbacks after unmount.
   useEffect(() => {
     getCategories()
       .then((res) => setCategories(Array.isArray(res) ? res : []))
       .catch(console.error);
   }, []);
 
+  // Renders the build params view component.
+  // Returns the JSX element hierarchy for the page view.
   const buildParams = (overrides: Record<string, string | number | boolean | undefined> = {}) => {
     const catVal = overrides.categoryId !== undefined ? overrides.categoryId : (selectedCategory ? Number(selectedCategory) : undefined);
     return {
@@ -62,26 +70,35 @@ export default function ManageContentPage() {
     params: buildParams(),
   });
 
+  // Renders the handle search view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSearch = (value: string) => {
     setSearchTerm(value);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams({ search: value || undefined }));
   };
 
+  // Renders the handle category change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams({ categoryId: value ? Number(value) : undefined }));
   };
 
+  // Renders the handle sort change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSortChange = (value: string) => {
     const nextOrder = sortBy === value ? (sortOrder === 'asc' ? 'desc' : 'asc') : 'asc';
     setSortBy(value);
     setSortOrder(nextOrder);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams({ sortBy: value, sortOrder: nextOrder }));
   };
 
+  // Renders the handle toggle publish view component.
+  // Key functionality: displays interactive alert dialogues for user actions.
+  // Returns the JSX element hierarchy for the page view.
   const handleTogglePublish = async (content: ContentResponse) => {
     setTogglingId(content.contentId);
     try {
@@ -96,13 +113,13 @@ export default function ManageContentPage() {
       } else {
         await apiClient.post(`/api/contents/${content.contentId}/publish`, {});
       }
-      await showSuccessAlert(
+      await showSuccessAlert(  // Display styled success alert dialog to the user
         "Success!",
         content.isPublished ? "Content unpublished successfully." : "Content published successfully."
       );
       refresh();
     } catch (err) {
-      await showErrorAlert(
+      await showErrorAlert(  // Display styled error alert dialog to the user
         "Cannot Publish Content",
         err instanceof Error ? err.message : "Failed to toggle publish status"
       );
@@ -183,7 +200,7 @@ export default function ManageContentPage() {
         <div className="flex items-center justify-end">
           <button
             type="button"
-            onClick={() => router.push(`/manage-content/update?id=${content.contentId}`)}
+            onClick={() => router.push(`/manage-content/update?id=${content.contentId}`)}  // Navigate to the next page and push to history stack
             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#ffc032] text-[#111] rounded-lg hover:bg-[#ffd04c] transition-colors text-xs font-semibold cursor-pointer"
           >
             <Edit2 className="w-3.5 h-3.5" />
@@ -204,7 +221,7 @@ export default function ManageContentPage() {
           {
             label: "Create Content",
             icon: FileText,
-            onClick: () => router.push("/manage-content/create"),
+            onClick: () => router.push("/manage-content/create"),  // Navigate to the next page and push to history stack
           },
         ]}
       />

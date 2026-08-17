@@ -2,6 +2,9 @@
 
 import React from "react";
 
+// Renders the page loader reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes.
+// Returns the styled JSX element.
 export default function PageLoader() {
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm">
@@ -49,7 +52,7 @@ export default function PageLoader() {
               <div className="branch branch-bottom"></div>
             </div>
           </div>
-          
+
           <div className="tent">
               <div className="roof"></div>
               <div className="roof-border-left">
@@ -71,7 +74,7 @@ export default function PageLoader() {
               <div className="ground ground1"></div>
               <div className="ground ground2"></div>
             </div>
-          
+
           <div className="fireplace">
             <div className="support"></div>
             <div className="support"></div>
@@ -100,7 +103,7 @@ export default function PageLoader() {
               </div>
             </div>
           </div>
-          
+
           <div className="time-wrapper">
             <div className="time">
               <div className="day"></div>
@@ -118,7 +121,7 @@ export default function PageLoader() {
           </div>
         </div>
       </div>
-      
+
       <p className="text-xl md:text-2xl font-bold text-[#ffc032] tracking-[0.3em] animate-pulse font-['PatrickHandSC'] -mt-12 md:-mt-4">
         LOADING...
       </p>

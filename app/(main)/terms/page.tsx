@@ -3,9 +3,6 @@ import Link from "next/link";
 import MoonHeader from "@/components/ui/MoonHeader";
 import { Scroll, Clause, Provisions, Note } from "@/components/ui/LegalScroll";
 
-/* The terms as a charter on parchment — see components/ui/LegalScroll. Every
-   word below is the copy the page already carried; only the surface it is
-   written on changed. */
 
 const REGISTRATION = [
   "You must be at least 13 years of age to create an account. Users under 18 require parental consent.",
@@ -45,6 +42,8 @@ const TERMINATION = [
   "You may request account deletion at any time by contacting support.",
 ];
 
+// Renders the terms page view component.
+// Returns the JSX element hierarchy for the page view.
 export default function TermsPage() {
   return (
     <div className="min-h-dvh pt-[88px] pb-16 md:pt-[112px]">
@@ -71,10 +70,6 @@ export default function TermsPage() {
             To maintain a fair and enjoyable environment for all adventurers, the following
             activities are strictly forbidden and may result in account suspension or permanent ban:
           </p>
-          {/* Four struck-out warrants. The old cards used red-500 borders and
-              red-400 headings — colour alone doing the warning. Here the danger
-              tone stays on the sigil plate and the heading is ink, so the warning
-              survives a greyscale print, and every plate carries the icon. */}
           <ul className="grid gap-3 pt-1 sm:grid-cols-2">
             {PROHIBITED.map(({ title, text }) => (
               <li
@@ -143,9 +138,6 @@ export default function TermsPage() {
         </Clause>
       </Scroll>
 
-      {/* The way back sits below the sheet, on the dark ground, where gold is the
-          one thing meaning "act on this" — inside the parchment it would be
-          1.7:1 and unreadable. */}
       <div className="flex justify-center px-4">
         <Link
           href="/register"

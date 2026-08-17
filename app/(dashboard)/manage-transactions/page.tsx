@@ -6,6 +6,9 @@ import { CreditCard, Search, X } from "lucide-react";
 import AdminTable from "@/components/ui/AdminTable";
 import { useState } from "react";
 
+// Renders the manage transactions page view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 export default function ManageTransactionsPage() {
   const [sortBy, setSortBy] = useState("purchaseHistoryId");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -27,6 +30,8 @@ export default function ManageTransactionsPage() {
     pageSize: 10,
   });
 
+  // Renders the format date view component.
+  // Returns the JSX element hierarchy for the page view.
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString("en-US", {
@@ -38,6 +43,8 @@ export default function ManageTransactionsPage() {
     });
   };
 
+  // Renders the format price view component.
+  // Returns the JSX element hierarchy for the page view.
   const formatPrice = (price: number, currency: string) => {
     if (currency === "USD") {
       return `$${Number(price).toFixed(2)}`;
@@ -45,6 +52,8 @@ export default function ManageTransactionsPage() {
     return `${Number(price).toLocaleString()}`;
   };
 
+  // Renders the get currency badge view component.
+  // Returns the JSX element hierarchy for the page view.
   const getCurrencyBadge = (currency: string) => {
     const styles: Record<string, string> = {
       Gold: "bg-orange-500/20 text-orange-400 border border-orange-500/30",
@@ -61,9 +70,9 @@ export default function ManageTransactionsPage() {
   const columns = [
     { key: "purchaseHistoryId", label: "ID", sortable: true },
     { key: "playerName", label: "Player Name", sortable: true },
-    { 
-      key: "itemName", 
-      label: "Item", 
+    {
+      key: "itemName",
+      label: "Item",
       sortable: true,
       render: (val: string, item: PurchaseHistoryResponse) => (
         <div className="flex items-center gap-3">
@@ -99,6 +108,8 @@ export default function ManageTransactionsPage() {
     },
   ];
 
+  // Renders the handle sort change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSortChange = (value: string) => {
     if (sortBy === value) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -110,7 +121,6 @@ export default function ManageTransactionsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-[#ffc032] to-[#ff8c00] flex items-center justify-center shrink-0">
@@ -123,7 +133,6 @@ export default function ManageTransactionsPage() {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="bg-[#111111] border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-4">
         <div className="relative w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -143,7 +152,6 @@ export default function ManageTransactionsPage() {
         </div>
       )}
 
-      {/* Table */}
       <AdminTable
         title="Transactions"
         columns={columns}
@@ -158,11 +166,9 @@ export default function ManageTransactionsPage() {
         onRowClick={(item) => setSelectedTransaction(item)}
       />
 
-      {/* Transaction Detail Modal */}
       {selectedTransaction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-[#111111] border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-            {/* Modal Header */}
             <div className="p-4 border-b border-white/10 flex justify-between items-center bg-[#151515]">
               <h2 className="text-lg font-bold text-white">Transaction Detail</h2>
               <button
@@ -173,9 +179,7 @@ export default function ManageTransactionsPage() {
               </button>
             </div>
 
-            {/* Modal Body */}
             <div className="p-6 overflow-y-auto space-y-6">
-              {/* Item Info */}
               <div className="flex items-center gap-4 bg-white/5 p-4 rounded-xl border border-white/5">
                 {selectedTransaction.itemIconUrl ? (
                   <img src={selectedTransaction.itemIconUrl} alt={selectedTransaction.itemName || ""} className="w-16 h-16 rounded-lg object-cover bg-black border border-white/10" />
@@ -188,7 +192,6 @@ export default function ManageTransactionsPage() {
                 </div>
               </div>
 
-              {/* Details List */}
               <div className="space-y-4 text-sm">
                 <div className="flex justify-between items-center py-2 border-b border-white/5">
                   <span className="text-gray-400">Transaction ID</span>
@@ -216,8 +219,7 @@ export default function ManageTransactionsPage() {
                 </div>
               </div>
             </div>
-            
-            {/* Modal Footer */}
+
             <div className="p-4 border-t border-white/10 flex justify-end bg-[#151515]">
               <button
                 onClick={() => setSelectedTransaction(null)}

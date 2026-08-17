@@ -7,11 +7,9 @@ import Panel from "@/components/ui/Panel";
 import Tapestry from "@/components/ui/Tapestry";
 import { useAuth } from "@/lib/contexts/AuthContext";
 
-/* The account record on cloth, not planks — the whole of `/account` is woven now
-   (see `components/ui/Tapestry.tsx`); wood belongs to the wiki. */
 
-/* One embroidered line of the record. `mono` is for identifiers and coordinates,
-   where tabular figures stop the column from shifting as digits change. */
+// Renders the ledger row view component.
+// Returns the JSX element hierarchy for the page view.
 function LedgerRow({
   label,
   value,
@@ -37,18 +35,8 @@ function LedgerRow({
   );
 }
 
-/* A titled hanging holding one group of record lines.
-
-   Dyed crimson, by elimination. Royal is the nav pennants beside it (and, by the
-   user's own call, the whole of `/account/security`), arcane is the night-violet
-   page itself, and ember would fight the fringe, which is always `accent-deep`
-   orange. Crimson is the one dye left that reads as a separate surface from both
-   its neighbour and its sibling pages; parchment on it still clears 7:1, so the
-   swap is contrast-neutral.
-
-   `/account/profile`'s main hangings take the hero's class dye, so they can land
-   on crimson too — but that is one page's worth of overlap on a colour the user
-   chooses, not a fixed clash. */
+// Renders the ledger panel view component.
+// Returns the JSX element hierarchy for the page view.
 function LedgerPanel({
   id,
   title,
@@ -79,12 +67,13 @@ function LedgerPanel({
   );
 }
 
+// Renders the account setting page view component.
+// Returns the JSX element hierarchy for the page view.
 export default function AccountSettingPage() {
   const { user, isLoading } = useAuth();
 
   if (isLoading) return null;
 
-  // proxy.ts already gates this route; this is the edge-case fallback.
   if (!user) {
     return (
       <div className="flex min-h-dvh items-center justify-center px-4 pt-[88px] pb-16 md:pt-[112px]">

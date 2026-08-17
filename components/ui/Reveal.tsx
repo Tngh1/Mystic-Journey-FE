@@ -4,23 +4,19 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 
 interface RevealProps {
   children: ReactNode;
-  /** Stagger delay in ms before the reveal transition starts. */
   delay?: number;
+  // Supported player classes: Knight, Archer, or Mage; the class selects base stats, compatible skills, skins, and combat scaling.
   className?: string;
 }
 
-/**
- * Fades + slides its children up when scrolled into view (once).
- *
- * The reduced-motion fallback is pure CSS (`motion-reduce:` variants) rather
- * than a media-query read in the effect: the effect version had to setState
- * synchronously on mount, which both trips react-hooks/set-state-in-effect and
- * paints the hidden state for one frame before correcting it.
- */
+// Renders the reveal reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes; renders child component slots dynamically.
+// Returns the styled JSX element.
 export default function Reveal({ children, delay = 0, className = "" }: RevealProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const [shown, setShown] = useState(false);
+  const [shown, setShown] = useState(false);  // Initialize boolean flag as inactive
 
+  // Synchronize this effect by updates shown whenever its dependencies change.
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -42,9 +38,6 @@ export default function Reveal({ children, delay = 0, className = "" }: RevealPr
   return (
     <div
       ref={ref}
-      // 700ms was slow enough to read as a page load rather than a reveal; 400ms
-      // sits just past the micro-interaction window, which suits a section-sized
-      // element. will-change is dropped once shown so the layer is released.
       className={`transition-[opacity,transform] duration-400 ease-out motion-reduce:transition-none motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
         shown ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0 will-change-transform"
       } ${className}`}

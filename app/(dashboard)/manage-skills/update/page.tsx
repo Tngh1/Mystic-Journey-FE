@@ -14,18 +14,30 @@ import { getSkillById, updateSkill, type UpdateSkillRequest } from "@/lib/api/sk
 import { uploadImageWithCleanup } from "@/lib/api/cloudinary";
 import { showErrorAlert, showSuccessAlert } from "@/lib/utils/swal";
 
+// Renders the skill_types view component.
+// Returns the JSX element hierarchy for the page view.
 const SKILL_TYPES = ["Active", "Passive", "Buff", "Debuff"].map((value) => ({ value, label: value }));
+// Renders the damage_types view component.
+// Returns the JSX element hierarchy for the page view.
 const DAMAGE_TYPES = ["Physical", "Magical", "TrueDamage"].map((value) => ({ value, label: value }));
+// Renders the target_types view component.
+// Returns the JSX element hierarchy for the page view.
 const TARGET_TYPES = ["SingleTarget", "Area", "Self", "Ally"].map((value) => ({ value, label: value }));
+// Renders the class_requirements view component.
+// Returns the JSX element hierarchy for the page view.
 const CLASS_REQUIREMENTS = ["Knight", "Archer", "Mage", "All"].map((value) => ({ value, label: value }));
 
 const EMPTY_FORM: UpdateSkillRequest = {
   name: "",
   description: "",
   imageUrl: null,
+  // Supported skill types: Active, Passive, Buff, or Debuff; the type controls activation and effect presentation.
   type: "Active",
+  // Supported damage types: Physical, Magical, or TrueDamage; the value selects how skill damage is categorized and resolved.
   damageType: "Physical",
+  // Supported target types: SingleTarget, Area, Self, or Ally; the value determines who can receive the skill effect.
   targetType: "SingleTarget",
+  // Supported class requirements: Knight, Archer, Mage, or All; All allows every player class to use the skill or reward.
   classRequirement: "Knight",
   cooldownSeconds: 0,
   baseDamage: 0,
@@ -36,8 +48,11 @@ const EMPTY_FORM: UpdateSkillRequest = {
   isActive: true,
 };
 
+// Renders the update skill page view component.
+// Key functionality: manages local UI state, pagination, and filter values; fetches asynchronous page data on initial load and parameter changes.
+// Returns the JSX element hierarchy for the page view.
 export default function UpdateSkillPage() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
   const searchParams = useSearchParams();
   const rawId = searchParams.get("id");
   const skillId = rawId ? Number(rawId) : Number.NaN;
@@ -47,11 +62,12 @@ export default function UpdateSkillPage() {
   const [image, setImage] = useState<string | File | null>(null);
   const [originalImageUrl, setOriginalImageUrl] = useState("");
   const [fetching, setFetching] = useState(validId);
-  const [saving, setSaving] = useState(false);
+  const [saving, setSaving] = useState(false);  // Initialize boolean flag as inactive
   const [error, setError] = useState<string | null>(
     validId ? null : "A valid skill ID is required.",
   );
 
+  // Load skill by id when the dependencies change, update image, original image url, form data, error, and fetching, and ignore stale callbacks after unmount.
   useEffect(() => {
     if (!validId) return;
 
@@ -63,9 +79,13 @@ export default function UpdateSkillPage() {
           name: skill.name,
           description: skill.description,
           imageUrl: skill.imageUrl,
+          // Supported skill types: Active, Passive, Buff, or Debuff; the type controls activation and effect presentation.
           type: skill.type,
+          // Supported damage types: Physical, Magical, or TrueDamage; the value selects how skill damage is categorized and resolved.
           damageType: skill.damageType,
+          // Supported target types: SingleTarget, Area, Self, or Ally; the value determines who can receive the skill effect.
           targetType: skill.targetType,
+          // Supported class requirements: Knight, Archer, Mage, or All; All allows every player class to use the skill or reward.
           classRequirement: skill.classRequirement,
           cooldownSeconds: skill.cooldownSeconds,
           baseDamage: skill.baseDamage,
@@ -82,10 +102,15 @@ export default function UpdateSkillPage() {
       .finally(() => setFetching(false));
   }, [skillId, validId]);
 
+  // Renders the change view component.
+  // Returns the JSX element hierarchy for the page view.
   const change = <K extends keyof UpdateSkillRequest>(field: K, value: UpdateSkillRequest[K]) => {
     setFormData((current) => ({ ...current, [field]: value }));
   };
 
+  // Renders the submit view component.
+  // Key functionality: displays interactive alert dialogues for user actions.
+  // Returns the JSX element hierarchy for the page view.
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!validId) return;
@@ -105,12 +130,12 @@ export default function UpdateSkillPage() {
         description: formData.description?.trim() || null,
         imageUrl,
       });
-      await showSuccessAlert("Success!", "Skill updated successfully.");
-      router.push("/manage-skills");
+      await showSuccessAlert("Success!", "Skill updated successfully.");  // Display styled success alert dialog to the user
+      router.push("/manage-skills");  // Navigate to the next page and push to history stack
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to update skill.";
       setError(message);
-      await showErrorAlert("Error", message);
+      await showErrorAlert("Error", message);  // Display styled error alert dialog to the user
     } finally {
       setSaving(false);
     }
@@ -301,7 +326,7 @@ export default function UpdateSkillPage() {
       </FormSection>
 
       <FormActions
-        onCancel={() => router.push("/manage-skills")}
+        onCancel={() => router.push("/manage-skills")}  // Navigate to the next page and push to history stack
         submitLabel="Update Skill"
         loadingLabel="Updating..."
         loading={saving}

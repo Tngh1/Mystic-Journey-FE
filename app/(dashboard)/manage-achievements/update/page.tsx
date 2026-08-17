@@ -22,18 +22,22 @@ const ACHIEVEMENT_TYPES = [
   { value: "Progression", label: "Progression" },
 ];
 
+// Renders the edit achievement page view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 export default function EditAchievementPage() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
   const searchParams = useSearchParams();
   const achievementId = searchParams.get("id");
 
-  const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
+  const [loading, setLoading] = useState(false);  // Initialize boolean flag as inactive
+  const [fetching, setFetching] = useState(true);  // Initialize loading flag as active on first render
   const [error, setError] = useState<string | null>(null);
   const [originalIconUrl, setOriginalIconUrl] = useState<string>("");
   const [formData, setFormData] = useState({
     name: "",
     description: "",
+    // Supported achievement types: Combat, Exploration, Social, Collection, or Progression; the type selects the tracked activity category.
     type: "Combat",
     iconUrl: "" as string | File | null,
     requiredValue: 1,
@@ -44,6 +48,7 @@ export default function EditAchievementPage() {
     isActive: true,
   });
 
+  // Load by id when the dependencies change, update original icon url, form data, error, and fetching, and ignore stale callbacks after unmount.
   useEffect(() => {
     if (!achievementId) return;
     getById(Number(achievementId))
@@ -52,6 +57,7 @@ export default function EditAchievementPage() {
         setFormData({
           name: achievement.name,
           description: achievement.description || "",
+          // Supported achievement types: Combat, Exploration, Social, Collection, or Progression; the type selects the tracked activity category.
           type: achievement.type,
           iconUrl: achievement.iconUrl || "",
           requiredValue: achievement.requiredValue,
@@ -68,12 +74,17 @@ export default function EditAchievementPage() {
       .finally(() => setFetching(false));
   }, [achievementId]);
 
+  // Renders the handle change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleChange = <K extends keyof typeof formData>(field: K, value: (typeof formData)[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Renders the handle submit view component.
+  // Key functionality: displays interactive alert dialogues for user actions.
+  // Returns the JSX element hierarchy for the page view.
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default HTML form submission and page reload
     if (!achievementId) return;
     try {
       setLoading(true);
@@ -90,6 +101,7 @@ export default function EditAchievementPage() {
       await update(Number(achievementId), {
         name: formData.name,
         description: formData.description,
+        // Supported achievement types: Combat, Exploration, Social, Collection, or Progression; the type selects the tracked activity category.
         type: formData.type,
         iconUrl: finalIconUrl || null,
         requiredValue: formData.requiredValue,
@@ -99,12 +111,12 @@ export default function EditAchievementPage() {
         rewardQuantity: formData.rewardQuantity,
         isActive: formData.isActive,
       });
-      await showSuccessAlert("Success!", "Achievement updated successfully.");
-      router.push("/manage-achievements");
+      await showSuccessAlert("Success!", "Achievement updated successfully.");  // Display styled success alert dialog to the user
+      router.push("/manage-achievements");  // Navigate to the next page and push to history stack
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to update achievement";
       setError(msg);
-      await showErrorAlert("Error", msg);
+      await showErrorAlert("Error", msg);  // Display styled error alert dialog to the user
     } finally {
       setLoading(false);
     }
@@ -217,7 +229,7 @@ export default function EditAchievementPage() {
       </FormSection>
 
       <FormActions
-        onCancel={() => router.push("/manage-achievements")}
+        onCancel={() => router.push("/manage-achievements")}  // Navigate to the next page and push to history stack
         submitLabel="Update Achievement"
         loadingLabel="Updating..."
         loading={loading}

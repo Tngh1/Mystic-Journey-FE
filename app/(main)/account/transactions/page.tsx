@@ -8,12 +8,15 @@ import { useAuth } from "@/lib/contexts/AuthContext";
 import { getByPlayerId } from "@/lib/api/purchase-histories";
 import type { PurchaseHistoryResponse } from "@/lib/api/purchase-histories";
 
+// Renders the user transactions page view component.
+// Returns the JSX element hierarchy for the page view.
 export default function UserTransactionsPage() {
   const { user, isLoading } = useAuth();
   const [transactions, setTransactions] = useState<PurchaseHistoryResponse[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);  // Initialize boolean flag as inactive
   const [error, setError] = useState<string | null>(null);
 
+  // Load by player id and time when the dependencies change, update loading, error, and transactions, and ignore stale callbacks after unmount.
   useEffect(() => {
     if (isLoading) return;
     if (!user?.playerProfileId) return;
@@ -57,6 +60,8 @@ export default function UserTransactionsPage() {
     );
   }
 
+  // Renders the format date view component.
+  // Returns the JSX element hierarchy for the page view.
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString("en-US", {
@@ -68,6 +73,8 @@ export default function UserTransactionsPage() {
     });
   };
 
+  // Renders the format price view component.
+  // Returns the JSX element hierarchy for the page view.
   const formatPrice = (price: number, currency: string) => {
     if (currency === "USD") {
       return `$${Number(price).toFixed(2)}`;
@@ -123,11 +130,10 @@ export default function UserTransactionsPage() {
           ) : (
             <div className="grid gap-4">
               {transactions.map((tx) => (
-                <div 
+                <div
                   key={tx.purchaseHistoryId}
                   className="bg-[#111111] border border-white/10 rounded-xl p-5 hover:border-white/20 transition-colors flex flex-col sm:flex-row sm:items-center gap-5"
                 >
-                  {/* Item Image */}
                   <div className="w-16 h-16 shrink-0 rounded-lg bg-black border border-white/10 overflow-hidden">
                     {tx.itemIconUrl ? (
                       <img src={tx.itemIconUrl} alt={tx.itemName || "Item"} className="w-full h-full object-cover" />
@@ -138,7 +144,6 @@ export default function UserTransactionsPage() {
                     )}
                   </div>
 
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-bold text-white truncate">{tx.itemName}</h3>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-xs text-gray-400">
@@ -156,7 +161,6 @@ export default function UserTransactionsPage() {
                     </div>
                   </div>
 
-                  {/* Price */}
                   <div className="sm:text-right shrink-0">
                     <div className="text-[#ffc032] font-bold text-lg">
                       {formatPrice(tx.totalPrice, tx.currency)}

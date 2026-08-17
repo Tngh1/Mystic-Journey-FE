@@ -22,9 +22,12 @@ interface FormData {
   isActive: boolean;
 }
 
+// Renders the create category content page view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 export default function CreateCategoryContentPage() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
+  const [loading, setLoading] = useState(false);  // Initialize boolean flag as inactive
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
@@ -35,12 +38,16 @@ export default function CreateCategoryContentPage() {
     isActive: true,
   });
 
+  // Renders the handle change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleChange = <K extends keyof FormData>(field: K, value: FormData[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Renders the handle submit view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default HTML form submission and page reload
     setError(null);
 
     if (!formData.name.trim()) {
@@ -66,12 +73,12 @@ export default function CreateCategoryContentPage() {
         iconUrl,
         isActive: formData.isActive,
       });
-      await showSuccessAlert('Success!', 'Category created successfully.');
-      router.push('/manage-category-content');
+      await showSuccessAlert('Success!', 'Category created successfully.');  // Display styled success alert dialog to the user
+      router.push('/manage-category-content');  // Navigate to the next page and push to history stack
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to create category';
       setError(msg);
-      await showErrorAlert('Error', msg);
+      await showErrorAlert('Error', msg);  // Display styled error alert dialog to the user
     } finally {
       setLoading(false);
     }
@@ -138,7 +145,7 @@ export default function CreateCategoryContentPage() {
       </FormSection>
 
       <FormActions
-        onCancel={() => router.push('/manage-category-content')}
+        onCancel={() => router.push('/manage-category-content')}  // Navigate to the next page and push to history stack
         submitLabel="Create Category"
         loadingLabel="Creating..."
         loading={loading}

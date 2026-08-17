@@ -15,17 +15,21 @@ import { TextInput, TextArea, Checkbox } from "@/components/form/FormInput";
 import MonsterPickerModal from "@/components/ui/MonsterPickerModal";
 import ItemPickerModal from "@/components/ui/ItemPickerModal";
 
+// Renders the edit dungeon page view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 export default function EditDungeonPage() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
   const searchParams = useSearchParams();
   const dungeonId = searchParams.get("id");
 
-  const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
+  const [loading, setLoading] = useState(false);  // Initialize boolean flag as inactive
+  const [fetching, setFetching] = useState(true);  // Initialize loading flag as active on first render
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
+    // Dungeon type is a free-form category with Normal as the current default; the backend does not enforce a closed allowlist.
     type: "Normal",
     levelRequirement: 1,
     maxMembers: 4,
@@ -38,16 +42,19 @@ export default function EditDungeonPage() {
 
   const [initialSpawns, setInitialSpawns] = useState<MonsterSpawnResponse[]>([]);
   const [spawns, setSpawns] = useState<MonsterSpawnResponse[]>([]);
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const [bossPickerOpen, setBossPickerOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);  // Initialize boolean flag as inactive
+  const [bossPickerOpen, setBossPickerOpen] = useState(false);  // Initialize boolean flag as inactive
 
   const [initialChestItems, setInitialChestItems] = useState<ChestItemResponse[]>([]);
   const [chestItems, setChestItems] = useState<ChestItemResponse[]>([]);
-  const [itemPickerOpen, setItemPickerOpen] = useState(false);
+  const [itemPickerOpen, setItemPickerOpen] = useState(false);  // Initialize boolean flag as inactive
 
+  // Renders the load dungeon data view component.
+  // Returns the JSX element hierarchy for the page view.
   const loadDungeonData = useCallback(() => {
     if (!dungeonId) return;
     setFetching(true);
+    // Execute these independent asynchronous operations concurrently, then combine their results after all complete.
     Promise.all([
       getById(Number(dungeonId)),
       getDungeonSpawns(Number(dungeonId)),
@@ -57,6 +64,7 @@ export default function EditDungeonPage() {
         setFormData({
           name: d.name,
           description: d.description || "",
+          // Dungeon type is a free-form category with Normal as the current default; the backend does not enforce a closed allowlist.
           type: d.type || "Normal",
           levelRequirement: d.levelRequirement,
           maxMembers: d.maxMembers,
@@ -77,16 +85,22 @@ export default function EditDungeonPage() {
       .finally(() => setFetching(false));
   }, [dungeonId]);
 
+  // Synchronize this effect by builds resolve whenever its dependencies change.
   useEffect(() => {
     void Promise.resolve().then(loadDungeonData);
   }, [loadDungeonData]);
 
+  // Renders the handle change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleChange = <K extends keyof typeof formData>(field: K, value: (typeof formData)[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Renders the handle submit view component.
+  // Key functionality: displays interactive alert dialogues for user actions.
+  // Returns the JSX element hierarchy for the page view.
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default HTML form submission and page reload
     if (!dungeonId) return;
     try {
       setLoading(true);
@@ -94,6 +108,7 @@ export default function EditDungeonPage() {
       await update(Number(dungeonId), {
         name: formData.name,
         description: formData.description || undefined,
+        // Dungeon type is a free-form category with Normal as the current default; the backend does not enforce a closed allowlist.
         type: formData.type,
         levelRequirement: formData.levelRequirement,
         maxMembers: formData.maxMembers,
@@ -104,11 +119,18 @@ export default function EditDungeonPage() {
         isActive: formData.isActive,
       });
 
-      // Diff spawns and sync
+      // Renders the spawns to remove view component.
+      // Returns the JSX element hierarchy for the page view.
       const spawnsToRemove = initialSpawns.filter(init => !spawns.some(curr => curr.monsterSpawnId === init.monsterSpawnId));
+      // Renders the spawns to add view component.
+      // Returns the JSX element hierarchy for the page view.
       const spawnsToAdd = spawns.filter(curr => curr.monsterSpawnId < 0);
+      // Renders the spawns to update view component.
+      // Returns the JSX element hierarchy for the page view.
       const spawnsToUpdate = spawns.filter(curr => {
         if (curr.monsterSpawnId < 0) return false;
+        // Renders the init view component.
+        // Returns the JSX element hierarchy for the page view.
         const init = initialSpawns.find(i => i.monsterSpawnId === curr.monsterSpawnId);
         return init && (init.spawnCount !== curr.spawnCount || init.respawnSeconds !== curr.respawnSeconds);
       });
@@ -133,11 +155,18 @@ export default function EditDungeonPage() {
         });
       }
 
-      // Diff chest items and sync
+      // Renders the items to remove view component.
+      // Returns the JSX element hierarchy for the page view.
       const itemsToRemove = initialChestItems.filter(init => !chestItems.some(curr => curr.chestItemId === init.chestItemId));
+      // Renders the items to add view component.
+      // Returns the JSX element hierarchy for the page view.
       const itemsToAdd = chestItems.filter(curr => curr.chestItemId < 0);
+      // Renders the items to update view component.
+      // Returns the JSX element hierarchy for the page view.
       const itemsToUpdate = chestItems.filter(curr => {
         if (curr.chestItemId < 0) return false;
+        // Renders the init view component.
+        // Returns the JSX element hierarchy for the page view.
         const init = initialChestItems.find(i => i.chestItemId === curr.chestItemId);
         return init && (init.quantityMin !== curr.quantityMin || init.quantityMax !== curr.quantityMax || init.dropRate !== curr.dropRate || init.isGuaranteed !== curr.isGuaranteed);
       });
@@ -164,21 +193,27 @@ export default function EditDungeonPage() {
         });
       }
 
-      await showSuccessAlert("Success!", "Dungeon updated successfully.");
-      router.push("/manage-dungeons");
+      await showSuccessAlert("Success!", "Dungeon updated successfully.");  // Display styled success alert dialog to the user
+      router.push("/manage-dungeons");  // Navigate to the next page and push to history stack
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to update dungeon";
       setError(msg);
-      await showErrorAlert("Error", msg);
+      await showErrorAlert("Error", msg);  // Display styled error alert dialog to the user
     } finally {
       setLoading(false);
     }
   };
 
+  // Renders the handle remove monster view component.
+  // Key functionality: displays interactive alert dialogues for user actions.
+  // Returns the JSX element hierarchy for the page view.
   const handleRemoveMonster = async (spawnId: number, monsterName: string) => {
+    // Renders the regular spawns view component.
+    // Key functionality: displays interactive alert dialogues for user actions.
+    // Returns the JSX element hierarchy for the page view.
     const regularSpawns = spawns.filter((s) => s.monster.type !== "Boss");
     if (regularSpawns.length <= 1) {
-      await showErrorAlert("Action Denied", "A dungeon must have at least one regular monster.");
+      await showErrorAlert("Action Denied", "A dungeon must have at least one regular monster.");  // Display styled error alert dialog to the user
       return;
     }
 
@@ -190,14 +225,19 @@ export default function EditDungeonPage() {
     setSpawns(prev => prev.filter(s => s.monsterSpawnId !== spawnId));
   };
 
+  // Renders the handle swap boss view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSwapBoss = async (monster: MonsterResponse) => {
     if (!dungeonId) return;
     setSpawns(prev => {
+      // Renders the without boss view component.
+      // Returns the JSX element hierarchy for the page view.
       const withoutBoss = prev.filter(s => s.monster.type !== "Boss");
       const newBossSpawn: MonsterSpawnResponse = {
         monsterSpawnId: -Date.now(),
         monsterId: monster.monsterId,
         monsterName: monster.name,
+        // Supported monster types: Normal, Elite, or Boss; the type controls presentation and encounter behavior.
         monsterType: monster.type,
         mapName: formData.name || "Dungeon",
         regionName: "",
@@ -214,13 +254,18 @@ export default function EditDungeonPage() {
     });
   };
 
+  // Renders the handle update spawn count view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleUpdateSpawnCount = async (spawnId: number, count: number) => {
     setSpawns(prev => prev.map(s => s.monsterSpawnId === spawnId ? { ...s, spawnCount: count } : s));
   };
 
+  // Renders the handle remove chest item view component.
+  // Key functionality: displays interactive alert dialogues for user actions.
+  // Returns the JSX element hierarchy for the page view.
   const handleRemoveChestItem = async (chestItemId: number, itemName: string) => {
     if (chestItems.length <= 1) {
-      await showErrorAlert("Action Denied", "A dungeon's chest must have at least one item.");
+      await showErrorAlert("Action Denied", "A dungeon's chest must have at least one item.");  // Display styled error alert dialog to the user
       return;
     }
     const confirmed = await showConfirmAlert(
@@ -231,6 +276,8 @@ export default function EditDungeonPage() {
     setChestItems(prev => prev.filter(i => i.chestItemId !== chestItemId));
   };
 
+  // Renders the handle update chest item view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleUpdateChestItem = (chestItemId: number, field: keyof ChestItemResponse, value: number | boolean) => {
     setChestItems(prev => prev.map(i => i.chestItemId === chestItemId ? { ...i, [field]: value } : i));
   };
@@ -348,7 +395,7 @@ export default function EditDungeonPage() {
                   </div>
                 ))
             ) : (
-              <div 
+              <div
                 className="col-span-full py-8 flex flex-col items-center justify-center gap-3 text-white/40 border border-dashed border-red-500/30 bg-red-500/5 rounded-xl cursor-pointer hover:bg-red-500/10 hover:text-white transition-all"
                 onClick={() => setBossPickerOpen(true)}
               >
@@ -409,8 +456,7 @@ export default function EditDungeonPage() {
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
-                
-                {/* Quantity Input */}
+
                 <div className="flex items-center gap-2 mt-2 pt-2 border-t border-white/5">
                   <span className="text-xs text-gray-400 flex-1">Quantity (Max 10):</span>
                   <input
@@ -482,7 +528,7 @@ export default function EditDungeonPage() {
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-white/5">
                   <div className="flex flex-col gap-1">
                     <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Min Qty</span>
@@ -532,9 +578,9 @@ export default function EditDungeonPage() {
                   </div>
                   <div className="col-span-2 flex items-center justify-between mt-1 px-1">
                      <span className="text-xs text-gray-400">Guaranteed Drop?</span>
-                     <Checkbox 
-                       checked={item.isGuaranteed} 
-                       onChange={(e) => handleUpdateChestItem(item.chestItemId, "isGuaranteed", e.target.checked)} 
+                     <Checkbox
+                       checked={item.isGuaranteed}
+                       onChange={(e) => handleUpdateChestItem(item.chestItemId, "isGuaranteed", e.target.checked)}
                      />
                   </div>
                 </div>
@@ -550,14 +596,13 @@ export default function EditDungeonPage() {
       </FormSection>
 
       <FormActions
-        onCancel={() => router.push("/manage-dungeons")}
+        onCancel={() => router.push("/manage-dungeons")}  // Navigate to the next page and push to history stack
         submitLabel="Update Dungeon"
         loadingLabel="Updating..."
         loading={loading}
         submitIcon={Save}
       />
 
-      {/* Monster Picker */}
       <MonsterPickerModal
         isOpen={pickerOpen}
         onClose={() => setPickerOpen(false)}
@@ -572,15 +617,15 @@ export default function EditDungeonPage() {
             showErrorAlert("Duplicate Monster", "This monster is already in the dungeon.");
             return;
           }
-          // Note: we can use monster object directly since the picker provides it
           const newSpawn: MonsterSpawnResponse = {
             monsterSpawnId: -Date.now(),
             monsterId: monster.monsterId,
             monsterName: monster.name,
+            // Supported monster types: Normal, Elite, or Boss; the type controls presentation and encounter behavior.
             monsterType: monster.type,
             mapName: formData.name || "Dungeon",
             regionName: "", location: "", spawnCount: 1, respawnSeconds: 0,
-            dungeonId: Number(dungeonId), dungeonName: formData.name, 
+            dungeonId: Number(dungeonId), dungeonName: formData.name,
             isDungeonRepeatable: false, isActive: true,
             monster: monster
           };
@@ -619,6 +664,7 @@ export default function EditDungeonPage() {
             itemId: item.itemId,
             itemName: item.name,
             itemIconUrl: item.iconUrl || undefined,
+            // Supported rarity values: Common, Uncommon, Rare, Epic, Legendary, or Mythic; rarity controls quality, visuals, and sorting priority.
             itemRarity: item.rarity || undefined,
             quantityMin: 1,
             quantityMax: 1,

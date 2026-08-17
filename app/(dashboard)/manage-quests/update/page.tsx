@@ -108,6 +108,8 @@ type RewardSkillDraft = {
 
 type SelectOption = { value: string; label: string };
 
+// Renders the add fallback option view component.
+// Returns the JSX element hierarchy for the page view.
 function addFallbackOption(options: SelectOption[], value: string, labelSuffix = "legacy value") {
   const normalized = value.trim();
   if (!normalized || options.some((option) => option.value === normalized)) return options;
@@ -117,10 +119,13 @@ type FormData = {
   title: string;
   description: string;
   dialogueContent: string;
+  // Supported quest types: Main, Side, Daily, or Event; the type determines how the quest is grouped and presented.
   type: string;
+  // Supported quest defaults: NotStarted, InProgress, Completed, Claimed, or Failed; this value initializes player quest progress.
   defaultStatus: string;
   mapName: string;
   regionName: string;
+  // Supported quest objectives: Explore, Defeat, Collect, Talk, OpenChest, Interact, EquipSkill, or Kill; the value selects progress-tracking behavior.
   objectiveType: string;
   objectiveTarget: string;
   objectiveLocation: string;
@@ -139,10 +144,13 @@ const INITIAL_FORM: FormData = {
   title: "",
   description: "",
   dialogueContent: "",
+  // Supported quest types: Main, Side, Daily, or Event; the type determines how the quest is grouped and presented.
   type: "Main",
+  // Supported quest defaults: NotStarted, InProgress, Completed, Claimed, or Failed; this value initializes player quest progress.
   defaultStatus: "NotStarted",
   mapName: "ElfForest",
   regionName: "",
+  // Supported quest objectives: Explore, Defeat, Collect, Talk, OpenChest, Interact, EquipSkill, or Kill; the value selects progress-tracking behavior.
   objectiveType: "Explore",
   objectiveTarget: "",
   objectiveLocation: "",
@@ -157,12 +165,14 @@ const INITIAL_FORM: FormData = {
   isActive: true,
 };
 
+// Parse the trimmed input as a number and return the fallback when it is blank or not finite.
 function toNumber(value: string, fallback = 0) {
   if (value.trim() === "") return fallback;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+// Group the valid entries by their identifier, normalize each quantity, cap the allowed range, and return one aggregated record per identifier.
 function normalizeRewardItems(items: RewardItemDraft[]) {
   const grouped = new Map<number, number>();
 
@@ -174,6 +184,7 @@ function normalizeRewardItems(items: RewardItemDraft[]) {
 
   return Array.from(grouped, ([itemId, quantity]) => ({ itemId, quantity }));
 }
+// Iterate through the entries, skip missing or duplicate identifiers, and return the de-duplicated normalized list.
 function normalizeRewardSkills(skills: RewardSkillDraft[]) {
   const seen = new Set<number>();
   const normalized: { skillId: number }[] = [];
@@ -187,18 +198,25 @@ function normalizeRewardSkills(skills: RewardSkillDraft[]) {
   return normalized;
 }
 
+// Renders the get objective text view component.
+// Returns the JSX element hierarchy for the page view.
 function getObjectiveText(formData: FormData) {
   const target = formData.objectiveTarget.trim() || formData.objectiveLocation.trim() || "No target";
+  // Renders the amount view component.
+  // Returns the JSX element hierarchy for the page view.
   const amount = formData.targetAmount > 1 ? ` x${formData.targetAmount}` : "";
   return `${formData.objectiveType}${amount} - ${target}`;
 }
+// Renders the edit quest page view component.
+// Key functionality: manages local UI state, pagination, and filter values; fetches asynchronous page data on initial load and parameter changes.
+// Returns the JSX element hierarchy for the page view.
 export default function EditQuestPage() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
   const searchParams = useSearchParams();
   const questId = searchParams.get("id");
   const hasQuestId = Boolean(questId);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);  // Initialize boolean flag as inactive
   const [fetching, setFetching] = useState(hasQuestId);
   const [error, setError] = useState<string | null>(hasQuestId ? null : "Quest id is missing.");
   const [itemOptions, setItemOptions] = useState<ItemResponse[]>([]);
@@ -207,9 +225,11 @@ export default function EditQuestPage() {
   const [npcOptions, setNpcOptions] = useState<NPCResponse[]>([]);
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM);
 
+  // Load items, skills, and monsters when the dependencies change, update item options, skill options, and monster options, and ignore stale callbacks after unmount.
   useEffect(() => {
     let mounted = true;
 
+    // Execute these independent asynchronous operations concurrently, then combine their results after all complete.
     Promise.all([getItems(), getSkills({ page: 1, pageSize: 1000 }), getMonsters(1, 1000)])
       .then(([itemsRes, skillsRes, monstersRes]) => {
         if (!mounted) return;
@@ -229,6 +249,7 @@ export default function EditQuestPage() {
     };
   }, []);
 
+  // Load npc options when the dependencies change, update npc options, and ignore stale callbacks after unmount.
   useEffect(() => {
     let mounted = true;
 
@@ -247,6 +268,7 @@ export default function EditQuestPage() {
     };
   }, [formData.mapName]);
 
+  // Load by id when the dependencies change, update form data, error, and fetching, and ignore stale callbacks after unmount.
   useEffect(() => {
     if (!questId) return;
 
@@ -265,6 +287,8 @@ export default function EditQuestPage() {
           : quest.rewardSkillId
             ? [{ skillId: quest.rewardSkillId }]
             : [];
+        // Renders the objective type view component.
+        // Returns the JSX element hierarchy for the page view.
         const objectiveType = OBJECTIVE_TYPES.some((objective) => objective.value === quest.objectiveType)
           ? quest.objectiveType
           : "Explore";
@@ -273,7 +297,9 @@ export default function EditQuestPage() {
           title: quest.title,
           description: quest.description || "",
           dialogueContent: quest.dialogueContent || quest.description || "",
+          // Supported quest types: Main, Side, Daily, or Event; the type determines how the quest is grouped and presented.
           type: quest.type,
+          // Supported quest defaults: NotStarted, InProgress, Completed, Claimed, or Failed; this value initializes player quest progress.
           defaultStatus: DEFAULT_STATUSES.some((status) => status.value === quest.defaultStatus)
             ? quest.defaultStatus
             : "NotStarted",
@@ -297,11 +323,13 @@ export default function EditQuestPage() {
       .finally(() => setFetching(false));
   }, [questId]);
 
+  // Process the supplied values: maps the input discriminator to the corresponding domain value and fallback and maps each record into the output shape.
   const rewardItemOptions = useMemo(
     () => itemOptions.map((item) => ({ value: String(item.itemId), label: `${item.name} #${item.itemId}` })),
     [itemOptions],
   );
 
+  // Process the supplied values: maps each record into the output shape.
   const rewardSkillOptions = useMemo(
     () =>
       skillOptions.map((skill) => ({
@@ -311,7 +339,11 @@ export default function EditQuestPage() {
     [skillOptions],
   );
 
+  // Renders the npc select options view component.
+  // Returns the JSX element hierarchy for the page view.
   const npcSelectOptions = useMemo(() => {
+    // Renders the options view component.
+    // Returns the JSX element hierarchy for the page view.
     const options = npcOptions.map((npc) => ({
       value: npc.name,
       label: `${npc.name} #${npc.npcId}${npc.mapName ? ` - ${npc.mapName}` : ""}`,
@@ -319,12 +351,17 @@ export default function EditQuestPage() {
     return addFallbackOption(options, formData.questGiverName);
   }, [formData.questGiverName, npcOptions]);
 
+  // Process the supplied values: maps the input discriminator to the corresponding domain value and fallback and maps each record into the output shape.
   const talkTargetOptions = useMemo(
     () => addFallbackOption(npcSelectOptions, formData.objectiveTarget),
     [formData.objectiveTarget, npcSelectOptions],
   );
 
+  // Renders the item target options view component.
+  // Returns the JSX element hierarchy for the page view.
   const itemTargetOptions = useMemo(() => {
+    // Renders the options view component.
+    // Returns the JSX element hierarchy for the page view.
     const options = itemOptions.map((item) => ({
       value: item.name,
       label: `${item.name} #${item.itemId}${item.type ? ` - ${item.type}` : ""}`,
@@ -332,7 +369,11 @@ export default function EditQuestPage() {
     return addFallbackOption(options, formData.objectiveTarget);
   }, [formData.objectiveTarget, itemOptions]);
 
+  // Renders the monster target options view component.
+  // Returns the JSX element hierarchy for the page view.
   const monsterTargetOptions = useMemo(() => {
+    // Renders the options view component.
+    // Returns the JSX element hierarchy for the page view.
     const options = monsterOptions.map((monster) => ({
       value: monster.name,
       label: `${monster.name} #${monster.monsterId} - Lv.${monster.level}`,
@@ -340,16 +381,23 @@ export default function EditQuestPage() {
     return addFallbackOption(options, formData.objectiveTarget);
   }, [formData.objectiveTarget, monsterOptions]);
 
+  // Renders the map options view component.
+  // Returns the JSX element hierarchy for the page view.
   const mapOptions = useMemo(() => {
     if (!formData.mapName || MAP_PRESETS.some((map) => map.value === formData.mapName)) return MAP_PRESETS;
     return [{ value: formData.mapName, label: `${formData.mapName} - legacy value` }, ...MAP_PRESETS];
   }, [formData.mapName]);
 
+  // Renders the normalized reward skills view component.
+  // Returns the JSX element hierarchy for the page view.
   const normalizedRewardSkills = useMemo(() => normalizeRewardSkills(formData.rewardSkills), [formData.rewardSkills]);
 
+  // Process the supplied values: selects one of the two return values from the input condition and maps each record into the output shape.
   const rewardSkillSummaries = useMemo(
     () =>
       normalizedRewardSkills.map((rewardSkill) => {
+        // Renders the skill view component.
+        // Returns the JSX element hierarchy for the page view.
         const skill = skillOptions.find((option) => option.skillId === rewardSkill.skillId);
         if (!skill) return `Skill #${rewardSkill.skillId}`;
         return `${skill.name}${skill.classRequirement ? ` - ${skill.classRequirement}` : ""}`;
@@ -360,6 +408,8 @@ export default function EditQuestPage() {
   const objectiveMeta = OBJECTIVE_META[formData.objectiveType] ?? OBJECTIVE_META.Explore;
   const isSingleAmountObjective = SINGLE_AMOUNT_OBJECTIVES.has(formData.objectiveType);
 
+  // Renders the dialogue preview view component.
+  // Returns the JSX element hierarchy for the page view.
   const dialoguePreview = useMemo(() => {
     if (formData.dialogueContent.trim()) return formData.dialogueContent.trim();
     if (formData.description.trim()) return formData.description.trim();
@@ -367,22 +417,30 @@ export default function EditQuestPage() {
     return "I have a task for you.";
   }, [formData.description, formData.dialogueContent, formData.title]);
 
+  // Renders the normalized reward items view component.
+  // Returns the JSX element hierarchy for the page view.
   const normalizedRewardItems = useMemo(() => normalizeRewardItems(formData.rewardItems), [formData.rewardItems]);
 
+  // Process the supplied values: maps each record into the output shape.
   const rewardItemSummaries = useMemo(
     () =>
       normalizedRewardItems.map((rewardItem) => {
+        // Renders the item name view component.
+        // Returns the JSX element hierarchy for the page view.
         const itemName = itemOptions.find((item) => item.itemId === rewardItem.itemId)?.name ?? `Item #${rewardItem.itemId}`;
         return `${itemName} x${rewardItem.quantity}`;
       }),
     [itemOptions, normalizedRewardItems],
   );
 
+  // Process the supplied values: selects one of the two return values from the input condition, maps the input discriminator to the corresponding domain value and fallback, filters the collection to records that satisfy the current eligibility conditions, and reduces the collection into the required aggregate value.
   const rewardItemQuantityTotal = useMemo(
     () => normalizedRewardItems.reduce((total, item) => total + item.quantity, 0),
     [normalizedRewardItems],
   );
 
+  // Renders the reward summary view component.
+  // Returns the JSX element hierarchy for the page view.
   const rewardSummary = useMemo(() => {
     const rewards = [
       formData.rewardExperience > 0 ? `${formData.rewardExperience} EXP` : "",
@@ -395,19 +453,26 @@ export default function EditQuestPage() {
     return rewards.length > 0 ? rewards.join(" + ") : "No reward";
   }, [formData.rewardExperience, formData.rewardGems, formData.rewardGold, rewardItemSummaries, rewardSkillSummaries]);
 
+  // Renders the handle change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleChange = <K extends keyof FormData>(field: K, value: FormData[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Renders the handle objective type change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleObjectiveTypeChange = (value: string) => {
     setFormData((prev) => ({
       ...prev,
+      // Supported quest objectives: Explore, Defeat, Collect, Talk, OpenChest, Interact, EquipSkill, or Kill; the value selects progress-tracking behavior.
       objectiveType: value,
       objectiveTarget: value === "Talk" ? prev.questGiverName : "",
       targetAmount: SINGLE_AMOUNT_OBJECTIVES.has(value) ? 1 : Math.max(1, prev.targetAmount || 1),
     }));
   };
 
+  // Renders the handle map change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleMapChange = (value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -417,6 +482,8 @@ export default function EditQuestPage() {
     }));
   };
 
+  // Renders the handle quest giver change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleQuestGiverChange = (value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -425,6 +492,8 @@ export default function EditQuestPage() {
     }));
   };
 
+  // Renders the handle objective target change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleObjectiveTargetChange = (value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -433,19 +502,26 @@ export default function EditQuestPage() {
     }));
   };
 
+  // Renders the apply talk objective view component.
+  // Returns the JSX element hierarchy for the page view.
   const applyTalkObjective = () => {
     setFormData((prev) => ({
       ...prev,
+      // Supported quest objectives: Explore, Defeat, Collect, Talk, OpenChest, Interact, EquipSkill, or Kill; the value selects progress-tracking behavior.
       objectiveType: "Talk",
       objectiveTarget: prev.questGiverName.trim() || prev.objectiveTarget,
       targetAmount: 1,
     }));
   };
 
+  // Renders the add reward item view component.
+  // Returns the JSX element hierarchy for the page view.
   const addRewardItem = () => {
     setFormData((prev) => ({ ...prev, rewardItems: [...prev.rewardItems, { itemId: null, quantity: 1 }] }));
   };
 
+  // Renders the update reward item view component.
+  // Returns the JSX element hierarchy for the page view.
   const updateRewardItem = (index: number, patch: Partial<RewardItemDraft>) => {
     setFormData((prev) => ({
       ...prev,
@@ -453,13 +529,19 @@ export default function EditQuestPage() {
     }));
   };
 
+  // Renders the remove reward item view component.
+  // Returns the JSX element hierarchy for the page view.
   const removeRewardItem = (index: number) => {
     setFormData((prev) => ({ ...prev, rewardItems: prev.rewardItems.filter((_, itemIndex) => itemIndex !== index) }));
   };
+  // Renders the add reward skill view component.
+  // Returns the JSX element hierarchy for the page view.
   const addRewardSkill = () => {
     setFormData((prev) => ({ ...prev, rewardSkills: [...prev.rewardSkills, { skillId: null }] }));
   };
 
+  // Renders the update reward skill view component.
+  // Returns the JSX element hierarchy for the page view.
   const updateRewardSkill = (index: number, patch: Partial<RewardSkillDraft>) => {
     setFormData((prev) => ({
       ...prev,
@@ -467,12 +549,16 @@ export default function EditQuestPage() {
     }));
   };
 
+  // Renders the remove reward skill view component.
+  // Returns the JSX element hierarchy for the page view.
   const removeRewardSkill = (index: number) => {
     setFormData((prev) => ({ ...prev, rewardSkills: prev.rewardSkills.filter((_, skillIndex) => skillIndex !== index) }));
   };
 
+  // Renders the handle submit view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default HTML form submission and page reload
     if (!questId) return;
 
     if (!formData.title.trim()) {
@@ -499,10 +585,13 @@ export default function EditQuestPage() {
       await update(Number(questId), {
         title: formData.title.trim(),
         description: formData.description.trim() || null,
+        // Supported quest types: Main, Side, Daily, or Event; the type determines how the quest is grouped and presented.
         type: formData.type,
+        // Supported quest defaults: NotStarted, InProgress, Completed, Claimed, or Failed; this value initializes player quest progress.
         defaultStatus: formData.defaultStatus,
         mapName: formData.mapName || "ElfForest",
         regionName: formData.regionName.trim() || null,
+        // Supported quest objectives: Explore, Defeat, Collect, Talk, OpenChest, Interact, EquipSkill, or Kill; the value selects progress-tracking behavior.
         objectiveType: formData.objectiveType,
         objectiveTarget: formData.objectiveTarget.trim() || null,
         objectiveLocation: formData.objectiveLocation.trim() || null,
@@ -522,12 +611,12 @@ export default function EditQuestPage() {
         dialogueIsActive: Boolean(formData.dialogueContent.trim()),
         isActive: formData.isActive,
       });
-      await showSuccessAlert("Success!", "Quest updated successfully.");
-      router.push("/manage-quests");
+      await showSuccessAlert("Success!", "Quest updated successfully.");  // Display styled success alert dialog to the user
+      router.push("/manage-quests");  // Navigate to the next page and push to history stack
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to update quest";
       setError(msg);
-      await showErrorAlert("Error", msg);
+      await showErrorAlert("Error", msg);  // Display styled error alert dialog to the user
     } finally {
       setLoading(false);
     }
@@ -995,7 +1084,7 @@ export default function EditQuestPage() {
       </div>
 
       <FormActions
-        onCancel={() => router.push("/manage-quests")}
+        onCancel={() => router.push("/manage-quests")}  // Navigate to the next page and push to history stack
         submitLabel="Update Quest"
         loadingLabel="Updating..."
         loading={loading}

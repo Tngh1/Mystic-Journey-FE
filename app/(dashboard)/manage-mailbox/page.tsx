@@ -31,6 +31,8 @@ const MAILBOX_TYPE_CONFIG: Record<
   Compensation: { icon: Zap, color: "text-orange-400", bg: "bg-orange-500/15", border: "border-orange-500/30" },
 };
 
+// Renders the format date view component.
+// Returns the JSX element hierarchy for the page view.
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleString("en-US", {
     month: "short",
@@ -102,13 +104,16 @@ const columns = [
   },
 ];
 
+// Renders the manage mailbox page view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 export default function ManageMailboxPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState("");
   const [filterRead, setFilterRead] = useState<string>("all");
   const [filterClaimed, setFilterClaimed] = useState<string>("all");
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);  // Initialize boolean flag as inactive
   const [sortBy, setSortBy] = useState("mailboxId");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
@@ -130,11 +135,15 @@ export default function ManageMailboxPage() {
     (v) => v !== "" && v !== "all"
   ).length;
 
+  // Renders the show toast view component.
+  // Returns the JSX element hierarchy for the page view.
   const showToast = (type: "success" | "error", text: string) => {
     setToastMsg({ type, text });
     setTimeout(() => setToastMsg(null), 3000);
   };
 
+  // Renders the handle select mailbox view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSelectMailbox = async (mailbox: MailboxResponse) => {
     setSelectedMailbox(mailbox);
     if (!mailbox.isRead) {
@@ -143,20 +152,23 @@ export default function ManageMailboxPage() {
         setSelectedMailbox(updated);
         refresh();
       } catch {
-        // silently continue
       }
     }
   };
 
 
+  // Renders the clear all filters view component.
+  // Returns the JSX element hierarchy for the page view.
   const clearAllFilters = () => {
     setSearch("");
     setFilterRead("all");
     setFilterClaimed("all");
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams({});
   };
 
+  // Renders the build params view component.
+  // Returns the JSX element hierarchy for the page view.
   const buildParams = (overrides: Record<string, unknown> = {}) => ({
     ...(search.trim() ? { search: search.trim() } : {}),
     ...(filterRead !== "all" ? { isRead: filterRead === "read" } : {}),
@@ -164,6 +176,8 @@ export default function ManageMailboxPage() {
     ...overrides,
   });
 
+  // Renders the handle sort change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSortChange = (value: string) => {
     if (sortBy === value) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -175,7 +189,6 @@ export default function ManageMailboxPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-5">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-[#ffc032] to-[#ff8c00] flex items-center justify-center shrink-0 shadow-lg shadow-[#ffc032]/20">
@@ -195,9 +208,7 @@ export default function ManageMailboxPage() {
         </Link>
       </div>
 
-      {/* Filters Row */}
       <div className="bg-[#111111] border border-white/10 rounded-2xl p-4">
-        {/* Top row: search + toggle + send */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -207,7 +218,7 @@ export default function ManageMailboxPage() {
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
-                setPage(1);
+                setPage(1);  // Reset to first page after filter/search change
                 setParams(buildParams(
                   e.target.value.trim() ? { search: e.target.value.trim() } : {}
                 ));
@@ -220,7 +231,7 @@ export default function ManageMailboxPage() {
                 onClick={() => {
                   setSearch("");
                   setParams(buildParams({}));
-                  setPage(1);
+                  setPage(1);  // Reset to first page after filter/search change
                 }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors cursor-pointer"
               >
@@ -258,7 +269,6 @@ export default function ManageMailboxPage() {
           </div>
         </div>
 
-        {/* Expandable filters */}
         {showFilters && (
           <div className="mt-4 pt-4 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -271,7 +281,7 @@ export default function ManageMailboxPage() {
                 onChange={(e) => {
                   const value = e.target.value;
                   setFilterRead(value);
-                  setPage(1);
+                  setPage(1);  // Reset to first page after filter/search change
                   setParams(buildParams(
                     value !== "all" ? { isRead: value === "read" } : {}
                   ));
@@ -294,7 +304,7 @@ export default function ManageMailboxPage() {
                 onChange={(e) => {
                   const value = e.target.value;
                   setFilterClaimed(value);
-                  setPage(1);
+                  setPage(1);  // Reset to first page after filter/search change
                   setParams(buildParams(
                     value !== "all" ? { isClaimed: value === "claimed" } : {}
                   ));
@@ -310,7 +320,6 @@ export default function ManageMailboxPage() {
         )}
       </div>
 
-      {/* Toast */}
       {toastMsg && (
         <div
           className={`flex items-center gap-3 p-4 rounded-xl border ${
@@ -335,7 +344,6 @@ export default function ManageMailboxPage() {
         </div>
       )}
 
-      {/* Error */}
       {error && (
         <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400">
           <AlertCircle className="w-5 h-5 shrink-0" />
@@ -351,7 +359,6 @@ export default function ManageMailboxPage() {
       )}
 
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-5 items-start">
-        {/* Mailbox List */}
         <div className="min-w-0">
           <AdminTable
             title="Mailboxes"
@@ -369,7 +376,6 @@ export default function ManageMailboxPage() {
           />
         </div>
 
-        {/* Mailbox Detail Panel */}
         <div className="bg-[#111111] border border-white/10 rounded-2xl overflow-hidden h-fit xl:sticky xl:top-6">
           <div className="px-5 py-3.5 border-b border-white/10 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
@@ -393,7 +399,6 @@ export default function ManageMailboxPage() {
 
             return (
               <div className="p-5 space-y-4">
-                {/* Type + Status badges */}
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span
                     className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${typeConfig.bg} ${typeConfig.color} ${typeConfig.border}`}
@@ -418,12 +423,10 @@ export default function ManageMailboxPage() {
                   )}
                 </div>
 
-                {/* Title */}
                 <h3 className="text-lg font-bold text-white leading-tight">
                   {selectedMailbox.title}
                 </h3>
 
-                {/* Meta grid */}
                 <div className="grid grid-cols-2 gap-2">
                   <div className="bg-[#111] border border-white/10 rounded-xl p-3 space-y-1">
                     <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Recipient</p>
@@ -447,7 +450,6 @@ export default function ManageMailboxPage() {
                   </div>
                 )}
 
-                {/* Content */}
                 <div className="bg-[#111] border border-white/10 rounded-xl p-4 space-y-2">
                   <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
                     <Mail className="w-3 h-3" />
@@ -460,7 +462,6 @@ export default function ManageMailboxPage() {
                   </p>
                 </div>
 
-                {/* Rewards */}
                 {hasReward && (
                   <div className="bg-[#111] border border-white/10 rounded-xl p-4 space-y-3">
                     <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">

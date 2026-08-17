@@ -20,17 +20,21 @@ const MONSTER_TYPES = [
   { value: "Boss", label: "Boss" },
 ];
 
+// Renders the edit monster page view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 export default function EditMonsterPage() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
   const searchParams = useSearchParams();
   const monsterId = searchParams.get("id");
 
-  const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
+  const [loading, setLoading] = useState(false);  // Initialize boolean flag as inactive
+  const [fetching, setFetching] = useState(true);  // Initialize loading flag as active on first render
   const [error, setError] = useState<string | null>(null);
   const [originalImageUrl, setOriginalImageUrl] = useState<string>("");
   const [formData, setFormData] = useState({
     name: "",
+    // Supported monster types: Normal, Elite, or Boss; the type controls presentation and encounter behavior.
     type: "Normal",
     description: "",
     level: 1,
@@ -42,6 +46,7 @@ export default function EditMonsterPage() {
     imageUrl: "" as string | File | null,
   });
 
+  // Load by id when the dependencies change, update original image url, form data, error, and fetching, and ignore stale callbacks after unmount.
   useEffect(() => {
     if (!monsterId) return;
     getById(Number(monsterId))
@@ -49,6 +54,7 @@ export default function EditMonsterPage() {
         setOriginalImageUrl(m.imageUrl || "");
         setFormData({
           name: m.name,
+          // Supported monster types: Normal, Elite, or Boss; the type controls presentation and encounter behavior.
           type: m.type,
           description: m.description || "",
           level: m.level,
@@ -66,12 +72,17 @@ export default function EditMonsterPage() {
       .finally(() => setFetching(false));
   }, [monsterId]);
 
+  // Renders the handle change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleChange = <K extends keyof typeof formData>(field: K, value: (typeof formData)[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Renders the handle submit view component.
+  // Key functionality: displays interactive alert dialogues for user actions.
+  // Returns the JSX element hierarchy for the page view.
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default HTML form submission and page reload
     if (!monsterId) return;
     try {
       setLoading(true);
@@ -87,6 +98,7 @@ export default function EditMonsterPage() {
 
       await update(Number(monsterId), {
         name: formData.name,
+        // Supported monster types: Normal, Elite, or Boss; the type controls presentation and encounter behavior.
         type: formData.type,
         description: formData.description || undefined,
         level: formData.level,
@@ -97,12 +109,12 @@ export default function EditMonsterPage() {
         goldReward: formData.goldReward,
         imageUrl: finalImageUrl,
       });
-      await showSuccessAlert("Success!", "Monster updated successfully.");
-      router.push("/manage-monsters");
+      await showSuccessAlert("Success!", "Monster updated successfully.");  // Display styled success alert dialog to the user
+      router.push("/manage-monsters");  // Navigate to the next page and push to history stack
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to update monster";
       setError(msg);
-      await showErrorAlert("Error", msg);
+      await showErrorAlert("Error", msg);  // Display styled error alert dialog to the user
     } finally {
       setLoading(false);
     }
@@ -231,7 +243,7 @@ export default function EditMonsterPage() {
       </FormSection>
 
       <FormActions
-        onCancel={() => router.push("/manage-monsters")}
+        onCancel={() => router.push("/manage-monsters")}  // Navigate to the next page and push to history stack
         submitLabel="Update Monster"
         loadingLabel="Updating..."
         loading={loading}

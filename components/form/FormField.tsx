@@ -3,12 +3,6 @@
 import React from "react";
 import { AlertCircle } from "lucide-react";
 
-/* Label, control, and the error sitting directly under the field it belongs to.
-
-   The `span?: 1 | 2 | 3` prop was declared, destructured, and then never used
-   in the markup — no caller passed it either, so it is gone rather than wired
-   up. The error's decorative `rounded-full` dot is now an AlertCircle, so the
-   message reads as an error without depending on the red. */
 
 interface FormFieldProps {
   label?: string;
@@ -17,9 +11,12 @@ interface FormFieldProps {
   hint?: string;
   error?: string;
   children: React.ReactNode;
+  // Supported player classes: Knight, Archer, or Mage; the class selects base stats, compatible skills, skins, and combat scaling.
   className?: string;
 }
 
+// Renders form field modal/form component.
+// Returns the interactive form JSX element.
 export default function FormField({
   label,
   htmlFor,

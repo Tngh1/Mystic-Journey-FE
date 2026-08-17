@@ -18,20 +18,8 @@ import { getPlayerProfileById } from "@/lib/api/player-profiles";
 import { CLASSES } from "@/lib/data/classes";
 import type { PlayerProfileWithStats } from "@/lib/types";
 
-/* The character sheet as a woven hanging, not a scribe's charter.
-
-   The charter version was a parchment leaf using the wiki's own `BookStatTable`,
-   which was the problem: the account pages looked like another page of the item
-   codex. They are the one part of the portal about the *player*, so they get the
-   one material nothing else uses — cloth. Every block here is a `Tapestry`: iron
-   rod, dyed weave, gold thread couched inside the hem, fringe along the foot.
-
-   The class the hero plays picks the dye, so a knight's sheet and a mage's are
-   different hangings rather than the same card with a different badge. */
-
-/* Ten discrete blocks — a smooth bar is the wrong idiom for pixel art. The value
-   is always printed beside it, so meaning never rests on colour, and the empty
-   run is a dark thread because this is cloth, not paper. */
+// Renders the meter view component.
+// Returns the JSX element hierarchy for the page view.
 function Meter({ value, max, tint }: { value: number; max: number; tint: string }) {
   const filled = max > 0 ? Math.round((Math.min(Math.max(value, 0), max) / max) * 10) : 0;
   return (
@@ -47,8 +35,8 @@ function Meter({ value, max, tint }: { value: number; max: number; tint: string 
   );
 }
 
-/* A value cell carrying both the meter and the reading. `tabular-nums` keeps the
-   figures from shifting as they change. */
+// Renders the gauged view component.
+// Returns the JSX element hierarchy for the page view.
 function Gauged({ value, max, tint }: { value: number; max: number; tint: string }) {
   return (
     <span className="flex items-center justify-end gap-2">
@@ -58,9 +46,8 @@ function Gauged({ value, max, tint }: { value: number; max: number; tint: string
   );
 }
 
-/* One embroidered line: label in thread on the left, figure on the right. The
-   rules are the weft showing through, so they are black at low alpha rather than
-   a border colour of their own. */
+// Renders the thread row view component.
+// Returns the JSX element hierarchy for the page view.
 function ThreadRow({
   label,
   value,
@@ -85,7 +72,8 @@ function ThreadRow({
   );
 }
 
-/* One hanging of the sheet: a titled tapestry holding embroidered lines. */
+// Renders the sheet hanging view component.
+// Returns the JSX element hierarchy for the page view.
 function SheetHanging({
   title,
   icon: Icon,
@@ -97,6 +85,7 @@ function SheetHanging({
   icon: LucideIcon;
   rows: { label: string; value: ReactNode; icon?: ReactNode }[];
   dye: TapestryDye;
+  // Supported player classes: Knight, Archer, or Mage; the class selects base stats, compatible skills, skins, and combat scaling.
   className?: string;
 }) {
   return (
@@ -120,12 +109,15 @@ function SheetHanging({
 
 const thread = "h-3.5 w-3.5 text-parchment-dim";
 
+// Renders the profile page view component.
+// Returns the JSX element hierarchy for the page view.
 export default function ProfilePage() {
   const { user, isLoading } = useAuth();
   const [data, setData] = useState<PlayerProfileWithStats | null>(null);
   const [error, setError] = useState<string | null>(null);
   const profileId = user?.playerProfileId;
 
+  // Load player profile by id when the dependencies change, update data and error, and ignore stale callbacks after unmount.
   useEffect(() => {
     if (isLoading || !profileId) return;
     let mounted = true;
@@ -135,9 +127,6 @@ export default function ProfilePage() {
     return () => { mounted = false; };
   }, [isLoading, profileId]);
 
-  /* Derived rather than a third state: an account with no character never starts
-     a request, so a `loading` flag would have to be switched off synchronously
-     inside the effect — which is the cascading-render pattern React warns on. */
   const loading = Boolean(profileId) && !data && !error;
 
   if (isLoading) return null;
@@ -162,10 +151,9 @@ export default function ProfilePage() {
   }
 
   const stats = data?.stats;
+  // Renders the cls view component.
+  // Returns the JSX element hierarchy for the page view.
   const cls = CLASSES.find((c) => c.name === data?.playerClass);
-  /* The hero's order dyes their own cloth; an account with no character yet gets
-     the house colour. `bannerTone` covers tones Tapestry has no dye for (gold,
-     gilt, iron), hence the narrowing. */
   const dye: TapestryDye =
     cls && (["royal", "crimson", "pine", "arcane", "ember"] as const).includes(
       cls.bannerTone as TapestryDye,
@@ -192,10 +180,6 @@ export default function ProfilePage() {
           </p>
 
           {loading ? (
-            /* The hanging's own shape held open while it loads, so nothing jumps
-               when the numbers arrive. `aria-busy` is on the region and the rows
-               are decorative, so a screen reader hears the status line, not
-               seventeen blank threads. */
             <div className="mt-8 space-y-6" aria-busy="true">
               <p role="status" className="sr-only">Loading your character sheet…</p>
               <Tapestry dye="royal" bodyClassName="p-4">
@@ -231,8 +215,6 @@ export default function ProfilePage() {
               </div>
             </div>
           ) : error ? (
-            /* A failed request is not an empty account, and the two need
-               different actions: this one can be retried. */
             <Panel material="iron" rivets className="mt-8 p-10 text-center" role="alert">
               <AlertCircle className="mx-auto mb-4 h-12 w-12 text-accent" aria-hidden="true" />
               <h2 className="text-xl font-bold text-fg">Hanging Unreadable</h2>
@@ -262,8 +244,7 @@ export default function ProfilePage() {
             </Panel>
           ) : (
             <div className="mt-8 space-y-6">
-              {/* The great hanging: the hero named in thread, portrait on an iron
-                  plate so a transparent sprite has something solid under it. */}
+
               <Tapestry dye={dye} bodyClassName="p-4 md:p-5">
                 <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:gap-5 sm:text-left">
                   <span className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden border-2 border-accent-deep/60 bg-black/50 shadow-[inset_2px_2px_0_rgb(0_0_0_/_0.45)]">
@@ -295,8 +276,7 @@ export default function ProfilePage() {
                 </div>
               </Tapestry>
 
-              {/* Combat is the tall hanging, so it takes a column of its own and
-                  the two short ones stack beside it. */}
+
               <div className="grid gap-6 md:grid-cols-2">
                 {stats && (
                   <SheetHanging

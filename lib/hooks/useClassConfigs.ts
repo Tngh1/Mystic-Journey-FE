@@ -3,17 +3,14 @@
 import { useEffect, useState } from "react";
 import { getWikiClasses, type ClassConfigResponse } from "@/lib/api/wiki";
 
-/**
- * The class stat lines, live from `GET /api/wiki/classes`.
- *
- * Both wiki class pages read the same table, so the fetch lives here rather than
- * twice — and `loading` is derived, not a third state, so nothing has to be
- * switched off synchronously inside the effect.
- */
+// Custom React hook providing use class configs state and utility functions.
+// Encapsulates internal state management and lifecycle subscriptions.
+// Returns state values and operational callbacks to consuming components.
 export function useClassConfigs() {
   const [configs, setConfigs] = useState<ClassConfigResponse[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Load wiki classes when the dependencies change, update configs and error, and ignore stale callbacks after unmount.
   useEffect(() => {
     let mounted = true;
     getWikiClasses()
@@ -27,9 +24,8 @@ export function useClassConfigs() {
   return { configs, error, loading: !configs && !error };
 }
 
-/** Highest base value per stat across every class — the ceiling the discrete
- *  stat blocks normalise against, so a bar means "of the strongest order" and
- *  not "of a number someone typed once". */
+// Helper function executing stat ceilings.
+// Processes input parameters and returns the calculated result.
 export function statCeilings(configs: ClassConfigResponse[]) {
   return {
     hp: Math.max(1, ...configs.map((c) => c.maxHp)),
@@ -38,8 +34,8 @@ export function statCeilings(configs: ClassConfigResponse[]) {
   };
 }
 
-/** Match a config row to the presentation entry in `lib/data/classes.ts`.
- *  `ClassConfig.ClassName` is the same string as `GameClass.name`. */
+// Helper function executing find config.
+// Processes input parameters and returns the calculated result.
 export function findConfig(configs: ClassConfigResponse[] | null, className: string) {
   return configs?.find((c) => c.className === className) ?? null;
 }

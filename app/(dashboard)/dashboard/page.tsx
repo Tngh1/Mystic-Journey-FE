@@ -13,12 +13,6 @@ import Panel from "@/components/ui/Panel";
 import PageHeader from "@/components/ui/PageHeader";
 import type { DashboardStatsResponse } from "@/lib/types";
 
-/* The keep's muster board. Was `rounded-2xl` #111111 cards, `rounded-xl` icon
-   pads, white/50 labels and `#ffc032` written out by hand in four places — the
-   last page in the dashboard still off the token system.
-
-   Every surface here is now the admin keep's own material: rolled steel plate on
-   the forge floor, gold only on the figures that are money. */
 
 interface StatTileData {
   label: string;
@@ -27,8 +21,6 @@ interface StatTileData {
   tone: "default" | "gold" | "success";
 }
 
-/* Cloth for the sigil, ink for the figure — the same pairing PageHeader's tiles
-   use, so the muster board and a manage-* screen read as one keep. */
 const TONE_PLATE: Record<StatTileData["tone"], string> = {
   default: "bg-iron text-parchment",
   gold: "bg-accent text-on-accent",
@@ -41,6 +33,8 @@ const TONE_VALUE: Record<StatTileData["tone"], string> = {
   success: "text-success",
 };
 
+// Renders the stat tile view component.
+// Returns the JSX element hierarchy for the page view.
 function StatTile({ label, value, icon: Icon, tone }: StatTileData) {
   return (
     <Panel material="plate" className="flex items-start justify-between gap-3 p-4">
@@ -61,7 +55,8 @@ function StatTile({ label, value, icon: Icon, tone }: StatTileData) {
   );
 }
 
-/* A section rule: the group name struck in gold with a rail running off it. */
+// Renders the section head view component.
+// Returns the JSX element hierarchy for the page view.
 function SectionHead({
   title,
   icon: Icon,
@@ -87,26 +82,27 @@ function SectionHead({
   );
 }
 
+// Renders the dashboard page view component.
+// Key functionality: manages local UI state, pagination, and filter values; fetches asynchronous page data on initial load and parameter changes.
+// Returns the JSX element hierarchy for the page view.
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStatsResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);  // Initialize loading flag as active on first render
   const [error, setError] = useState<string | null>(null);
-  /* The API only reports a point-in-time count, so the series is built here from
-     the poll that already runs below — one sample every 30s while the page is open.
-     // ponytail: in-memory only, so the line restarts on reload; swap for a BE
-     history endpoint (GET /dashboard/online-history) when one exists. */
   const [samples, setSamples] = useState<OnlineSample[]>([]);
 
+  // Load stats when the dependencies change, update stats, error, samples, loading, and interval, and ignore stale callbacks after unmount.
   useEffect(() => {
     let cancelled = false;
 
+    // Renders the load view component.
+    // Returns the JSX element hierarchy for the page view.
     const load = () =>
       getStats()
         .then((data) => {
           if (cancelled) return;
           setStats(data);
           setError(null);
-          // Bounded: 120 samples ≈ the last hour at a 30s poll.
           setSamples((prev) =>
             [...prev, { t: Date.now(), online: data.onlinePlayers }].slice(-120),
           );
@@ -120,7 +116,6 @@ export default function DashboardPage() {
         });
 
     load();
-    // Online count is realtime (BE marks online = LastSeen within 1 min) — refresh periodically.
     const interval = setInterval(load, 30_000);
     return () => {
       cancelled = true;

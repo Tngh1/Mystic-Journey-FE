@@ -3,36 +3,21 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import Banner, { type BannerTone } from "@/components/ui/Banner";
 
 interface BookSpreadProps {
-  /** Verso (left leaf). On mobile this is the first stacked page. */
   left: ReactNode;
-  /** Recto (right leaf). */
   right: ReactNode;
-  /** Hung over the gutter on a heraldic banner, the way the game's skill panel
-   *  labels its own spread. Omit for an unlabelled tome. */
   title?: ReactNode;
   tone?: BannerTone;
-  /** Widen the recto — codex list pages want a narrow index and a wide grid. */
   ratio?: "even" | "wide-right" | "wide-left";
-  /** Leather section tabs on the cover's outer edge — a row of `<BookTab>`.
-   *  They stack down the left edge on desktop and become a scrollable strip
-   *  above the tome on mobile, where there is no room beside it. */
   tabs?: ReactNode;
-  /** Sits on the leather below both leaves, centred over the gutter. This is
-   *  where pagination belongs: it moves the whole spread, not one leaf. */
   footer?: ReactNode;
-  /** Pins both leaves to a fixed height instead of letting them grow with their
-   *  content, so the tome does not resize as you page or filter. Pass Tailwind
-   *  height utilities — responsive variants welcome, e.g.
-   *  `"h-[32rem] md:h-[38rem]"`. Leaves get `overflow-hidden`, so whichever
-   *  region inside should scroll must say so itself (`min-h-0 flex-1
-   *  overflow-y-auto`) — otherwise tall content is simply clipped. */
   leafHeight?: string;
+  // Supported player classes: Knight, Archer, or Mage; the class selects base stats, compatible skills, skins, and combat scaling.
   className?: string;
 }
 
-/* The gilt corner brackets on the cover board. Two borders each, so a corner is
-   one node instead of a rotated pseudo-element pair — and it stays a crisp 2px
-   at any zoom, which a rotated element would not. */
+// Renders the corner filigree reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes.
+// Returns the styled JSX element.
 function CornerFiligree() {
   const corner = "pointer-events-none absolute h-5 w-5 border-accent-deep";
   return (
@@ -45,11 +30,6 @@ function CornerFiligree() {
   );
 }
 
-/* The hide each tone is dyed in. Only the heraldic tones bind a book — `gold`,
-   `gilt` and `iron` stay on the fallback crimson, since a gold cover board would
-   break the one-gold-CTA rule. Feeds `--book-hide`, which `.book-leather` uses
-   for the board and `.book-spine` mixes down for the gutter, so an open codex
-   matches the spine you pulled off the wiki shelf. */
 const TONE_HIDE: Partial<Record<BannerTone, string>> = {
   royal: "var(--color-heraldry-royal)",
   crimson: "var(--color-heraldry-crimson)",
@@ -58,10 +38,9 @@ const TONE_HIDE: Partial<Record<BannerTone, string>> = {
   arcane: "var(--color-heraldry-arcane)",
 };
 
-/**
- * An open tome: two parchment leaves on a dyed leather cover board, split by
- * a sunken gutter, with an optional heraldic banner hung over the spine.
- */
+// Renders the book spread reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes.
+// Returns the styled JSX element.
 export default function BookSpread({
   left,
   right,
@@ -87,14 +66,12 @@ export default function BookSpread({
 
   return (
     <div className={`relative ${className}`}>
-      {/* Cover Board (centered) */}
       <div
         className="book-leather relative w-full rounded-sm p-3.5 md:p-5"
         style={TONE_HIDE[tone] ? ({ "--book-hide": TONE_HIDE[tone] } as CSSProperties) : undefined}
       >
         <CornerFiligree />
 
-        {/* Section Tabs hanging off the left cover edge on desktop */}
         {tabs && (
           <div className="mb-3 flex gap-2 overflow-x-auto pb-1 md:absolute md:-left-11 md:top-10 md:mb-0 md:flex-col md:overflow-visible md:pb-0 z-20">
             {tabs}
@@ -108,13 +85,10 @@ export default function BookSpread({
         )}
 
         <div className={["grid grid-cols-1 items-stretch", columns].join(" ")}>
-          {/* Verso / Left Leaf */}
           <div className={`${leaf} book-page-stack-left`}>{left}</div>
 
-          {/* Spine / Gutter */}
           <div className="book-spine h-4 w-full md:h-auto" aria-hidden="true" />
 
-          {/* Recto / Right Leaf */}
           <div className={`${leaf} book-page-stack-right`}>{right}</div>
         </div>
 
@@ -126,15 +100,9 @@ export default function BookSpread({
   );
 }
 
-/**
- * One leather section tab on the tome's edge, as in the game's own book UI: a
- * dark hide plate with a gilt-framed icon, inked gold when it is the open
- * section.
- *
- * The icon is decorative; `label` is the accessible name and the tooltip, and
- * the page also prints the open section in text on the leaf — a tab strip must
- * not be the only place the current filter is stated.
- */
+// Renders the book tab reusable UI component.
+// Features: binds user interaction event listeners.
+// Returns the styled JSX element.
 export function BookTab({
   active,
   onClick,
@@ -162,7 +130,6 @@ export function BookTab({
           : "border-black/60 bg-wood text-parchment-dim hover:border-accent-deep hover:text-parchment hover:-translate-x-0.5",
       ].join(" ")}
     >
-      {/* The gilt inner frame around each tab's glyph */}
       <span
         className={[
           "flex h-7 w-7 items-center justify-center border transition-colors",
@@ -173,7 +140,6 @@ export function BookTab({
         {icon}
       </span>
 
-      {/* Item count badge on tab edge */}
       {count !== undefined && count > 0 && (
         <span className="absolute -top-1.5 -left-1.5 flex h-4 min-w-4 items-center justify-center rounded-full border border-amber-300/60 bg-amber-950 px-1 text-[9px] font-black text-amber-300 shadow">
           {count > 99 ? "99+" : count}
@@ -183,12 +149,9 @@ export function BookTab({
   );
 }
 
-/**
- * Page turners for a whole spread, sat on the leather under the gutter.
- *
- * Numbers are windowed to five so the strip never wraps on a phone, and the
- * current page is announced with `aria-current` rather than colour alone.
- */
+// Renders the book pager reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes.
+// Returns the styled JSX element.
 export function BookPager({
   page,
   totalPages,
@@ -198,6 +161,7 @@ export function BookPager({
   page: number;
   totalPages: number;
   onPage: (p: number) => void;
+  // Supported player classes: Knight, Archer, or Mage; the class selects base stats, compatible skills, skins, and combat scaling.
   className?: string;
 }) {
   if (totalPages <= 1) return null;
@@ -206,6 +170,8 @@ export function BookPager({
   let start = Math.max(1, page - Math.floor(window / 2));
   const end = Math.min(totalPages, start + window - 1);
   start = Math.max(1, end - window + 1);
+  // Helper function executing pages.
+  // Processes input parameters and returns the calculated result.
   const pages = Array.from({ length: end - start + 1 }, (_, i) => start + i);
 
   const cell =
@@ -254,17 +220,15 @@ export function BookPager({
   );
 }
 
-/**
- * A ruled stat table on parchment: label left, value right in tabular figures,
- * hairlines between rows. This is the block the game uses for Base Damage /
- * Mana Cost / Cooldown, and it is the house pattern for any label-value pair
- * sitting on a leaf.
- */
+// Renders the book stat table reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes.
+// Returns the styled JSX element.
 export function BookStatTable({
   rows,
   className = "",
 }: {
   rows: { label: string; value: ReactNode; icon?: ReactNode }[];
+  // Supported player classes: Knight, Archer, or Mage; the class selects base stats, compatible skills, skins, and combat scaling.
   className?: string;
 }) {
   return (
@@ -290,10 +254,9 @@ export function BookStatTable({
   );
 }
 
-/**
- * The centred title stack on the recto: a small eyebrow (level, tier, chapter)
- * over the entry's name, with a gilt rule under it.
- */
+// Renders the book page title reusable UI component.
+// Features: renders child component slots dynamically.
+// Returns the styled JSX element.
 export function BookPageTitle({
   eyebrow,
   children,
@@ -303,8 +266,6 @@ export function BookPageTitle({
   eyebrow?: ReactNode;
   children: ReactNode;
   align?: "center" | "left";
-  /** Defaults to the page `h1`. Pass `"h2"` when the spread sits under a hero
-   *  that already owns the `h1` — heading levels must not repeat or skip. */
   as?: "h1" | "h2" | "h3";
 }) {
   return (

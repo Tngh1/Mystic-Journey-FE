@@ -34,14 +34,12 @@ import type { ItemResponse } from "@/lib/api/items";
 import { normalizeError } from "@/lib/api/client";
 import { showSuccessAlert, showErrorAlert } from "@/lib/utils/swal";
 
-// ── Constants ─────────────────────────────────────────────────────────────────
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ];
 const TOTAL_DAYS = 31;
 
-// ── Reward type config ────────────────────────────────────────────────────────
 const REWARD_TYPES = ["Gold", "Gems", "EXP", "Item"] as const;
 type RewardType = (typeof REWARD_TYPES)[number];
 
@@ -56,7 +54,8 @@ const rewardConfig: Record<
   Item:   { label: "Item",   icon: <Package className="w-4 h-4" />, color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/30" },
 };
 
-// ── Toast ─────────────────────────────────────────────────────────────────────
+// Renders the toast view component.
+// Returns the JSX element hierarchy for the page view.
 function Toast({
   message,
   type,
@@ -66,6 +65,7 @@ function Toast({
   type: "success" | "error";
   onClose: () => void;
 }) {
+  // Debounce the current input, update the derived filter state, and cancel the pending timer before the effect reruns or unmounts.
   useEffect(() => {
     const t = setTimeout(onClose, 3500);
     return () => clearTimeout(t);
@@ -95,13 +95,14 @@ function Toast({
   );
 }
 
-// ── Month Switcher ────────────────────────────────────────────────────────────
 interface ViewState {
   mode: "default" | "month";
-  month: number; // 1–12
+  month: number;
   year: number;
 }
 
+// Renders the month switcher view component.
+// Returns the JSX element hierarchy for the page view.
 function MonthSwitcher({
   view,
   onChange,
@@ -111,6 +112,8 @@ function MonthSwitcher({
 }) {
   const now = new Date();
 
+  // Renders the go prev view component.
+  // Returns the JSX element hierarchy for the page view.
   const goPrev = () => {
     if (view.mode === "default") return;
     let m = view.month - 1;
@@ -119,6 +122,8 @@ function MonthSwitcher({
     onChange({ mode: "month", month: m, year: y });
   };
 
+  // Renders the go next view component.
+  // Returns the JSX element hierarchy for the page view.
   const goNext = () => {
     if (view.mode === "default") return;
     let m = view.month + 1;
@@ -134,7 +139,6 @@ function MonthSwitcher({
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      {/* Default tab */}
       <button
         id="view-default"
         onClick={() => onChange({ mode: "default", month: now.getMonth() + 1, year: now.getFullYear() })}
@@ -149,7 +153,6 @@ function MonthSwitcher({
         Default
       </button>
 
-      {/* Month navigator */}
       <div className="flex items-center gap-1">
         <button
           id="month-prev"
@@ -197,7 +200,6 @@ function MonthSwitcher({
   );
 }
 
-// ── Day Card ──────────────────────────────────────────────────────────────────
 interface DayCardProps {
   dayNumber: number;
   reward?: DailyLoginRewardResponse;
@@ -206,11 +208,12 @@ interface DayCardProps {
   onDelete: (reward: DailyLoginRewardResponse) => void;
 }
 
+// Renders the day card view component.
+// Returns the JSX element hierarchy for the page view.
 function DayCard({ dayNumber, reward, viewMode, onEdit, onDelete }: DayCardProps) {
   const hasReward = reward && reward.isActive && reward.rewardType !== "None";
   const cfg = hasReward ? (rewardConfig[reward.rewardType] ?? rewardConfig.EXP) : null;
 
-  // Trong tab tháng: ô "fallback from default" = reward.isDefault=true
   const isFallback = viewMode === "month" && hasReward && reward?.isDefault;
   const isOverride = viewMode === "month" && hasReward && !reward?.isDefault;
 
@@ -225,14 +228,12 @@ function DayCard({ dayNumber, reward, viewMode, onEdit, onDelete }: DayCardProps
           : "bg-white/[0.02] border-white/8 hover:border-white/20",
       ].join(" ")}
     >
-      {/* Day number + badge */}
       <div className="flex items-center justify-between min-h-[18px]">
         <span className={`text-xs font-bold ${hasReward ? (isOverride ? cfg!.color : "text-white/50") : "text-white/30"}`}>
           Day {dayNumber}
         </span>
 
         <div className="flex items-center gap-1">
-          {/* Badge */}
           {hasReward && (
             <span
               className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border leading-none ${
@@ -247,7 +248,6 @@ function DayCard({ dayNumber, reward, viewMode, onEdit, onDelete }: DayCardProps
             </span>
           )}
 
-          {/* Edit / Delete buttons — chỉ hiện cho reward có thể edit */}
           {hasReward && !isFallback && (
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-1">
               <button
@@ -271,7 +271,6 @@ function DayCard({ dayNumber, reward, viewMode, onEdit, onDelete }: DayCardProps
 
       {hasReward ? (
         <div className="flex flex-col items-center gap-1.5">
-          {/* Icon */}
           {reward!.rewardType === "Item" ? (
             <div className="w-9 h-9 rounded-xl overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center">
               <Package className="w-4 h-4 text-white/30" />
@@ -282,7 +281,6 @@ function DayCard({ dayNumber, reward, viewMode, onEdit, onDelete }: DayCardProps
             </div>
           )}
 
-          {/* Value */}
           <div className="text-center">
             {reward!.rewardType === "Item" ? (
               <>
@@ -300,7 +298,6 @@ function DayCard({ dayNumber, reward, viewMode, onEdit, onDelete }: DayCardProps
             )}
           </div>
 
-          {/* Override button — chỉ trong tab tháng + ô đang dùng default */}
           {isFallback && (
             <button
               id={`override-day-${dayNumber}`}
@@ -325,8 +322,8 @@ function DayCard({ dayNumber, reward, viewMode, onEdit, onDelete }: DayCardProps
   );
 }
 
-// ── Reward Form Modal ─────────────────────────────────────────────────────────
 interface RewardFormData {
+  // Supported reward types: Gold, Gems, EXP, Energy, or Item; Item rewards also require an item identifier and quantity.
   rewardType: RewardType;
   rewardValue: number;
   rewardItemId: number | null;
@@ -337,6 +334,7 @@ interface RewardFormData {
 }
 
 const DEFAULT_FORM: RewardFormData = {
+  // Supported reward types: Gold, Gems, EXP, Energy, or Item; Item rewards also require an item identifier and quantity.
   rewardType: "Gold",
   rewardValue: 100,
   rewardItemId: null,
@@ -355,9 +353,12 @@ interface RewardFormModalProps {
   onSaved: () => void;
 }
 
+// Renders the create reward form view component.
+// Returns the JSX element hierarchy for the page view.
 function createRewardForm(existing?: DailyLoginRewardResponse): RewardFormData {
   return existing
     ? {
+        // Supported reward types: Gold, Gems, EXP, Energy, or Item; Item rewards also require an item identifier and quantity.
         rewardType: existing.rewardType as RewardType,
         rewardValue: existing.rewardValue,
         rewardItemId: existing.rewardItemId ?? null,
@@ -369,6 +370,9 @@ function createRewardForm(existing?: DailyLoginRewardResponse): RewardFormData {
     : DEFAULT_FORM;
 }
 
+// Renders the reward form modal view component.
+// Key functionality: manages local UI state, pagination, and filter values; displays interactive alert dialogues for user actions.
+// Returns the JSX element hierarchy for the page view.
 function RewardFormModal({
 
   isOpen,
@@ -379,14 +383,13 @@ function RewardFormModal({
   onSaved,
 }: RewardFormModalProps) {
   const [form, setForm] = useState<RewardFormData>(() => createRewardForm(existing));
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);  // Initialize boolean flag as inactive
   const [error, setError] = useState<string | null>(null);
-  const [showItemPicker, setShowItemPicker] = useState(false);
+  const [showItemPicker, setShowItemPicker] = useState(false);  // Initialize boolean flag as inactive
 
   const isCreating = !existing;
   const isDefaultMode = viewState.mode === "default";
 
-  // Tháng/năm sẽ gắn vào record mới
   const targetMonth = isDefaultMode ? null : viewState.month;
   const targetYear  = isDefaultMode ? null : viewState.year;
 
@@ -394,13 +397,17 @@ function RewardFormModal({
     ? "Default Cycle"
     : `${MONTH_NAMES[viewState.month - 1]} ${viewState.year}`;
 
+  // Renders the handle submit view component.
+  // Key functionality: displays interactive alert dialogues for user actions.
+  // Returns the JSX element hierarchy for the page view.
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default HTML form submission and page reload
     setSubmitting(true);
     setError(null);
     try {
       if (existing) {
         const payload: UpdateDailyLoginRewardRequest = {
+          // Supported reward types: Gold, Gems, EXP, Energy, or Item; Item rewards also require an item identifier and quantity.
           rewardType: form.rewardType,
           rewardValue: form.rewardType === "Item" ? 0 : form.rewardValue,
           rewardItemId: form.rewardType === "Item" ? form.rewardItemId : null,
@@ -413,6 +420,7 @@ function RewardFormModal({
           dayNumber,
           month: targetMonth,
           year: targetYear,
+          // Supported reward types: Gold, Gems, EXP, Energy, or Item; Item rewards also require an item identifier and quantity.
           rewardType: form.rewardType,
           rewardValue: form.rewardType === "Item" ? 0 : form.rewardValue,
           rewardItemId: form.rewardType === "Item" ? (form.rewardItemId ?? undefined) : undefined,
@@ -421,18 +429,20 @@ function RewardFormModal({
         };
         await createDailyLoginReward(payload);
       }
-      await showSuccessAlert("Success!", existing ? "Daily login reward updated successfully." : "Daily login reward created successfully.");
+      await showSuccessAlert("Success!", existing ? "Daily login reward updated successfully." : "Daily login reward created successfully.");  // Display styled success alert dialog to the user
       onSaved();
       onClose();
     } catch (err) {
       const msg = normalizeError(err).message;
       setError(msg);
-      await showErrorAlert("Error", msg);
+      await showErrorAlert("Error", msg);  // Display styled error alert dialog to the user
     } finally {
       setSubmitting(false);
     }
   };
 
+  // Renders the handle item select view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleItemSelect = (item: ItemResponse) => {
     setForm((prev) => ({
       ...prev,
@@ -450,7 +460,6 @@ function RewardFormModal({
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
         <div className="bg-[#111111] border border-white/10 rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
-          {/* Header */}
           <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-[#ffc032]/10 border border-[#ffc032]/20 flex items-center justify-center">
@@ -480,9 +489,7 @@ function RewardFormModal({
             </button>
           </div>
 
-          {/* Form */}
           <form id="reward-form" onSubmit={handleSubmit} className="p-6 space-y-5">
-            {/* Reward Type selector */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-white/70">Reward Type</label>
               <div className="grid grid-cols-4 gap-2">
@@ -510,7 +517,6 @@ function RewardFormModal({
               </div>
             </div>
 
-            {/* Amount (non-Item) */}
             {form.rewardType !== "Item" && (
               <div className="space-y-2">
                 <label htmlFor="reward-value" className="block text-sm font-medium text-white/70">
@@ -530,7 +536,6 @@ function RewardFormModal({
               </div>
             )}
 
-            {/* Item picker */}
             {form.rewardType === "Item" && (
               <div className="space-y-3">
                 <label className="block text-sm font-medium text-white/70">
@@ -597,7 +602,6 @@ function RewardFormModal({
               </div>
             )}
 
-            {/* Active toggle */}
             <label className="flex items-center gap-3 cursor-pointer group">
               <div
                 id="reward-active-toggle"
@@ -626,7 +630,6 @@ function RewardFormModal({
               </div>
             )}
 
-            {/* Actions */}
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 type="button"
@@ -658,11 +661,12 @@ function RewardFormModal({
   );
 }
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
+// Renders the manage daily login page view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 export default function ManageDailyLoginPage() {
   const now = new Date();
 
-  // View state: Default hoặc tháng/năm cụ thể
   const [view, setView] = useState<ViewState>({
     mode: "default",
     month: now.getMonth() + 1,
@@ -670,23 +674,23 @@ export default function ManageDailyLoginPage() {
   });
 
   const [rewards, setRewards] = useState<DailyLoginRewardResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);  // Initialize loading flag as active on first render
   const [error, setError] = useState<string | null>(null);
 
-  // Form modal
-  const [formOpen, setFormOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);  // Initialize boolean flag as inactive
   const [selectedDay, setSelectedDay] = useState(1);
   const [editingReward, setEditingReward] = useState<DailyLoginRewardResponse | undefined>();
 
-  // Delete confirm
   const [deleteTarget, setDeleteTarget] = useState<DailyLoginRewardResponse | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const [deleting, setDeleting] = useState(false);  // Initialize boolean flag as inactive
 
-  // Toast
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  // Renders the show toast view component.
+  // Returns the JSX element hierarchy for the page view.
   const showToast = (message: string, type: "success" | "error") => setToast({ message, type });
 
-  // ── Data fetching ───────────────────────────────────────────────────────────
+  // Renders the fetch rewards view component.
+  // Returns the JSX element hierarchy for the page view.
   const fetchRewards = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -702,51 +706,67 @@ export default function ManageDailyLoginPage() {
     }
   }, [view]);
 
+  // Synchronize this effect by builds resolve whenever its dependencies change.
   useEffect(() => {
     void Promise.resolve().then(fetchRewards);
   }, [fetchRewards]);
 
-  // ── Build day → reward map ──────────────────────────────────────────────────
   const rewardByDay = new Map<number, DailyLoginRewardResponse>();
   rewards.forEach((r) => { if (r.isActive || r.rewardType === "None") rewardByDay.set(r.dayNumber, r); });
 
-  // ── Handlers ───────────────────────────────────────────────────────────────
+  // Renders the handle edit view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleEdit = (day: number, reward?: DailyLoginRewardResponse) => {
     setSelectedDay(day);
     setEditingReward(reward);
     setFormOpen(true);
   };
 
+  // Renders the handle saved view component.
+  // Key functionality: displays interactive alert dialogues for user actions.
+  // Returns the JSX element hierarchy for the page view.
   const handleSaved = () => {
     showToast(editingReward ? "Reward updated!" : "Reward created!", "success");
     void fetchRewards();
   };
 
+  // Renders the handle delete confirm view component.
+  // Key functionality: displays interactive alert dialogues for user actions.
+  // Returns the JSX element hierarchy for the page view.
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
       await deleteDailyLoginReward(deleteTarget.dailyLoginRewardId);
-      await showSuccessAlert("Deleted!", "Daily login reward deleted successfully.");
+      await showSuccessAlert("Deleted!", "Daily login reward deleted successfully.");  // Display styled success alert dialog to the user
       showToast("Reward deleted!", "success");
       setDeleteTarget(null);
       void fetchRewards();
     } catch (err) {
       const msg = normalizeError(err).message;
       showToast(msg, "error");
-      await showErrorAlert("Error", msg);
+      await showErrorAlert("Error", msg);  // Display styled error alert dialog to the user
     } finally {
       setDeleting(false);
     }
   };
 
-  // ── Stats ───────────────────────────────────────────────────────────────────
+  // Renders the active rewards view component.
+  // Returns the JSX element hierarchy for the page view.
   const activeRewards   = rewards.filter((r) => r.isActive && r.rewardType !== "None");
+  // Renders the override rewards view component.
+  // Returns the JSX element hierarchy for the page view.
   const overrideRewards = activeRewards.filter((r) => !r.isDefault);
+  // Renders the gold count view component.
+  // Returns the JSX element hierarchy for the page view.
   const goldCount   = activeRewards.filter((r) => r.rewardType === "Gold").length;
+  // Renders the item count view component.
+  // Returns the JSX element hierarchy for the page view.
   const itemCount   = activeRewards.filter((r) => r.rewardType === "Item").length;
 
   const isMonthView = view.mode === "month";
+  // Renders the view label view component.
+  // Returns the JSX element hierarchy for the page view.
   const viewLabel   = isMonthView ? `${MONTH_NAMES[view.month - 1]} ${view.year}` : "Default Cycle";
 
   return (
@@ -765,7 +785,6 @@ export default function ManageDailyLoginPage() {
         ]}
       />
 
-      {/* Month Switcher */}
       <div className="bg-[#111111] border border-white/10 rounded-2xl px-5 py-4 flex items-center justify-between flex-wrap gap-3">
         <div>
           <p className="text-xs text-white/40 mb-0.5">Viewing</p>
@@ -792,7 +811,6 @@ export default function ManageDailyLoginPage() {
         <MonthSwitcher view={view} onChange={setView} />
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           {
@@ -836,7 +854,6 @@ export default function ManageDailyLoginPage() {
         ))}
       </div>
 
-      {/* Calendar Grid */}
       <div className="bg-[#111111] border border-white/10 rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-white/60 flex items-center gap-2">
@@ -889,7 +906,6 @@ export default function ManageDailyLoginPage() {
         )}
       </div>
 
-      {/* Reward Form Modal */}
       <RewardFormModal
         isOpen={formOpen}
         dayNumber={selectedDay}
@@ -903,7 +919,6 @@ export default function ManageDailyLoginPage() {
         onSaved={handleSaved}
       />
 
-      {/* Delete Confirm */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
           <div className="bg-[#111111] border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-in fade-in zoom-in-95 duration-200">
@@ -952,7 +967,6 @@ export default function ManageDailyLoginPage() {
         </div>
       )}
 
-      {/* Toast */}
       {toast && (
         <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
       )}

@@ -9,8 +9,6 @@ import AnimatedButton from "./AnimatedButton";
 import Banner from "./Banner";
 import { useAuth } from "@/lib/contexts/AuthContext";
 
-/* Wiki used to be a fourth link hardcoded after the map, so it drifted out of
-   sync with the others (and was missing from the mobile list's styling). */
 const DESKTOP_NAV = [
   { label: "Story", href: "/story" },
   { label: "Content", href: "/content" },
@@ -18,14 +16,19 @@ const DESKTOP_NAV = [
   { label: "Wiki", href: "/wiki" },
 ];
 
+// Renders the header reusable UI component.
+// Returns the styled JSX element.
 export default function Header() {
   const { user, isLoading, logout } = useAuth();
-  const router = useRouter();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
+  const [isMenuOpen, setIsMenuOpen] = useState(false);  // Initialize boolean flag as inactive
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);  // Initialize boolean flag as inactive
+  const [isScrolled, setIsScrolled] = useState(false);  // Initialize boolean flag as inactive
 
+  // Subscribe the required browser or runtime event handlers when dependencies change and remove the same handlers during cleanup.
   useEffect(() => {
+    // Event handler for handle scroll.
+    // Executes asynchronous API request and toggles loading indicators.
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
@@ -33,35 +36,27 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Event handler for handle logout.
+  // Executes asynchronous API request and toggles loading indicators.
   const handleLogout = async () => {
     setIsUserMenuOpen(false);
     setIsMenuOpen(false);
-    await logout();
-    router.push("/login");
+    await logout();  // Await asynchronous operation before proceeding
+    router.push("/login");  // Navigate to the next page and push to history stack
   };
 
-  // The bar IS the cloud: a solid white plate whose bottom edge breaks into
-  // stepped pixel cloud lumps (.cloud-bank). Not a blue sky strip with a white
-  // fringe — the whole mass reads as one cloud the page hangs from. Because the
-  // ground is now white, every child flips to royal-blue ink (gold on white
-  // fails contrast at 1.7:1; royal #26356f clears 9:1). Solid, never a blurred
-  // scrim: blur is reserved for modal dismissal. Scroll only drops the shadow,
-  // so nothing about the cloud changes as you move down the page.
   return (
     <header
       className={`fixed top-0 left-0 w-full z-50 bg-cloud transition-shadow duration-200 ${
         isScrolled ? "shadow-lg" : ""
       }`}
     >
-      {/* The cloud's underside. Hangs below the bar, so it must not eat clicks
-          meant for the hero beneath it. */}
       <div
         className="cloud-bank pointer-events-none absolute left-0 top-full h-6 w-full"
         aria-hidden="true"
       />
 
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Logo */}
         <Link href="/" className="relative w-24 h-12 md:w-32 md:h-16">
           <Image
             src="/images/logo/logo.webp"
@@ -72,9 +67,6 @@ export default function Header() {
           />
         </Link>
 
-        {/* Desktop Navigation — the hover rule is a stepped 3-block underline
-            (a growing hairline is a modern-web tell). yellow-400 was an
-            off-brand near-miss for the gold token. */}
         <nav className="hidden md:flex items-center gap-1">
           {DESKTOP_NAV.map((item) => (
             <Link
@@ -91,7 +83,6 @@ export default function Header() {
           ))}
         </nav>
 
-        {/* Right Side - User Menu or Login Button */}
         <div className="hidden md:block">
           {isLoading ? (
             <div
@@ -104,11 +95,6 @@ export default function Header() {
               <button
                 type="button"
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                // Gold signet: bevelled square that sinks on press. The old
-                // version scaled up on hover (a smooth zoom the pixel system
-                // disallows) and used a hardcoded gradient off the token set.
-                // Border is black, not accent: a gold rim around a gold face has
-                // nothing to define it now that the plate behind is white.
                 className="pixel-press pixel-bevel-gold relative flex h-11 w-11 items-center justify-center border-2 border-black/60 bg-accent text-on-accent cursor-pointer hover:bg-accent-hover"
                 aria-label="User menu"
                 aria-expanded={isUserMenuOpen}
@@ -120,8 +106,6 @@ export default function Header() {
               </button>
 
               {isUserMenuOpen && (
-                // Solid wood panel — the old translucent + backdrop-blur card
-                // let the pixel background bleed through and smear.
                 <div
                   role="menu"
                   aria-label="Account"
@@ -148,8 +132,6 @@ export default function Header() {
                       type="button"
                       role="menuitem"
                       onClick={handleLogout}
-                      // Destructive action, separated from navigation by a rule
-                      // and carrying the danger token rather than a gold hover.
                       className="flex w-full items-center gap-2.5 border-t-2 border-black/50 px-4 py-3 text-left text-sm text-fg-muted transition-colors hover:bg-danger hover:text-fg focus-visible:bg-danger focus-visible:text-fg cursor-pointer"
                     >
                       <LogOut className="h-4 w-4" aria-hidden="true" />
@@ -161,8 +143,6 @@ export default function Header() {
             </div>
           ) : (
             <Link href="/login">
-              {/* ab--ink flips the button's white ring/label to royal, which is
-                  the only way it stays visible on the cloud plate. */}
               <AnimatedButton size="sm" className="ab--ink">
                 Login
               </AnimatedButton>
@@ -170,9 +150,6 @@ export default function Header() {
           )}
         </div>
 
-        {/* Mobile Menu Button — 44x44 minimum touch target (was 40x40 from
-            p-2 + a 24px icon). Inline SVG paths replaced with the Lucide set
-            the rest of the app uses. */}
         <button
           type="button"
           className="pixel-press pixel-bevel-iron flex h-11 w-11 items-center justify-center border-2 border-black/60 text-parchment md:hidden cursor-pointer"
@@ -188,21 +165,13 @@ export default function Header() {
         </button>
       </div>
 
-      {/* Mobile Menu Dropdown */}
       {isMenuOpen && (
-        // Same DESKTOP_NAV source as the desktop bar, so the two lists can no
-        // longer drift apart. Solid stone panel instead of a blurred scrim.
-        // z-10 puts it over the cloud lumps, which share this top-full edge, so
-        // the panel hangs out of the cloud rather than behind it. Its top edge
-        // is black, which is what separates a dark panel from a white plate.
         <div className="md:hidden absolute top-full left-0 z-10 w-full border-t-2 border-black/60 bg-night-deep p-4 shadow-lg">
           <nav className="flex flex-col" aria-label="Mobile">
             {DESKTOP_NAV.map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
-                // py-3 keeps every row at a 44px+ touch target with 0 gaps,
-                // and the rules between rows read as carved panel seams.
                 className="border-b-2 border-black/40 py-3 text-base font-semibold tracking-wide text-fg transition-colors hover:text-accent focus-visible:text-accent cursor-pointer"
                 onClick={() => setIsMenuOpen(false)}
               >

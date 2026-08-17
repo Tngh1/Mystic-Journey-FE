@@ -6,27 +6,16 @@ interface RarityCardProps {
   name: string;
   tag: string;
   image?: string | null;
-  /** Rarity cloth plate classes from `RARITY_META[...].plate`. */
   plate: string;
-  /** Rarity pip count, so the tier reads without colour. */
   pips?: number;
   href?: string;
   onClick?: () => void;
   fallbackIcon?: React.ReactNode;
 }
 
-/**
- * The codex grid card: a wood plank with the entry's sprite sunk into it and a
- * rarity plate across the top.
- *
- * Notes on what this deliberately does *not* do, since all three were here
- * before the pixel system and read as modern web:
- * - no `hover:-translate-y-0.5` / `hover:shadow-xl` lift — `pixel-press` sinks
- *   the card into its own shadow on :active instead;
- * - no `group-hover:scale-105` on the sprite — a smooth zoom is the clearest
- *   modern-web tell, and it also resamples pixel art;
- * - no `rounded-*`, though the global `border-radius: 0` would have caught it.
- */
+// Renders the rarity card reusable UI component.
+// Features: applies customizable style variants and responsive CSS classes; binds user interaction event listeners.
+// Returns the styled JSX element.
 export function RarityCard({
   name,
   tag,
@@ -37,13 +26,12 @@ export function RarityCard({
   onClick,
   fallbackIcon,
 }: RarityCardProps) {
+  // Process content and returns the computed result.
   const content = (
     <Panel
       material="wood"
       className="pixel-press group flex h-full flex-col transition-colors hover:border-accent"
     >
-      {/* Rarity plate. Pips carry the tier alongside the label so the cloth
-          colour is never the only signal. */}
       <div className={`flex items-center justify-between border-b-2 border-black/60 px-2.5 py-1.5 ${plate}`}>
         <span className="truncate text-[10px] font-bold uppercase tracking-widest">{tag}</span>
         {pips > 0 && (
@@ -55,11 +43,8 @@ export function RarityCard({
         )}
       </div>
 
-      {/* Sprite, sunk into the plank. */}
       <div className="relative aspect-[4/3] overflow-hidden border-b-2 border-black/50 bg-stone">
         {image ? (
-          // Sprites come from arbitrary API-supplied URLs, so this stays a plain
-          // <img> rather than next/image (no remotePatterns entry to match).
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={image}
@@ -79,7 +64,6 @@ export function RarityCard({
         />
       </div>
 
-      {/* Name */}
       <div className="flex flex-1 items-center justify-center p-3">
         <p className="line-clamp-2 text-center text-sm font-bold text-parchment transition-colors group-hover:text-accent">
           {name}
@@ -95,8 +79,6 @@ export function RarityCard({
       </Link>
     );
   }
-  // Keyboard parity for the onClick variant: a bare div with a click handler is
-  // unreachable by tab and Enter, which the codex grid relied on.
   return (
     <div
       role="button"
@@ -104,7 +86,7 @@ export function RarityCard({
       onClick={onClick}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
+          e.preventDefault();  // Prevent default HTML form submission and page reload
           onClick?.();
         }
       }}

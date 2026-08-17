@@ -18,19 +18,18 @@ interface AccountWithPlayer {
   accountId: number;
   userName: string;
   email: string;
+  // Supported account roles: Player or Admin; the role determines authorization and access to management APIs.
   roleName: string;
   isActive: boolean;
   banReason: string | null;
   createdAt: string;
   playerProfileId: number | null;
   playerDisplayName: string | null;
+  // Supported player classes: Knight, Archer, or Mage; the class selects base stats, compatible skills, skins, and combat scaling.
   playerClass: string | null;
   playerLevel: number | null;
 }
 
-/* Không còn "Super Admin": role đã bỏ ở BE. Admin vẫn giữ trong bảng tra vì
-   BE trả về roleName thật, và nếu DB còn hàng Admin cũ thì vẫn cần render được
-   thay vì rơi về badge Player gây hiểu sai. */
 const ROLE_CONFIG: Record<
   string,
   { icon: typeof Shield; color: string; bg: string; border: string }
@@ -49,6 +48,8 @@ const CLASS_CONFIG: Record<
   Archer: { color: "text-green-400", bg: "bg-green-500/15", border: "border-green-500/30", emoji: "🏹" },
 };
 
+// Renders the format date view component.
+// Returns the JSX element hierarchy for the page view.
 function formatDate(dateString: string | null) {
   if (!dateString) return "Never";
   return new Date(dateString).toLocaleString("en-US", {
@@ -60,6 +61,9 @@ function formatDate(dateString: string | null) {
   });
 }
 
+// Renders the manage accounts page view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 export default function ManageAccountsPage() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [sortBy, setSortBy] = useState("accountId");
@@ -69,10 +73,11 @@ export default function ManageAccountsPage() {
   const [viewingAccount, setViewingAccount] = useState<AccountWithPlayer | null>(null);
   const [playerProfile, setPlayerProfile] = useState<PlayerProfileResponse | null>(null);
   const [playerStats, setPlayerStats] = useState<PlayerStatsResponse | null>(null);
-  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(false);  // Initialize boolean flag as inactive
   const [profileError, setProfileError] = useState<string | null>(null);
 
-  // Không gửi roleName: BE đã khoá danh sách ở Player và bỏ hẳn tham số đó.
+  // Renders the build params view component.
+  // Returns the JSX element hierarchy for the page view.
   const buildParams = (overrides: Record<string, string | number | boolean | undefined> = {}) => ({
     ...(searchKeyword.trim() ? { search: searchKeyword.trim() } : {}),
     sortBy,
@@ -97,36 +102,42 @@ export default function ManageAccountsPage() {
     params: buildParams(),
   });
 
+  // Renders the handle search view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSearch = (value: string) => {
     setSearchKeyword(value);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams({ search: value.trim() || undefined }));
   };
 
+  // Renders the handle sort change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSortChange = (value: string) => {
     const nextOrder = sortBy === value ? (sortOrder === "asc" ? "desc" : "asc") : "asc";
     setSortBy(value);
     setSortOrder(nextOrder);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams({ sortBy: value, sortOrder: nextOrder }));
   };
 
+  // Renders the handle ban view component.
+  // Key functionality: displays interactive alert dialogues for user actions.
+  // Returns the JSX element hierarchy for the page view.
   const handleBan = async (account: AccountWithPlayer) => {
     if (!account.accountId) return;
 
     const isBanning = account.isActive;
 
     if (isBanning) {
-      // Prompt nhập lý do — null nghĩa là admin đã huỷ
       const reason = await showBanReasonPrompt(account.userName);
       if (reason === null) return;
 
       try {
         setBanningId(account.accountId);
         await apiClient.post(`/api/adminaccounts/${account.accountId}/ban`, { banReason: reason || null });
-        await showSuccessAlert("Banned!", `Account "${account.userName}" has been banned.`);
+        await showSuccessAlert("Banned!", `Account "${account.userName}" has been banned.`);  // Display styled success alert dialog to the user
       } catch (err) {
-        await showErrorAlert("Error", err instanceof Error ? err.message : "Action failed.");
+        await showErrorAlert("Error", err instanceof Error ? err.message : "Action failed.");  // Display styled error alert dialog to the user
       } finally {
         setBanningId(null);
         refresh();
@@ -143,9 +154,9 @@ export default function ManageAccountsPage() {
       try {
         setBanningId(account.accountId);
         await apiClient.post(`/api/adminaccounts/${account.accountId}/unban`);
-        await showSuccessAlert("Unbanned!", `Account "${account.userName}" has been unbanned.`);
+        await showSuccessAlert("Unbanned!", `Account "${account.userName}" has been unbanned.`);  // Display styled success alert dialog to the user
       } catch (err) {
-        await showErrorAlert("Error", err instanceof Error ? err.message : "Action failed.");
+        await showErrorAlert("Error", err instanceof Error ? err.message : "Action failed.");  // Display styled error alert dialog to the user
       } finally {
         setBanningId(null);
         refresh();
@@ -153,6 +164,8 @@ export default function ManageAccountsPage() {
     }
   };
 
+  // Renders the handle view profile view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleViewProfile = useCallback(async (account: AccountWithPlayer) => {
     setViewingAccount(account);
     setPlayerProfile(null);
@@ -163,6 +176,7 @@ export default function ManageAccountsPage() {
 
     setLoadingProfile(true);
     try {
+      // Execute these independent asynchronous operations concurrently, then combine their results after all complete.
       const [profileData, statsData] = await Promise.all([
         get<PlayerProfileResponse>(`/api/playerprofiles/${account.playerProfileId}`),
         get<PlayerStatsResponse>(`/api/playerprofiles/${account.playerProfileId}/stats`).catch(() => null),
@@ -176,6 +190,8 @@ export default function ManageAccountsPage() {
     }
   }, []);
 
+  // Renders the close modal view component.
+  // Returns the JSX element hierarchy for the page view.
   const closeModal = () => {
     setViewingAccount(null);
     setPlayerProfile(null);
@@ -335,8 +351,6 @@ export default function ManageAccountsPage() {
         icon={UserCog}
       />
 
-      {/* Chỉ còn ô tìm kiếm: danh sách luôn là Player nên select role không lọc
-          được gì. `filters` là prop optional của FilterSortBar. */}
       <FilterSortBar
         search={{ placeholder: "Search by username or email...", icon: UserCog, value: searchKeyword, onChange: handleSearch }}
       />
@@ -358,11 +372,9 @@ export default function ManageAccountsPage() {
         onSort={handleSortChange}
       />
 
-      {/* Player Profile Modal */}
       {viewingAccount && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#111111] rounded-2xl border border-white/10 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl shadow-black/60">
-            {/* Modal Header */}
             <div className="sticky top-0 bg-[#111111] border-b border-white/10 px-6 py-4 flex items-center justify-between z-10">
               <div>
                 <h2 className="text-xl font-bold text-white">Account Profile</h2>
@@ -379,7 +391,6 @@ export default function ManageAccountsPage() {
               </button>
             </div>
 
-            {/* Modal Body */}
             <div className="p-6">
               {loadingProfile ? (
                 <div className="flex items-center justify-center py-16">
@@ -405,7 +416,6 @@ export default function ManageAccountsPage() {
                 </div>
               ) : playerProfile ? (
                 <div className="space-y-5">
-                  {/* Profile Header */}
                   <div className="flex items-center gap-4 bg-[#111] border border-white/10 rounded-xl p-4">
                     <div className="w-16 h-16 rounded-full bg-[#ffc032]/15 flex items-center justify-center overflow-hidden border-2 border-[#ffc032]/40 shrink-0">
                       {playerProfile.avatarUrl ? (
@@ -450,7 +460,6 @@ export default function ManageAccountsPage() {
                     </div>
                   </div>
 
-                  {/* Resources */}
                   <div className="grid grid-cols-3 gap-3">
                     <div className="bg-[#111] border border-white/10 rounded-xl p-3 space-y-1">
                       <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
@@ -481,7 +490,6 @@ export default function ManageAccountsPage() {
                     </div>
                   </div>
 
-                  {/* Stats */}
                   {playerStats && (
                     <div className="bg-[#111] border border-white/10 rounded-xl p-4 space-y-3">
                       <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -498,7 +506,6 @@ export default function ManageAccountsPage() {
                     </div>
                   )}
 
-                  {/* Timeline */}
                   <div className="bg-[#111] border border-white/10 rounded-xl p-4 space-y-3">
                     <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       Timeline
@@ -518,6 +525,8 @@ export default function ManageAccountsPage() {
   );
 }
 
+// Renders the stat row view component.
+// Returns the JSX element hierarchy for the page view.
 function StatRow({
   icon: Icon,
   color,
@@ -538,6 +547,8 @@ function StatRow({
   );
 }
 
+// Renders the timeline row view component.
+// Returns the JSX element hierarchy for the page view.
 function TimelineRow({
   icon: Icon,
   label,

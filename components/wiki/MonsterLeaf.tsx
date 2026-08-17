@@ -9,6 +9,8 @@ import { getWikiMonster, type MonsterDetailResponse, type MonsterResponse } from
 import { BookStatTable, BookPageTitle } from "@/components/ui/BookSpread";
 import Banner from "@/components/ui/Banner";
 
+// Renders the monster type icon reusable UI component.
+// Returns the styled JSX element.
 export function MonsterTypeIcon({ type, size = 14 }: { type: string; size?: number }) {
   const t = type.toLowerCase();
   if (t === "boss") return <Skull style={{ width: size, height: size }} />;
@@ -16,13 +18,16 @@ export function MonsterTypeIcon({ type, size = 14 }: { type: string; size?: numb
   return <Ghost style={{ width: size, height: size }} />;
 }
 
+// Helper function executing format number.
+// Processes input parameters and returns the calculated result.
 function formatNumber(n: number | null | undefined): string {
   if (n == null || Number.isNaN(n)) return "0";
   if (Number.isInteger(n)) return n.toLocaleString("en-US");
   return n.toFixed(1).replace(/\.0$/, "");
 }
 
-/* Compact visual stat bar component */
+// Renders the visual stat bar reusable UI component.
+// Returns the styled JSX element.
 function VisualStatBar({
   label,
   value,
@@ -38,6 +43,8 @@ function VisualStatBar({
 }) {
   const percentage = Math.min(100, Math.max(5, (value / maxVal) * 100));
 
+  // Helper function executing bg gradient.
+  // Processes input parameters and returns the calculated result.
   const bgGradient = {
     red: "from-red-700 to-rose-500 border-red-900",
     blue: "from-sky-700 to-indigo-500 border-sky-900",
@@ -64,9 +71,12 @@ function VisualStatBar({
   );
 }
 
+// Renders the monster leaf reusable UI component.
+// Returns the styled JSX element.
 export default function MonsterLeaf({ monster }: { monster: MonsterResponse }) {
   const [detail, setDetail] = useState<MonsterDetailResponse | null>(null);
 
+  // Load wiki monster when the dependencies change, update detail, and ignore stale callbacks after unmount.
   useEffect(() => {
     let mounted = true;
     getWikiMonster(monster.monsterId)
@@ -75,6 +85,8 @@ export default function MonsterLeaf({ monster }: { monster: MonsterResponse }) {
     return () => { mounted = false; };
   }, [monster.monsterId]);
 
+  // Helper function executing type tone.
+  // Processes input parameters and returns the calculated result.
   const typeTone = {
     Boss: "crimson",
     Elite: "gold",
@@ -82,17 +94,17 @@ export default function MonsterLeaf({ monster }: { monster: MonsterResponse }) {
     Normal: "royal",
   }[monster.type] as "crimson" | "gold" | "royal" ?? "royal";
 
+  // Helper function executing drops.
+  // Processes input parameters and returns the calculated result.
   const drops = detail?.monsterDrops?.filter((d) => d.isActive) ?? [];
 
   return (
     <div className="flex h-full flex-col justify-between">
-      {/* Top Header */}
       <div>
         <BookPageTitle as="h2" align="center" eyebrow={`${monster.type} Monster`}>
           {monster.name}
         </BookPageTitle>
 
-        {/* Showcase Plate & Pedestal */}
         <div className="my-2 flex flex-col items-center">
           <div className="relative flex h-20 w-20 items-center justify-center bg-wood-dark border-2 shadow-md group">
             <div
@@ -126,9 +138,7 @@ export default function MonsterLeaf({ monster }: { monster: MonsterResponse }) {
         </div>
       </div>
 
-      {/* Main Content Body */}
       <div className="min-h-0 flex-1 overflow-y-auto space-y-2.5 py-1">
-        {/* Monster Description */}
         {monster.description && (
           <div className="relative mx-auto max-w-[48ch] border-y border-wood/30 py-1.5 px-3 bg-wood/5">
             <Quote className="absolute top-0.5 left-0.5 h-3 w-3 text-on-parchment/20 rotate-180" />
@@ -139,7 +149,6 @@ export default function MonsterLeaf({ monster }: { monster: MonsterResponse }) {
           </div>
         )}
 
-        {/* Combat Overview Stat Bars */}
         <div className="rounded border border-wood/40 bg-wood/5 p-2 space-y-1.5">
           <h3 className="text-[9px] font-bold uppercase tracking-[0.2em] text-on-parchment/70">
             Combat Statistics
@@ -167,7 +176,6 @@ export default function MonsterLeaf({ monster }: { monster: MonsterResponse }) {
           />
         </div>
 
-        {/* Core Properties Table */}
         <div>
           <BookStatTable
             rows={[
@@ -181,7 +189,6 @@ export default function MonsterLeaf({ monster }: { monster: MonsterResponse }) {
           />
         </div>
 
-        {/* Loot Drop Table */}
         {drops.length > 0 && (
           <div className="space-y-1.5">
             <h3 className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.2em] text-on-parchment/70">
@@ -205,7 +212,6 @@ export default function MonsterLeaf({ monster }: { monster: MonsterResponse }) {
         )}
       </div>
 
-      {/* Page Footer Folio */}
       <div className="mt-auto border-t border-wood/30 pt-1 text-center text-[10px] tracking-wider text-on-parchment/50">
         Monster № {monster.monsterId}
       </div>

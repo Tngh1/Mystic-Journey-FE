@@ -7,21 +7,16 @@ import { useAuth } from "@/lib/contexts/AuthContext";
 import { useSidebar } from "@/lib/contexts/SidebarContext";
 import { showConfirmAlert } from "@/lib/utils/swal";
 
-/* The gate rail above the ledger board. Was a bare bordered strip carrying a
-   `rounded-full` gradient avatar and its own hand-built logout modal — a second
-   confirm dialog with `rounded-2xl`, `backdrop-blur-sm` and five raw hexes,
-   sitting alongside the app's real one.
-
-   That modal is gone: `showConfirmAlert` already is this dialog, already wears
-   the crimson destructive confirm, and already puts Cancel where the eye lands.
-   The old bespoke copy was ~50 lines maintaining a second answer to the same
-   question. */
+// Renders the admin top bar reusable UI component.
+// Returns the styled JSX element.
 export default function AdminTopBar() {
   const { user, logout } = useAuth();
   const { toggle } = useSidebar();
-  const router = useRouter();
-  const [loggingOut, setLoggingOut] = useState(false);
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
+  const [loggingOut, setLoggingOut] = useState(false);  // Initialize boolean flag as inactive
 
+  // Event handler for handle logout.
+  // Executes asynchronous API request and toggles loading indicators.
   const handleLogout = async () => {
     const confirm = await showConfirmAlert(
       "Confirm Logout",
@@ -32,8 +27,8 @@ export default function AdminTopBar() {
     if (!confirm) return;
     try {
       setLoggingOut(true);
-      await logout();
-      router.push("/login");
+      await logout();  // Await asynchronous operation before proceeding
+      router.push("/login");  // Navigate to the next page and push to history stack
     } finally {
       setLoggingOut(false);
     }
@@ -50,7 +45,6 @@ export default function AdminTopBar() {
       >
         <Menu className="h-5 w-5" aria-hidden="true" />
       </button>
-      {/* Keeps the identity block right-aligned once the menu toggle is hidden */}
       <span className="hidden lg:block" aria-hidden="true" />
 
       <div className="flex items-center gap-3">
@@ -61,7 +55,6 @@ export default function AdminTopBar() {
               {user?.role || "Admin"}
             </p>
           </div>
-          {/* Signet: a square gold plate, not a soft circular gradient */}
           <span className="flex h-11 w-11 items-center justify-center border-2 border-accent bg-accent text-lg font-black text-on-accent shadow-sm">
             {initial}
           </span>

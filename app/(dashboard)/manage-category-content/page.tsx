@@ -9,6 +9,8 @@ import AdminTable from '@/components/ui/AdminTable';
 import PageHeader from '@/components/ui/PageHeader';
 import FilterSortBar from '@/components/ui/FilterSortBar';
 
+// Renders the format date view component.
+// Returns the JSX element hierarchy for the page view.
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -17,12 +19,17 @@ function formatDate(dateString: string): string {
   });
 }
 
+// Renders the manage category content page view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 export default function ManageCategoryContentPage() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('categoryContentId');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
+  // Renders the build params view component.
+  // Returns the JSX element hierarchy for the page view.
   const buildParams = (overrides: Record<string, string | number | boolean | undefined> = {}) => ({
     ...(searchTerm ? { search: searchTerm } : {}),
     sortBy,
@@ -47,17 +54,21 @@ export default function ManageCategoryContentPage() {
     params: buildParams(),
   });
 
+  // Renders the handle search view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSearch = (keyword: string) => {
     setSearchTerm(keyword);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams({ search: keyword || undefined }));
   };
 
+  // Renders the handle sort change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSortChange = (value: string) => {
     const nextOrder = sortBy === value ? (sortOrder === 'asc' ? 'desc' : 'asc') : 'asc';
     setSortBy(value);
     setSortOrder(nextOrder);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams({ sortBy: value, sortOrder: nextOrder }));
   };
 
@@ -107,7 +118,7 @@ export default function ManageCategoryContentPage() {
         <div className="flex items-center justify-end">
           <button
             type="button"
-            onClick={() => router.push(`/manage-category-content/update?id=${cat.categoryContentId}`)}
+            onClick={() => router.push(`/manage-category-content/update?id=${cat.categoryContentId}`)}  // Navigate to the next page and push to history stack
             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#ffc032] text-[#111] rounded-lg hover:bg-[#ffd04c] transition-colors text-xs font-semibold cursor-pointer"
           >
             <Edit2 className="w-3.5 h-3.5" />
@@ -128,7 +139,7 @@ export default function ManageCategoryContentPage() {
           {
             label: "Create Category",
             icon: FolderOpen,
-            onClick: () => router.push("/manage-category-content/create"),
+            onClick: () => router.push("/manage-category-content/create"),  // Navigate to the next page and push to history stack
           },
         ]}
       />

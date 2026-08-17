@@ -23,14 +23,6 @@ import {
 } from "lucide-react";
 import { useSidebar } from "@/lib/contexts/SidebarContext";
 
-/* The armoury rack: a steel plate down the left edge with the sections stamped
-   into it. Was a #0F0F0F slab with `rounded-[10px]` rows and hardcoded
-   #3A3A3A / #272727 / #AAAAAA greys — the radius fought the global reset and
-   none of the greys were tokens.
-
-   The active row is the one place gold appears here. Everything else is iron or
-   parchment, so the current location stands out without a second accent
-   competing with the page's own CTA. */
 
 const menuGroups = [
   {
@@ -80,12 +72,13 @@ const menuGroups = [
   },
 ];
 
+// Renders the sidebar content reusable UI component.
+// Returns the styled JSX element.
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
 
   return (
     <>
-      {/* Crest plate — a wood-dark strip so the logo reads as a nailed-on sign */}
       <div className="flex h-16 shrink-0 items-center justify-between border-b-2 border-black/60 bg-iron-dark px-4">
         <Link href="/" className="relative h-9 w-28" onClick={onNavigate} aria-label="Mystic Journey home">
           <Image
@@ -107,7 +100,6 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         )}
       </div>
 
-      {/* Sections */}
       <nav className="flex-1 overflow-y-auto px-2 py-3">
         {menuGroups.map((group) => {
           return (
@@ -133,7 +125,6 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                             : "border-transparent text-parchment hover:border-iron-light hover:bg-iron-light/12 hover:text-accent",
                         ].join(" ")}
                       >
-                        {/* Active also carries a bar, so the state is not colour alone */}
                         <span
                           className={`h-6 w-0.5 shrink-0 ${isActive ? "bg-accent" : "bg-transparent"}`}
                           aria-hidden="true"
@@ -155,18 +146,17 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
+// Renders the admin side bar reusable UI component.
+// Returns the styled JSX element.
 export default function AdminSideBar() {
   const { isOpen, close } = useSidebar();
 
   return (
     <>
-      {/* Desktop */}
       <aside className="pixel-bevel-plate fixed left-0 top-0 hidden h-full min-h-screen w-64 flex-col border-r-2 border-black/60 lg:flex">
         <SidebarContent />
       </aside>
 
-      {/* Mobile drawer. The backdrop blur is the sanctioned one: it means the
-          layer behind is dismissed. */}
       {isOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div

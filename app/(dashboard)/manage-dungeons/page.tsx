@@ -40,14 +40,19 @@ const columns = [
   },
 ];
 
+// Renders the manage dungeons page view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 export default function ManageDungeonsPage() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
 
   const [filterDifficulty, setFilterDifficulty] = useState("");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("dungeonConfigId");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
+  // Renders the build params view component.
+  // Returns the JSX element hierarchy for the page view.
   const buildParams = () => ({
     ...(search ? { search } : {}),
     ...(filterDifficulty ? { type: filterDifficulty } : {}),
@@ -62,27 +67,35 @@ export default function ManageDungeonsPage() {
       params: buildParams(),
     });
 
+  // Renders the handle search view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSearch = (value: string) => {
     setSearch(value);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams());
   };
 
+  // Renders the handle filter change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleFilterChange = (value: string) => {
     setFilterDifficulty(value);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams());
   };
 
+  // Renders the handle sort change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSortChange = (value: string) => {
     setSortBy(value);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams());
   };
 
+  // Renders the handle order change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleOrderChange = (order: "asc" | "desc") => {
     setSortOrder(order);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams());
   };
 
@@ -132,7 +145,7 @@ export default function ManageDungeonsPage() {
         loading={loading}
         serverSide
         pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
-        onUpdate={(d) => router.push(`/manage-dungeons/update?id=${d.dungeonConfigId}`)}
+        onUpdate={(d) => router.push(`/manage-dungeons/update?id=${d.dungeonConfigId}`)}  // Navigate to the next page and push to history stack
         idField="dungeonConfigId"
         sortBy={sortBy}
         sortOrder={sortOrder}

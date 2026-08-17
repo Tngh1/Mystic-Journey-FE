@@ -27,6 +27,8 @@ export interface UsePagedQueryReturn<T> {
   refresh: () => void;
 }
 
+// Custom React hook providing use paged query state and utility functions.
+// Returns state values and operational callbacks to consuming components.
 export function usePagedQuery<T>({
   endpoint,
   pageSize: initialPageSize = 10,
@@ -37,18 +39,22 @@ export function usePagedQuery<T>({
   const [params, setParams] = useState(initialParams);
   const [data, setData] = useState<T[]>([]);
   const [totalCount, setTotalCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);  // Initialize loading flag as active on first render
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
+  // Helper function executing refresh.
+  // Processes input parameters and returns the calculated result.
   const refresh = useCallback(() => {
     setRefreshKey((k) => k + 1);
   }, []);
 
+  // Fetch the endpoint with normalized query parameters and return the typed API result.
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
+      // Helper function executing query params.
       const queryParams = new URLSearchParams({
         page: String(page),
         pageSize: String(pageSize),
@@ -70,6 +76,7 @@ export function usePagedQuery<T>({
     }
   }, [endpoint, page, pageSize, params, refreshKey]);
 
+  // Synchronize this effect by builds resolve whenever its dependencies change.
   useEffect(() => {
     void Promise.resolve().then(fetchData);
   }, [fetchData]);

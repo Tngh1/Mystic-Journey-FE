@@ -12,23 +12,29 @@ import { showErrorAlert, showSuccessAlert } from "@/lib/utils/swal";
 
 const OTP_RESEND_COOLDOWN = 60;
 
+// Renders the register page view component.
+// Returns the JSX element hierarchy for the page view.
 export default function RegisterPage() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
   const { register } = useAuth();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isSendingOTP, setIsSendingOTP] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSendingOTP, setIsSendingOTP] = useState(false);  // Initialize boolean flag as inactive
+  const [isVerifying, setIsVerifying] = useState(false);  // Initialize boolean flag as inactive
+  const [agreedToTerms, setAgreedToTerms] = useState(false);  // Initialize boolean flag as inactive
+  const [isLoading, setIsLoading] = useState(false);  // Track async submission loading state
   const [otpCountdown, setOtpCountdown] = useState(0);
-  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);  // Initialize boolean flag as inactive
 
+  // Synchronize this effect by updates interval and updates otp countdown whenever its dependencies change.
   useEffect(() => {
     if (otpCountdown <= 0) return;
+    // Renders the timer view component.
+    // Key functionality: displays interactive alert dialogues for user actions.
+    // Returns the JSX element hierarchy for the page view.
     const timer = setInterval(() => {
       setOtpCountdown((prev) => prev - 1);
     }, 1000);
@@ -37,59 +43,62 @@ export default function RegisterPage() {
 
   const mismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
+  // Sends a 6-digit verification code to the entered email address.
   const handleSendOTP = async () => {
     if (!email) {
-      await showErrorAlert("Error", "Please enter your email first.");
+      await showErrorAlert("Error", "Please enter your email first."); // Guard against empty email input
       return;
     }
-    setIsSendingOTP(true);
+    setIsSendingOTP(true); // Show spinner on Send OTP button
     try {
-      await sendVerificationCode(email);
-      await showSuccessAlert("Success", `OTP sent to your email! It expires in 5 minutes.`);
-      setOtpCountdown(OTP_RESEND_COOLDOWN);
-      setIsEmailVerified(false);
-      setOtp("");
+      await sendVerificationCode(email); // POST to /api/auth/send-verification-code to deliver OTP email
+      await showSuccessAlert("Success", `OTP sent to your email! It expires in 5 minutes.`); // Inform user of successful email delivery
+      setOtpCountdown(OTP_RESEND_COOLDOWN); // Start 60s cooldown timer before next send
+      setIsEmailVerified(false); // Reset verified state if user changed email
+      setOtp(""); // Clear previous OTP input
     } catch (err: unknown) {
-      await showErrorAlert("Error", err instanceof Error ? err.message : "Failed to send OTP.");
+      await showErrorAlert("Error", err instanceof Error ? err.message : "Failed to send OTP."); // Display backend error
     } finally {
-      setIsSendingOTP(false);
+      setIsSendingOTP(false); // Clear sending state
     }
   };
 
+  // Verifies the entered 6-digit OTP against the Redis cache.
   const handleVerifyOTP = async () => {
     if (!otp || otp.length < 6) {
-      await showErrorAlert("Error", "Please enter the 6-digit OTP code.");
+      await showErrorAlert("Error", "Please enter the 6-digit OTP code."); // Ensure user entered 6 characters
       return;
     }
-    setIsVerifying(true);
+    setIsVerifying(true); // Show verifying spinner
     try {
-      await verifyEmail({ email, verificationCode: otp });
-      await showSuccessAlert("Verified!", "Your email has been verified. You can now complete registration.");
-      setIsEmailVerified(true);
+      await verifyEmail({ email, verificationCode: otp }); // POST to /api/auth/verify-email to confirm OTP validity
+      await showSuccessAlert("Verified!", "Your email has been verified. You can now complete registration."); // Show verification success popup
+      setIsEmailVerified(true); // Unlock registration form submission
     } catch (err: unknown) {
-      await showErrorAlert("Verification Failed", err instanceof Error ? err.message : "Invalid OTP. Please try again.");
+      await showErrorAlert("Verification Failed", err instanceof Error ? err.message : "Invalid OTP. Please try again."); // Alert invalid OTP code
     } finally {
-      setIsVerifying(false);
+      setIsVerifying(false); // Clear verifying state
     }
   };
 
+  // Submits the complete registration payload and signs the user in.
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent native browser form submission reload
 
     if (!isEmailVerified) {
-      await showErrorAlert("Error", "Please verify your email first.");
+      await showErrorAlert("Error", "Please verify your email first."); // Guard: email must be pre-verified via OTP
       return;
     }
     if (password !== confirmPassword) {
-      await showErrorAlert("Error", "Passwords do not match!");
+      await showErrorAlert("Error", "Passwords do not match!"); // Guard: ensure passwords match
       return;
     }
     if (!agreedToTerms) {
-      await showErrorAlert("Error", "Please agree to the Terms of Service");
+      await showErrorAlert("Error", "Please agree to the Terms of Service"); // Guard: terms agreement checkbox
       return;
     }
 
-    setIsLoading(true);
+    setIsLoading(true); // Disable submit button and show loading spinner
 
     try {
       await register({
@@ -97,14 +106,14 @@ export default function RegisterPage() {
         emailAddress: email,
         password: password,
         confirmPassword: confirmPassword,
-      });
+      }); // Call AuthContext register — creates account, initial profile, and sets JWT cookies
 
-      await showSuccessAlert("Registration Successful!", "Welcome to Mystic Journey!");
-      router.push("/");
+      await showSuccessAlert("Registration Successful!", "Welcome to Mystic Journey!"); // Show welcome message
+      router.push("/"); // Navigate user to main home/dashboard page
     } catch (err: unknown) {
-      await showErrorAlert("Registration Failed", err instanceof Error ? err.message : "Please try again.");
+      await showErrorAlert("Registration Failed", err instanceof Error ? err.message : "Please try again."); // Display server registration failure
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Reset loading state
     }
   };
 
@@ -159,8 +168,7 @@ export default function RegisterPage() {
           }
         />
 
-        {/* Email seal: send the code, then verify it. Both steps stay visible
-            so it is clear which one is outstanding. */}
+
         <AuthField
           label="OTP Code"
           id="otp"

@@ -36,17 +36,24 @@ interface PendingItem {
   isFeatured: boolean;
 }
 
+// Renders the create gacha banner page view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 export default function CreateGachaBannerPage() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
+  const [loading, setLoading] = useState(false);  // Initialize boolean flag as inactive
   const [error, setError] = useState<string | null>(null);
 
   const now = new Date();
+  // Convert the number to a two-character string so generated local date and time fields remain zero-padded.
   const pad = (n: number) => String(n).padStart(2, "0");
+  // Renders the now str view component.
+  // Returns the JSX element hierarchy for the page view.
   const nowStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(Math.round(now.getMinutes() / 5) * 5)}`;
 
   const [formData, setFormData] = useState({
     name: "",
+    // Supported gacha banner types: Standard, Limited, or Event; the type controls banner categorization and presentation.
     type: "Standard",
     pullCost: 1,
     costItemId: "",
@@ -56,31 +63,32 @@ export default function CreateGachaBannerPage() {
     endAt: nowStr,
   });
 
-  // Pending items – stored locally, added to banner after creation
   const [pendingItems, setPendingItems] = useState<PendingItem[]>([]);
-  const [addItemOpen, setAddItemOpen] = useState(false);
+  const [addItemOpen, setAddItemOpen] = useState(false);  // Initialize boolean flag as inactive
   const [addItemForm, setAddItemForm] = useState({ itemId: "", dropRate: "10", isFeatured: false });
   const [nextKey, setNextKey] = useState(0);
 
   const [items, setItems] = useState<ItemResponse[]>([]);
 
+  // Load all items when the dependencies change, update items, and ignore stale callbacks after unmount.
   useEffect(() => {
     getAllItems(1, 1000).then(res => setItems(res.items)).catch(console.error);
   }, []);
 
-  // BR-053 / BR-136: pull chỉ nhận ticket item.
-  // Loại item Currency (Gold / Gem / Exp) khỏi danh sách chọn để không thể
-  // cấu hình banner trừ tiền tệ. BE cũng chặn lại lần nữa.
   const ticketItems = items.filter(
     (i) => i.isActive && i.type?.toLowerCase() !== "currency"
   );
 
+  // Renders the handle change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleChange = <K extends keyof typeof formData>(field: K, value: (typeof formData)[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Renders the handle add pending item view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleAddPendingItem = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default HTML form submission and page reload
     if (!addItemForm.itemId || Number(addItemForm.itemId) <= 0) return;
     setPendingItems((prev) => [
       ...prev,
@@ -96,27 +104,39 @@ export default function CreateGachaBannerPage() {
     setAddItemOpen(false);
   };
 
+  // Renders the handle update drop rate view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleUpdateDropRate = (key: number, dropRate: number) => {
     setPendingItems((prev) =>
       prev.map((item) => (item.key === key ? { ...item, dropRate } : item))
     );
   };
 
+  // Renders the handle toggle featured view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleToggleFeatured = (key: number) => {
     setPendingItems((prev) =>
       prev.map((item) => (item.key === key ? { ...item, isFeatured: !item.isFeatured } : item))
     );
   };
 
+  // Renders the handle remove pending item view component.
+  // Key functionality: displays interactive alert dialogues for user actions.
+  // Returns the JSX element hierarchy for the page view.
   const handleRemovePendingItem = (key: number) => {
     setPendingItems((prev) => prev.filter((i) => i.key !== key));
   };
 
+  // Renders the total drop rate view component.
+  // Key functionality: displays interactive alert dialogues for user actions.
+  // Returns the JSX element hierarchy for the page view.
   const totalDropRate = pendingItems.reduce((s, i) => s + i.dropRate, 0);
   const isDropRateValid = Math.abs(totalDropRate - 100) < 0.01 || pendingItems.length === 0;
 
+  // Renders the handle submit view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default HTML form submission and page reload
     if (!formData.startAt || !formData.endAt) {
       setError("Start date and end date are required.");
       return;
@@ -133,9 +153,11 @@ export default function CreateGachaBannerPage() {
       setLoading(true);
       setError(null);
 
-      // Step 1: Create the banner
+      // Renders the created view component.
+      // Returns the JSX element hierarchy for the page view.
       const created = await create({
         name: formData.name,
+        // Supported gacha banner types: Standard, Limited, or Event; the type controls banner categorization and presentation.
         type: formData.type,
         pullCost: formData.pullCost,
         costItemId: formData.costItemId ? Number(formData.costItemId) : null,
@@ -145,7 +167,6 @@ export default function CreateGachaBannerPage() {
         endAt: new Date(formData.endAt).toISOString(),
       });
 
-      // Step 2: Add all pending items
       for (const item of pendingItems) {
         await addBannerItem(created.gachaBannerId, {
           itemId: item.itemId,
@@ -154,12 +175,12 @@ export default function CreateGachaBannerPage() {
         });
       }
 
-      await showSuccessAlert("Success!", "Gacha banner created successfully.");
-      router.push("/manage-gacha-pools");
+      await showSuccessAlert("Success!", "Gacha banner created successfully.");  // Display styled success alert dialog to the user
+      router.push("/manage-gacha-pools");  // Navigate to the next page and push to history stack
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to create gacha banner.";
       setError(msg);
-      await showErrorAlert("Error", msg);
+      await showErrorAlert("Error", msg);  // Display styled error alert dialog to the user
     } finally {
       setLoading(false);
     }
@@ -177,7 +198,6 @@ export default function CreateGachaBannerPage() {
 
       {error && <FormAlert message={error} onDismiss={() => setError(null)} />}
 
-      {/* ── Banner Info ── */}
       <FormSection title="Banner Configuration" icon={Gift}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField label="Banner Name" htmlFor="name" required>
@@ -267,7 +287,6 @@ export default function CreateGachaBannerPage() {
         />
       </FormSection>
 
-      {/* ── Banner Items Panel ── */}
       <div className="bg-[#111] border border-white/10 rounded-2xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
           <div className="flex items-center gap-2">
@@ -287,7 +306,6 @@ export default function CreateGachaBannerPage() {
           </button>
         </div>
 
-        {/* Add item inline form */}
         {addItemOpen && (
           <div className="px-5 py-4 border-b border-white/10 bg-[#0d0d0d]">
             <p className="text-xs text-white/50 mb-3 font-semibold uppercase tracking-wider">New Item</p>
@@ -351,7 +369,6 @@ export default function CreateGachaBannerPage() {
           </div>
         )}
 
-        {/* Items list */}
         {pendingItems.length === 0 ? (
           <div className="px-5 py-10 text-center text-white/40 text-sm">
             No items added yet. Click <span className="text-[#ffc032]">&quot;Add Item&quot;</span> to add items to this banner.
@@ -360,7 +377,6 @@ export default function CreateGachaBannerPage() {
           <div className="divide-y divide-white/5">
             {pendingItems.map((item) => (
               <div key={item.key} className="flex items-center gap-4 px-5 py-3 hover:bg-white/5 transition-colors group">
-                {/* Icon placeholder */}
                 {items.find(i => i.itemId === item.itemId)?.iconUrl ? (
                   <img src={items.find(i => i.itemId === item.itemId)!.iconUrl!} alt="" className="w-10 h-10 rounded-lg object-cover border border-white/10 shrink-0" />
                 ) : (
@@ -369,7 +385,6 @@ export default function CreateGachaBannerPage() {
                   </div>
                 )}
 
-                {/* Item info */}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-white">
                     {items.find(i => i.itemId === item.itemId)?.name ?? `Item ID: ${item.itemId}`}
@@ -394,7 +409,6 @@ export default function CreateGachaBannerPage() {
                   </div>
                 </div>
 
-                {/* Editable drop rate */}
                 <div className="flex items-center gap-2 shrink-0">
                   <input
                     type="number"
@@ -409,7 +423,6 @@ export default function CreateGachaBannerPage() {
                   <span className="text-xs text-white/40">%</span>
                 </div>
 
-                {/* Remove */}
                 <button
                   type="button"
                   onClick={() => handleRemovePendingItem(item.key)}
@@ -423,11 +436,9 @@ export default function CreateGachaBannerPage() {
           </div>
         )}
 
-        {/* Total drop rate indicator */}
         <div className="px-5 py-3 bg-[#0d0d0d] border-t border-white/10 flex items-center justify-between">
           <span className="text-xs text-white/40">Total Drop Rate</span>
           <div className="flex items-center gap-3">
-            {/* Progress bar */}
             <div className="w-32 h-1.5 rounded-full bg-white/10 overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all ${isDropRateValid && pendingItems.length > 0 ? "bg-green-400" : totalDropRate > 100 ? "bg-red-400" : "bg-[#ffc032]"}`}
@@ -443,7 +454,7 @@ export default function CreateGachaBannerPage() {
       </div>
 
       <FormActions
-        onCancel={() => router.push("/manage-gacha-pools")}
+        onCancel={() => router.push("/manage-gacha-pools")}  // Navigate to the next page and push to history stack
         submitLabel={`Create Banner${pendingItems.length > 0 ? ` with ${pendingItems.length} item${pendingItems.length > 1 ? "s" : ""}` : ""}`}
         loadingLabel="Creating..."
         loading={loading}

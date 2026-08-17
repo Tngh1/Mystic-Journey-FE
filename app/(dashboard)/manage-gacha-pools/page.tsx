@@ -28,17 +28,25 @@ const columns = [
   },
 ];
 
+// Renders the format date view component.
+// Key functionality: manages local UI state, pagination, and filter values; fetches asynchronous page data on initial load and parameter changes.
+// Returns the JSX element hierarchy for the page view.
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString();
 }
 
+// Renders the manage gacha pools page view component.
+// Key functionality: manages local UI state, pagination, and filter values.
+// Returns the JSX element hierarchy for the page view.
 export default function ManageGachaPoolsPage() {
-  const router = useRouter();
+  const router = useRouter();  // Initialize Next.js router for programmatic navigation
   const [filterType, setFilterType] = useState("");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("gachaBannerId");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
+  // Renders the build params view component.
+  // Returns the JSX element hierarchy for the page view.
   const buildParams = () => ({
     ...(search ? { search } : {}),
     ...(filterType ? { type: filterType } : {}),
@@ -53,18 +61,24 @@ export default function ManageGachaPoolsPage() {
       params: buildParams(),
     });
 
+  // Renders the handle search view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSearch = (value: string) => {
     setSearch(value);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams());
   };
 
+  // Renders the handle filter change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleFilterChange = (value: string) => {
     setFilterType(value);
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams());
   };
 
+  // Renders the handle sort change view component.
+  // Returns the JSX element hierarchy for the page view.
   const handleSortChange = (value: string) => {
     if (sortBy === value) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -72,10 +86,12 @@ export default function ManageGachaPoolsPage() {
       setSortBy(value);
       setSortOrder("asc");
     }
-    setPage(1);
+    setPage(1);  // Reset to first page after filter/search change
     setParams(buildParams());
   };
 
+  // Renders the columns with date view component.
+  // Returns the JSX element hierarchy for the page view.
   const columnsWithDate = columns.map((col) =>
     col.key === "startAt" || col.key === "endAt"
       ? { ...col, render: (val: string) => formatDate(val) }
@@ -96,7 +112,7 @@ export default function ManageGachaPoolsPage() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.push("/manage-gacha-pools/history")}
+            onClick={() => router.push("/manage-gacha-pools/history")}  // Navigate to the next page and push to history stack
             className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl border border-white/20 text-white/70 hover:bg-white/10 transition-colors cursor-pointer"
           >
             <History className="w-4 h-4" />
@@ -136,7 +152,7 @@ export default function ManageGachaPoolsPage() {
         loading={loading}
         serverSide
         pagination={{ page, pageSize, totalCount, setPage, setPageSize }}
-        onUpdate={(b) => router.push(`/manage-gacha-pools/update?id=${b.gachaBannerId}`)}
+        onUpdate={(b) => router.push(`/manage-gacha-pools/update?id=${b.gachaBannerId}`)}  // Navigate to the next page and push to history stack
         idField="gachaBannerId"
         sortBy={sortBy}
         sortOrder={sortOrder}
