@@ -47,11 +47,12 @@ const rewardConfig: Record<
   string,
   { label: string; icon: React.ReactNode; color: string; bg: string; border: string }
 > = {
-  Gold:   { label: "Gold",   icon: <Coins className="w-4 h-4" />,   color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/30" },
-  Gems:   { label: "Gems",   icon: <Gem className="w-4 h-4" />,     color: "text-cyan-400",   bg: "bg-cyan-500/10",   border: "border-cyan-500/30"   },
-  EXP:    { label: "EXP",    icon: <Zap className="w-4 h-4" />,     color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/30" },
-  Energy: { label: "Energy", icon: <Zap className="w-4 h-4" />,     color: "text-green-400",  bg: "bg-green-500/10",  border: "border-green-500/30"  },
-  Item:   { label: "Item",   icon: <Package className="w-4 h-4" />, color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/30" },
+  Gold: { label: "Gold", icon: <Coins className="w-4 h-4" />, color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/30" },
+  Gems: { label: "Gems", icon: <Gem className="w-4 h-4" />, color: "text-cyan-400", bg: "bg-cyan-500/10", border: "border-cyan-500/30" },
+  Gem:  { label: "Gems", icon: <Gem className="w-4 h-4" />, color: "text-cyan-400", bg: "bg-cyan-500/10", border: "border-cyan-500/30" },
+  EXP:  { label: "EXP",  icon: <Zap className="w-4 h-4" />, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/30" },
+  Exp:  { label: "EXP",  icon: <Zap className="w-4 h-4" />, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/30" },
+  Item: { label: "Item", icon: <Package className="w-4 h-4" />, color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/30" },
 };
 
 // Renders the toast view component.
