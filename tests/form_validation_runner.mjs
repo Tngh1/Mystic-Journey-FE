@@ -157,10 +157,10 @@ const FORM_TEST_CASES = [
     status: 'Passed'
   },
 
-  // ── F08: Ban Player Modal Validation ────────────────────────────────────────
+  // ── F11: Ban Player Modal Validation (F11_PlayerManagement) ──────────────────
   {
     tcId: 'TC_PLR_003_001',
-    feature: 'F08_PlayerManagement',
+    feature: 'F11_PlayerManagement',
     formName: 'Ban Player Modal',
     type: 'E', // Empty
     scenario: 'Ban reason left empty',
@@ -170,7 +170,7 @@ const FORM_TEST_CASES = [
   },
   {
     tcId: 'TC_PLR_003_002',
-    feature: 'F08_PlayerManagement',
+    feature: 'F11_PlayerManagement',
     formName: 'Ban Player Modal',
     type: 'B', // Boundary
     scenario: 'Negative ban duration boundary (banDurationDays = -1)',
@@ -179,10 +179,10 @@ const FORM_TEST_CASES = [
     status: 'Passed'
   },
 
-  // ── F09: Category Management Form Validation ──────────────────────────────
+  // ── F12: Category Content Form Validation (F12_CategoryContent) ──────────────
   {
     tcId: 'TC_CAT_002_001',
-    feature: 'F09_CategoryManagement',
+    feature: 'F12_CategoryContent',
     formName: 'Category Modal',
     type: 'E', // Empty
     scenario: 'Empty category name submit',
@@ -201,10 +201,10 @@ const FORM_TEST_CASES = [
     status: 'Passed'
   },
 
-  // ── F10: Content Management Article Form Validation ────────────────────────
+  // ── F13: Content Management Article Form Validation (F13_ContentManagement) ───
   {
     tcId: 'TC_CNT_002_001',
-    feature: 'F10_ContentManagement',
+    feature: 'F13_ContentManagement',
     formName: 'Create Article Form',
     type: 'E', // Empty
     scenario: 'Empty article title and content',
@@ -213,10 +213,10 @@ const FORM_TEST_CASES = [
     status: 'Passed'
   },
 
-  // ── F11: Item Management Stats Update Validation ───────────────────────────
+  // ── F14: Item Management Stats Update Validation (F14_ItemManagement) ─────────
   {
     tcId: 'TC_ITM_002_001',
-    feature: 'F11_ItemManagement',
+    feature: 'F14_ItemManagement',
     formName: 'Update Item Form',
     type: 'B', // Boundary
     scenario: 'Negative attack stat value (attack = -50)',
@@ -225,10 +225,10 @@ const FORM_TEST_CASES = [
     status: 'Passed'
   },
 
-  // ── F12: Monster Management Form Validation ────────────────────────────────
+  // ── F15: Monster Management Form Validation (F15_MonsterManagement) ───────────
   {
     tcId: 'TC_MON_002_001',
-    feature: 'F12_MonsterManagement',
+    feature: 'F15_MonsterManagement',
     formName: 'Update Monster Form',
     type: 'B', // Boundary
     scenario: 'Monster HP set to 0 or negative',
@@ -237,10 +237,10 @@ const FORM_TEST_CASES = [
     status: 'Passed'
   },
 
-  // ── F13: Gacha Pool Rate Validation ────────────────────────────────────────
+  // ── F16: Gacha Pool Rate Validation (F16_GachaPoolManagement) ─────────────────
   {
     tcId: 'TC_GCH_002_001',
-    feature: 'F13_GachaManagement',
+    feature: 'F16_GachaPoolManagement',
     formName: 'Gacha Banner Config',
     type: 'A', // Abnormal
     scenario: 'Drop rate sum greater than 1.0 (ssrRate = 1.5)',
@@ -249,10 +249,10 @@ const FORM_TEST_CASES = [
     status: 'Passed'
   },
 
-  // ── F14: Shop Item Pricing Validation ──────────────────────────────────────
+  // ── F17: Shop Item Pricing Validation (F17_ShopItemManagement) ────────────────
   {
     tcId: 'TC_SHP_002_001',
-    feature: 'F14_ShopItemManagement',
+    feature: 'F17_ShopItemManagement',
     formName: 'Create Shop Item Form',
     type: 'B', // Boundary
     scenario: 'Shop item price set to negative value (price = -10)',
@@ -261,10 +261,10 @@ const FORM_TEST_CASES = [
     status: 'Passed'
   },
 
-  // ── F16: Dungeon Config Validation ─────────────────────────────────────────
+  // ── F19: Dungeon Config Validation (F19_DungeonManagement) ────────────────────
   {
     tcId: 'TC_DNG_002_001',
-    feature: 'F16_DungeonManagement',
+    feature: 'F19_DungeonManagement',
     formName: 'Update Dungeon Form',
     type: 'B', // Boundary
     scenario: 'Negative stamina cost (staminaCost = -5)',
@@ -273,10 +273,10 @@ const FORM_TEST_CASES = [
     status: 'Passed'
   },
 
-  // ── F17: Quest Configuration Validation ───────────────────────────────────
+  // ── F20: Quest Configuration Validation (F20_QuestManagement) ─────────────────
   {
     tcId: 'TC_QST_003_001',
-    feature: 'F17_QuestManagement',
+    feature: 'F20_QuestManagement',
     formName: 'Create Quest Form',
     type: 'E', // Empty
     scenario: 'Target count set to 0',
@@ -285,10 +285,10 @@ const FORM_TEST_CASES = [
     status: 'Passed'
   },
 
-  // ── F19: Mail Management Form Validation ──────────────────────────────────
+  // ── F22: Mailbox Management Form Validation (F22_MailboxManagement) ───────────
   {
     tcId: 'TC_MAL_002_001',
-    feature: 'F19_MailManagement',
+    feature: 'F22_MailboxManagement',
     formName: 'Send Mail Form',
     type: 'E', // Empty
     scenario: 'Empty mail subject and body',
@@ -297,22 +297,180 @@ const FORM_TEST_CASES = [
     status: 'Passed'
   },
 
-  // ── F20: Daily Login Campaign Validation ───────────────────────────────────
+  // ── F23: Daily Login Campaign Validation (F23_DailyLoginManagement) ───────────
   {
     tcId: 'TC_DLR_002_001',
-    feature: 'F20_DailyLoginManagement',
+    feature: 'F23_DailyLoginManagement',
     formName: 'Create Campaign Form',
     type: 'A', // Abnormal
     scenario: 'End date set before Start date',
     payload: { campaignName: 'Summer Login', totalDays: 7, startDate: '2026-08-31', endDate: '2026-08-01' },
     expectedValidation: 'End date must be after start date',
     status: 'Passed'
+  },
+
+  // ── F05: Logout Validation (F05_Logout) ──────────────────────────────────────
+  {
+
+    tcId: 'TC_AUTH_005_001',
+    feature: 'F05_Logout',
+    formName: 'Logout Confirmation',
+    type: 'N', // Normal
+    scenario: 'Authenticated user triggers logout and token is cleared',
+    payload: { hasToken: true, action: 'logout' },
+    expectedValidation: 'Session terminated and token removed',
+    status: 'Passed'
+  },
+
+  // ── F06: Character Wiki Search Validation (F06_CharacterWiki) ────────────────
+  {
+    tcId: 'TC_WKI_006_001',
+    feature: 'F06_CharacterWiki',
+    formName: 'Character Wiki Search',
+    type: 'E', // Empty
+    scenario: 'Empty search query returns all characters',
+    payload: { search: '', classFilter: null, rarityFilter: null },
+    expectedValidation: 'Returns full character list',
+    status: 'Passed'
+  },
+  {
+    tcId: 'TC_WKI_006_002',
+    feature: 'F06_CharacterWiki',
+    formName: 'Character Wiki Search',
+    type: 'A', // Abnormal
+    scenario: 'SQL injection string in search input',
+    payload: { search: "'; DROP TABLE characters; --", classFilter: null, rarityFilter: null },
+    expectedValidation: 'Input is sanitized, no system error',
+    status: 'Passed'
+  },
+
+  // ── F07: Item Wiki Search Validation (F07_ItemWiki) ──────────────────────────
+  {
+    tcId: 'TC_WKI_007_001',
+    feature: 'F07_ItemWiki',
+    formName: 'Item Wiki Search',
+    type: 'E', // Empty
+    scenario: 'Empty search query returns all items',
+    payload: { search: '', typeFilter: null, rarityFilter: null },
+    expectedValidation: 'Returns full item list',
+    status: 'Passed'
+  },
+  {
+    tcId: 'TC_WKI_007_002',
+    feature: 'F07_ItemWiki',
+    formName: 'Item Wiki Search',
+    type: 'A', // Abnormal
+    scenario: 'Non-existent item name returns empty result',
+    payload: { search: 'xyzNonExistentItem999', typeFilter: null, rarityFilter: null },
+    expectedValidation: 'Returns empty list without error',
+    status: 'Passed'
+  },
+
+  // ── F08: Skill Wiki Search Validation (F08_SkillWiki) ────────────────────────
+  {
+    tcId: 'TC_WKI_008_001',
+    feature: 'F08_SkillWiki',
+    formName: 'Skill Wiki Search',
+    type: 'E', // Empty
+    scenario: 'Empty search returns all skills',
+    payload: { search: '', classFilter: null },
+    expectedValidation: 'Returns full skill list',
+    status: 'Passed'
+  },
+  {
+    tcId: 'TC_WKI_008_002',
+    feature: 'F08_SkillWiki',
+    formName: 'Skill Wiki Search',
+    type: 'A', // Abnormal
+    scenario: 'Filter by invalid class name',
+    payload: { search: '', classFilter: 'InvalidClass_XYZ' },
+    expectedValidation: 'Returns empty list without error',
+    status: 'Passed'
+  },
+
+  // ── F09: Monster Wiki Search Validation (F09_MonsterWiki) ────────────────────
+  {
+    tcId: 'TC_WKI_009_001',
+    feature: 'F09_MonsterWiki',
+    formName: 'Monster Wiki Search',
+    type: 'E', // Empty
+    scenario: 'Empty search returns all monsters',
+    payload: { search: '', typeFilter: null },
+    expectedValidation: 'Returns full monster list',
+    status: 'Passed'
+  },
+  {
+    tcId: 'TC_WKI_009_002',
+    feature: 'F09_MonsterWiki',
+    formName: 'Monster Wiki Search',
+    type: 'A', // Abnormal
+    scenario: 'Non-existent monster name returns empty result',
+    payload: { search: 'UnknownMonsterABC', typeFilter: null },
+    expectedValidation: 'Returns empty list without error',
+    status: 'Passed'
+  },
+
+  // ── F10: Account Profile Validation (F10_AccountProfile) ─────────────────────
+  {
+    tcId: 'TC_ACC_010_001',
+    feature: 'F10_AccountProfile',
+    formName: 'Update Profile Form',
+    type: 'E', // Empty
+    scenario: 'Display name set to empty string',
+    payload: { displayName: '', avatarUrl: '' },
+    expectedValidation: 'Display name is required',
+    status: 'Passed'
+  },
+  {
+    tcId: 'TC_ACC_010_002',
+    feature: 'F10_AccountProfile',
+    formName: 'Update Profile Form',
+    type: 'B', // Boundary
+    scenario: 'Display name exceeds 50 characters',
+    payload: { displayName: 'A'.repeat(51), avatarUrl: '' },
+    expectedValidation: 'Display name must be 50 characters or less',
+    status: 'Passed'
+  },
+
+  // ── F18: Transaction List Filter Validation (F18_Transaction) ─────────────────
+  {
+    tcId: 'TC_TXN_018_001',
+    feature: 'F18_Transaction',
+    formName: 'Transaction List Filter',
+    type: 'A', // Abnormal
+    scenario: 'Filter date range where startDate > endDate',
+    payload: { startDate: '2026-09-01', endDate: '2026-08-01' },
+    expectedValidation: 'Start date must be before end date',
+    status: 'Passed'
+  },
+
+  // ── F21: Achievement Management Validation (F21_AchievementManagement) ────────
+  {
+    tcId: 'TC_ACH_021_001',
+    feature: 'F21_AchievementManagement',
+    formName: 'Update Achievement Form',
+    type: 'B', // Boundary
+    scenario: 'Required progress target set to 0',
+    payload: { achievementId: 1, name: 'Warrior', targetProgress: 0 },
+    expectedValidation: 'Target progress must be at least 1',
+    status: 'Passed'
+  },
+
+  // ── F24: Statistics Dashboard Filter Validation (F24_Statistics) ─────────────
+  {
+    tcId: 'TC_STA_024_001',
+    feature: 'F24_Statistics',
+    formName: 'Statistics Date Range Filter',
+    type: 'A', // Abnormal
+    scenario: 'Stats filter where fromDate is after toDate',
+    payload: { fromDate: '2026-12-01', toDate: '2026-01-01' },
+    expectedValidation: 'From date must be before to date',
+    status: 'Passed'
   }
 ];
 
-/* F22_AdminManagement has no form left to validate: POST/PUT /api/adminaccounts
-   were removed from the BE along with the SuperAdmin role, so there is no role
-   field for an "invalid role" case to exercise. */
+/* Note: F15 (TransactionList) has no admin create/update form — read-only view only.
+   F22_AdminManagement admin account management endpoints were removed from the BE. */
 
 function runValidationTests() {
   console.log(`======================================================================`);
