@@ -163,9 +163,15 @@ export default function SendMailPage() {
   const filteredItems = useMemo(
     () =>
       allItems.filter(
-        (item) =>
-          item.name.toLowerCase().includes(itemSearch.toLowerCase()) ||
-          String(item.itemId).includes(itemSearch)
+        (item) => {
+          const nameLower = item.name.toLowerCase();
+          // Exclude Gold and Gem from item list since they have dedicated quantity inputs above
+          if (nameLower === "gold" || nameLower === "gem") return false;
+          return (
+            nameLower.includes(itemSearch.toLowerCase()) ||
+            String(item.itemId).includes(itemSearch)
+          );
+        }
       ),
     [allItems, itemSearch]
   );
