@@ -42,6 +42,7 @@ const SLOTS = [
   { value: "Pants", label: "Pants / Leggings" },
   { value: "Ring", label: "Ring" },
   { value: "Necklace", label: "Necklace" },
+  { value: "Shield", label: "Shield" },
 ];
 
 // Renders the edit item page view component.
@@ -258,14 +259,14 @@ export default function EditItemPage() {
             />
           </FormField>
 
-          <FormField label="Corruption Reduction" htmlFor="corruptionReduction" hint="0 to 1">
+          <FormField label="Corruption Reduction" htmlFor="corruptionReduction" hint="0 to 100">
             <TextInput
               id="corruptionReduction"
               type="number"
               value={formData.corruptionReduction}
               onChange={(e) => handleChange("corruptionReduction", Number(e.target.value))}
               min="0"
-              max="1"
+              max="100"
               step="0.01"
             />
           </FormField>
