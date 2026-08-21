@@ -20,6 +20,7 @@ const ITEM_TYPES = [
   { value: "Consumable", label: "Consumable" },
   { value: "Material", label: "Material" },
   { value: "QuestItem", label: "Quest Item" },
+  { value: "Currency", label: "Currency" },
 ];
 
 const RARITIES = [
@@ -38,6 +39,7 @@ const SLOTS = [
   { value: "Helmet", label: "Helmet" },
   { value: "Gloves", label: "Gloves" },
   { value: "Boots", label: "Boots" },
+  { value: "Pants", label: "Pants / Leggings" },
   { value: "Ring", label: "Ring" },
   { value: "Necklace", label: "Necklace" },
 ];
@@ -66,6 +68,7 @@ export default function EditItemPage() {
     description: "",
     baseValue: 0,
     maxStack: 1,
+    corruptionReduction: 0,
     isActive: true,
     baseHp: 0,
     baseAtk: 0,
@@ -95,6 +98,7 @@ export default function EditItemPage() {
           description: item.description || "",
           baseValue: item.baseValue,
           maxStack: item.maxStack,
+          corruptionReduction: item.corruptionReduction || 0,
           isActive: item.isActive ?? true,
           baseHp: item.baseHp || 0,
           baseAtk: item.baseAtk || 0,
@@ -148,6 +152,7 @@ export default function EditItemPage() {
         description: formData.description || undefined,
         baseValue: formData.baseValue,
         maxStack: formData.maxStack,
+        corruptionReduction: formData.corruptionReduction,
         isActive: formData.isActive,
         baseHp: formData.baseHp || undefined,
         baseAtk: formData.baseAtk || undefined,
@@ -250,6 +255,18 @@ export default function EditItemPage() {
               min="1"
               max="9999"
               required
+            />
+          </FormField>
+
+          <FormField label="Corruption Reduction" htmlFor="corruptionReduction" hint="0 to 1">
+            <TextInput
+              id="corruptionReduction"
+              type="number"
+              value={formData.corruptionReduction}
+              onChange={(e) => handleChange("corruptionReduction", Number(e.target.value))}
+              min="0"
+              max="1"
+              step="0.01"
             />
           </FormField>
         </div>

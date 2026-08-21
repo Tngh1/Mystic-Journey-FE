@@ -210,7 +210,7 @@ export default function AdminTable<T extends object>({
                   <button
                     title="Update"
                     aria-label="Update"
-                    onClick={() => onUpdate(item)}
+                    onClick={(e) => { e.stopPropagation(); onUpdate(item); }}
                     className="flex h-11 w-11 cursor-pointer items-center justify-center border-2 border-transparent text-parchment-dim transition-colors hover:border-accent hover:text-accent"
                   >
                     <Edit2 className="h-4 w-4" aria-hidden="true" />
@@ -220,7 +220,7 @@ export default function AdminTable<T extends object>({
                   <button
                     title="Delete"
                     aria-label="Delete"
-                    onClick={() => onDelete(item)}
+                    onClick={(e) => { e.stopPropagation(); onDelete(item); }}
                     className="flex h-11 w-11 cursor-pointer items-center justify-center border-2 border-transparent text-parchment-dim transition-colors hover:border-danger hover:text-danger"
                   >
                     <Trash2 className="h-4 w-4" aria-hidden="true" />
