@@ -26,6 +26,19 @@ export interface WikiListParams {
   sortOrder?: "asc" | "desc";
 }
 
+type SkillApiShape = SkillResponse & {
+  imageURL?: string | null;
+  iconUrl?: string | null;
+  iconURL?: string | null;
+};
+
+function normalizeWikiSkill(skill: SkillApiShape): SkillResponse {
+  return {
+    ...skill,
+    imageUrl: skill.imageUrl ?? skill.imageURL ?? skill.iconUrl ?? skill.iconURL ?? null,
+  };
+}
+
 // Fetches character class encyclopedic definitions and base scaling stats.
 export async function getWikiClasses() {
   return get<ClassConfigResponse[]>("/api/wiki/classes"); // GET /api/wiki/classes
@@ -53,10 +66,17 @@ export async function getWikiItem(id: number) {
 
 // Retrieves public skill compendium entries.
 export async function getWikiSkills(params: Omit<WikiListParams, "sortBy" | "sortOrder"> = {}) {
-  return get<PagedResponse<SkillResponse>>(`/api/wiki/skills?${query({ ...params })}`); // GET /api/wiki/skills
+  const response = await get<PagedResponse<SkillApiShape>>(
+    "/api/wiki/skills?" + query({ ...params, _ts: Date.now() }),
+  );
+  return {
+    ...response,
+    items: (response.items ?? []).map(normalizeWikiSkill),
+  };
 }
 
 // Fetches detailed skill scaling ratios from public encyclopedia.
 export async function getWikiSkill(id: number) {
-  return get<SkillResponse>(`/api/wiki/skills/${id}`); // Query skill card
+  const response = await get<SkillApiShape>("/api/wiki/skills/" + id + "?_ts=" + Date.now());
+  return normalizeWikiSkill(response);
 }
