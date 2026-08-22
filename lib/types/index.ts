@@ -397,6 +397,21 @@ export interface UpdateQuestRewardSkillRequest {
   skillId: number;
 }
 
+export interface QuestDialogueResponse {
+  npcDialogueId: number;
+  npcId: number;
+  npcName: string | null;
+  content: string;
+  displayOrder: number;
+  isActive: boolean;
+}
+
+export interface UpdateQuestDialogueRequest {
+  content: string;
+  displayOrder: number;
+  isActive: boolean;
+}
+
 export interface QuestResponse {
   questId: number;
   title: string;
@@ -429,6 +444,7 @@ export interface QuestResponse {
   dialogueContent: string | null;
   dialogueDisplayOrder: number | null;
   dialogueIsActive: boolean | null;
+  dialogues: QuestDialogueResponse[];
   isActive: boolean;
 }
 
@@ -458,6 +474,7 @@ export interface UpdateQuestRequest {
   dialogueContent?: string | null;
   dialogueDisplayOrder?: number | null;
   dialogueIsActive?: boolean | null;
+  dialogues?: UpdateQuestDialogueRequest[];
   isActive?: boolean;
 }
 
