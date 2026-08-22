@@ -30,6 +30,39 @@ export function ClassIcon({ cls, size = 14 }: { cls: string; size?: number }) {
   return <Star style={{ width: size, height: size }} />;
 }
 
+export function SkillArtwork({
+  skill,
+  className = "",
+  iconSize = 24,
+}: {
+  skill: SkillResponse;
+  className?: string;
+  iconSize?: number;
+}) {
+  const imageUrl = skill.imageUrl?.trim();
+
+  return (
+    <span className={"relative flex items-center justify-center overflow-hidden bg-wood-dark " + className}>
+      <span className="text-amber-300" aria-hidden="true">
+        <SkillTypeIcon type={skill.type} size={iconSize} />
+      </span>
+      {imageUrl && (
+        // Skill artwork is uploaded to an admin-configured external URL, so a native image
+        // avoids coupling the wiki to a fixed Next.js remote-host allowlist.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={imageUrl}
+          alt={skill.name}
+          className="absolute inset-0 h-full w-full object-contain p-1"
+          onError={(event) => {
+            event.currentTarget.style.display = "none";
+          }}
+        />
+      )}
+    </span>
+  );
+}
+
 // Helper function executing format number.
 // Processes input parameters and returns the calculated result.
 function formatNumber(n: number | null | undefined): string {
@@ -110,9 +143,11 @@ export default function SkillLeaf({ skill }: { skill: SkillResponse }) {
           <div className="relative flex h-16 w-16 items-center justify-center bg-wood-dark border-2 shadow-md group">
             <div className="absolute -inset-0.5 rounded-sm opacity-50 blur-sm animate-rarity-pulse bg-amber-500/60" />
             <div className="relative flex h-full w-full items-center justify-center bg-wood-dark p-1 border border-accent-deep/40 overflow-hidden">
-              <span className="text-amber-300 transition-transform duration-300 group-hover:scale-110">
-                <SkillTypeIcon type={skill.type} size={32} />
-              </span>
+              <SkillArtwork
+                skill={skill}
+                className="h-full w-full transition-transform duration-300 group-hover:scale-110"
+                iconSize={32}
+              />
             </div>
           </div>
 
