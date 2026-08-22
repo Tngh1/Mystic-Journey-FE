@@ -29,6 +29,10 @@ import FormField from "@/components/form/FormField";
 import FormActions from "@/components/form/FormActions";
 import FormAlert from "@/components/form/FormAlert";
 import { TextInput, TextArea, SelectInput, Checkbox } from "@/components/form/FormInput";
+import QuestDialogueEditor, {
+  normalizeQuestDialogues,
+  type QuestDialogueDraft,
+} from "../_components/QuestDialogueEditor";
 
 const QUEST_TYPES = [
   { value: "Main", label: "Main" },
@@ -116,7 +120,7 @@ function addFallbackOption(options: SelectOption[], value: string, labelSuffix =
 type FormData = {
   title: string;
   description: string;
-  dialogueContent: string;
+  dialogues: QuestDialogueDraft[];
   // Supported quest types: Main, Side, Daily, or Event; the type determines how the quest is grouped and presented.
   type: string;
   // Supported quest defaults: NotStarted, InProgress, Completed, Claimed, or Failed; this value initializes player quest progress.
@@ -141,7 +145,7 @@ type FormData = {
 const INITIAL_FORM: FormData = {
   title: "",
   description: "",
-  dialogueContent: "",
+  dialogues: [{ content: "", isActive: true }],
   // Supported quest types: Main, Side, Daily, or Event; the type determines how the quest is grouped and presented.
   type: "Main",
   // Supported quest defaults: NotStarted, InProgress, Completed, Claimed, or Failed; this value initializes player quest progress.
@@ -351,11 +355,12 @@ export default function CreateQuestPage() {
   // Renders the dialogue preview view component.
   // Returns the JSX element hierarchy for the page view.
   const dialoguePreview = useMemo(() => {
-    if (formData.dialogueContent.trim()) return formData.dialogueContent.trim();
-    if (formData.description.trim()) return formData.description.trim();
-    if (formData.title.trim()) return `I need help with ${formData.title.trim()}.`;
-    return "I have a task for you.";
-  }, [formData.description, formData.dialogueContent, formData.title]);
+    const dialogues = normalizeQuestDialogues(formData.dialogues);
+    if (dialogues.length > 0) return dialogues.map((dialogue) => dialogue.content);
+    if (formData.description.trim()) return [formData.description.trim()];
+    if (formData.title.trim()) return ["I need help with " + formData.title.trim() + "."];
+    return ["I have a task for you."];
+  }, [formData.description, formData.dialogues, formData.title]);
 
   // Renders the normalized reward items view component.
   // Returns the JSX element hierarchy for the page view.
@@ -504,7 +509,8 @@ export default function CreateQuestPage() {
       return;
     }
 
-    if (formData.dialogueContent.trim() && !formData.questGiverName.trim()) {
+    const dialogues = normalizeQuestDialogues(formData.dialogues);
+    if (dialogues.length > 0 && !formData.questGiverName.trim()) {
       setError("Choose an existing Quest Giver / NPC before saving dialogue.");
       return;
     }
@@ -544,9 +550,10 @@ export default function CreateQuestPage() {
         rewardSkillId: rewardSkills[0]?.skillId ?? null,
         rewardSkills,
         syncDialogue: true,
-        dialogueContent: formData.dialogueContent.trim() || null,
-        dialogueDisplayOrder: 0,
-        dialogueIsActive: Boolean(formData.dialogueContent.trim()),
+        dialogues,
+        dialogueContent: dialogues[0]?.content ?? null,
+        dialogueDisplayOrder: dialogues[0]?.displayOrder ?? 0,
+        dialogueIsActive: dialogues[0]?.isActive ?? false,
         isActive: formData.isActive,
       });
       await showSuccessAlert("Success!", "Quest created successfully.");  // Display styled success alert dialog to the user
@@ -648,15 +655,11 @@ export default function CreateQuestPage() {
               </FormField>
             </div>
 
-            <FormField label="Quest Dialogue Content" htmlFor="dialogueContent">
-              <TextArea
-                id="dialogueContent"
-                value={formData.dialogueContent}
-                onChange={(e) => handleChange("dialogueContent", e.target.value)}
-                placeholder="NPC dialogue shown for this linked quest"
-                rows={4}
-              />
-            </FormField>
+            <QuestDialogueEditor
+              idPrefix="create-quest-dialogue"
+              dialogues={formData.dialogues}
+              onChange={(dialogues) => handleChange("dialogues", dialogues)}
+            />
 
             <button
               type="button"
@@ -966,7 +969,14 @@ export default function CreateQuestPage() {
               <p className="text-xs font-semibold uppercase tracking-wider text-purple-200/60">
                 {formData.questGiverName.trim() || "NPC"}
               </p>
-              <p className="mt-2 text-sm leading-6 text-white/75">{dialoguePreview}</p>
+              <div className="mt-2 space-y-2">
+                {dialoguePreview.map((line, index) => (
+                  <p key={index} className="text-sm leading-6 text-white/75">
+                    <span className="mr-2 text-purple-300/60">{index + 1}.</span>
+                    {line}
+                  </p>
+                ))}
+              </div>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
               <div className="rounded-lg bg-black/20 p-2">

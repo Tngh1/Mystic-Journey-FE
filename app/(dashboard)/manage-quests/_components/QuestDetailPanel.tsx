@@ -208,7 +208,23 @@ export default function QuestDetailPanel({ quest, onClose }: QuestDetailPanelPro
             Dialogue Link
           </div>
 
-          {quest.dialogueId ? (
+          {quest.dialogues?.length ? (
+            <div className="space-y-2">
+              {[...quest.dialogues]
+                .sort((left, right) => left.displayOrder - right.displayOrder)
+                .map((dialogue, index) => (
+                  <div key={dialogue.npcDialogueId} className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
+                    <div className="mb-2 flex items-center justify-between gap-3 text-xs">
+                      <span className="font-semibold text-purple-200">Dialogue {index + 1}</span>
+                      <span className={dialogue.isActive ? "text-emerald-400" : "text-red-400"}>
+                        {dialogue.isActive ? "Active" : "Inactive"}
+                      </span>
+                    </div>
+                    <p className="text-xs leading-relaxed text-white/60 italic">&ldquo;{dialogue.content}&rdquo;</p>
+                  </div>
+                ))}
+            </div>
+          ) : quest.dialogueId ? (
             <>
               <InfoRow label="Dialogue ID"  value={<span className="flex items-center gap-1"><Hash className="h-3 w-3 text-white/30" />{quest.dialogueId}</span>} />
               <InfoRow label="NPC"          value={quest.dialogueNpcName || <span className="italic text-white/30">Unknown</span>} />
