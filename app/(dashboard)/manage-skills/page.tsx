@@ -7,6 +7,7 @@ import AdminTable from "@/components/ui/AdminTable";
 import FilterSortBar from "@/components/ui/FilterSortBar";
 import { usePagedQuery } from "@/lib/hooks/usePagedQuery";
 import type { SkillResponse } from "@/lib/api/skills";
+import { SkillArtwork } from "@/components/wiki/SkillLeaf";
 
 const SKILL_TYPES = ["Active", "Passive", "Buff", "Debuff"];
 
@@ -54,11 +55,18 @@ export default function ManageSkillsPage() {
       key: "skillId",
       label: "Skill",
       render: (_: never, skill: SkillResponse) => (
-        <div className="min-w-52">
-          <p className="font-bold text-fg transition-colors group-hover:text-accent">
-            {skill.name}
-          </p>
-          <p className="mt-0.5 text-xs text-fg-muted">ID #{skill.skillId}</p>
+        <div className="flex min-w-52 items-center gap-3">
+          <SkillArtwork
+            skill={skill}
+            className="h-12 w-12 shrink-0 border-2 border-black/60 bg-iron-dark"
+            iconSize={22}
+          />
+          <div>
+            <p className="font-bold text-fg transition-colors group-hover:text-accent">
+              {skill.name}
+            </p>
+            <p className="mt-0.5 text-xs text-fg-muted">ID #{skill.skillId}</p>
+          </div>
         </div>
       ),
     },

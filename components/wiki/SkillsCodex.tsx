@@ -10,7 +10,7 @@ import BookSpread, {
   BookPager,
   BookPageTitle,
 } from "@/components/ui/BookSpread";
-import SkillLeaf, { SkillTypeIcon, ClassIcon } from "@/components/wiki/SkillLeaf";
+import SkillLeaf, { SkillTypeIcon, ClassIcon, SkillArtwork } from "@/components/wiki/SkillLeaf";
 
 const PAGE_SIZE = 12;
 
@@ -74,9 +74,11 @@ function SkillIndexEntry({
           backgroundColor: active ? `${accentColor}22` : undefined,
         }}
       >
-        <span className="text-amber-300 transition-transform group-hover:scale-110">
-          <SkillTypeIcon type={skill.type} size={24} />
-        </span>
+        <SkillArtwork
+          skill={skill}
+          className="h-full w-full transition-transform group-hover:scale-110"
+          iconSize={24}
+        />
 
 
         <span
