@@ -12,7 +12,7 @@ const DOWNLOAD = {
   version: "v1.0",
   size: "ZIP Archive",
   releaseDate: "Aug 3, 2026",
-  href: "https://drive.google.com/uc?export=download&id=1acBCh4BpaVLNbgYc7ajVeX1aIKjnWEtd",
+  href: "https://drive.google.com/uc?export=download&id=1HMuzjsnFIgTsYzxeFn7ASB0EwPLmKhfz",
   requirements: ["Windows 7, Windows 10, or later", "4 GB RAM minimum", "2 GB available space"],
 };
 
