@@ -12,7 +12,7 @@ const DOWNLOAD = {
   version: "v1.0",
   size: "ZIP Archive",
   releaseDate: "Aug 3, 2026",
-  href: "https://drive.google.com/uc?export=download&id=1HMuzjsnFIgTsYzxeFn7ASB0EwPLmKhfz",
+  href: "https://drive.google.com/file/d/1w2hp3nC8itdiPY1D44vmZ4tcKPX13dt2/view?usp=sharing",
   requirements: ["Windows 7, Windows 10, or later", "4 GB RAM minimum", "2 GB available space"],
 };
 
@@ -63,9 +63,8 @@ function BranchSign({
       className={`relative w-full md:w-[54%] ${isLeft ? "md:mr-auto md:pr-6" : "md:ml-auto md:pl-6"}`}
     >
       <span
-        className={`pointer-events-none absolute top-0 hidden h-3 border-y-2 ${OUTLINE} bg-wood ${BARK} shadow-[inset_0_2px_0_var(--color-wood-light),inset_0_-2px_0_var(--color-wood-dark)] md:block ${
-          isLeft ? "left-0 -right-4" : "-left-4 right-0"
-        }`}
+        className={`pointer-events-none absolute top-0 hidden h-3 border-y-2 ${OUTLINE} bg-wood ${BARK} shadow-[inset_0_2px_0_var(--color-wood-light),inset_0_-2px_0_var(--color-wood-dark)] md:block ${isLeft ? "left-0 -right-4" : "-left-4 right-0"
+          }`}
         aria-hidden="true"
       />
 
@@ -111,9 +110,8 @@ function RequirementSign({
   return (
     <BranchSign side={side} labelledBy={id}>
       <div
-        className={`flex items-center gap-2 border-b-2 bg-wood-dark px-4 py-2.5 ${
-          featured ? "border-accent" : OUTLINE
-        }`}
+        className={`flex items-center gap-2 border-b-2 bg-wood-dark px-4 py-2.5 ${featured ? "border-accent" : OUTLINE
+          }`}
       >
         <Cpu
           className={`h-4 w-4 shrink-0 ${featured ? "text-accent" : "text-parchment-dim"}`}
@@ -121,9 +119,8 @@ function RequirementSign({
         />
         <h3
           id={id}
-          className={`text-sm font-black uppercase tracking-[0.2em] ${
-            featured ? "text-accent" : "text-parchment"
-          }`}
+          className={`text-sm font-black uppercase tracking-[0.2em] ${featured ? "text-accent" : "text-parchment"
+            }`}
         >
           {title}
         </h3>
